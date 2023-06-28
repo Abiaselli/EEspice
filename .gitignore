@@ -30,3 +30,8 @@
 *.exe
 *.out
 *.app
+MatrixMul/.vscode/
+
+MatrixMul/onemkl/build/
+
+MatrixMul/sycl/build/

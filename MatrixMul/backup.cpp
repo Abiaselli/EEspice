@@ -18,10 +18,14 @@
 #include <iostream>
 #include <limits>
 
+// dpc_common.hpp can be found in the dev-utilities include folder.
+// e.g., $ONEAPI_ROOT/dev-utilities/<version>/include/dpc_common.hpp
+#include "dpc_common.hpp"
+
+#include <benchmark/benchmark.h>
+
 using namespace std;
 using namespace sycl;
-
-#include "dpc_common.hpp"
 
 /**
  * Each element of the product matrix c[i][j] is computed from a unique row and
@@ -29,7 +33,7 @@ using namespace sycl;
  */
 
 // Matrix size constants.
-constexpr int m_size = 150 * 8; 
+constexpr int m_size = 150 * 8;  // Must be a multiple of 8.
 constexpr int M = m_size / 8;
 constexpr int N = m_size / 4;
 constexpr int P = m_size / 2;
@@ -50,6 +54,7 @@ int main() {
   // Initialize the device queue with the default selector. The device queue is
   // used to enqueue kernels. It encapsulates all states needed for execution.
   try {
+
     queue q(default_selector_v);
 
     cout << "Device: " << q.get_device().get_info<info::device::name>() << "\n";
@@ -92,41 +97,76 @@ int main() {
       });
     });
 
+
+
     // Submit command group to queue to multiply matrices: c = a * b
-    q.submit([&](auto &h) {
-      // Read from a and b, write to c
-      accessor a(a_buf, h, read_only);
-      accessor b(b_buf, h, read_only);
-      accessor c(c_buf, h, write_only);
+    // q.submit([&](auto &h) {
+    //   // Read from a and b, write to c
+    //   accessor a(a_buf, h, read_only);
+    //   accessor b(b_buf, h, read_only);
+    //   accessor c(c_buf, h, write_only);
 
-      int width_a = a_buf.get_range()[1];
+    //   int width_a = a_buf.get_range()[1];
 
-      // Execute kernel.
-      h.parallel_for(range(M, P), [=](auto index) {
-        // Get global position in Y direction.
-        int row = index[0];
-        // Get global position in X direction.
-        int col = index[1];
+    //   // Execute kernel.
+    //   h.parallel_for(range(M, P), [=](auto index) {
+    //     // Get global position in Y direction.
+    //     int row = index[0];
+    //     // Get global position in X direction.
+    //     int col = index[1];
 
-        float sum = 0.0f;
+    //     float sum = 0.0f;
 
-        // Compute the result of one element of c
-        for (int i = 0; i < width_a; i++) {
-          sum += a[row][i] * b[i][col];
-        }
+    //     // Compute the result of one element of c
+    //     for (int i = 0; i < width_a; i++) {
+    //       sum += a[row][i] * b[i][col];
+    //     }
 
-        c[index] = sum;
-      });
-    });
+    //     c[index] = sum;
+    //   });
+    // });
   } catch (sycl::exception const &e) {
     cout << "An exception is caught while multiplying matrices.\n";
     terminate();
+  }
+
+  static void BM_SomeFunction(benchmark::State& state) {
+    for (auto _ : state) {
+        q.submit([&](auto &h) {
+        // Read from a and b, write to c
+        accessor a(a_buf, h, read_only);
+        accessor b(b_buf, h, read_only);
+        accessor c(c_buf, h, write_only);
+
+        int width_a = a_buf.get_range()[1];
+
+        // Execute kernel.
+        h.parallel_for(range(M, P), [=](auto index) {
+          // Get global position in Y direction.
+          int row = index[0];
+          // Get global position in X direction.
+          int col = index[1];
+
+          float sum = 0.0f;
+
+          // Compute the result of one element of c
+          for (int i = 0; i < width_a; i++) {
+            sum += a[row][i] * b[i][col];
+          }
+
+          c[index] = sum;
+        });
+      });
+    }
   }
 
   int result;
   cout << "Result of matrix multiplication using SYCL: ";
   result = VerifyResult(c_back);
   delete[] c_back;
+
+  BENCHMARK(BM_SomeFunction);
+  BENCHMARK_MAIN();
 
   return result;
 }
