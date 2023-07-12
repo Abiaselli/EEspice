@@ -537,7 +537,7 @@ void C_assigner(int node_x,int node_y,double C, double h, arma::mat &LHS, arma::
     double x = 0;
     double x1 = 0;
     // this if else statment uses trapezoidal formula
-    if(mode>0){
+    if(mode== 1){
         x = C/h;
         if(node_x == 0){
             x1 = C*(solution(node_y-1,0))/h;
@@ -545,6 +545,16 @@ void C_assigner(int node_x,int node_y,double C, double h, arma::mat &LHS, arma::
             x1 = C*(solution(node_x-1,0))/h;
         }else{
             x1 = C*(solution(node_x-1,0)-solution(node_y-1,0))/h;
+        }
+    }
+    else if (mode == 2){
+        x = 2*C/h;  // x is the equivalent resistance, x1 is the equivalent current source
+        if(node_x == 0){
+            x1 = 2*C*(solution(node_y-1,0))/h;
+        }else if(node_y == 0){
+            x1 = 2*C*(solution(node_x-1,0))/h;
+        }else{
+            x1 = 2*C*(solution(node_x-1,0)-solution(node_y-1,0))/h;
         }
     }
     else{
@@ -633,7 +643,7 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
     error.row(0) = error_val;
     int iteration_counter = 0;
     arma::mat delta = arma::zeros(row_size,1);
-    while((error(0,0) > eps_val) && (iteration_counter < 50)){ // iteration counter can be changed depending on the non-linearity of the circuit
+    while((error(0,0) > eps_val) && (iteration_counter < 8)){ // iteration counter can be changed depending on the non-linearity of the circuit
         auto matrices = DynamicNonLinear(LHS,RHS,solution,h,mode);
         delta = arma::solve(matrices.first,(matrices.first*solution) - matrices.second);
         error.row(0) = arma::max(arma::abs(delta));

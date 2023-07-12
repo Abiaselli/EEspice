@@ -58,9 +58,9 @@ std::pair<arma::mat,arma::mat> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS, 
     RingOscillatorStages(W_oscillator, L_oscillator, R_oscillator, C_oscillator, LHS, RHS, solution, h, mode);
     
     arma::mat J_x = LHS;
-    arma::mat F_x = RHS;
+    arma::mat Z_x = RHS;
     
-    return {J_x,F_x};
+    return {J_x,Z_x};
 }
 
 // Main function for the circuit simulation
