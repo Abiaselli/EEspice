@@ -39,3 +39,4 @@ MatrixMul/sycl/build/
 circuit_test/C\+\+/.vscode/
 
 circuit_test/C\+\+/Circuit_test/build/
+.vscode/settings.json

@@ -9,7 +9,7 @@
 #include <chrono>
 
 // Matrix stamps assigner using Modified Nodal Analysis
-std::pair<arma::mat,arma::mat> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS, arma::mat solution, double h, int mode);
+std::pair<arma::mat,arma::mat> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS, arma::mat solution, arma::mat pre_solution, double h, int mode);
 void R_assigner(double node_x, double node_y, double R, arma::mat &LHS, arma::mat &RHS);
 void Is_assigner(double node_x, double node_y, double I, arma::mat &LHS, arma::mat &RHS);
 double Vs_assigner(int node_x, int node_y, double V_value, arma::mat &LHS, arma::mat &RHS);
@@ -17,6 +17,7 @@ void C_assigner(int node_x,int node_y,double C, double h, arma::mat &LHS, arma::
 void Diode_assigner(int node_x, int node_y, double Is, double VT, double cd, double h, arma::mat &LHS, arma::mat &RHS, arma::mat solution, int mode);
 void VCCS_assigner(int node_x,int node_y,int node_cx,int node_cy,double R,arma::mat &LHS);
 void NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node_vb, double h, arma::mat &solution, arma::mat &LHS, arma::mat &RHS,  int mode);
+void C_assigner_2(int node_x,int node_y,double C, double h, arma::mat &LHS, arma::mat &RHS, arma::mat solution, arma::mat pre_solution, int mode);
 
 // Sum the matrices inside the vector
 arma::mat mat_sum(std::vector<arma::mat> vector_of_matrices){
@@ -486,7 +487,7 @@ double PMOS_assigner(int number, int node_vs, int node_vg, int node_vd, int node
     return id;
 }
 
-void RingOscillatorStages(double W,double L,double R, double C,arma::mat &LHS, arma::mat &RHS, arma::mat solution, double h, int mode){
+void RingOscillatorStages(double W,double L,double R, double C,arma::mat &LHS, arma::mat &RHS, arma::mat solution, arma::mat pre_solution,double h, int mode){
     // (Diode_assigner, PMOS_assigner, NMOS_assigner, C_assigner)
     /*--------------------------------------------can be changed-------------------------------------------------*/
     int even = 0;
@@ -501,13 +502,13 @@ void RingOscillatorStages(double W,double L,double R, double C,arma::mat &LHS, a
             PMOS_assigner(odd, supply_voltage_node, n_even, n_odd, supply_voltage_node, W, L, h, solution, LHS, RHS, mode);
             NMOS_assigner(even, n_odd, n_even, 0, 0, W, L, h, solution, LHS, RHS, mode);
             R_assigner(n_odd, supply_voltage_node+1, R, LHS, RHS);
-            C_assigner(supply_voltage_node+1, 0, C, h, LHS, RHS, solution, mode);
+            C_assigner_2(supply_voltage_node+1, 0, C, h, LHS, RHS, solution, pre_solution,mode);
         }
         else{
             PMOS_assigner(odd, supply_voltage_node, n_even, n_odd, supply_voltage_node, W, L, h, solution, LHS, RHS, mode);
             NMOS_assigner(even, n_odd, n_even, 0, 0, W, L, h, solution, LHS, RHS, mode);
             R_assigner(n_odd, n_even+2, R, LHS, RHS);
-            C_assigner(n_even+2, 0, C, h, LHS, RHS, solution, mode);
+            C_assigner_2(n_even+2, 0, C, h, LHS, RHS, solution, pre_solution,mode);
         }
         odd += 2;
     }
@@ -566,6 +567,37 @@ void C_assigner(int node_x,int node_y,double C, double h, arma::mat &LHS, arma::
     // Matrix stamp for a capacitor on RHS
     Is_assigner(node_x,node_y,-x1,LHS,RHS);
 }
+
+double previous_current = 0;
+void C_assigner_2(int node_x,int node_y,double C, double h, arma::mat &LHS, arma::mat &RHS, arma::mat solution, arma::mat pre_solution, int mode){
+    
+    double x = 0;
+    double x1 = 0;
+    // this if else statment uses trapezoidal formula
+    if(mode== 1){
+        x = 2*C/h;  // x is the equivalent resistance, x1 is the equivalent current source
+
+        if(node_x == 0){
+            x1 = 2*C*(solution(node_y-1,0))/h;
+            previous_current =  2*C*(solution(node_y-1,0))/h - (2*C*(pre_solution(node_y-1,0))/h + previous_current);
+        }else if(node_y == 0){
+            x1 = 2*C*(solution(node_x-1,0))/h;
+            previous_current =  2*C*(solution(node_x-1,0))/h - (2*C*(pre_solution(node_x-1,0))/h + previous_current);
+        }else{
+            x1 = 2*C*(solution(node_x-1,0)-solution(node_y-1,0))/h;
+            previous_current =  2*C*(solution(node_x-1,0)-solution(node_y-1,0))/h - (2*C*(pre_solution(node_x-1,0)-pre_solution(node_y-1,0))/h + previous_current);
+        }
+    }
+    else{
+        x = 0;
+        x1 = 0;
+    }
+    // Matrix stamp for a capacitor on LHS
+    R_assigner(node_x,node_y,cond(x),LHS,RHS);
+    // Matrix stamp for a capacitor on RHS
+    Is_assigner(node_x,node_y,-(x1+previous_current),LHS,RHS);
+}
+
 
 // Voltage pulse assigner
 double V_pulse(double V1, double V2, double &t1,double td, double tr, double tf, double tpw, double tper, double h){
@@ -634,7 +666,7 @@ void Diode_assigner(int node_x, int node_y, double Is, double VT, double cd, dou
 }
 
 // Newton Raphson system solver for non-linear and dynamic elements
-arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RHS, arma::mat LHS, arma::mat RHS, arma::mat &solution, double &h, int mode){
+arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RHS, arma::mat LHS, arma::mat RHS, arma::mat &solution, arma::mat &pre_solution,double &h, int mode){
     int col_size = LHS.n_cols;
     int row_size = LHS.n_rows;
     double eps_val = 1e-8;
@@ -643,13 +675,16 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
     error.row(0) = error_val;
     int iteration_counter = 0;
     arma::mat delta = arma::zeros(row_size,1);
+
     while((error(0,0) > eps_val) && (iteration_counter < 8)){ // iteration counter can be changed depending on the non-linearity of the circuit
-        auto matrices = DynamicNonLinear(LHS,RHS,solution,h,mode);
+        pre_solution = solution;
+        auto matrices = DynamicNonLinear(LHS,RHS,solution,pre_solution,h,mode);
         delta = arma::solve(matrices.first,(matrices.first*solution) - matrices.second);
         error.row(0) = arma::max(arma::abs(delta));
         solution -= delta;
         iteration_counter += 1;
     }
+    
     return solution;
 }
 

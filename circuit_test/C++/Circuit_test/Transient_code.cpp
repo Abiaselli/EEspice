@@ -25,7 +25,7 @@ double W_oscillator = 500e-9;
 double L_oscillator = 50e-9;
 double C_oscillator = 1e-15;
 double R_oscillator = 1e3;
-int const cascaded_level = 5; // Number of cascaded ring oscillators 
+int const cascaded_level = 3; // Number of cascaded ring oscillators 
 int const supply_voltage_node = 1; // supply voltage node for the ring oscillator
 
 // TRANSIENT SIMULATION SETTINGS
@@ -52,10 +52,10 @@ int const T_nodes = external_nodes + 4*no_of_mosfets + 2*cascaded_level;
 */
 
 // Assigning the stamp matrices for dynamic and non-linear components
-std::pair<arma::mat,arma::mat> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS, arma::mat solution, double h, int mode){
+std::pair<arma::mat,arma::mat> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS, arma::mat solution, arma::mat pre_solution,double h, int mode){
     // (All the circuit assigners can be used except for voltage and current sources)
     /*--------------------------------------------can be changed-------------------------------------------------*/
-    RingOscillatorStages(W_oscillator, L_oscillator, R_oscillator, C_oscillator, LHS, RHS, solution, h, mode);
+    RingOscillatorStages(W_oscillator, L_oscillator, R_oscillator, C_oscillator, LHS, RHS, solution, pre_solution, h, mode);
     
     arma::mat J_x = LHS;
     arma::mat Z_x = RHS;
@@ -125,9 +125,15 @@ int main(int argc, const char ** argv){
     
     // OP analysis used as initial condition for next evaluation
     arma::vec solution= arma::zeros(Maxi,Maxj);
+
+    // Store the previous solution
+    arma::vec pre_solution= arma::zeros(Maxi,Maxj);
+
     // Benchmarking for OP analysis
     auto tstart_op = std::chrono::high_resolution_clock::now();
-    solution = NewtonRaphson_system(init_LHS,init_RHS,LHS,RHS,solution,h,mode);
+    solution = NewtonRaphson_system(init_LHS,init_RHS,LHS,RHS,solution,pre_solution,h,mode);
+    // copy the solution to pre_solution
+    pre_solution = solution;
     auto tstop_op = std::chrono::high_resolution_clock::now();
 
     solution.print("The OP analysis of the circuit is: ");
@@ -155,7 +161,7 @@ int main(int argc, const char ** argv){
         // RHS = RHS_update(RHS_locate, init_RHS, RHS_value);
 
         // Calling the Newton-Raphson system here
-        solution = NewtonRaphson_system(init_LHS,init_RHS, LHS, RHS, solution,h,mode);
+        solution = NewtonRaphson_system(init_LHS,init_RHS, LHS, RHS, solution,pre_solution,h,mode);
         // Assigning the variables that will be plotted and analysed as seen in a circuit simulator
         solution_csv = arma::join_cols(solution_csv,solution);
         i++;
