@@ -23,7 +23,8 @@ void C_assigner(int node_x,int node_y,double C, double h, arma::mat &LHS, arma::
 void Diode_assigner(int node_x, int node_y, double Is, double VT, double cd, double h, arma::mat &LHS, arma::mat &RHS, arma::mat solution, int mode);
 void VCCS_assigner(int node_x,int node_y,int node_cx,int node_cy,double R,arma::mat &LHS);
 void NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node_vb, double h, arma::mat &solution, arma::mat &LHS, arma::mat &RHS,  int mode);
-void C_assigner_2(int node_x,int node_y,double C, double h, arma::mat &LHS, arma::mat &RHS, arma::mat solution, arma::mat pre_solution, int mode);
+void C_assigner_2(int node_x,int node_y,double C, double h, arma::mat &LHS, arma::mat &RHS,arma::mat solution, arma::mat pre_solution, int mode);
+void Diode_assigner_2(int node_x, int node_y, double Is, double VT, double cd, double h, arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J,arma::mat solution, int mode);
 bool isConverge(arma::mat &solution, arma::mat &pre_solution);
 
 // Sum the matrices inside the vector
@@ -494,7 +495,7 @@ double PMOS_assigner(int number, int node_vs, int node_vg, int node_vd, int node
     return id;
 }
 
-void RingOscillatorStages(double W,double L,double R, double C,arma::mat &LHS, arma::mat &RHS, arma::mat solution, arma::mat pre_solution,double h, int mode){
+void RingOscillatorStages(double W,double L,double R, double C,arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J,arma::mat solution, arma::mat pre_solution,double h, int mode){
     // (Diode_assigner, PMOS_assigner, NMOS_assigner, C_assigner)
     /*--------------------------------------------can be changed-------------------------------------------------*/
     int even = 0;
@@ -576,7 +577,7 @@ void C_assigner(int node_x,int node_y,double C, double h, arma::mat &LHS, arma::
 }
 
 double previous_current = 0;
-void C_assigner_2(int node_x,int node_y,double C, double h, arma::mat &LHS, arma::mat &RHS, arma::mat solution, arma::mat pre_solution, int mode){
+void C_assigner_2(int node_x,int node_y,double C, double h, arma::mat &LHS, arma::mat &RHS,arma::mat solution, arma::mat pre_solution, int mode){
     
     double x = 0;
     double x1 = 0;
@@ -672,6 +673,66 @@ void Diode_assigner(int node_x, int node_y, double Is, double VT, double cd, dou
     C_assigner(node_x,node_y,cd,h,LHS,RHS,solution,mode);
 }
 
+void Diode_assigner_2(int node_x, int node_y, double Is, double VT, double cd, double h, arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J, arma::mat solution, arma::mat pre_solution,int mode){
+    int col_size = LHS.n_cols;
+    int row_size = LHS.n_rows;
+
+    int maxi = LHS.n_cols;
+    int maxj = 1;
+    arma::mat a = arma::zeros(maxi,maxj);
+
+    double x = 0;
+    double x1 = 0;
+    double x2 = 0;
+    double val_nodex = 0;
+    double val_nodey = 0;
+
+
+    if(mode == 0){
+        cd = 0;
+    }
+
+    if((node_x == 0 && node_y == 0)){
+        x = 0;
+        x1 = 0;
+    }
+    else if(node_x == 0){
+        val_nodey = solution(node_y-1,0);
+        x = (Is/VT)*(exp(-val_nodey/VT));
+        x1 = (x*(-val_nodey)-Is*(exp((-val_nodey)/VT)-1));
+    }
+    else if(node_y == 0){
+        val_nodex = solution(node_x-1,0);
+        x = (Is/VT)*(exp((val_nodex)/VT));
+        x1 = (x*(val_nodex)-Is*(exp((val_nodex)/VT)-1));
+    }
+    else{
+        val_nodex = solution(node_x-1,0);
+        val_nodey = solution(node_y-1,0);
+        x = (Is/VT)*(exp((val_nodex-val_nodey)/VT));
+        x1 = (x*(val_nodex-val_nodey)-Is*(exp((val_nodex-val_nodey)/VT)-1));
+    }
+    
+    // Matrix stamp for a diode on RHS
+    Is_assigner(node_x,node_y,x1,LHS,RHS);
+    // Matrix stamp for a diode on LHS
+    R_assigner(node_x,node_y,cond(x),LHS,RHS);
+    C_assigner_2(node_x,node_y,cd,h,LHS,RHS,solution,pre_solution,mode);
+    
+    if(node_x == 0){
+        a.row(node_y-1).col(0) = x;
+    }
+    else if(node_y == 0){
+        a.row(node_x-1).col(0) = x;
+    }
+    else{
+        a.row(node_x-1).col(0) = x;
+        a.row(node_y-1).col(0) = -x;
+    }
+
+    RHS_J = RHS_J + a;
+}
+
 // Newton Raphson system solver for non-linear and dynamic elements
 arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RHS, arma::mat LHS, arma::mat RHS, arma::mat &solution, arma::mat &pre_solution,double &h, int mode){
     int col_size = LHS.n_cols;
@@ -702,8 +763,10 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
         isconverge = isConverge(solution, pre_solution);
         iteration_counter += 1;
 
-        if(iteration_counter > 100)
+        if(iteration_counter > 100){
             break;
+        }
+            
     }while(!isconverge);
     
     

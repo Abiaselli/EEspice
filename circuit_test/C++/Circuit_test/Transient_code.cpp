@@ -52,15 +52,16 @@ int const T_nodes = external_nodes + 4*no_of_mosfets + 2*cascaded_level;
 */
 
 // Assigning the stamp matrices for dynamic and non-linear components
-std::pair<arma::mat,arma::mat> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS, arma::mat solution, arma::mat pre_solution,double h, int mode){
+std::pair<arma::mat,std::pair<arma::mat, arma::mat>> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J, arma::mat solution, arma::mat pre_solution,double h, int mode){
     // (All the circuit assigners can be used except for voltage and current sources)
     /*--------------------------------------------can be changed-------------------------------------------------*/
-    RingOscillatorStages(W_oscillator, L_oscillator, R_oscillator, C_oscillator, LHS, RHS, solution, pre_solution, h, mode);
+    RingOscillatorStages(W_oscillator, L_oscillator, R_oscillator, C_oscillator, LHS, RHS, RHS_J, solution, pre_solution, h, mode);
     
     arma::mat J_x = LHS;
     arma::mat Z_x = RHS;
+    arma::mat Z_x_J = RHS_J;
     
-    return {J_x,Z_x};
+    return {J_x,{Z_x,Z_x_J}};
 }
 
 // Main function for the circuit simulation
@@ -77,6 +78,7 @@ int main(int argc, const char ** argv){
     // default state
     arma::mat LHS = arma::zeros(Maxi,Maxj); // LHS matrix
     arma::mat RHS = arma::zeros(Maxi,1); // RHS matrix
+    arma::mat RHS_J = arma::zeros(Maxi,1);
 
     /*--------------------------------------------can be changed-------------------------------------------------*/
     // ASSIGNING THE RESISTOR STAMP (R_assigner)
