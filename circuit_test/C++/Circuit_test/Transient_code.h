@@ -8,6 +8,12 @@
 #include <cmath>
 #include <chrono>
 
+
+double VepsMax = 1e-6;
+double VepsrMax = 0.001;
+double IepsMax = 1e-12;
+double IepsrMax = 0.001;    
+
 // Matrix stamps assigner using Modified Nodal Analysis
 std::pair<arma::mat,arma::mat> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS, arma::mat solution, arma::mat pre_solution, double h, int mode);
 void R_assigner(double node_x, double node_y, double R, arma::mat &LHS, arma::mat &RHS);
@@ -18,6 +24,7 @@ void Diode_assigner(int node_x, int node_y, double Is, double VT, double cd, dou
 void VCCS_assigner(int node_x,int node_y,int node_cx,int node_cy,double R,arma::mat &LHS);
 void NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node_vb, double h, arma::mat &solution, arma::mat &LHS, arma::mat &RHS,  int mode);
 void C_assigner_2(int node_x,int node_y,double C, double h, arma::mat &LHS, arma::mat &RHS, arma::mat solution, arma::mat pre_solution, int mode);
+bool isConverge(arma::mat &solution, arma::mat &pre_solution);
 
 // Sum the matrices inside the vector
 arma::mat mat_sum(std::vector<arma::mat> vector_of_matrices){
@@ -676,14 +683,29 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
     int iteration_counter = 0;
     arma::mat delta = arma::zeros(row_size,1);
 
-    while((error(0,0) > eps_val) && (iteration_counter < 8)){ // iteration counter can be changed depending on the non-linearity of the circuit
+    // while((error(0,0) > eps_val) && (iteration_counter < 8)){ // iteration counter can be changed depending on the non-linearity of the circuit
+    //     pre_solution = solution;
+    //     auto matrices = DynamicNonLinear(LHS,RHS,solution,pre_solution,h,mode);
+    //     delta = arma::solve(matrices.first,(matrices.first*solution) - matrices.second);
+    //     error.row(0) = arma::max(arma::abs(delta));
+    //     solution -= delta;
+    //     iteration_counter += 1;
+    // }
+
+    bool isconverge = false;
+    // using relative error to check for convergence
+    do{
         pre_solution = solution;
         auto matrices = DynamicNonLinear(LHS,RHS,solution,pre_solution,h,mode);
         delta = arma::solve(matrices.first,(matrices.first*solution) - matrices.second);
-        error.row(0) = arma::max(arma::abs(delta));
         solution -= delta;
+        isconverge = isConverge(solution, pre_solution);
         iteration_counter += 1;
-    }
+
+        if(iteration_counter > 100)
+            break;
+    }while(!isconverge);
+    
     
     return solution;
 }
@@ -696,5 +718,22 @@ arma::mat RHS_update(std::vector<double> RHS_locate, arma::mat RHS, std::vector<
 
     return RHS;
 }
+
+bool isConverge(arma::mat &solution, arma::mat &pre_solution){
+    int row_size = solution.n_rows;
+
+    for (unsigned int i =0; i<row_size; i++){
+        double maxVoltage = std::max(std::abs(solution(i,0)), std::abs(pre_solution(i,0)));
+        double Veps = std::abs(solution(i,0) - pre_solution(i,0));
+
+        if (Veps > VepsMax + VepsrMax * maxVoltage)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 
 #endif
