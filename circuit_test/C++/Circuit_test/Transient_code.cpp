@@ -133,7 +133,7 @@ int main(int argc, const char ** argv){
 
     // Benchmarking for OP analysis
     auto tstart_op = std::chrono::high_resolution_clock::now();
-    solution = NewtonRaphson_system(init_LHS,init_RHS,LHS,RHS,solution,pre_solution,h,mode);
+    solution = NewtonRaphson_system(init_LHS,init_RHS,LHS,RHS,RHS_J,solution,pre_solution,h,mode);
     // copy the solution to pre_solution
     pre_solution = solution;
     auto tstop_op = std::chrono::high_resolution_clock::now();
@@ -163,7 +163,7 @@ int main(int argc, const char ** argv){
         // RHS = RHS_update(RHS_locate, init_RHS, RHS_value);
 
         // Calling the Newton-Raphson system here
-        solution = NewtonRaphson_system(init_LHS,init_RHS, LHS, RHS, solution,pre_solution,h,mode);
+        solution = NewtonRaphson_system(init_LHS,init_RHS, LHS, RHS, RHS_J, solution,pre_solution,h,mode);
         // Assigning the variables that will be plotted and analysed as seen in a circuit simulator
         solution_csv = arma::join_cols(solution_csv,solution);
         i++;

@@ -6,7 +6,7 @@ project (Simulation)
 find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 
-add_compile_options(-O2 -std=c++11 -lopenblas)
+add_compile_options(-O2 -std=c++17 -lopenblas)
 
 add_executable(Transient_code Transient_code.cpp Transient_code.h)
 # add_executable(MOSFET MOSFET_IV.cpp Transient_code.h)

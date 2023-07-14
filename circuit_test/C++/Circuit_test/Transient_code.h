@@ -9,13 +9,27 @@
 #include <chrono>
 
 
+// Convergence settings
 double VepsMax = 1e-6;
 double VepsrMax = 0.001;
 double IepsMax = 1e-12;
 double IepsrMax = 0.001;    
 
+// Transient analysis settings
+double TRTOL = 7;
+double CHGTOL = 1e-14;
+double RELTOL = 1e-3;
+double ABSTOL = 1e-12;
+double STEPMODE = 2;
+double TMIN = 1e-18;
+int ITL3 = 4;
+int ITL4 = 10;
+
+// Capacitor List
+std::vector<std::pair<std::pair<int,int>,double>> C_list;
+
 // Matrix stamps assigner using Modified Nodal Analysis
-std::pair<arma::mat,arma::mat> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS, arma::mat solution, arma::mat pre_solution, double h, int mode);
+std::pair<arma::mat,std::pair<arma::mat, arma::mat>> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J, arma::mat solution, arma::mat pre_solution,double h, int mode);
 void R_assigner(double node_x, double node_y, double R, arma::mat &LHS, arma::mat &RHS);
 void Is_assigner(double node_x, double node_y, double I, arma::mat &LHS, arma::mat &RHS);
 double Vs_assigner(int node_x, int node_y, double V_value, arma::mat &LHS, arma::mat &RHS);
@@ -26,6 +40,7 @@ void NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node_v
 void C_assigner_2(int node_x,int node_y,double C, double h, arma::mat &LHS, arma::mat &RHS,arma::mat solution, arma::mat pre_solution, int mode);
 void Diode_assigner_2(int node_x, int node_y, double Is, double VT, double cd, double h, arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J,arma::mat solution, int mode);
 bool isConverge(arma::mat &solution, arma::mat &pre_solution);
+void adapiveStep(double &h, int iteration_counter, arma::mat &solution, arma::mat &pre_solution);
 
 // Sum the matrices inside the vector
 arma::mat mat_sum(std::vector<arma::mat> vector_of_matrices){
@@ -574,6 +589,7 @@ void C_assigner(int node_x,int node_y,double C, double h, arma::mat &LHS, arma::
     R_assigner(node_x,node_y,cond(x),LHS,RHS);
     // Matrix stamp for a capacitor on RHS
     Is_assigner(node_x,node_y,-x1,LHS,RHS);
+
 }
 
 double previous_current = 0;
@@ -604,6 +620,14 @@ void C_assigner_2(int node_x,int node_y,double C, double h, arma::mat &LHS, arma
     R_assigner(node_x,node_y,cond(x),LHS,RHS);
     // Matrix stamp for a capacitor on RHS
     Is_assigner(node_x,node_y,-(x1+previous_current),LHS,RHS);
+    
+    //Add this capacitor to the Capacitor list for Transient Analysis
+    if (mode == 1)
+    {
+        std::pair<std::pair<int,int>,double> c = {{node_x,node_y},C};
+        C_list.push_back(c);
+    }
+    
 }
 
 
@@ -734,7 +758,7 @@ void Diode_assigner_2(int node_x, int node_y, double Is, double VT, double cd, d
 }
 
 // Newton Raphson system solver for non-linear and dynamic elements
-arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RHS, arma::mat LHS, arma::mat RHS, arma::mat &solution, arma::mat &pre_solution,double &h, int mode){
+arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RHS, arma::mat LHS, arma::mat RHS, arma::mat RHS_J,arma::mat &solution, arma::mat &pre_solution,double &h, int mode){
     int col_size = LHS.n_cols;
     int row_size = LHS.n_rows;
     double eps_val = 1e-8;
@@ -757,8 +781,8 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
     // using relative error to check for convergence
     do{
         pre_solution = solution;
-        auto matrices = DynamicNonLinear(LHS,RHS,solution,pre_solution,h,mode);
-        delta = arma::solve(matrices.first,(matrices.first*solution) - matrices.second);
+        auto matrices = DynamicNonLinear(LHS,RHS, RHS_J, solution,pre_solution,h,mode);
+        delta = arma::solve(matrices.first-matrices.second.second, (matrices.first*solution) - matrices.second.first); //( A-J_z(k) ) * delta = F_x(k)
         solution -= delta;
         isconverge = isConverge(solution, pre_solution);
         iteration_counter += 1;
@@ -768,8 +792,12 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
         }
             
     }while(!isconverge);
-    
-    
+
+    adapiveStep(h, iteration_counter, solution, pre_solution);
+
+    // Clean the Capacitor list for Transient Analysis
+    C_list.clear();
+
     return solution;
 }
 
@@ -796,6 +824,37 @@ bool isConverge(arma::mat &solution, arma::mat &pre_solution){
     }
 
     return true;
+}
+
+void adapiveStep(double &h, int iteration_counter, arma::mat &solution, arma::mat &pre_solution){
+    if (STEPMODE == 2)
+    {
+        if (iteration_counter < ITL3)
+        {
+            h = 2*h;
+        }
+        else if (iteration_counter >= ITL3 && iteration_counter < ITL4)
+        {
+            h = h;
+        }
+        else{
+            h = h/8;
+        }
+
+        h = std::max(h, TMIN);
+        return;
+    }
+    else if (STEPMODE == 1){
+        int number_of_capacitors = C_list.size();
+        std::vector<double> hlist;
+
+        std::vector<std::pair<std::pair<int,int>,double>>::iterator iter;
+        for (iter = C_list.begin(); iter != C_list.end(); ++iter){
+            ;
+        }
+    }
+
+    
 }
 
 
