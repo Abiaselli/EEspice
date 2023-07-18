@@ -25,21 +25,22 @@ double W_oscillator = 500e-9;
 double L_oscillator = 50e-9;
 double C_oscillator = 1e-15;
 double R_oscillator = 1e3;
-int const cascaded_level = 3;      // Number of cascaded ring oscillators
+int const cascaded_level = 0;      // Number of cascaded ring oscillators
 int const supply_voltage_node = 1; // supply voltage node for the ring oscillator
 
 // TRANSIENT SIMULATION SETTINGS
 double t_start = 0;
-double t_end = 1e-9;
-double h = t_end / 5000; // t_end/5000 is the default value
+double t_end = 4e-5;
+double h = t_end / 10000; // t_end/10000 is the default value
+double TMAX = t_end / 10000;
 
 /*  TOTAL NUMBER OF NODES EXCLUDING GROUND
     Two port components such as resistors, initially adds 2 nodes. If more than 1 component is added, it then adds 1 node per component.
     Number of MOSFETs and cascaded levels are assigned above too. External nodes are the nodes which  */
 
-int const external_nodes = 1;                                    // Number of external nodes (excluding ground and ring oscillator loop nodes)
+int const external_nodes = 2;                                    // Number of external nodes (excluding ground and ring oscillator loop nodes)
 int const external_mosfets = 0;                                  // Number of standalone mosfets (excluding mosfets from ring oscillator)
-int const no_of_mosfets = external_mosfets + 2 * cascaded_level; // Total number of MOSFETs
+int const no_of_mosfets = 0; // Total number of MOSFETs
 int const T_nodes = external_nodes + 4 * no_of_mosfets + 2 * cascaded_level;
 
 #include "Transient_code.h"
@@ -58,8 +59,10 @@ std::pair<arma::mat, std::pair<arma::mat, arma::mat>> DynamicNonLinear(arma::mat
 {
     // (All the circuit assigners can be used except for voltage and current sources)
     /*--------------------------------------------can be changed-------------------------------------------------*/
-    RingOscillatorStages(W_oscillator, L_oscillator, R_oscillator, C_oscillator, LHS, RHS, RHS_J, solution, history_voltages, h, mode);
-
+    // RingOscillatorStages(W_oscillator, L_oscillator, R_oscillator, C_oscillator, LHS, RHS, RHS_J, solution, history_voltages, h, mode);
+    
+    // C_assigner(2, 0, 1e-6, h, LHS, RHS, solution, mode);
+    C_assigner_2(2, 0, 1e-6, h, LHS, RHS, solution, history_voltages, mode);
     arma::mat J_x = LHS;
     arma::mat Z_x = RHS;
     arma::mat Z_x_J = RHS_J;
@@ -87,7 +90,7 @@ int main(int argc, const char **argv)
 
     /*--------------------------------------------can be changed-------------------------------------------------*/
     // ASSIGNING THE RESISTOR STAMP (R_assigner)
-    // R_assigner(1,2,3e3,LHS,RHS);
+    R_assigner(1,2,3,LHS,RHS);
 
     /*--------------------------------------------can be changed-------------------------------------------------*/
     // ASSIGNING THE CURRENT STAMP (Is_assigner, VCCS_assigner)
@@ -141,10 +144,10 @@ int main(int argc, const char **argv)
 
     // Benchmarking for OP analysis
     auto tstart_op = std::chrono::high_resolution_clock::now();
-    solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, RHS_J, solution, history_voltages, h, history_steps, mode);
+    // solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, RHS_J, solution, history_voltages, h, history_steps, mode);
 
     // add the solution(voltage) to the history
-    history_voltages.push_front(solution);
+    // history_voltages.push_front(solution);
 
     auto tstop_op = std::chrono::high_resolution_clock::now();
 
