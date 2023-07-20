@@ -42,3 +42,7 @@ circuit_test/C\+\+/Circuit_test/build/
 .vscode/settings.json
 
 circuit_test/C\+\+/Circuit_test/.vscode/
+
+Random_Circuit_Generator/__pycache__/
+
+Random_Circuit_Generator/.idea/
