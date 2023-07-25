@@ -23,6 +23,7 @@ double RELTOL = 1e-3;
 double ABSTOL = 1e-12;
 double STEPMODE = 1;
 double TMIN = 1e-18;
+double TMAX = t_end / 1000;
 int ENADAPT = 1;
 int ITL3 = 4;
 int ITL4 = 10;
@@ -55,6 +56,10 @@ void Diode_assigner_2(int node_x, int node_y, double Is, double VT, double cd, d
 bool isConverge(arma::mat &solution, arma::mat &pre_solution, int iteration_counter);
 void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::deque<arma::vec> history_voltages, 
                  std::deque<double> history_steps, int &recompute_flag);
+
+void UpdateStates(arma::mat &LHS, arma::mat &RHS,
+                  arma::mat solution, std::deque<arma::vec> &history_voltages, 
+                  double h, int mode);
 // Sum the matrices inside the vector
 arma::mat mat_sum(std::vector<arma::mat> vector_of_matrices)
 {
@@ -86,13 +91,16 @@ double cond(double R)
 arma::vec arange(double tstart, std::deque<double> history_steps)
 {
     arma::vec time = arma::zeros(history_steps.size(), 1);
-    for (size_t i = 0; i < history_steps.size(); i++)
+    time[0] = tstart;
+    for (size_t i = 1; i < history_steps.size(); i++)
     {
+        tstart = tstart + history_steps[history_steps.size() - i];
         time[i] = tstart;
-        tstart = tstart + history_steps.at(history_steps.size() - 1 - i);
     }
     return time;
 }
+
+
 
 // assigning the matrix stamps for the VCCS
 void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, arma::mat &LHS)
@@ -684,6 +692,7 @@ void C_assigner(int node_x, int node_y, double C, double h, arma::mat &LHS, arma
 
     double x = 0;
     double x1 = 0;
+
     // this if else statment uses trapezoidal formula
     if (mode == 1)
     {
@@ -700,6 +709,10 @@ void C_assigner(int node_x, int node_y, double C, double h, arma::mat &LHS, arma
         {
             x1 = C * (solution(node_x - 1, 0) - solution(node_y - 1, 0)) / h;
         }
+    } 
+    else if(mode == 2){
+        double current = 0;
+        C_list.push_back(std::make_tuple(node_x, node_y, current));
     }
     else
     {
@@ -722,13 +735,12 @@ void C_assigner_2(int node_x, int node_y, double C, double h, arma::mat &LHS, ar
     double vol = 0;
     double previous_current = 0; // I_{n-1}
 
+    // v_{n-1} = history_voltages.at(0)
+    arma::mat pre_solution = history_voltages.at(0);
+
     std::vector<std::tuple<int, int, double>> previous_C_list = C_list_history.front();
     std::vector<decltype(C_list)::iterator> matches;
 
-    // v_{n-1} = history_voltages.at(0)
-    arma::mat pre_solution = history_voltages.at(0);
-    
-    
     // Search the current inside the previous C list
     auto it = std::find_if(previous_C_list.begin(), previous_C_list.end(), [&node_x, &node_y](const std::tuple<int, int, double> &e)
                            { return std::get<0>(e) == node_x && std::get<1>(e) == node_y; });
@@ -742,28 +754,33 @@ void C_assigner_2(int node_x, int node_y, double C, double h, arma::mat &LHS, ar
     { 
         previous_current = 0;
     }
-
+    
+    
     // this if else statment uses trapezoidal formula
     if (mode == 1)
     {
-        x =  C / h; // x is the equivalent resistance, x1 is the equivalent current source
-        x1 = C / h;
+        x =  2*C / h; // x is the equivalent resistance, x1 is the equivalent current source
+        x1 = 2*C / h;
+
+        // x =  C / h; // x is the equivalent resistance, x1 is the equivalent current source
+        // x1 = C / h;
 
         if (node_x == 0)
         {
-            vol = solution(node_y - 1, 0);
+            vol = pre_solution(node_y - 1, 0);
         }
         else if (node_y == 0)
         {
-            vol = solution(node_x - 1, 0);
+            vol = pre_solution(node_x - 1, 0);
         }
         else
         {
-            vol = solution(node_x - 1, 0) - solution(node_y - 1, 0);
+            vol = pre_solution(node_x - 1, 0) - pre_solution(node_y - 1, 0);
         }
 
-        //print current
+        // print current and pre_solution
         // std::cout << "previous_current: " << previous_current << std::endl;
+        // std::cout << "pre_solution: " << vol << std::endl;
     }
     else
     {
@@ -773,9 +790,11 @@ void C_assigner_2(int node_x, int node_y, double C, double h, arma::mat &LHS, ar
 
     if (mode !=2 ) {
         // Matrix stamp for a capacitor on LHS
+        // R_assigner(node_x, node_y, cond(x), LHS, RHS);
         R_assigner(node_x, node_y, cond(x), LHS, RHS);
         // Matrix stamp for a capacitor on RHS
-        Is_assigner(node_x, node_y, -(x1 * vol), LHS, RHS);
+        Is_assigner(node_x, node_y, -(x1 * vol + previous_current), LHS, RHS);
+        // Is_assigner(node_x, node_y, -(x1 * vol), LHS, RHS);
     }
     
 
@@ -801,6 +820,7 @@ void C_assigner_2(int node_x, int node_y, double C, double h, arma::mat &LHS, ar
             x = x * (solution(node_x - 1, 0) - solution(node_y - 1, 0));
             x1 = 2 * C * (pre_solution(node_x - 1, 0) - pre_solution(node_y - 1, 0)) / h + previous_current;
         }
+
 
         current = x - x1;
         C_list.push_back(std::make_tuple(node_x, node_y, current));
@@ -970,88 +990,94 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
     int iteration_counter = 0;
     arma::mat delta = arma::zeros(row_size, 1);
     int recompute_flag = 0;
-
-    arma::mat original_LHS = LHS;
-    arma::mat original_RHS = RHS;
-    arma::mat original_RHS_J = RHS_J;
-
-    // while((error(0,0) > eps_val) && (iteration_counter < 8)){ // iteration counter can be changed depending on the non-linearity of the circuit
-    //     auto matrices = DynamicNonLinear(LHS,RHS,solution,pre_solution,h,mode);
-    //     delta = arma::solve(matrices.first,(matrices.first*solution) - matrices.second);
-    //     error.row(0) = arma::max(arma::abs(delta));
-    //     solution -= delta;
-    //     iteration_counter += 1;
-    // }
+    bool isconverge = false;
 
 RECOMPUTE:
-
     if (recompute_flag){
         // Restore the original LHS and RHS
         solution = history_voltages.front();
-        LHS = original_LHS;
-        RHS = original_RHS;
-        RHS_J = original_RHS_J;
+        LHS = init_LHS;
+        RHS = init_RHS;
+        // RHS_J = original_RHS_J;
         iteration_counter = 0;
+        isconverge = false;
+        recompute_flag = 0;
     }
 
-    bool isconverge = false;
+    // print h
+    std::cout << "h: " << h << std::endl;
+    UpdateStates(LHS, RHS, solution, history_voltages, h, 1);
+
+
+    
     // using relative error to check for convergence
     // Note that pre_solution is just the temporary solution or voltage during the NR iteration
-    // The same as the pre_current
     do
     {
         arma::mat pre_solution = solution;
         auto matrices = DynamicNonLinear(LHS, RHS, RHS_J, solution, history_voltages, h, mode);
 
-        // Extent the J_z(k) matrix to the size of LHS
-        arma::mat Temp(LHS.n_rows, LHS.n_cols, arma::fill::zeros);
-        Temp.col(0) = matrices.second.second;
+        // // Extent the J_z(k) matrix to the size of LHS
+        // arma::mat Temp(LHS.n_rows, LHS.n_cols, arma::fill::zeros);
+        // Temp.col(0) = matrices.second.second;
 
-        delta = arma::solve(matrices.first, (matrices.first * solution) - matrices.second.first); //( A-J_z(k) ) * delta = F_x(k)
-        solution -= delta;
-        isconverge = isConverge(solution, pre_solution, iteration_counter);
+        // delta = arma::solve(matrices.first, (matrices.first * solution) - matrices.second.first); //( A-J_z(k) ) * delta = F_x(k)
+        // solution -= delta;
+
+        solution = arma::solve(matrices.first,  matrices.second.first);
         iteration_counter += 1;
+
+        // Escape the first slove
+        if (iteration_counter == 1){
+            continue;
+        }
+
+        isconverge = isConverge(solution, pre_solution, iteration_counter);
+        
+        break;
 
         if (iteration_counter > 100)
         {
             break;
         }
 
-
-
     } while (!isconverge);
-    std::cout << "Iteration counter: " << iteration_counter << std::endl;
 
+    if (iteration_counter > 2)
+        std::cout << "Iteration counter: " << iteration_counter-1 << std::endl;
+
+    // double h_previous = h;
     // Only process timestep adjustment when in transient analysis
     if (mode == 1 && ENADAPT == 1)
     {
-        double h_previous = h;
+        
         adapiveStep(h, iteration_counter, solution, history_voltages, history_steps, recompute_flag);
         if ( recompute_flag == 1 )
         {
             goto RECOMPUTE;
         }
-
-        // Clean the current list
-        C_list.clear();
-
-        // After Converged and timestep adjust finished, update the current in Capacitor list
-        // Iterating through the NonLinear devices to update C_list
-        arma::mat LHS_temp = arma::zeros(T_nodes, T_nodes);
-        arma::mat RHS_temp = arma::zeros(T_nodes, 1);
-        arma::mat RHS_J_temp = arma::zeros(T_nodes, 1);
-        DynamicNonLinear(LHS_temp, RHS_temp, RHS_J_temp, solution, history_voltages, h_previous, 2);
-
-        C_list_history.push_front(C_list);
-
-        // Cleaning the history when it is too long (6 is the maximum)
-        if (C_list_history.size() >= 6)
-        {
-            C_list_history.pop_back();
-            C_list_history.pop_back();
-            C_list_history.pop_back();
-        }
         
+    }
+
+    // Clean the current list
+    C_list.clear();
+
+    // After Converged and timestep adjust finished, update the current in Capacitor list
+    // Iterating through the NonLinear devices to update C_list
+    // DynamicNonLinear(LHS, RHS, RHS_J, solution, history_voltages, h_previous, 2);
+    // Update the Capacitor model when NR is converged
+    
+    // DynamicNonLinear(LHS, RHS, RHS_J, solution, history_voltages, h_previous, 2);
+    UpdateStates(LHS, RHS, solution, history_voltages, h, 2);
+
+    C_list_history.push_front(C_list);
+
+    // Cleaning the history when it is too long (6 is the maximum)
+    if (C_list_history.size() >= 6)
+    {
+        C_list_history.pop_back();
+        C_list_history.pop_back();
+        C_list_history.pop_back();
     }
 
     // Update voltage history
@@ -1063,6 +1089,8 @@ RECOMPUTE:
         history_voltages.pop_back();
     }
 
+    //print finish
+    std::cout << "Finish" << std::endl;
     return solution;
 }
 
@@ -1088,10 +1116,10 @@ bool isConverge(arma::mat &solution, arma::mat &pre_solution, int iteration_coun
 
         if (Veps > VepsMax + VepsrMax * maxVoltage)
         {
+            std::cout<< "Veps: " << Veps << std::endl;
             return false;
         }
     }
-
     return true;
 }
 
@@ -1119,6 +1147,9 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
     }
     else if (STEPMODE == 1)
     {
+        // print iternartion count
+        // std::cout << "Iteration count: " << iteration_counter << std::endl;
+
         // If history data is not enough, then use the default step size
         if (history_steps.size() <= 4)
         {
@@ -1152,6 +1183,10 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
                 double x3 = 0; // x3 = x_{n-1}
                 double x4 = 0; // x4 = x_{n-2}
 
+                double i1 = 0; // i1 = i_{n+1}
+                double i2 = 0; // i2 = i_{n}
+
+
                 double DD1_1 = 0; // DD1_1 = x_{n+1} - x_{n}/ h_{n}
                 double DD1_2 = 0; // DD1_2 = x_{n} - x_{n-1}/ h_{n-1}
                 double DD1_3 = 0; // DD1_3 = x_{n-1} - x_{n-2}/ h_{n-2}
@@ -1160,6 +1195,29 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
                 double DD2_2 = 0; // DD2_2 = DD1_2 - DD1_3 / (h_{n-1} + h_{n-2})
 
                 double DD3 = 0; // DD3 = DD2_1 - DD2_2 / (h_{n} + h_{n-1} + h_{n-2})
+
+                std::vector<std::tuple<int, int, double>> C_list_1 = C_list_history.at(0);
+                std::vector<std::tuple<int, int, double>> C_list_2 = C_list_history.at(1);
+                std::vector<decltype(C_list)::iterator> matches;
+
+                // Search the current inside the previous C list
+                auto it_1 = std::find_if(C_list_1.begin(), C_list_1.end(), [&node_x, &node_y](const std::tuple<int, int, double> &e)
+                                    { return std::get<0>(e) == node_x && std::get<1>(e) == node_y; });
+
+                auto it_2 = std::find_if(C_list_2.begin(), C_list_2.end(), [&node_x, &node_y](const std::tuple<int, int, double> &e)
+                                    { return std::get<0>(e) == node_x && std::get<1>(e) == node_y; });
+
+                if (it_1 != C_list_1.end())
+                {
+                    matches.push_back(it_1);
+                    i1 = std::get<2>(*it_1);
+                }
+
+                if (it_2 != C_list_1.end())
+                {
+                    matches.push_back(it_2);
+                    i2 = std::get<2>(*it_2);
+                }
 
                 if (node_x == 0)
                 {
@@ -1197,17 +1255,28 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
                 // ErrorBound = RETOL * max(|x_{n+1}|,|x_{n}|,CHGTOL) / h_{n}
                 ErrorBound = std::max(std::abs(x1), std::abs(x2));
                 ErrorBound = std::max(ErrorBound, CHGTOL);
-                ErrorBound *= RELTOL / h;
+                ErrorBound_i = std::max(std::abs(i1), std::abs(i2));
+                
+
+                // print i1 and i2
+                // std::cout << "i1: " << i1 << std::endl;
+                // std::cout << "i2: " << i2 << std::endl;
+
+                ErrorBound *= RELTOL * 1e-1;
+                ErrorBound += 1e-6;
+                ErrorBound_i *= RELTOL * 1e-1;
+                ErrorBound_i += ABSTOL;
+                ErrorBound = std::max(ErrorBound, ErrorBound_i);
+
+                // //print ErrorBound and DD3, DD1_1 
+                // std::cout << "ErrorBound: " << ErrorBound << std::endl;
+                // std::cout << "DD3: " << DD3 << std::endl;
+                // std::cout << "DD1_1: " << DD1_1*1e-6 << std::endl;
 
                 // Calculate h_{n+1}
-                h_x = std::pow(TRTOL * ErrorBound / std::abs(DD3), 1.0/3.0);
-            
-                // // Limit the h_{n+1} to be larger than TMIN
-                // h_1 = std::max(h_1, TMIN);
-
-                // // new timestep h_n = min(h_{n+1}, 2 * h_{n}, TMAX)
-                // h_1 = std::min(h_1, 2 * h);
-                // h_1 = std::min(h_1, TMAX);
+                h_x = std::pow( TRTOL * ErrorBound / std::abs(DD3), 1.0/3.0);
+                // h_x = std::pow( ErrorBound / std::abs(DD2_1), 1.0/2.0);
+                
 
                 hn_candidates.push_back(h_x);
             }
@@ -1217,7 +1286,7 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
             std::cout << "Predict H1 Time Step:" << h_1 << std::endl;
 
             // Evaluate the new timestep
-            if (h_1 < 0.9*h){
+            if (h_1 < 0.9 * h){
                 h = h_1;
                 h = std::max(h, TMIN);
 
@@ -1232,17 +1301,19 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
                 if (h > TMAX)
                 {
                     TMAX_count++;
+                }else
+                    TMAX_count = 0;
+
+                if (TMAX_count > 20){
+                    TMAX = 2 * h;
+                    std::cout<< "Change TMAX"<< std::endl;
                 }
+
                 h = std::min(h, TMAX);
 
-                if (TMAX_count > 30)
-                {
-                    TMAX_count = 0;
-                    TMAX = 2 * h;
-                }
                 
-            
-
+                    
+                
                 // print h
                 std::cout << "H Time Step:" << h << std::endl;
             }
