@@ -10,20 +10,15 @@
 #include <cmath>
 #include <chrono>
 
-// Convergence settings
-double VepsMax = 1e-6;
-double VepsrMax = 0.001;
-double IepsMax = 1e-12;
-double IepsrMax = 0.001;
-
 // Transient analysis settings
-double TRTOL = 7;
+double TRTOL = 4;
 double CHGTOL = 1e-14;
 double RELTOL = 1e-3;
+double VNTOL = 1e-6;
 double ABSTOL = 1e-12;
 double STEPMODE = 1;
 double TMIN = 1e-18;
-double TMAX = t_end / 1000;
+double TMAX = t_end / 50;
 int ENADAPT = 1;
 int ITL3 = 4;
 int ITL4 = 10;
@@ -31,8 +26,8 @@ int ITL4 = 10;
 int TMAX_count = 0;
 
 // Current List (nodex, nodey, Currents)
-std::vector<std::tuple<int, int, double>> C_list;
-std::deque<std::vector<std::tuple<int, int, double>>> C_list_history;
+std::vector<std::tuple<int, int, double, double>> C_list;
+std::deque<std::vector<std::tuple<int, int, double, double>>> C_list_history;
 
 // Matrix stamps assigner using Modified Nodal Analysis
 std::pair<arma::mat, std::pair<arma::mat, arma::mat>> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J,
@@ -50,15 +45,18 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
 void C_assigner_2(int node_x, int node_y, double C, double h, arma::mat &LHS, arma::mat &RHS,
                   arma::mat solution, std::deque<arma::vec> &history_voltages,
                   int mode);
-void Diode_assigner_2(int node_x, int node_y, double Is, double VT, double cd, double h, arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J,
+void C_assigner_3(int node_x, int node_y, double C, double h, arma::mat &LHS, arma::mat &RHS,
+                  arma::mat solution, std::deque<arma::vec> &history_voltages,
+                  int mode);
+void Diode_assigner_2(int node_x, int node_y, double Is, double VT, double h, arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J,
                       arma::mat solution, std::deque<arma::vec> &history_voltages,
                       int mode);
 bool isConverge(arma::mat &solution, arma::mat &pre_solution, int iteration_counter);
-void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::deque<arma::vec> history_voltages, 
-                 std::deque<double> history_steps, int &recompute_flag);
+void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::deque<arma::vec> history_voltages,
+                 std::deque<double> history_steps);
 
-void UpdateStates(arma::mat &LHS, arma::mat &RHS,
-                  arma::mat solution, std::deque<arma::vec> &history_voltages, 
+void UpdateStates(arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J,
+                  arma::mat solution, std::deque<arma::vec> &history_voltages,
                   double h, int mode);
 // Sum the matrices inside the vector
 arma::mat mat_sum(std::vector<arma::mat> vector_of_matrices)
@@ -100,7 +98,16 @@ arma::vec arange(double tstart, std::deque<double> history_steps)
     return time;
 }
 
-
+// For testing purposes
+arma::vec arange_V(double tstart, double h, double vec_size){
+    arma::vec time = arma::zeros(vec_size,1);
+    for(int i=0; i<vec_size; i++)
+    {
+        time[i] = tstart;
+        tstart = tstart + h;
+    }
+    return time;
+}
 
 // assigning the matrix stamps for the VCCS
 void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, arma::mat &LHS)
@@ -404,16 +411,21 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
     }
 
     // # the settings for fet model based on the large signal analysis
-    if (code == 0)
+    if (code == 0 && mode != 2)
     {
         R_assigner(node_vd, T_nodes - (4 * number) + 2, 0.2, LHS, RHS); // # RD
         R_assigner(node_vg, T_nodes - (4 * number) + 1, 1, LHS, RHS);   // # RG
         R_assigner(T_nodes - (4 * number) + 4, node_vs, 0.1, LHS, RHS); // # RS
         R_assigner(T_nodes - (4 * number) + 3, node_vb, 1, LHS, RHS);   // # RB
-        // Diode_assigner_2(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 2, 1e-14, 0.05, CBD, h, LHS, RHS, RHS_J, solution, history_voltages, mode); // # Diode BD
-        // Diode_assigner_2(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 4, 1e-14, 0.05, CBS, h, LHS, RHS, RHS_J, solution, history_voltages, mode); // # Diode BS
-        Diode_assigner(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 2, 1e-14, 0.05, CBD, h, LHS, RHS, solution, mode); // # Diode BD
-        Diode_assigner(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 4, 1e-14, 0.05, CBS, h, LHS, RHS, solution, mode); // # Diode BS
+
+        // New model for Diode
+        C_assigner_3(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 2, CBD, h, LHS, RHS, solution, history_voltages, mode);                    // # Capacitor CBD
+        C_assigner_3(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 4, CBS, h, LHS, RHS, solution, history_voltages, mode);                    // # Capacitor CBS
+        Diode_assigner_2(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 2, 1e-14, 0.05, h, LHS, RHS, RHS_J, solution, history_voltages, mode); // # Diode BD
+        Diode_assigner_2(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 4, 1e-14, 0.05, h, LHS, RHS, RHS_J, solution, history_voltages, mode); // # Diode BS
+        
+        // Diode_assigner(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 2, 1e-14, 0.05, CBD, h, LHS, RHS, solution, mode); // # Diode BD
+        // Diode_assigner(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 4, 1e-14, 0.05, CBS, h, LHS, RHS, solution, mode); // # Diode BS
     }
 
     vt = vt0 + gamma * ((sqrt(phi - vbs) - sqrt(phi))); // # already taking into account the body effect of MOSFETs
@@ -442,19 +454,23 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
 
     if (code == 0)
     {
-        C_assigner(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 4, CGS, h, LHS, RHS, solution, mode); // # Capacitor GSO
-        C_assigner(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 3, CGB, h, LHS, RHS, solution, mode); // # Capacitor GBO
-        C_assigner(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CGD, h, LHS, RHS, solution, mode); // # Capacitor GDO
-        // C_assigner_2(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 4, CGS, h, LHS, RHS, solution, history_voltages, mode); // # Capacitor GSO
-        // C_assigner_2(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 3, CGB, h, LHS, RHS, solution, history_voltages, mode); // # Capacitor GBO
-        // C_assigner_2(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CGD, h, LHS, RHS, solution, history_voltages, mode); // # Capacitor GDO
+        // C_assigner(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 4, CGS, h, LHS, RHS, solution, mode); // # Capacitor GSO
+        // C_assigner(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 3, CGB, h, LHS, RHS, solution, mode); // # Capacitor GBO
+        // C_assigner(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CGD, h, LHS, RHS, solution, mode); // # Capacitor GDO
+        C_assigner_3(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 2, CBD, h, LHS, RHS, solution, history_voltages, mode); // # Capacitor CBD
+        C_assigner_3(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 4, CBS, h, LHS, RHS, solution, history_voltages, mode); // # Capacitor CBS
+        C_assigner_3(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 4, CGS, h, LHS, RHS, solution, history_voltages, mode); // # Capacitor GSO
+        C_assigner_3(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 3, CGB, h, LHS, RHS, solution, history_voltages, mode); // # Capacitor GBO
+        C_assigner_3(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CGD, h, LHS, RHS, solution, history_voltages, mode); // # Capacitor GDO
     }
     I_DSeq = id - gds * vds - gm * vgs - gmb * vbs; // # 10.190 equation
 
-    Is_assigner(node_vd, node_vs, I_DSeq, LHS, RHS);
-    VCCS_assigner(node_vd, node_vs, node_vb, node_vs, gmb, LHS); // assigning gmb
-    R_assigner(node_vd, node_vs, cond(gds), LHS, RHS);           // # assigning gds
-    VCCS_assigner(node_vd, node_vs, node_vg, node_vs, gm, LHS);  // # assigning gm
+    if (mode != 2){
+        Is_assigner(node_vd, node_vs, I_DSeq, LHS, RHS);
+        VCCS_assigner(node_vd, node_vs, node_vb, node_vs, gmb, LHS); // assigning gmb
+        R_assigner(node_vd, node_vs, cond(gds), LHS, RHS);           // # assigning gds
+        VCCS_assigner(node_vd, node_vs, node_vg, node_vs, gm, LHS);  // # assigning gm
+    }
 
     return id;
 }
@@ -570,14 +586,17 @@ double PMOS_assigner(int number, int node_vs, int node_vg, int node_vd, int node
     }
 
     // # the settings for fet model based on the large signal analysis
-    if (code == 0)
+    if (code == 0 && mode != 2)
     {
         R_assigner(node_vd, T_nodes - (4 * number) + 2, 0.2, LHS, RHS); // # RD
         R_assigner(node_vg, T_nodes - (4 * number) + 1, 1, LHS, RHS);   // # RG
         R_assigner(T_nodes - (4 * number) + 4, node_vs, 0.1, LHS, RHS); // # RS
         R_assigner(T_nodes - (4 * number) + 3, node_vb, 1, LHS, RHS);   // # RB
-        // Diode_assigner_2(T_nodes - (4 * number) + 2, T_nodes - (4 * number) + 3, 1e-14, 0.05, CBD, h, LHS, RHS, RHS_J, solution, history_voltages, mode); // # Diode BD
-        // Diode_assigner_2(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, 1e-14, 0.05, CBS, h, LHS, RHS, RHS_J, solution, history_voltages, mode); // # Diode BS
+
+        
+        // Diode_assigner_2(T_nodes - (4 * number) + 2, T_nodes - (4 * number) + 3, 1e-14, 0.05, h, LHS, RHS, RHS_J, solution, history_voltages, mode); // # Diode BD
+        // Diode_assigner_2(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, 1e-14, 0.05, h, LHS, RHS, RHS_J, solution, history_voltages, mode); // # Diode BS
+
         Diode_assigner(T_nodes - (4 * number) + 2, T_nodes - (4 * number) + 3, 1e-14, 0.05, CBD, h, LHS, RHS, solution, mode); // # Diode BD
         Diode_assigner(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, 1e-14, 0.05, CBS, h, LHS, RHS, solution, mode); // # Diode BS
     }
@@ -610,19 +629,23 @@ double PMOS_assigner(int number, int node_vs, int node_vg, int node_vd, int node
 
     if (code == 0)
     {
-        C_assigner(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 4, CGS, h, LHS, RHS, solution, mode); // # Capacitor GSO
-        C_assigner(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 3, CGB, h, LHS, RHS, solution, mode); // # Capacitor GBO
-        C_assigner(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CGD, h, LHS, RHS, solution, mode); // # Capacitor GDO
-        // C_assigner_2(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 4, CGS, h, LHS, RHS, solution, history_voltages, mode); // # Capacitor GSO
-        // C_assigner_2(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 3, CGB, h, LHS, RHS, solution, history_voltages, mode); // # Capacitor GBO
-        // C_assigner_2(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CGD, h, LHS, RHS, solution, history_voltages, mode); // # Capacitor GDO
+        // C_assigner(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 4, CGS, h, LHS, RHS, solution, mode); // # Capacitor GSO
+        // C_assigner(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 3, CGB, h, LHS, RHS, solution, mode); // # Capacitor GBO
+        // C_assigner(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CGD, h, LHS, RHS, solution, mode); // # Capacitor GDO
+        C_assigner_3(T_nodes - (4 * number) + 2, T_nodes - (4 * number) + 3, CBD, h, LHS, RHS, solution, history_voltages, mode); // # Capacitor CBD
+        C_assigner_3(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CBS, h, LHS, RHS, solution, history_voltages, mode); // # Capacitor CBS
+        C_assigner_3(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 4, CGS, h, LHS, RHS, solution, history_voltages, mode); // # Capacitor GSO
+        C_assigner_3(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 3, CGB, h, LHS, RHS, solution, history_voltages, mode); // # Capacitor GBO
+        C_assigner_3(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CGD, h, LHS, RHS, solution, history_voltages, mode); // # Capacitor GDO
     }
     I_DSeq = id - gds * vsd - gm * vsg - gmb * vsb;
 
-    Is_assigner(node_vs, node_vd, I_DSeq, LHS, RHS);
-    VCCS_assigner(node_vs, node_vd, node_vs, node_vb, gmb, LHS); // assigning gmb
-    R_assigner(node_vd, node_vs, cond(gds), LHS, RHS);           // # assigning gds
-    VCCS_assigner(node_vs, node_vd, node_vs, node_vg, gm, LHS);  // # assigning gm
+    if (mode != 2){
+        Is_assigner(node_vs, node_vd, I_DSeq, LHS, RHS);
+        VCCS_assigner(node_vs, node_vd, node_vs, node_vb, gmb, LHS); // assigning gmb
+        R_assigner(node_vd, node_vs, cond(gds), LHS, RHS);           // # assigning gds
+        VCCS_assigner(node_vs, node_vd, node_vs, node_vg, gm, LHS);  // # assigning gm
+    }
 
     return id;
 }
@@ -646,17 +669,17 @@ void RingOscillatorStages(double W, double L, double R, double C, arma::mat &LHS
         {
             PMOS_assigner(odd, supply_voltage_node, n_even, n_odd, supply_voltage_node, W, L, h, solution, history_voltages, LHS, RHS, RHS_J, mode);
             NMOS_assigner(even, n_odd, n_even, 0, 0, W, L, h, solution, history_voltages, LHS, RHS, RHS_J, mode);
-            R_assigner(n_odd, supply_voltage_node + 1, R, LHS, RHS);
-            C_assigner(supply_voltage_node + 1, 0, C, h, LHS, RHS, solution, mode);
-            // C_assigner_2(supply_voltage_node + 1, 0, C, h, LHS, RHS, solution, history_voltages, mode);
+            if (mode != 2)
+                R_assigner(n_odd, supply_voltage_node + 1, R, LHS, RHS);
+            C_assigner_3(supply_voltage_node + 1, 0, C, h, LHS, RHS, solution, history_voltages,mode);
         }
         else
         {
             PMOS_assigner(odd, supply_voltage_node, n_even, n_odd, supply_voltage_node, W, L, h, solution, history_voltages, LHS, RHS, RHS_J, mode);
             NMOS_assigner(even, n_odd, n_even, 0, 0, W, L, h, solution, history_voltages, LHS, RHS, RHS_J, mode);
-            R_assigner(n_odd, n_even + 2, R, LHS, RHS);
-            C_assigner(n_even + 2, 0, C, h, LHS, RHS, solution, mode);
-            // C_assigner_2(supply_voltage_node + 1, 0, C, h, LHS, RHS, solution, history_voltages, mode);
+            if (mode != 2)
+                R_assigner(n_odd, n_even + 2, R, LHS, RHS);
+            C_assigner_3(n_even + 2, 0, C, h, LHS, RHS, solution, history_voltages, mode);
         }
         odd += 2;
     }
@@ -709,10 +732,6 @@ void C_assigner(int node_x, int node_y, double C, double h, arma::mat &LHS, arma
         {
             x1 = C * (solution(node_x - 1, 0) - solution(node_y - 1, 0)) / h;
         }
-    } 
-    else if(mode == 2){
-        double current = 0;
-        C_list.push_back(std::make_tuple(node_x, node_y, current));
     }
     else
     {
@@ -738,11 +757,11 @@ void C_assigner_2(int node_x, int node_y, double C, double h, arma::mat &LHS, ar
     // v_{n-1} = history_voltages.at(0)
     arma::mat pre_solution = history_voltages.at(0);
 
-    std::vector<std::tuple<int, int, double>> previous_C_list = C_list_history.front();
+    std::vector<std::tuple<int, int, double, double>> previous_C_list = C_list_history.front();
     std::vector<decltype(C_list)::iterator> matches;
 
     // Search the current inside the previous C list
-    auto it = std::find_if(previous_C_list.begin(), previous_C_list.end(), [&node_x, &node_y](const std::tuple<int, int, double> &e)
+    auto it = std::find_if(previous_C_list.begin(), previous_C_list.end(), [&node_x, &node_y](const std::tuple<int, int, double, double> &e)
                            { return std::get<0>(e) == node_x && std::get<1>(e) == node_y; });
 
     if (it != previous_C_list.end())
@@ -751,16 +770,15 @@ void C_assigner_2(int node_x, int node_y, double C, double h, arma::mat &LHS, ar
         previous_current = std::get<2>(*it);
     }
     else
-    { 
+    {
         previous_current = 0;
     }
-    
-    
+
     // this if else statment uses trapezoidal formula
     if (mode == 1)
     {
-        x =  2*C / h; // x is the equivalent resistance, x1 is the equivalent current source
-        x1 = 2*C / h;
+        x = 2 * C / h; // x is the equivalent resistance, x1 is the equivalent current source
+        x1 = 2 * C / h;
 
         // x =  C / h; // x is the equivalent resistance, x1 is the equivalent current source
         // x1 = C / h;
@@ -788,7 +806,8 @@ void C_assigner_2(int node_x, int node_y, double C, double h, arma::mat &LHS, ar
         x1 = 0;
     }
 
-    if (mode !=2 ) {
+    if (mode != 2)
+    {
         // Matrix stamp for a capacitor on LHS
         // R_assigner(node_x, node_y, cond(x), LHS, RHS);
         R_assigner(node_x, node_y, cond(x), LHS, RHS);
@@ -796,7 +815,6 @@ void C_assigner_2(int node_x, int node_y, double C, double h, arma::mat &LHS, ar
         Is_assigner(node_x, node_y, -(x1 * vol + previous_current), LHS, RHS);
         // Is_assigner(node_x, node_y, -(x1 * vol), LHS, RHS);
     }
-    
 
     // Calculate the current after NR is converged
     if (mode == 2)
@@ -821,12 +839,88 @@ void C_assigner_2(int node_x, int node_y, double C, double h, arma::mat &LHS, ar
             x1 = 2 * C * (pre_solution(node_x - 1, 0) - pre_solution(node_y - 1, 0)) / h + previous_current;
         }
 
-
         current = x - x1;
-        C_list.push_back(std::make_tuple(node_x, node_y, current));
+        C_list.push_back(std::make_tuple(node_x, node_y, current, C));
     }
 }
 
+void C_assigner_3(int node_x, int node_y, double C, double h, arma::mat &LHS, arma::mat &RHS,
+                  arma::mat solution, std::deque<arma::vec> &history_voltages,
+                  int mode)
+{
+
+    double x = 0;
+    double x1 = 0;
+    double vol = 0;
+
+    // v_{n-1} = history_voltages.at(0)
+    arma::mat pre_solution = history_voltages.at(0);
+
+    // this if else statment uses trapezoidal formula
+    if (mode == 1)
+    {
+        x = C / h; // x is the equivalent resistance, x1 is the equivalent current source
+        x1 = C / h;
+
+        if (node_x == 0)
+        {
+            vol = pre_solution(node_y - 1, 0);
+        }
+        else if (node_y == 0)
+        {
+            vol = pre_solution(node_x - 1, 0);
+        }
+        else
+        {
+            vol = pre_solution(node_x - 1, 0) - pre_solution(node_y - 1, 0);
+        }
+
+        // print current and pre_solution
+        // std::cout << "previous_current: " << previous_current << std::endl;
+        // std::cout << "pre_solution: " << vol << std::endl;
+    }
+    else
+    {
+        x = 0;
+        x1 = 0;
+    }
+
+    if (mode != 2)
+    {
+        // Matrix stamp for a capacitor on LHS
+        // R_assigner(node_x, node_y, cond(x), LHS, RHS);
+        R_assigner(node_x, node_y, cond(x), LHS, RHS);
+        // Matrix stamp for a capacitor on RHS
+        Is_assigner(node_x, node_y, -(x1 * vol), LHS, RHS);
+    }
+
+    // Calculate the current after NR is converged
+    if (mode == 2)
+    {
+
+        double current = 0; // I_{n}
+
+        x = C / h;
+        if (node_x == 0)
+        {
+            x = x * (solution(node_y - 1, 0));
+            x1 = C * (pre_solution(node_y - 1, 0)) / h;
+        }
+        else if (node_y == 0)
+        {
+            x = x * (solution(node_x - 1, 0));
+            x1 = C * (pre_solution(node_x - 1, 0)) / h;
+        }
+        else
+        {
+            x = x * (solution(node_x - 1, 0) - solution(node_y - 1, 0));
+            x1 = C * (pre_solution(node_x - 1, 0) - pre_solution(node_y - 1, 0)) / h;
+        }
+
+        current = x - x1;
+        C_list.push_back(std::make_tuple(node_x, node_y, current, C));
+    }
+}
 // Voltage pulse assigner
 double V_pulse(double V1, double V2, double &t1, double td, double tr, double tf, double tpw, double tper, double h)
 {
@@ -910,7 +1004,7 @@ void Diode_assigner(int node_x, int node_y, double Is, double VT, double cd, dou
     C_assigner(node_x, node_y, cd, h, LHS, RHS, solution, mode);
 }
 
-void Diode_assigner_2(int node_x, int node_y, double Is, double VT, double cd, double h, arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J,
+void Diode_assigner_2(int node_x, int node_y, double Is, double VT, double h, arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J,
                       arma::mat solution, std::deque<arma::vec> &history_voltages,
                       int mode)
 {
@@ -923,11 +1017,6 @@ void Diode_assigner_2(int node_x, int node_y, double Is, double VT, double cd, d
     double val_nodex = 0;
     double val_nodey = 0;
 
-    if (mode == 0)
-    {
-        cd = 0;
-    }
-
     if ((node_x == 0 && node_y == 0))
     {
         x = 0;
@@ -935,20 +1024,20 @@ void Diode_assigner_2(int node_x, int node_y, double Is, double VT, double cd, d
     }
     else if (node_x == 0)
     {
-        // val_nodey = solution(node_y - 1, 0);
+        val_nodey = solution(node_y - 1, 0);
         x = (Is / VT) * (exp(-val_nodey / VT));
         x1 = (x * (-val_nodey) - Is * (exp((-val_nodey) / VT) - 1));
     }
     else if (node_y == 0)
     {
-        // val_nodex = solution(node_x - 1, 0);
+        val_nodex = solution(node_x - 1, 0);
         x = (Is / VT) * (exp((val_nodex) / VT));
         x1 = (x * (val_nodex)-Is * (exp((val_nodex) / VT) - 1));
     }
     else
     {
-        // val_nodex = solution(node_x - 1, 0);
-        // val_nodey = solution(node_y - 1, 0);
+        val_nodex = solution(node_x - 1, 0);
+        val_nodey = solution(node_y - 1, 0);
         x = (Is / VT) * (exp((val_nodex - val_nodey) / VT));
         x1 = (x * (val_nodex - val_nodey) - Is * (exp((val_nodex - val_nodey) / VT) - 1));
     }
@@ -957,7 +1046,6 @@ void Diode_assigner_2(int node_x, int node_y, double Is, double VT, double cd, d
     Is_assigner(node_x, node_y, x1, LHS, RHS);
     // Matrix stamp for a diode on LHS
     R_assigner(node_x, node_y, cond(x), LHS, RHS);
-    C_assigner_2(node_x, node_y, cd, h, LHS, RHS, solution, history_voltages, mode);
 
     if (node_x == 0)
     {
@@ -969,8 +1057,8 @@ void Diode_assigner_2(int node_x, int node_y, double Is, double VT, double cd, d
     }
     else
     {
-        a.row(node_x - 1).col(0) = x;
-        a.row(node_y - 1).col(0) = -x;
+        a.row(node_x - 1).col(0) = -x;
+        a.row(node_y - 1).col(0) = x;
     }
 
     RHS_J = RHS_J + a;
@@ -978,7 +1066,7 @@ void Diode_assigner_2(int node_x, int node_y, double Is, double VT, double cd, d
 
 // Newton Raphson system solver for non-linear and dynamic elements
 arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RHS, arma::mat LHS, arma::mat RHS, arma::mat RHS_J,
-                               arma::mat &solution, std::deque<arma::vec> &history_voltages,
+                               arma::mat solution, std::deque<arma::vec> &history_voltages,
                                double &h, std::deque<double> &history_steps, int mode)
 {
     int col_size = LHS.n_cols;
@@ -989,27 +1077,12 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
     // error.row(0) = error_val;
     int iteration_counter = 0;
     arma::mat delta = arma::zeros(row_size, 1);
-    int recompute_flag = 0;
     bool isconverge = false;
-
-RECOMPUTE:
-    if (recompute_flag){
-        // Restore the original LHS and RHS
-        solution = history_voltages.front();
-        LHS = init_LHS;
-        RHS = init_RHS;
-        // RHS_J = original_RHS_J;
-        iteration_counter = 0;
-        isconverge = false;
-        recompute_flag = 0;
-    }
 
     // print h
     std::cout << "h: " << h << std::endl;
-    UpdateStates(LHS, RHS, solution, history_voltages, h, 1);
+    UpdateStates(LHS, RHS, RHS_J,solution, history_voltages, h, 1);
 
-
-    
     // using relative error to check for convergence
     // Note that pre_solution is just the temporary solution or voltage during the NR iteration
     do
@@ -1017,46 +1090,45 @@ RECOMPUTE:
         arma::mat pre_solution = solution;
         auto matrices = DynamicNonLinear(LHS, RHS, RHS_J, solution, history_voltages, h, mode);
 
-        // // Extent the J_z(k) matrix to the size of LHS
-        // arma::mat Temp(LHS.n_rows, LHS.n_cols, arma::fill::zeros);
-        // Temp.col(0) = matrices.second.second;
+        // Extent the J_z(k) matrix to the size of LHS
+        arma::mat Temp(LHS.n_rows, LHS.n_cols, arma::fill::zeros);
+        Temp.col(0) = matrices.second.second;
 
         // delta = arma::solve(matrices.first, (matrices.first * solution) - matrices.second.first); //( A-J_z(k) ) * delta = F_x(k)
         // solution -= delta;
 
-        solution = arma::solve(matrices.first,  matrices.second.first);
+        // J_(k) * X_(k+1) = z - F_x(k)*J_z(k)
+        // solution = arma::solve((matrices.first - Temp), (matrices.second.first - Temp * solution));
+        solution = arma::solve(matrices.first, matrices.second.first);
         iteration_counter += 1;
 
         // Escape the first slove
-        if (iteration_counter == 1){
+        if (iteration_counter == 1)
+        {
             continue;
         }
 
+
         isconverge = isConverge(solution, pre_solution, iteration_counter);
-        
-        break;
 
         if (iteration_counter > 100)
         {
+            std::cout << "Not Converge within limit" << std::endl;
             break;
         }
 
     } while (!isconverge);
 
-    if (iteration_counter > 2)
-        std::cout << "Iteration counter: " << iteration_counter-1 << std::endl;
-
-    // double h_previous = h;
+    // print iteration count
+    std::cout << "Iteration count: " << iteration_counter << std::endl;
     // Only process timestep adjustment when in transient analysis
     if (mode == 1 && ENADAPT == 1)
     {
-        
-        adapiveStep(h, iteration_counter, solution, history_voltages, history_steps, recompute_flag);
-        if ( recompute_flag == 1 )
-        {
-            goto RECOMPUTE;
-        }
-        
+        // Clean the current list and update the current in Capacitor list
+        C_list.clear();
+        UpdateStates(LHS, RHS, RHS_J,solution, history_voltages, h, 2);
+
+        adapiveStep(h, iteration_counter, solution, history_voltages, history_steps);
     }
 
     // Clean the current list
@@ -1064,11 +1136,7 @@ RECOMPUTE:
 
     // After Converged and timestep adjust finished, update the current in Capacitor list
     // Iterating through the NonLinear devices to update C_list
-    // DynamicNonLinear(LHS, RHS, RHS_J, solution, history_voltages, h_previous, 2);
-    // Update the Capacitor model when NR is converged
-    
-    // DynamicNonLinear(LHS, RHS, RHS_J, solution, history_voltages, h_previous, 2);
-    UpdateStates(LHS, RHS, solution, history_voltages, h, 2);
+    UpdateStates(LHS, RHS, RHS_J, solution, history_voltages, h, 2);
 
     C_list_history.push_front(C_list);
 
@@ -1089,7 +1157,7 @@ RECOMPUTE:
         history_voltages.pop_back();
     }
 
-    //print finish
+    // print finish
     std::cout << "Finish" << std::endl;
     return solution;
 }
@@ -1114,17 +1182,17 @@ bool isConverge(arma::mat &solution, arma::mat &pre_solution, int iteration_coun
         double maxVoltage = std::max(std::abs(solution(i, 0)), std::abs(pre_solution(i, 0)));
         double Veps = std::abs(solution(i, 0) - pre_solution(i, 0));
 
-        if (Veps > VepsMax + VepsrMax * maxVoltage)
+        if (Veps > RELTOL + VNTOL * maxVoltage)
         {
-            std::cout<< "Veps: " << Veps << std::endl;
+            // std::cout << "Veps: " << Veps << std::endl;
             return false;
         }
     }
     return true;
 }
 
-void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::deque<arma::vec> history_voltages, 
-                 std::deque<double> history_steps, int &recompute_flag)
+void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::deque<arma::vec> history_voltages,
+                 std::deque<double> history_steps)
 {
     if (STEPMODE == 2)
     {
@@ -1153,15 +1221,14 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
         // If history data is not enough, then use the default step size
         if (history_steps.size() <= 4)
         {
-            std::cout<< "Skip" << std::endl;
+            std::cout << "Skip" << std::endl;
             return;
-        }   
+        }
 
         if (iteration_counter > ITL4)
         {
             h = h / 8;
             h = std::max(h, TMIN);
-            recompute_flag = 1;
             return;
         }
         else
@@ -1173,11 +1240,13 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
             {
                 int node_x = std::get<0>(*iter);
                 int node_y = std::get<1>(*iter);
+                double current = std::get<2>(*iter);
+                double capacitance = std::get<3>(*iter);
 
                 double ErrorBound = 0;
                 double ErrorBound_i = 0;
                 double h_x = 0;
-                
+
                 double x1 = 0; // x1 = x_{n+1}
                 double x2 = 0; // x2 = x_{n}
                 double x3 = 0; // x3 = x_{n-1}
@@ -1185,7 +1254,6 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
 
                 double i1 = 0; // i1 = i_{n+1}
                 double i2 = 0; // i2 = i_{n}
-
 
                 double DD1_1 = 0; // DD1_1 = x_{n+1} - x_{n}/ h_{n}
                 double DD1_2 = 0; // DD1_2 = x_{n} - x_{n-1}/ h_{n-1}
@@ -1196,16 +1264,16 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
 
                 double DD3 = 0; // DD3 = DD2_1 - DD2_2 / (h_{n} + h_{n-1} + h_{n-2})
 
-                std::vector<std::tuple<int, int, double>> C_list_1 = C_list_history.at(0);
-                std::vector<std::tuple<int, int, double>> C_list_2 = C_list_history.at(1);
+                std::vector<std::tuple<int, int, double, double>> C_list_1 = C_list_history.at(0);
+                std::vector<std::tuple<int, int, double, double>> C_list_2 = C_list_history.at(1);
                 std::vector<decltype(C_list)::iterator> matches;
 
                 // Search the current inside the previous C list
-                auto it_1 = std::find_if(C_list_1.begin(), C_list_1.end(), [&node_x, &node_y](const std::tuple<int, int, double> &e)
-                                    { return std::get<0>(e) == node_x && std::get<1>(e) == node_y; });
+                auto it_1 = std::find_if(C_list_1.begin(), C_list_1.end(), [&node_x, &node_y](const std::tuple<int, int, double, double> &e)
+                                         { return std::get<0>(e) == node_x && std::get<1>(e) == node_y; });
 
-                auto it_2 = std::find_if(C_list_2.begin(), C_list_2.end(), [&node_x, &node_y](const std::tuple<int, int, double> &e)
-                                    { return std::get<0>(e) == node_x && std::get<1>(e) == node_y; });
+                auto it_2 = std::find_if(C_list_2.begin(), C_list_2.end(), [&node_x, &node_y](const std::tuple<int, int, double, double> &e)
+                                         { return std::get<0>(e) == node_x && std::get<1>(e) == node_y; });
 
                 if (it_1 != C_list_1.end())
                 {
@@ -1251,32 +1319,35 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
 
                 DD3 = (DD2_1 - DD2_2) / (h + history_steps.at(0) + history_steps.at(1));
 
+                // Temp DD3 calculation
+                DD2_1 = (current - i1) / (h * capacitance);
+                DD2_2 = (i1 - i2) / (history_steps.at(0) * capacitance);
+                DD3 = (DD2_1 - DD2_2) / (h + history_steps.at(0) + history_steps.at(1));
+
                 // Calculate the error bound
-                // ErrorBound = RETOL * max(|x_{n+1}|,|x_{n}|,CHGTOL) / h_{n}
+                // ErrorBound = RETOL * max(|x_{n+1}|,|x_{n}|,CHGTOL) 
                 ErrorBound = std::max(std::abs(x1), std::abs(x2));
                 ErrorBound = std::max(ErrorBound, CHGTOL);
                 ErrorBound_i = std::max(std::abs(i1), std::abs(i2));
-                
 
                 // print i1 and i2
                 // std::cout << "i1: " << i1 << std::endl;
                 // std::cout << "i2: " << i2 << std::endl;
 
-                ErrorBound *= RELTOL * 1e-1;
-                ErrorBound += 1e-6;
-                ErrorBound_i *= RELTOL * 1e-1;
+                ErrorBound *= RELTOL;
+                ErrorBound += VNTOL;
+                ErrorBound_i *= RELTOL;
                 ErrorBound_i += ABSTOL;
-                ErrorBound = std::max(ErrorBound, ErrorBound_i);
+                ErrorBound = std::min(ErrorBound, ErrorBound_i);
 
-                // //print ErrorBound and DD3, DD1_1 
+                // //print ErrorBound and DD3, DD1_1
                 // std::cout << "ErrorBound: " << ErrorBound << std::endl;
                 // std::cout << "DD3: " << DD3 << std::endl;
                 // std::cout << "DD1_1: " << DD1_1*1e-6 << std::endl;
 
                 // Calculate h_{n+1}
-                h_x = std::pow( TRTOL * ErrorBound / std::abs(DD3), 1.0/3.0);
-                // h_x = std::pow( ErrorBound / std::abs(DD2_1), 1.0/2.0);
-                
+                // h_x = std::pow( TRTOL * 2 * ErrorBound / std::abs(DD3), 1.0/3.0);
+                h_x = TRTOL * ErrorBound * 2 * capacitance / std::abs(current - i1);
 
                 hn_candidates.push_back(h_x);
             }
@@ -1286,37 +1357,12 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
             std::cout << "Predict H1 Time Step:" << h_1 << std::endl;
 
             // Evaluate the new timestep
-            if (h_1 < 0.9 * h){
-                h = h_1;
-                h = std::max(h, TMIN);
+            h = std::min(h_1, 2 * h);
 
-                recompute_flag = 1;
+            h = std::max(h, TMIN);
+            h = std::min(h, TMAX);
 
-                // print recompute 
-                std::cout << "Recompute" << std::endl;
 
-            }else {
-                recompute_flag = 0;
-                h = std::min(h_1, 2 * h);
-                if (h > TMAX)
-                {
-                    TMAX_count++;
-                }else
-                    TMAX_count = 0;
-
-                if (TMAX_count > 20){
-                    TMAX = 2 * h;
-                    std::cout<< "Change TMAX"<< std::endl;
-                }
-
-                h = std::min(h, TMAX);
-
-                
-                    
-                
-                // print h
-                std::cout << "H Time Step:" << h << std::endl;
-            }
             return;
         }
     }

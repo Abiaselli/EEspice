@@ -1,5 +1,5 @@
 /*  This code could run a Direct Current Operating Point (DC OP) Analysis and Transient Analysis of a circuit. The circuit could be consisting of
-    resistors, capacitors, diodes, current source, voltage source, voltage-controlled current source (VCCS), pulsed voltage source, and N-MOS transistor. 
+    resistors, capacitors, diodes, current source, voltage source, voltage-controlled current source (VCCS), pulsed voltage source, and N-MOS transistor.
 
     The assignments are given as following (with solution, LHS, and RHS being constant):
     1) Resistor - R_assigner(node_x, node_y, cond(R), LHS, RHS);
@@ -14,7 +14,7 @@
 
     The linear components could be assigned inside the main function while the non-linear and dynamic components can be assigned inside the DynamicNonLinear function.
 
-    V_pulse also has a special assignment where the normal voltage source needs to be assigned with the initial voltage (V1) inside the RHS_locate list. 
+    V_pulse also has a special assignment where the normal voltage source needs to be assigned with the initial voltage (V1) inside the RHS_locate list.
     The V_pulse function will then be called inside the transient simulation loop.
 */
 
@@ -25,13 +25,19 @@ int const code = 1; // choosing code for IV_curve
 double W = 500e-9;
 double L = 50e-9;
 
-int const external_nodes = 4; // Number of external nodes (excluding ground and ring oscillator loop nodes)
-int const external_mosfets = 0; // Number of standalone mosfets (excluding mosfets from ring oscillator)
-int const cascaded_level = 0; // Number of cascaded ring oscillators 
-int const supply_voltage_node = 1; // supply voltage node for the ring oscillator
-int const no_of_mosfets = external_mosfets;// Total number of MOSFETs
+// TRANSIENT SIMULATION SETTINGS
+double t_start = 0;
+// double t_end = 9.05e-6;
+double t_end = 2e-4;
+double h = 1e-8; // t_end/5000 is the default value
 
-int const T_nodes = external_nodes + 4*no_of_mosfets;
+int const external_nodes = 4;               // Number of external nodes (excluding ground and ring oscillator loop nodes)
+int const external_mosfets = 0;             // Number of standalone mosfets (excluding mosfets from ring oscillator)
+int const cascaded_level = 0;               // Number of cascaded ring oscillators
+int const supply_voltage_node = 1;          // supply voltage node for the ring oscillator
+int const no_of_mosfets = external_mosfets; // Total number of MOSFETs
+
+int const T_nodes = external_nodes + 4 * no_of_mosfets;
 
 #include "Transient_code.h"
 
@@ -39,23 +45,37 @@ int const T_nodes = external_nodes + 4*no_of_mosfets;
 
     --fixed--           : can't be edited for circuit simulation purposes, but can be edited for code debugging.
     --can be changed--  : can be edited for circuit simulation purposes and edited for code debugging.
-    
+
 */
 
 // Assigning the stamp matrices for dynamic and non-linear components
-std::pair<arma::mat,arma::mat> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS, arma::mat solution, double h, int mode){
+std::pair<arma::mat, std::pair<arma::mat, arma::mat>> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J,
+                                                                       arma::mat solution, std::deque<arma::vec> &history_voltages,
+                                                                       double h, int mode)
+{
     // (Diode_assigner, PMOS_assigner, NMOS_assigner, C_assigner, RingOscillatorStages)
     /*--------------------------------------------can be changed-------------------------------------------------*/
-    NMOS_assigner(1,3,2,0,0,W,L,h,solution,LHS,RHS,mode);
-    
+    NMOS_assigner(1, 3, 2, 0, 0, W, L, h, solution, history_voltages, LHS, RHS, RHS_J, mode);
+
     arma::mat J_x = LHS;
-    arma::mat F_x = RHS;
+    arma::mat Z_x = RHS;
+    arma::mat Z_x_J = RHS_J;
+
+    return {J_x, {Z_x, Z_x_J}};
+}
+
+void UpdateStates(arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J,
+                    arma::mat solution, std::deque<arma::vec> &history_voltages, 
+                    double h, int mode)
+{
+    // (All the circuit assigners can be used except for voltage and current sources)
+    /*--------------------------------------------can be changed-------------------------------------------------*/
     
-    return {J_x,F_x};
 }
 
 // Main function for the circuit simulation
-int main(int argc, const char ** argv){
+int main(int argc, const char **argv)
+{
     /*----------------------------------------------fixed--------------------------------------------------------*/
     // Size of matrix
     int Maxi{T_nodes}; // defined in header file (Transient_code.h)
@@ -65,47 +85,46 @@ int main(int argc, const char ** argv){
 
     // TRANSIENT SIMULATION SETTINGS
     // The amount of iterations for the timestep, the higher the more accurate but uses more computing resources
-    
+
     int i = 0;
-    int n = 5001; // Number of iterations 
+    int n = 5001; // Number of iterations
     // Defining the voltage step settings for VDS
     double V1_start = 0;
     double V1_end = 30;
     double V1_step = 0.1; // Voltage increment
-    double h = (V1_end-V1_start)/(n);
-    
+    double h = (V1_end - V1_start) / (n);
+
     // Defining the voltage settings for VGS
     double VGS_value = 10;
 
     // voltage step vector to be inputted in plot for python analysis
-    arma::mat volt_step = arange(V1_start,h,n);
-    
+    arma::mat volt_step = arange_V(V1_start, h, n);
+
     /*----------------------------------------------fixed--------------------------------------------------------*/
     // ASSIGNING THE STAMPS TO THE LHS AND RHS MATRICES
 
     // default state
-    arma::mat LHS = arma::zeros(Maxi,Maxj); // LHS matrix
-    arma::mat RHS = arma::zeros(Maxi,1); // RHS matrix
+    arma::mat LHS = arma::zeros(Maxi, Maxj); // LHS matrix
+    arma::mat RHS = arma::zeros(Maxi, 1);    // RHS matrix
+    arma::mat RHS_J = arma::zeros(Maxi, 1);
 
     /*--------------------------------------------can be changed-------------------------------------------------*/
     // ASSIGNING THE RESISTOR STAMP (R_assigner)
-    R_assigner(1,2,220,LHS,RHS);
-    R_assigner(3,4,10,LHS,RHS);
-
+    R_assigner(1, 2, 220, LHS, RHS);
+    R_assigner(3, 4, 10, LHS, RHS);
 
     /*--------------------------------------------can be changed-------------------------------------------------*/
     // ASSIGNING THE CURRENT STAMP (Is_assigner, VCCS_assigner)
 
-
     /*--------------------------------------------can be changed-------------------------------------------------*/
     // Assigning DC voltage sources
-    Vs_assigner(1,0,VGS_value,LHS,RHS); // vgs
+    Vs_assigner(1, 0, VGS_value, LHS, RHS, RHS_J); // vgs
 
-    // Assigning the stamps that would affect the RHS in transient simulation 
+    // Assigning the stamps that would affect the RHS in transient simulation
     // (only for  time-dependent voltage, e.g. pulse voltages)
     std::vector<double> RHS_locate = {
         // Assigning the voltage matrix on LHS and RHS for the pulse voltage
-        Vs_assigner(4,0,V1_start,LHS,RHS) // vds
+        Vs_assigner(4, 0, V1_start, LHS, RHS, RHS_J) // vds
     };
     /*----------------------------------------------fixed--------------------------------------------------------*/
     // Checking the LHS and RHS matrices
@@ -121,37 +140,45 @@ int main(int argc, const char ** argv){
     // The initial LHS and RHS values to be used in the NR-algorithm
     arma::mat const init_LHS = LHS;
     arma::mat const init_RHS = RHS;
-    
+
     // OP analysis used as initial condition for next evaluation
-    arma::vec solution= arma::zeros(Maxi,Maxj);
+    arma::vec solution = arma::zeros(Maxi, Maxj);
+
+    // Store the history voltages(solutions)
+    std::deque<arma::vec> history_voltages;
+    history_voltages.push_front(solution);
+
+    // Store the history steps(solutions)
+    std::deque<double> history_steps;
+    history_steps.push_front(h);
     /*----------------------------------------------fixed--------------------------------------------------------*/
     // The solution csv that is going to be plotted which contains the values of nodal voltages
     // and voltage source currents
-    arma::vec id_csv = arma::ones(n,1);
+    arma::vec id_csv = arma::ones(n, 1);
 
     int iter = 0;
-    solution = NewtonRaphson_system(init_LHS,init_RHS, LHS, RHS, solution,h,mode);
-    id_csv[0] = NMOS_assigner(1,3,2,0,0,W,L,h,solution,LHS,RHS,mode);
+    solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, RHS_J, solution, history_voltages, h, history_steps, mode);
+    id_csv[0] = NMOS_assigner(1, 3, 2, 0, 0, W, L, h, solution, history_voltages, LHS, RHS, RHS_J, mode);
     /*--------------------------------------------can be changed-------------------------------------------------*/
-    // ADDING VOLTAGE STEPPING LOOP  
-    while(i < n){
-        
+    // ADDING VOLTAGE STEPPING LOOP
+    while (i < n)
+    {
+
         LHS = init_LHS;
         RHS = init_RHS;
-        
+
         std::vector<double> RHS_value = {
-            Vstep_Source(V1_start,V1_step,h) // VDS
+            Vstep_Source(V1_start, V1_step, h) // VDS
         };
         RHS = RHS_update(RHS_locate, init_RHS, RHS_value);
         // Calling the Newton-Raphson system here
-        solution = NewtonRaphson_system(init_LHS,init_RHS, LHS, RHS, solution,h,mode);
-        
+        solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, RHS_J, solution, history_voltages, h, history_steps, mode);
+
         // Assigning the variables that will be plotted and analysed as seen in a circuit simulator
-        id_csv[i] = NMOS_assigner(1,3,2,0,0,W,L,h,solution,LHS,RHS,mode);
-        
+        id_csv[i] = NMOS_assigner(1, 3, 2, 0, 0, W, L, h, solution, history_voltages, LHS, RHS, RHS_J, mode);
+
         i++;
         iter += Maxi;
-        
     }
     /*-----------------------------------------------------------------------------------------------------------*/
     // SAVING THE SOLUTION AND TIME MATRICES INTO CSV FILES

@@ -28,6 +28,7 @@ double R_oscillator = 1e3;
 int const cascaded_level = 3;      // Number of cascaded ring oscillators
 int const supply_voltage_node = 1; // supply voltage node for the ring oscillator
 
+
 // TRANSIENT SIMULATION SETTINGS
 double t_start = 0;
 double t_end = 1e-9;
@@ -65,6 +66,19 @@ std::pair<arma::mat, std::pair<arma::mat, arma::mat>> DynamicNonLinear(arma::mat
     arma::mat Z_x_J = RHS_J;
 
     return {J_x, {Z_x, Z_x_J}};
+}
+
+void UpdateStates(arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J,
+                    arma::mat solution, std::deque<arma::vec> &history_voltages, 
+                    double h, int mode)
+{
+    // (All the circuit assigners can be used except for voltage and current sources)
+    /*--------------------------------------------can be changed-------------------------------------------------*/
+    // RingOscillatorStages(W_oscillator, L_oscillator, R_oscillator, C_oscillator, LHS, RHS, RHS_J, solution, history_voltages, h, mode);
+    
+    // C_assigner(2, 0, 1e-6, h, LHS, RHS, solution, mode);
+    // C_assigner_2(2, 0, 1e-6, h, LHS, RHS, solution, history_voltages, mode);
+    RingOscillatorStages(W_oscillator, L_oscillator, R_oscillator, C_oscillator, LHS, RHS, RHS_J, solution, history_voltages, h, mode);
 }
 
 // Main function for the circuit simulation
@@ -138,6 +152,7 @@ int main(int argc, const char **argv)
     
     // Store the history steps(solutions)
     std::deque<double> history_steps;
+    history_steps.push_front(h);
 
     // Benchmarking for OP analysis
     auto tstart_op = std::chrono::high_resolution_clock::now();
@@ -163,7 +178,7 @@ int main(int argc, const char **argv)
     auto tstart_trans = std::chrono::high_resolution_clock::now();
     while (time_trans < t_end)
     {
-
+        double step = h;
         LHS = init_LHS;
         RHS = init_RHS;
 
@@ -176,12 +191,18 @@ int main(int argc, const char **argv)
         solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, RHS_J, solution, history_voltages, h, history_steps, mode);
         // Assigning the variables that will be plotted and analysed as seen in a circuit simulator
         solution_csv = arma::join_cols(solution_csv, solution);
-        time_trans += h;
-
-        // std::cout << "Time Step:" << h << std::endl;
+        time_trans += step;
+    
         // add the current step to the history steps
-        history_steps.push_front(h);
+        history_steps.push_front(step);
     }
+
+    // Calling the Newton-Raphson system here
+    solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, RHS_J, solution, history_voltages, h, history_steps, mode);
+
+    // Assigning the variables that will be plotted and analysed as seen in a circuit simulator
+    solution_csv = arma::join_cols(solution_csv, solution);
+    
     auto tstop_trans = std::chrono::high_resolution_clock::now();
     // time vector to be inputted in plot for python analysis
     arma::mat time = arange(t_start, history_steps);
