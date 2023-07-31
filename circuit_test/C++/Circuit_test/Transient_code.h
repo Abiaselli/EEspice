@@ -1079,8 +1079,6 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
     arma::mat delta = arma::zeros(row_size, 1);
     bool isconverge = false;
 
-    // print h
-    std::cout << "h: " << h << std::endl;
     UpdateStates(LHS, RHS, RHS_J,solution, history_voltages, h, 1);
 
     // using relative error to check for convergence
@@ -1088,8 +1086,9 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
     do
     {
         arma::mat pre_solution = solution;
-        auto matrices = DynamicNonLinear(LHS, RHS, RHS_J, solution, history_voltages, h, mode);
 
+        auto matrices = DynamicNonLinear(LHS, RHS, RHS_J, solution, history_voltages, h, mode);
+        
         // Extent the J_z(k) matrix to the size of LHS
         arma::mat Temp(LHS.n_rows, LHS.n_cols, arma::fill::zeros);
         Temp.col(0) = matrices.second.second;
@@ -1107,20 +1106,21 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
         {
             continue;
         }
-
+        // break;
 
         isconverge = isConverge(solution, pre_solution, iteration_counter);
 
-        if (iteration_counter > 100)
+        if (iteration_counter > 1000)
         {
-            std::cout << "Not Converge within limit" << std::endl;
-            break;
+            // std::cout << "Not Converge within limit" << std::endl;
+            // break;
         }
 
     } while (!isconverge);
 
     // print iteration count
     std::cout << "Iteration count: " << iteration_counter << std::endl;
+
     // Only process timestep adjustment when in transient analysis
     if (mode == 1 && ENADAPT == 1)
     {
@@ -1158,7 +1158,7 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
     }
 
     // print finish
-    std::cout << "Finish" << std::endl;
+    // std::cout << "Finish" << std::endl;
     return solution;
 }
 
@@ -1182,7 +1182,7 @@ bool isConverge(arma::mat &solution, arma::mat &pre_solution, int iteration_coun
         double maxVoltage = std::max(std::abs(solution(i, 0)), std::abs(pre_solution(i, 0)));
         double Veps = std::abs(solution(i, 0) - pre_solution(i, 0));
 
-        if (Veps > RELTOL + VNTOL * maxVoltage)
+        if (Veps > VNTOL + RELTOL * maxVoltage)
         {
             // std::cout << "Veps: " << Veps << std::endl;
             return false;

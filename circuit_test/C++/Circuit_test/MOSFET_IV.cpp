@@ -87,15 +87,15 @@ int main(int argc, const char **argv)
     // The amount of iterations for the timestep, the higher the more accurate but uses more computing resources
 
     int i = 0;
-    int n = 5001; // Number of iterations
+    int n = 500; // Number of iterations
     // Defining the voltage step settings for VDS
     double V1_start = 0;
-    double V1_end = 30;
+    double V1_end = 20;
     double V1_step = 0.1; // Voltage increment
     double h = (V1_end - V1_start) / (n);
 
     // Defining the voltage settings for VGS
-    double VGS_value = 10;
+    double VGS_value = 5;
 
     // voltage step vector to be inputted in plot for python analysis
     arma::mat volt_step = arange_V(V1_start, h, n);
@@ -171,6 +171,7 @@ int main(int argc, const char **argv)
             Vstep_Source(V1_start, V1_step, h) // VDS
         };
         RHS = RHS_update(RHS_locate, init_RHS, RHS_value);
+
         // Calling the Newton-Raphson system here
         solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, RHS_J, solution, history_voltages, h, history_steps, mode);
 
