@@ -30,16 +30,16 @@ int const supply_voltage_node = 1; // supply voltage node for the ring oscillato
 
 // TRANSIENT SIMULATION SETTINGS
 double t_start = 0;
-double t_end = 3e-5;
+double t_end = 9e-6;
 // double t_end = 2e-4;
-double h = t_end/2000; // t_end/5000 is the default value
+double h = 1e-18; // t_end/5000 is the default value
 
 
 /*  TOTAL NUMBER OF NODES EXCLUDING GROUND
     Two port components such as resistors, initially adds 2 nodes. If more than 1 component is added, it then adds 1 node per component.
     Number of MOSFETs and cascaded levels are assigned above too. External nodes are the nodes which  */
 
-int const external_nodes = 2;                                    // Number of external nodes (excluding ground and ring oscillator loop nodes)
+int const external_nodes = 3;                                    // Number of external nodes (excluding ground and ring oscillator loop nodes)
 int const external_mosfets = 0;                                  // Number of standalone mosfets (excluding mosfets from ring oscillator)
 int const no_of_mosfets = 0; // Total number of MOSFETs
 int const T_nodes = external_nodes + 4 * no_of_mosfets + 2 * cascaded_level;
@@ -60,7 +60,12 @@ std::pair<arma::mat, arma::mat> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS,
 {
     // (All the circuit assigners can be used except for voltage and current sources)
     /*--------------------------------------------can be changed-------------------------------------------------*/
-    
+
+    // Diode_assigner_2(0, 2, 1e-12, 26e-3, h, LHS, RHS, solution, mode);
+    Diode_assigner_2(0, 2, 1e-12, 26e-3, h, LHS, RHS, solution, mode);
+    Diode_assigner_2(2, 3, 1e-12, 26e-3, h, LHS, RHS, solution, mode);
+
+
     arma::mat J_x = LHS;
     arma::mat Z_x = RHS;
 
@@ -78,6 +83,7 @@ void UpdateStates(arma::mat &LHS, arma::mat &RHS,
     // C_assigner(2, 0, 1e-6, h, LHS, RHS, solution, mode);
     // C_assigner_2(2, 0, 1e-6, h, LHS, RHS, solution, history_voltages, mode);
     C_assigner_3(1, 2, 1e-6, h, LHS, RHS, solution, history_voltages, mode);
+    C_assigner_3(3, 0, 1e-6, h, LHS, RHS, solution, history_voltages, mode);
 }
 
 
@@ -118,8 +124,13 @@ int main(int argc, const char **argv)
     // double tpw = 0;
     // double tper = 2e-3;
 
+    // std::vector<double> RHS_locate = {
+    //     // Assigning the voltage matrix on LHS and RHS for the pulse voltage
+    //     Vs_assigner(2,0,V1,LHS,RHS)
+    // };
     // Assigning DC voltage sources
-    Vs_assigner(supply_voltage_node, 0, 5, LHS, RHS); // supply voltage for the ring oscillator, vdd
+
+    // Vs_assigner(supply_voltage_node, 0, 0.2, LHS, RHS);
 
     std::vector<double> RHS_locate = {
         // Assigning the voltage matrix on LHS and RHS for the pulse voltage
@@ -185,7 +196,7 @@ int main(int argc, const char **argv)
         RHS = init_RHS;
 
         std::vector<double> RHS_value = {
-            Vsin_Source(5, 1e7, time_trans)
+            Vsin_Source(3, 1e7, time_trans)
         };
         RHS = RHS_update(RHS_locate, init_RHS, RHS_value);
 
@@ -196,6 +207,9 @@ int main(int argc, const char **argv)
         solution_csv = arma::join_cols(solution_csv, solution);
 
         time_trans += step;
+
+        // print the time step
+        std::cout << "Time step: " << step << std::endl;
     
         // add the current step to the history steps
         history_steps.push_front(step);

@@ -49,22 +49,22 @@ int const T_nodes = external_nodes + 4 * no_of_mosfets;
 */
 
 // Assigning the stamp matrices for dynamic and non-linear components
-std::pair<arma::mat, std::pair<arma::mat, arma::mat>> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J,
+std::pair<arma::mat, arma::mat> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS,
                                                                        arma::mat solution, std::deque<arma::vec> &history_voltages,
                                                                        double h, int mode)
 {
     // (Diode_assigner, PMOS_assigner, NMOS_assigner, C_assigner, RingOscillatorStages)
     /*--------------------------------------------can be changed-------------------------------------------------*/
-    NMOS_assigner(1, 3, 2, 0, 0, W, L, h, solution, history_voltages, LHS, RHS, RHS_J, mode);
+    NMOS_assigner(1, 3, 2, 0, 0, W, L, h, solution, history_voltages, LHS, RHS, mode);
 
     arma::mat J_x = LHS;
     arma::mat Z_x = RHS;
-    arma::mat Z_x_J = RHS_J;
+    
 
-    return {J_x, {Z_x, Z_x_J}};
+    return {J_x, Z_x};
 }
 
-void UpdateStates(arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J,
+void UpdateStates(arma::mat &LHS, arma::mat &RHS, 
                     arma::mat solution, std::deque<arma::vec> &history_voltages, 
                     double h, int mode)
 {
@@ -106,7 +106,7 @@ int main(int argc, const char **argv)
     // default state
     arma::mat LHS = arma::zeros(Maxi, Maxj); // LHS matrix
     arma::mat RHS = arma::zeros(Maxi, 1);    // RHS matrix
-    arma::mat RHS_J = arma::zeros(Maxi, 1);
+
 
     /*--------------------------------------------can be changed-------------------------------------------------*/
     // ASSIGNING THE RESISTOR STAMP (R_assigner)
@@ -118,13 +118,13 @@ int main(int argc, const char **argv)
 
     /*--------------------------------------------can be changed-------------------------------------------------*/
     // Assigning DC voltage sources
-    Vs_assigner(1, 0, VGS_value, LHS, RHS, RHS_J); // vgs
+    Vs_assigner(1, 0, VGS_value, LHS, RHS); // vgs
 
     // Assigning the stamps that would affect the RHS in transient simulation
     // (only for  time-dependent voltage, e.g. pulse voltages)
     std::vector<double> RHS_locate = {
         // Assigning the voltage matrix on LHS and RHS for the pulse voltage
-        Vs_assigner(4, 0, V1_start, LHS, RHS, RHS_J) // vds
+        Vs_assigner(4, 0, V1_start, LHS, RHS) // vds
     };
     /*----------------------------------------------fixed--------------------------------------------------------*/
     // Checking the LHS and RHS matrices
@@ -157,8 +157,8 @@ int main(int argc, const char **argv)
     arma::vec id_csv = arma::ones(n, 1);
 
     int iter = 0;
-    solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, RHS_J, solution, history_voltages, h, history_steps, mode);
-    id_csv[0] = NMOS_assigner(1, 3, 2, 0, 0, W, L, h, solution, history_voltages, LHS, RHS, RHS_J, mode);
+    solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, solution, history_voltages, h, history_steps, mode);
+    id_csv[0] = NMOS_assigner(1, 3, 2, 0, 0, W, L, h, solution, history_voltages, LHS, RHS, mode);
     /*--------------------------------------------can be changed-------------------------------------------------*/
     // ADDING VOLTAGE STEPPING LOOP
     while (i < n)
@@ -173,10 +173,10 @@ int main(int argc, const char **argv)
         RHS = RHS_update(RHS_locate, init_RHS, RHS_value);
 
         // Calling the Newton-Raphson system here
-        solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, RHS_J, solution, history_voltages, h, history_steps, mode);
+        solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, solution, history_voltages, h, history_steps, mode);
 
         // Assigning the variables that will be plotted and analysed as seen in a circuit simulator
-        id_csv[i] = NMOS_assigner(1, 3, 2, 0, 0, W, L, h, solution, history_voltages, LHS, RHS, RHS_J, mode);
+        id_csv[i] = NMOS_assigner(1, 3, 2, 0, 0, W, L, h, solution, history_voltages, LHS, RHS, mode);
 
         i++;
         iter += Maxi;

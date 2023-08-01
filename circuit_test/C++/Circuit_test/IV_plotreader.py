@@ -24,4 +24,4 @@ plt.grid(which='major')
 plt.minorticks_on()
 plt.grid(which='minor', alpha=0.2)
 
-plt.show()
+plt.savefig('IV.png', dpi=300)

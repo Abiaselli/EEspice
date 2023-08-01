@@ -31,8 +31,8 @@ int const supply_voltage_node = 1; // supply voltage node for the ring oscillato
 
 // TRANSIENT SIMULATION SETTINGS
 double t_start = 0;
-double t_end = 1e-9;
-double h = t_end / 5000; // t_end/5000 is the default value
+double t_end = 1e-18;
+double h = t_end / 500; // t_end/5000 is the default value
 
 /*  TOTAL NUMBER OF NODES EXCLUDING GROUND
     Two port components such as resistors, initially adds 2 nodes. If more than 1 component is added, it then adds 1 node per component.
@@ -53,32 +53,30 @@ P
 */
 
 // Assigning the stamp matrices for dynamic and non-linear components
-std::pair<arma::mat, std::pair<arma::mat, arma::mat>> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J,
+std::pair<arma::mat, arma::mat> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS,
                                                                     arma::mat solution, std::deque<arma::vec> &history_voltages, 
                                                                     double h, int mode)
 {
     // (All the circuit assigners can be used except for voltage and current sources)
     /*--------------------------------------------can be changed-------------------------------------------------*/
-    RingOscillatorStages(W_oscillator, L_oscillator, R_oscillator, C_oscillator, LHS, RHS, RHS_J, solution, history_voltages, h, mode);
+    RingOscillatorStages(W_oscillator, L_oscillator, R_oscillator, C_oscillator, LHS, RHS, solution, history_voltages, h, mode);
 
     arma::mat J_x = LHS;
     arma::mat Z_x = RHS;
-    arma::mat Z_x_J = RHS_J;
 
-    return {J_x, {Z_x, Z_x_J}};
+    return {J_x, Z_x};
 }
 
-void UpdateStates(arma::mat &LHS, arma::mat &RHS, arma::mat &RHS_J,
+void UpdateStates(arma::mat &LHS, arma::mat &RHS, 
                     arma::mat solution, std::deque<arma::vec> &history_voltages, 
                     double h, int mode)
 {
     // (All the circuit assigners can be used except for voltage and current sources)
     /*--------------------------------------------can be changed-------------------------------------------------*/
-    // RingOscillatorStages(W_oscillator, L_oscillator, R_oscillator, C_oscillator, LHS, RHS, RHS_J, solution, history_voltages, h, mode);
     
     // C_assigner(2, 0, 1e-6, h, LHS, RHS, solution, mode);
     // C_assigner_2(2, 0, 1e-6, h, LHS, RHS, solution, history_voltages, mode);
-    RingOscillatorStages(W_oscillator, L_oscillator, R_oscillator, C_oscillator, LHS, RHS, RHS_J, solution, history_voltages, h, mode);
+    RingOscillatorStages(W_oscillator, L_oscillator, R_oscillator, C_oscillator, LHS, RHS, solution, history_voltages, h, mode);
 }
 
 // Main function for the circuit simulation
@@ -96,8 +94,6 @@ int main(int argc, const char **argv)
     // default state
     arma::mat LHS = arma::zeros(Maxi, Maxj); // LHS matrix
     arma::mat RHS = arma::zeros(Maxi, 1);    // RHS matrix
-    arma::mat RHS_J = arma::zeros(Maxi, 1);
-
 
     /*--------------------------------------------can be changed-------------------------------------------------*/
     // ASSIGNING THE RESISTOR STAMP (R_assigner)
@@ -123,7 +119,7 @@ int main(int argc, const char **argv)
     //     Vs_assigner(2,0,V1,LHS,RHS)
     // };
     // Assigning DC voltage sources
-    Vs_assigner(supply_voltage_node, 0, 5, LHS, RHS, RHS_J); // supply voltage for the ring oscillator, vdd
+    Vs_assigner(supply_voltage_node, 0, 3, LHS, RHS); // supply voltage for the ring oscillator, vdd
 
     // Assigning the stamps that would affect the RHS in transient simulation
     // (only for  time-dependent voltage, e.g. pulse voltages)
@@ -156,7 +152,7 @@ int main(int argc, const char **argv)
 
     // Benchmarking for OP analysis
     auto tstart_op = std::chrono::high_resolution_clock::now();
-    solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, RHS_J, solution, history_voltages, h, history_steps, mode);
+    solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, solution, history_voltages, h, history_steps, mode);
 
     // add the solution(voltage) to the history
     history_voltages.push_front(solution);
@@ -188,7 +184,7 @@ int main(int argc, const char **argv)
         // RHS = RHS_update(RHS_locate, init_RHS, RHS_value);
 
         // Calling the Newton-Raphson system here
-        solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, RHS_J, solution, history_voltages, h, history_steps, mode);
+        solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, solution, history_voltages, h, history_steps, mode);
         // Assigning the variables that will be plotted and analysed as seen in a circuit simulator
         solution_csv = arma::join_cols(solution_csv, solution);
         time_trans += step;
@@ -196,12 +192,6 @@ int main(int argc, const char **argv)
         // add the current step to the history steps
         history_steps.push_front(step);
     }
-
-    // Calling the Newton-Raphson system here
-    solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, RHS_J, solution, history_voltages, h, history_steps, mode);
-
-    // Assigning the variables that will be plotted and analysed as seen in a circuit simulator
-    solution_csv = arma::join_cols(solution_csv, solution);
     
     auto tstop_trans = std::chrono::high_resolution_clock::now();
     // time vector to be inputted in plot for python analysis
