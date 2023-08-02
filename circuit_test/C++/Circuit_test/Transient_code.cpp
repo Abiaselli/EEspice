@@ -21,9 +21,9 @@
 int const code = 0; // choosing code for transient simulation
 
 // Settings for the Ring Oscillator
-double W_oscillator = 500e-9;
-double L_oscillator = 50e-9;
-double C_oscillator = 1e-15;
+double W_oscillator = 500e-6;
+double L_oscillator = 50e-6;
+double C_oscillator = 1e-9;
 double R_oscillator = 1e3;
 int const cascaded_level = 3;      // Number of cascaded ring oscillators
 int const supply_voltage_node = 1; // supply voltage node for the ring oscillator
@@ -31,8 +31,9 @@ int const supply_voltage_node = 1; // supply voltage node for the ring oscillato
 
 // TRANSIENT SIMULATION SETTINGS
 double t_start = 0;
-double t_end = 1e-18;
-double h = t_end / 500; // t_end/5000 is the default value
+double t_end = 1e-4;
+// double t_end = 1e-8;
+double h = t_end / 2000; // t_end/5000 is the default value
 
 /*  TOTAL NUMBER OF NODES EXCLUDING GROUND
     Two port components such as resistors, initially adds 2 nodes. If more than 1 component is added, it then adds 1 node per component.
@@ -42,6 +43,7 @@ int const external_nodes = 1;                                    // Number of ex
 int const external_mosfets = 0;                                  // Number of standalone mosfets (excluding mosfets from ring oscillator)
 int const no_of_mosfets = external_mosfets + 2 * cascaded_level; // Total number of MOSFETs
 int const T_nodes = external_nodes + 4 * no_of_mosfets + 2 * cascaded_level;
+
 
 #include "Transient_code.h"
 
@@ -116,10 +118,10 @@ int main(int argc, const char **argv)
 
     // std::vector<double> RHS_locate = {
     //     // Assigning the voltage matrix on LHS and RHS for the pulse voltage
-    //     Vs_assigner(2,0,V1,LHS,RHS)
+    //     Vs_assigner(supply_voltage_node + 1,0, 5, LHS, RHS)
     // };
     // Assigning DC voltage sources
-    Vs_assigner(supply_voltage_node, 0, 3, LHS, RHS); // supply voltage for the ring oscillator, vdd
+    Vs_assigner(supply_voltage_node, 0, 5, LHS, RHS); // supply voltage for the ring oscillator, vdd
 
     // Assigning the stamps that would affect the RHS in transient simulation
     // (only for  time-dependent voltage, e.g. pulse voltages)
@@ -153,6 +155,9 @@ int main(int argc, const char **argv)
     // Benchmarking for OP analysis
     auto tstart_op = std::chrono::high_resolution_clock::now();
     solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, solution, history_voltages, h, history_steps, mode);
+    
+    // change the second row element of solution to 5
+    solution(1) = 5;
 
     // add the solution(voltage) to the history
     history_voltages.push_front(solution);
@@ -171,6 +176,7 @@ int main(int argc, const char **argv)
     // ADDING TRANSIENT SIMULATION LOOP (includes V_pulse or any time dependent sources)
     double time_trans = t_start;
     mode = 1;
+    int count = 0;
     auto tstart_trans = std::chrono::high_resolution_clock::now();
     while (time_trans < t_end)
     {
@@ -178,10 +184,7 @@ int main(int argc, const char **argv)
         LHS = init_LHS;
         RHS = init_RHS;
 
-        // std::vector<double> RHS_value = {
-        //     V_pulse(V1,V2,t1,td,tr,tf,tpw,tper,h)
-        // };
-        // RHS = RHS_update(RHS_locate, init_RHS, RHS_value);
+        
 
         // Calling the Newton-Raphson system here
         solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, solution, history_voltages, h, history_steps, mode);

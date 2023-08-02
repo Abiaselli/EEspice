@@ -21,9 +21,11 @@ double RELTOL = 1e-3;
 double VNTOL = 1e-6;
 double ABSTOL = 1e-12;
 double STEPMODE = 1;
-double TMIN = 1e-20;
-double TMAX = t_end / 50;
+double TMIN = 1e-18;
+double TMAX = t_end / 500;
+// Setting for adaptive step
 int ENADAPT = 1;
+
 int ITL3 = 4;
 int ITL4 = 10;
 
@@ -459,7 +461,7 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
         gmb = 0;
     }
 
-    if (code == 0)
+    if (code == 0 && mode !=2 )
     {
         // C_assigner(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 4, CGS, h, LHS, RHS, solution, mode); // # Capacitor GSO
         // C_assigner(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 3, CGB, h, LHS, RHS, solution, mode); // # Capacitor GBO
@@ -607,8 +609,8 @@ double PMOS_assigner(int number, int node_vs, int node_vg, int node_vd, int node
         // Diode_assigner(T_nodes - (4 * number) + 2, T_nodes - (4 * number) + 3, 1e-14, 0.05, CBD, h, LHS, RHS, solution, mode); // # Diode BD
         // Diode_assigner(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, 1e-14, 0.05, CBS, h, LHS, RHS, solution, mode); // # Diode BS
 
-        Diode_assigner(T_nodes - (4 * number) + 2, T_nodes - (4 * number) + 3, 1e-14, 0.05, 0, h, LHS, RHS, solution, mode); // # Diode BD
-        Diode_assigner(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, 1e-14, 0.05, 0, h, LHS, RHS, solution, mode); // # Diode BS
+        // Diode_assigner(T_nodes - (4 * number) + 2, T_nodes - (4 * number) + 3, 1e-14, 0.05, 0, h, LHS, RHS, solution, mode); // # Diode BD
+        // Diode_assigner(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, 1e-14, 0.05, 0, h, LHS, RHS, solution, mode); // # Diode BS
     }
 
     vt = vt0 - gamma * ((sqrt(phi - vsb) - sqrt(phi))); // already taking into account the body effect of MOSFETs
@@ -637,7 +639,7 @@ double PMOS_assigner(int number, int node_vs, int node_vg, int node_vd, int node
         gmb = 0;
     }
 
-    if (code == 0)
+    if (code == 0  && mode != 2)
     {
         // C_assigner(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 4, CGS, h, LHS, RHS, solution, mode); // # Capacitor GSO
         // C_assigner(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 3, CGB, h, LHS, RHS, solution, mode); // # Capacitor GBO
@@ -681,7 +683,7 @@ void RingOscillatorStages(double W, double L, double R, double C, arma::mat &LHS
             NMOS_assigner(even, n_odd, n_even, 0, 0, W, L, h, solution, history_voltages, LHS, RHS,  mode);
             if(mode != 2) 
                 R_assigner(n_odd, supply_voltage_node + 1, R, LHS, RHS);
-            C_assigner(supply_voltage_node + 1, 0, C, h, LHS, RHS, solution,mode);
+            // C_assigner(supply_voltage_node + 1, 0, C, h, LHS, RHS, solution,mode);
             C_assigner_3(supply_voltage_node + 1, 0, C, h, LHS, RHS, solution, history_voltages, mode);
 
         }
@@ -1167,7 +1169,7 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
     }
 
     // print finish
-    std::cout << "Finish" << std::endl;
+    // std::cout << "Finish" << std::endl;
     return solution;
 }
 
@@ -1252,6 +1254,7 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
                 double current = std::get<2>(*iter);
                 double capacitance = std::get<3>(*iter);
 
+
                 double ErrorBound = 0;
                 double ErrorBound_i = 0;
                 double h_x = 0;
@@ -1334,23 +1337,28 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
                 DD3 = (DD2_1 - DD2_2) / (h + history_steps.at(0) + history_steps.at(1));
 
                 // Calculate the error bound
-                // ErrorBound = RETOL * max(|x_{n+1}|,|x_{n}|,CHGTOL) 
+                // ErrorBound = RETOL * max(|x_{n+1}|,|x_{n}|,CHGTOL) / h
                 ErrorBound = std::max(std::abs(x1), std::abs(x2));
                 ErrorBound = std::max(ErrorBound, CHGTOL);
                 ErrorBound_i = std::max(std::abs(i1), std::abs(i2));
+
 
                 // print i1 and i2
                 // std::cout << "i1: " << i1 << std::endl;
                 // std::cout << "i2: " << i2 << std::endl;
 
-                ErrorBound *= RELTOL;
-                ErrorBound += VNTOL;
+                ErrorBound *= RELTOL*capacitance;
+                // ErrorBound += VNTOL;
+                ErrorBound /= h;
                 ErrorBound_i *= RELTOL;
                 ErrorBound_i += ABSTOL;
+
                 ErrorBound = std::min(ErrorBound, ErrorBound_i);
 
+                // ErrorBound = 1e-5;
+
                 // //print ErrorBound and DD3, DD1_1
-                // std::cout << "ErrorBound: " << ErrorBound << std::endl;
+                
                 // std::cout << "DD3: " << DD3 << std::endl;
                 // std::cout << "DD1_1: " << DD1_1*1e-6 << std::endl;
 
