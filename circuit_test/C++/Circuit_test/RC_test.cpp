@@ -30,9 +30,9 @@ int const supply_voltage_node = 1; // supply voltage node for the ring oscillato
 
 // TRANSIENT SIMULATION SETTINGS
 double t_start = 0;
-// double t_end = 9.01e-6;
-double t_end = 5e-4;
-double h = t_end/2000; // t_end/5000 is the default value
+double t_end = 9.01e-6;
+// double t_end = 5e-4;
+double h = t_end/1000; // t_end/5000 is the default value
 
 
 /*  TOTAL NUMBER OF NODES EXCLUDING GROUND

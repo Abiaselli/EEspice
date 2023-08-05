@@ -30,7 +30,7 @@ int const supply_voltage_node = 1; // supply voltage node for the ring oscillato
 
 // TRANSIENT SIMULATION SETTINGS
 double t_start = 0;
-double t_end = 9.05e-6;
+double t_end = 1e-5;
 // double t_end = 2e-4;
 double h = t_end/5000; // t_end/5000 is the default value
 
@@ -80,9 +80,8 @@ void UpdateStates(arma::mat &LHS, arma::mat &RHS,
     // RingOscillatorStages(W_oscillator, L_oscillator, R_oscillator, C_oscillator, LHS, RHS, solution, history_voltages, h, mode);
     
     // C_assigner(2, 0, 1e-6, h, LHS, RHS, solution, mode);
-    // C_assigner_2(2, 0, 1e-6, h, LHS, RHS, solution, history_voltages, mode);
-    // C_assigner_3(1, 2, 1e-6, h, LHS, RHS, solution, history_voltages, mode);
     C_assigner_3(2, 0, 1e-6, h, LHS, RHS, solution, history_voltages, mode);
+    // C_assigner_2(2, 0, 1e-6, h, LHS, RHS, solution, history_voltages, mode);
 }
 
 
@@ -128,8 +127,8 @@ int main(int argc, const char **argv)
     //     Vs_assigner(2,0,V1,LHS,RHS)
     // };
     // Assigning DC voltage sources
-
-    // Vs_assigner(supply_voltage_node, 0, 0.2, LHS, RHS);
+                               
+    // Vs_assigner(supply_voltage_node, 0, 0, LHS, RHS);
 
     std::vector<double> RHS_locate = {
         // Assigning the voltage matrix on LHS and RHS for the pulse voltage
@@ -195,7 +194,7 @@ int main(int argc, const char **argv)
         RHS = init_RHS;
 
         std::vector<double> RHS_value = {
-            Vsin_Source(5, 1e7, time_trans)
+            Vsin_Source(3, 1e7, time_trans)
         };
         RHS = RHS_update(RHS_locate, init_RHS, RHS_value);
 

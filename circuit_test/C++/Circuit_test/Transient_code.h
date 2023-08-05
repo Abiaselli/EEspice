@@ -54,7 +54,7 @@ void C_assigner_3(int node_x, int node_y, double C, double h, arma::mat &LHS, ar
                   int mode);
 double Diode_assigner_2(int node_x, int node_y, double Is, double VT, double h, arma::mat &LHS, arma::mat &RHS, 
                       arma::mat solution, int mode);
-bool isConverge(arma::mat &solution, arma::mat &pre_solution, int iteration_counter);
+bool isConverge(arma::mat &solution, arma::mat &pre_solution, arma::mat &RHS, arma::mat &pre_RHS);
 void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::deque<arma::vec> history_voltages,
                  std::deque<double> history_steps);
 
@@ -479,6 +479,8 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
         VCCS_assigner(node_vd, node_vs, node_vb, node_vs, gmb, LHS); // assigning gmb
         R_assigner(node_vd, node_vs, cond(gds), LHS, RHS);           // # assigning gds
         VCCS_assigner(node_vd, node_vs, node_vg, node_vs, gm, LHS);  // # assigning gm
+
+        R_assigner(node_vs, node_vd, cond(GMIN), LHS, RHS); // # assigning gds
     }
 
     return id;
@@ -657,6 +659,8 @@ double PMOS_assigner(int number, int node_vs, int node_vg, int node_vd, int node
         VCCS_assigner(node_vs, node_vd, node_vs, node_vb, gmb, LHS); // assigning gmb
         R_assigner(node_vd, node_vs, cond(gds), LHS, RHS);           // # assigning gds
         VCCS_assigner(node_vs, node_vd, node_vs, node_vg, gm, LHS);  // # assigning gm
+
+        R_assigner(node_vs, node_vd, cond(GMIN), LHS, RHS); // # assigning gds
     }
 
     return id;
@@ -1098,6 +1102,8 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
     do
     {
         arma::mat pre_solution = solution;
+        arma::mat pre_current = RHS;
+
 
         auto matrices = DynamicNonLinear(LHS, RHS, solution, history_voltages, h, mode);
 
@@ -1119,7 +1125,7 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
             continue;
         }
 
-        isconverge = isConverge(solution, pre_solution, iteration_counter);
+        isconverge = isConverge(solution, pre_solution, RHS, pre_current);
 
         if (iteration_counter > 100)
         {
@@ -1184,7 +1190,7 @@ arma::mat RHS_update(std::vector<double> RHS_locate, arma::mat RHS, std::vector<
     return RHS;
 }
 
-bool isConverge(arma::mat &solution, arma::mat &pre_solution, int iteration_counter)
+bool isConverge(arma::mat &solution, arma::mat &pre_solution, arma::mat &RHS, arma::mat &pre_RHS)
 {
     int row_size = solution.n_rows;
 
@@ -1199,6 +1205,22 @@ bool isConverge(arma::mat &solution, arma::mat &pre_solution, int iteration_coun
             return false;
         }
     }
+
+    row_size = RHS.n_rows;
+
+    for (int i = 0; i < row_size; i++)
+    {
+        double maxCurrent = std::max(std::abs(RHS(i, 0)), std::abs(RHS(i, 0)));
+        double Ieps = std::abs(RHS(i, 0) - pre_RHS(i, 0));
+
+        if (Ieps > ABSTOL + RELTOL * maxCurrent)
+        {
+            // std::cout << "Veps: " << Veps << std::endl;
+            return false;
+        }
+    }
+
+
     return true;
 }
 
@@ -1227,6 +1249,7 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
     else if (STEPMODE == 1)
     {
         // print iternartion count
+     
         // std::cout << "Iteration count: " << iteration_counter << std::endl;
 
         // If history data is not enough, then use the default step size
@@ -1238,7 +1261,7 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
 
         if (iteration_counter < 0)
         {
-            h = h / 8;
+            h = h / 2;
             h = std::max(h, TMIN);
             return;
         }
@@ -1321,41 +1344,43 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
                     x4 = history_voltages.at(2)(node_x - 1, 0) - history_voltages.at(2)(node_y - 1, 0);
                 }
 
-                // Calculate divided differences (DD3)
-                DD1_1 = (x1 - x2) / h;
-                DD1_2 = (x2 - x3) / history_steps.at(0);
-                DD1_3 = (x3 - x4) / history_steps.at(1);
+                // // Calculate divided differences (DD3)
+                // DD1_1 = (x1 - x2) / h;
+                // DD1_2 = (x2 - x3) / history_steps.at(0);
+                // DD1_3 = (x3 - x4) / history_steps.at(1);
 
-                DD2_1 = (DD1_1 - DD1_2) / (h + history_steps.at(0));
-                DD2_2 = (DD1_2 - DD1_3) / (history_steps.at(0) + history_steps.at(1));
+                // DD2_1 = (DD1_1 - DD1_2) / (h + history_steps.at(0));
+                // DD2_2 = (DD1_2 - DD1_3) / (history_steps.at(0) + history_steps.at(1));
 
-                DD3 = (DD2_1 - DD2_2) / (h + history_steps.at(0) + history_steps.at(1));
+                // DD3 = (DD2_1 - DD2_2) / (h + history_steps.at(0) + history_steps.at(1));
 
-                // Temp DD3 calculation
-                DD2_1 = (current - i1) / (h * capacitance);
-                DD2_2 = (i1 - i2) / (history_steps.at(0) * capacitance);
-                DD3 = (DD2_1 - DD2_2) / (h + history_steps.at(0) + history_steps.at(1));
+                // // Temp DD3 calculation
+                // DD2_1 = (current - i1) / (h * capacitance);
+                // DD2_2 = (i1 - i2) / (history_steps.at(0) * capacitance);
+                // DD3 = (DD2_1 - DD2_2) / (h + history_steps.at(0) + history_steps.at(1));
 
                 // Calculate the error bound
                 // ErrorBound = RETOL * max(|x_{n+1}|,|x_{n}|,CHGTOL) / h
-                ErrorBound = std::max(std::abs(x1), std::abs(x2));
-                ErrorBound = std::max(ErrorBound, CHGTOL);
-                ErrorBound_i = std::max(std::abs(i1), std::abs(i2));
+                ErrorBound = std::max(std::abs(x1), std::abs(x2));           
+                ErrorBound = std::max(ErrorBound*capacitance, CHGTOL);
+                ErrorBound_i = std::max(std::abs(current), std::abs(i1));
 
 
                 // print i1 and i2
                 // std::cout << "i1: " << i1 << std::endl;
                 // std::cout << "i2: " << i2 << std::endl;
+                ErrorBound *= (RELTOL/h);
 
-                ErrorBound *= RELTOL*capacitance;
+                // ErrorBound *= RELTOL;
                 // ErrorBound += VNTOL;
-                ErrorBound /= h;
+                
                 ErrorBound_i *= RELTOL;
                 ErrorBound_i += ABSTOL;
 
                 ErrorBound = std::min(ErrorBound, ErrorBound_i);
+                // ErrorBound = ErrorBound_i;
 
-                // ErrorBound = 1e-5;
+                // ErrorBound = 1e-3;
 
                 // //print ErrorBound and DD3, DD1_1
                 
@@ -1363,7 +1388,7 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
                 // std::cout << "DD1_1: " << DD1_1*1e-6 << std::endl;
 
                 // Calculate h_{n+1}
-                // h_x = std::pow( TRTOL * 2 * ErrorBound / std::abs(DD3), 1.0/3.0);
+                // h_x = std::pow( TRTOL * ErrorBound / std::abs(DD3), 1.0/3.0);
                 h_x = TRTOL * ErrorBound * capacitance / std::abs(current - i1);
 
                 hn_candidates.push_back(h_x);
@@ -1374,11 +1399,15 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
             std::cout << "Predict H1 Time Step:" << h_1 << std::endl;
 
             // Evaluate the new timestep
-            h = std::min(h_1, 2 * h);
 
-            h = std::max(h, TMIN);
-            h = std::min(h, TMAX);
-
+            if (h_1 < 0.9 * h){
+                h = h_1;
+                h = std::max(h, TMIN);
+            }
+            else{
+                h = std::min(h_1, 2 * h);
+                h = std::min(h, TMAX);
+            }
 
             return;
         }

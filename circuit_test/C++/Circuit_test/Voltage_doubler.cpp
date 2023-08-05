@@ -32,7 +32,7 @@ int const supply_voltage_node = 1; // supply voltage node for the ring oscillato
 double t_start = 0;
 double t_end = 9e-6;
 // double t_end = 2e-4;
-double h = 1e-18; // t_end/5000 is the default value
+double h = t_end/5000; // t_end/5000 is the default value
 
 
 /*  TOTAL NUMBER OF NODES EXCLUDING GROUND
@@ -196,7 +196,7 @@ int main(int argc, const char **argv)
         RHS = init_RHS;
 
         std::vector<double> RHS_value = {
-            Vsin_Source(3, 1e7, time_trans)
+            Vsin_Source(10, 1e7, time_trans)
         };
         RHS = RHS_update(RHS_locate, init_RHS, RHS_value);
 
