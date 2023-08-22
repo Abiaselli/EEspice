@@ -11,25 +11,39 @@
 #include <chrono>
 
 // Convergence settings
-double GMIN = 1e-12;
 double MINR = 1e-3; // 1 milli ohm
 
 // Transient analysis settings
-double TRTOL = 2;
-double CHGTOL = 1e-14;
-double RELTOL = 1e-3;
-double VNTOL = 1e-6;
-double ABSTOL = 1e-12;
-double STEPMODE = 1;
-double TMIN = 1e-18;
-double TMAX = t_end / 500;
-// Setting for adaptive step
+/* This setting is to turn on or off the adaptive steps*/
 int ENADAPT = 1;
 
+/* Mode for timestep, 1: LTE; 2:Iteration Count; */
+double STEPMODE = 1;
+
+/* Scale factor for predicting*/
+double TRTOL = 7;
+
+/* Error Charge Factor*/
+double CHGTOL = 1e-14;
+
+/* Relative error*/
+double RELTOL = 1e-3;
+
+/* Absolute error for voltage*/
+double VNTOL = 1e-6;
+/* Absolute error for current*/
+double ABSTOL = 1e-12;
+
+/* Min and Max timestep */
+double TMIN = 1e-18;
+double TMAX = t_end / 1500;
+
+/* Threshold for iteration count-based algorithm */
 int ITL3 = 4;
 int ITL4 = 10;
 
-// Current List (nodex, nodey, Currents)
+
+//History Current List (nodex, nodey, Currents) for time-related elements
 std::vector<std::tuple<int, int, double, double>> C_list;
 std::deque<std::vector<std::tuple<int, int, double, double>>> C_list_history;
 
@@ -480,7 +494,6 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
         R_assigner(node_vd, node_vs, cond(gds), LHS, RHS);           // # assigning gds
         VCCS_assigner(node_vd, node_vs, node_vg, node_vs, gm, LHS);  // # assigning gm
 
-        R_assigner(node_vs, node_vd, cond(GMIN), LHS, RHS); // # assigning gds
     }
 
     return id;
@@ -660,7 +673,6 @@ double PMOS_assigner(int number, int node_vs, int node_vg, int node_vd, int node
         R_assigner(node_vd, node_vs, cond(gds), LHS, RHS);           // # assigning gds
         VCCS_assigner(node_vs, node_vd, node_vs, node_vg, gm, LHS);  // # assigning gm
 
-        R_assigner(node_vs, node_vd, cond(GMIN), LHS, RHS); // # assigning gds
     }
 
     return id;
@@ -723,7 +735,7 @@ double Vs_assigner(int node_x, int node_y, double V_value, arma::mat &LHS, arma:
     return V_locate1;
 }
 
-// Capacitor stamp assigner
+// Capacitor stamp assigner using FE(Forward Eulur) method
 void C_assigner(int node_x, int node_y, double C, double h, arma::mat &LHS, arma::mat &RHS, arma::mat solution, int mode)
 {
 
@@ -758,6 +770,7 @@ void C_assigner(int node_x, int node_y, double C, double h, arma::mat &LHS, arma
     Is_assigner(node_x, node_y, -x1, LHS, RHS);
 }
 
+// Capacitor stamp assigner using TR(Trapazoidal Method) method
 void C_assigner_2(int node_x, int node_y, double C, double h, arma::mat &LHS, arma::mat &RHS,
                   arma::mat solution, std::deque<arma::vec> &history_voltages,
                   int mode)
@@ -858,6 +871,7 @@ void C_assigner_2(int node_x, int node_y, double C, double h, arma::mat &LHS, ar
     }
 }
 
+// Capacitor stamp assigner using BE(Backward Eulur) method
 void C_assigner_3(int node_x, int node_y, double C, double h, arma::mat &LHS, arma::mat &RHS,
                   arma::mat solution, std::deque<arma::vec> &history_voltages,
                   int mode)
@@ -1025,6 +1039,7 @@ void Diode_assigner(int node_x, int node_y, double Is, double VT, double cd, dou
     C_assigner(node_x, node_y, cd, h, LHS, RHS, solution, mode);
 }
 
+// Correct Diode stamp assigner (Original Diode_assigner is wrong with the node voltage assignment)
 double Diode_assigner_2(int node_x, int node_y, double Is, double VT, double h, arma::mat &LHS, arma::mat &RHS, 
                       arma::mat solution, int mode)
 {
@@ -1073,10 +1088,7 @@ double Diode_assigner_2(int node_x, int node_y, double Is, double VT, double h, 
     // Matrix stamp for a diode on LHS
     R_assigner(node_x, node_y, cond(x), LHS, RHS);
 
-    // Assign GMIN
-    R_assigner(node_x, node_y, cond(GMIN), LHS, RHS);
-
-    Id = Is * (exp(vol / VT) - 1) + GMIN * vol;
+    Id = Is * (exp(vol / VT) - 1);
     return Id;
 }
 
@@ -1087,14 +1099,11 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
 {
     int col_size = LHS.n_cols;
     int row_size = LHS.n_rows;
-    // double eps_val = 1e-8;
-    // arma::mat error = arma::zeros(1, 1);
-    // double error_val = 9e9;
-    // error.row(0) = error_val;
     int iteration_counter = 0;
     arma::mat delta = arma::zeros(row_size, 1);
     bool isconverge = false;
 
+    // Update the model of time-related elements (Capacitor)
     UpdateStates(LHS, RHS, solution, history_voltages, h, 1);
 
     // using relative error to check for convergence
@@ -1104,18 +1113,8 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
         arma::mat pre_solution = solution;
         arma::mat pre_current = RHS;
 
-
+        // Update the non-linear elements (Diode, MOSFET) with updated solution
         auto matrices = DynamicNonLinear(LHS, RHS, solution, history_voltages, h, mode);
-
-        // // print LHS and RHS
-        // std::cout << "LHS: " << LHS << std::endl;
-        // std::cout << "RHS: " << RHS << std::endl;
-        
-        // delta = arma::solve(matrices.first, (matrices.first * solution) - matrices.second.first); //( A-J_z(k) ) * delta = F_x(k)
-        // solution -= delta;
-
-        // J_(k) * X_(k+1) = z - F_x(k)*J_z(k)
-        // solution = arma::solve((matrices.first - Temp), (matrices.second.first - Temp * solution));
         solution = arma::solve(matrices.first, matrices.second);
         iteration_counter += 1;
 
@@ -1125,12 +1124,13 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
             continue;
         }
 
+        // Check for Convergence
         isconverge = isConverge(solution, pre_solution, RHS, pre_current);
 
         if (iteration_counter > 100)
         {
-            // std::cout << "Not Converge within limit" << std::endl;
-            // break;
+            std::cout << "Not Converge at 100 iterations" << std::endl;
+            break;
         }
 
     } while (!isconverge);
@@ -1138,10 +1138,10 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
     // print iteration count
     std::cout << "Iteration count: " << iteration_counter << std::endl;
 
-    // Only process timestep adjustment when in transient analysis
+    // Only process timestep adjustment when in transient analysis and ENADAPT = 1
     if (mode == 1 && ENADAPT == 1)
     {
-        // Clean the current list and update the current in Capacitor list
+        // Clean the current list and update the current in time-related elements
         C_list.clear();
         UpdateStates(LHS, RHS,solution, history_voltages, h, 2);
 
@@ -1151,8 +1151,8 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
     // Clean the current list
     C_list.clear();
 
-    // After Converged and timestep adjust finished, update the current in Capacitor list
-    // Iterating through the NonLinear devices to update C_list
+    // After Converged and timestep adjust finished, update the current for time-related elements
+    // Iterating through the time-related devices to update C_list
     UpdateStates(LHS, RHS, solution, history_voltages, h, 2);
 
     C_list_history.push_front(C_list);
@@ -1174,7 +1174,6 @@ arma::mat NewtonRaphson_system(arma::mat const init_LHS, arma::mat const init_RH
         history_voltages.pop_back();
     }
 
-    // print finish
     // std::cout << "Finish" << std::endl;
     return solution;
 }
@@ -1190,6 +1189,7 @@ arma::mat RHS_update(std::vector<double> RHS_locate, arma::mat RHS, std::vector<
     return RHS;
 }
 
+// Compares the (solution and pre_solution) and (RHS and pre_RHS) to check for convergence
 bool isConverge(arma::mat &solution, arma::mat &pre_solution, arma::mat &RHS, arma::mat &pre_RHS)
 {
     int row_size = solution.n_rows;
@@ -1224,6 +1224,9 @@ bool isConverge(arma::mat &solution, arma::mat &pre_solution, arma::mat &RHS, ar
     return true;
 }
 
+// Adatpive timestep adjustment
+/* STEPMODE = 1 is the count-based adjustment: still some buggy performance in this kind of adjustment */
+/* STEPMODE = 2 is the LTE-based adjustment for BE method */
 void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::deque<arma::vec> history_voltages,
                  std::deque<double> history_steps)
 {
@@ -1248,10 +1251,7 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
     }
     else if (STEPMODE == 1)
     {
-        // print iternartion count
-     
-        // std::cout << "Iteration count: " << iteration_counter << std::endl;
-
+        
         // If history data is not enough, then use the default step size
         if (history_steps.size() <= 4)
         {
@@ -1259,158 +1259,135 @@ void adapiveStep(double &h, int iteration_counter, arma::mat solution, std::dequ
             return;
         }
 
-        if (iteration_counter < 0)
-        {
-            h = h / 2;
-            h = std::max(h, TMIN);
-            return;
-        }
-        else
-        {
-            double h_1 = 0; // h_{n+1}
-            std::vector<double> hn_candidates;
+        double h_1 = 0; 
+        std::vector<double> hn_candidates; // h_{n+1} candidates
 
-            for (auto iter = C_list.begin(); iter != C_list.end(); ++iter)
+        // Iterating through the time-realated elements for h_{n+1} candidates
+        for (auto iter = C_list.begin(); iter != C_list.end(); ++iter)
+        {
+            int node_x = std::get<0>(*iter);
+            int node_y = std::get<1>(*iter);
+            double current = std::get<2>(*iter);
+            double capacitance = std::get<3>(*iter);
+
+
+            double ErrorBound = 0;
+            double ErrorBound_i = 0;
+            double h_x = 0;
+
+            double x1 = 0; // x1 = x_{n+1}
+            double x2 = 0; // x2 = x_{n}
+            double x3 = 0; // x3 = x_{n-1}
+            double x4 = 0; // x4 = x_{n-2}
+
+            double i1 = 0; // i1 = i_{n+1}
+            double i2 = 0; // i2 = i_{n}
+
+            double DD1_1 = 0; // DD1_1 = x_{n+1} - x_{n}/ h_{n}
+            double DD1_2 = 0; // DD1_2 = x_{n} - x_{n-1}/ h_{n-1}
+            double DD1_3 = 0; // DD1_3 = x_{n-1} - x_{n-2}/ h_{n-2}
+
+            double DD2_1 = 0; // DD2_1 = DD1_1 - DD1_2 / (h_{n} + h_{n-1})
+            double DD2_2 = 0; // DD2_2 = DD1_2 - DD1_3 / (h_{n-1} + h_{n-2})
+
+            double DD3 = 0; // DD3 = DD2_1 - DD2_2 / (h_{n} + h_{n-1} + h_{n-2})
+
+            std::vector<std::tuple<int, int, double, double>> C_list_1 = C_list_history.at(0);
+            std::vector<std::tuple<int, int, double, double>> C_list_2 = C_list_history.at(1);
+            std::vector<decltype(C_list)::iterator> matches;
+
+            // Search the current inside the previous C list
+            auto it_1 = std::find_if(C_list_1.begin(), C_list_1.end(), [&node_x, &node_y](const std::tuple<int, int, double, double> &e)
+                                        { return std::get<0>(e) == node_x && std::get<1>(e) == node_y; });
+
+            auto it_2 = std::find_if(C_list_2.begin(), C_list_2.end(), [&node_x, &node_y](const std::tuple<int, int, double, double> &e)
+                                        { return std::get<0>(e) == node_x && std::get<1>(e) == node_y; });
+
+            // Find the history currents
+            if (it_1 != C_list_1.end())
             {
-                int node_x = std::get<0>(*iter);
-                int node_y = std::get<1>(*iter);
-                double current = std::get<2>(*iter);
-                double capacitance = std::get<3>(*iter);
-
-
-                double ErrorBound = 0;
-                double ErrorBound_i = 0;
-                double h_x = 0;
-
-                double x1 = 0; // x1 = x_{n+1}
-                double x2 = 0; // x2 = x_{n}
-                double x3 = 0; // x3 = x_{n-1}
-                double x4 = 0; // x4 = x_{n-2}
-
-                double i1 = 0; // i1 = i_{n+1}
-                double i2 = 0; // i2 = i_{n}
-
-                double DD1_1 = 0; // DD1_1 = x_{n+1} - x_{n}/ h_{n}
-                double DD1_2 = 0; // DD1_2 = x_{n} - x_{n-1}/ h_{n-1}
-                double DD1_3 = 0; // DD1_3 = x_{n-1} - x_{n-2}/ h_{n-2}
-
-                double DD2_1 = 0; // DD2_1 = DD1_1 - DD1_2 / (h_{n} + h_{n-1})
-                double DD2_2 = 0; // DD2_2 = DD1_2 - DD1_3 / (h_{n-1} + h_{n-2})
-
-                double DD3 = 0; // DD3 = DD2_1 - DD2_2 / (h_{n} + h_{n-1} + h_{n-2})
-
-                std::vector<std::tuple<int, int, double, double>> C_list_1 = C_list_history.at(0);
-                std::vector<std::tuple<int, int, double, double>> C_list_2 = C_list_history.at(1);
-                std::vector<decltype(C_list)::iterator> matches;
-
-                // Search the current inside the previous C list
-                auto it_1 = std::find_if(C_list_1.begin(), C_list_1.end(), [&node_x, &node_y](const std::tuple<int, int, double, double> &e)
-                                         { return std::get<0>(e) == node_x && std::get<1>(e) == node_y; });
-
-                auto it_2 = std::find_if(C_list_2.begin(), C_list_2.end(), [&node_x, &node_y](const std::tuple<int, int, double, double> &e)
-                                         { return std::get<0>(e) == node_x && std::get<1>(e) == node_y; });
-
-                if (it_1 != C_list_1.end())
-                {
-                    matches.push_back(it_1);
-                    i1 = std::get<2>(*it_1);
-                }
-
-                if (it_2 != C_list_1.end())
-                {
-                    matches.push_back(it_2);
-                    i2 = std::get<2>(*it_2);
-                }
-
-                if (node_x == 0)
-                {
-                    x1 = solution(node_y - 1, 0);
-                    x2 = history_voltages.at(0)(node_y - 1, 0);
-                    x3 = history_voltages.at(1)(node_y - 1, 0);
-                    x4 = history_voltages.at(2)(node_y - 1, 0);
-                }
-                else if (node_y == 0)
-                {
-                    x1 = solution(node_x - 1, 0);
-                    x2 = history_voltages.at(0)(node_x - 1, 0);
-                    x3 = history_voltages.at(1)(node_x - 1, 0);
-                    x4 = history_voltages.at(2)(node_x - 1, 0);
-                }
-                else
-                {
-                    x1 = solution(node_x - 1, 0) - solution(node_y - 1, 0);
-                    x2 = history_voltages.at(0)(node_x - 1, 0) - history_voltages.at(0)(node_y - 1, 0);
-                    x3 = history_voltages.at(1)(node_x - 1, 0) - history_voltages.at(1)(node_y - 1, 0);
-                    x4 = history_voltages.at(2)(node_x - 1, 0) - history_voltages.at(2)(node_y - 1, 0);
-                }
-
-                // // Calculate divided differences (DD3)
-                // DD1_1 = (x1 - x2) / h;
-                // DD1_2 = (x2 - x3) / history_steps.at(0);
-                // DD1_3 = (x3 - x4) / history_steps.at(1);
-
-                // DD2_1 = (DD1_1 - DD1_2) / (h + history_steps.at(0));
-                // DD2_2 = (DD1_2 - DD1_3) / (history_steps.at(0) + history_steps.at(1));
-
-                // DD3 = (DD2_1 - DD2_2) / (h + history_steps.at(0) + history_steps.at(1));
-
-                // // Temp DD3 calculation
-                // DD2_1 = (current - i1) / (h * capacitance);
-                // DD2_2 = (i1 - i2) / (history_steps.at(0) * capacitance);
-                // DD3 = (DD2_1 - DD2_2) / (h + history_steps.at(0) + history_steps.at(1));
-
-                // Calculate the error bound
-                // ErrorBound = RETOL * max(|x_{n+1}|,|x_{n}|,CHGTOL) / h
-                ErrorBound = std::max(std::abs(x1), std::abs(x2));           
-                ErrorBound = std::max(ErrorBound*capacitance, CHGTOL);
-                ErrorBound_i = std::max(std::abs(current), std::abs(i1));
-
-
-                // print i1 and i2
-                // std::cout << "i1: " << i1 << std::endl;
-                // std::cout << "i2: " << i2 << std::endl;
-                ErrorBound *= (RELTOL/h);
-
-                // ErrorBound *= RELTOL;
-                // ErrorBound += VNTOL;
-                
-                ErrorBound_i *= RELTOL;
-                ErrorBound_i += ABSTOL;
-
-                ErrorBound = std::min(ErrorBound, ErrorBound_i);
-                // ErrorBound = ErrorBound_i;
-
-                // ErrorBound = 1e-3;
-
-                // //print ErrorBound and DD3, DD1_1
-                
-                // std::cout << "DD3: " << DD3 << std::endl;
-                // std::cout << "DD1_1: " << DD1_1*1e-6 << std::endl;
-
-                // Calculate h_{n+1}
-                // h_x = std::pow( TRTOL * ErrorBound / std::abs(DD3), 1.0/3.0);
-                h_x = TRTOL * ErrorBound * capacitance / std::abs(current - i1);
-
-                hn_candidates.push_back(h_x);
+                matches.push_back(it_1);
+                i1 = std::get<2>(*it_1);
             }
 
-            // Set timestep as the minimum of all the candidates
-            h_1 = *std::min_element(hn_candidates.begin(), hn_candidates.end());
-            std::cout << "Predict H1 Time Step:" << h_1 << std::endl;
-
-            // Evaluate the new timestep
-
-            if (h_1 < 0.9 * h){
-                h = h_1;
-                h = std::max(h, TMIN);
-            }
-            else{
-                h = std::min(h_1, 2 * h);
-                h = std::min(h, TMAX);
+            if (it_2 != C_list_1.end())
+            {
+                matches.push_back(it_2);
+                i2 = std::get<2>(*it_2);
             }
 
-            return;
+
+            // Find the history voltages
+            if (node_x == 0)
+            {
+                x1 = solution(node_y - 1, 0);
+                x2 = history_voltages.at(0)(node_y - 1, 0);
+                x3 = history_voltages.at(1)(node_y - 1, 0);
+                x4 = history_voltages.at(2)(node_y - 1, 0);
+            }
+            else if (node_y == 0)
+            {
+                x1 = solution(node_x - 1, 0);
+                x2 = history_voltages.at(0)(node_x - 1, 0);
+                x3 = history_voltages.at(1)(node_x - 1, 0);
+                x4 = history_voltages.at(2)(node_x - 1, 0);
+            }
+            else
+            {
+                x1 = solution(node_x - 1, 0) - solution(node_y - 1, 0);
+                x2 = history_voltages.at(0)(node_x - 1, 0) - history_voltages.at(0)(node_y - 1, 0);
+                x3 = history_voltages.at(1)(node_x - 1, 0) - history_voltages.at(1)(node_y - 1, 0);
+                x4 = history_voltages.at(2)(node_x - 1, 0) - history_voltages.at(2)(node_y - 1, 0);
+            }
+
+            // // Calculate divided differences (DD3) for TR methods
+            // DD1_1 = (x1 - x2) / h;
+            // DD1_2 = (x2 - x3) / history_steps.at(0);
+            // DD1_3 = (x3 - x4) / history_steps.at(1);
+
+            // DD2_1 = (DD1_1 - DD1_2) / (h + history_steps.at(0));
+            // DD2_2 = (DD1_2 - DD1_3) / (history_steps.at(0) + history_steps.at(1));
+
+            // DD3 = (DD2_1 - DD2_2) / (h + history_steps.at(0) + history_steps.at(1));
+
+            // Calculate the error bound
+            /* ErrorBound = RETOL * max(|x_{n+1}|,|x_{n}|,CHGTOL) / h */ 
+            /* ErrorBound_i = RETOL * max(|x_i{n+1}|,|x_i{n}|) + ABSTOL  */ 
+            ErrorBound = std::max(std::abs(x1), std::abs(x2));           
+            ErrorBound = std::max(ErrorBound*capacitance, CHGTOL);
+            ErrorBound_i = std::max(std::abs(current), std::abs(i1));
+
+            ErrorBound *= (RELTOL/h);            
+            ErrorBound_i *= RELTOL;
+            ErrorBound_i += ABSTOL;
+
+            // ErrorBound = min(ErrorBound, ErrorBound_i);
+            ErrorBound = std::min(ErrorBound, ErrorBound_i);
+
+            // Calculate h_{n+1}
+            /* h_x = std::pow( TRTOL * ErrorBound / std::abs(DD3), 1.0/ 3.0); For TR method */ 
+            /* h_x = TRTOL * ErrorBound * capacitance / std::abs(I_{n+1} - I_{n}); For BE method's Capacitor*/
+            h_x = TRTOL * ErrorBound * capacitance / std::abs(current - i1);
+
+            hn_candidates.push_back(h_x);
         }
+
+        // Set timestep as the minimum of all the candidates
+        h_1 = *std::min_element(hn_candidates.begin(), hn_candidates.end());
+        std::cout << "Predict H1 Time Step:" << h_1 << std::endl;
+
+        // Evaluate the new timestep
+        if (h_1 < 0.9 * h){
+            h = h_1;
+            h = std::max(h, TMIN);
+        }
+        else{
+            h = std::min(h_1, 2 * h);
+            h = std::min(h, TMAX);
+        }
+
+        return;
+        
     }
 }
 

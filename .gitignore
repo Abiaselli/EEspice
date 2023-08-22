@@ -16,3 +16,12 @@ Random_Circuit_Generator/__pycache__/
 Random_Circuit_Generator/.idea/
 
 Random_Circuit_Generator/random_circuit_matrixs/
+
+Benchmark/.vscode/
+
+Benchmark/random_circuit_matrixs/
+
+*.o
+
+
+

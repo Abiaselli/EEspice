@@ -32,8 +32,7 @@ int const supply_voltage_node = 1; // supply voltage node for the ring oscillato
 // TRANSIENT SIMULATION SETTINGS
 double t_start = 0;
 double t_end = 1e-4;
-// double t_end = 1e-8;
-double h = t_end / 2000; // t_end/5000 is the default value
+double h = t_end / 2000; // t_end/2000 is the default value
 
 /*  TOTAL NUMBER OF NODES EXCLUDING GROUND
     Two port components such as resistors, initially adds 2 nodes. If more than 1 component is added, it then adds 1 node per component.
@@ -69,15 +68,13 @@ std::pair<arma::mat, arma::mat> DynamicNonLinear(arma::mat &LHS, arma::mat &RHS,
     return {J_x, Z_x};
 }
 
+// Updates the stamp matrices for time-related components
 void UpdateStates(arma::mat &LHS, arma::mat &RHS, 
                     arma::mat solution, std::deque<arma::vec> &history_voltages, 
                     double h, int mode)
 {
-    // (All the circuit assigners can be used except for voltage and current sources)
+    // (Time-realted assigners (RingOscillatorStages, Capacitor, Inductor, etc) can be used except for voltage and current sources)
     /*--------------------------------------------can be changed-------------------------------------------------*/
-    
-    // C_assigner(2, 0, 1e-6, h, LHS, RHS, solution, mode);
-    // C_assigner_2(2, 0, 1e-6, h, LHS, RHS, solution, history_voltages, mode);
     RingOscillatorStages(W_oscillator, L_oscillator, R_oscillator, C_oscillator, LHS, RHS, solution, history_voltages, h, mode);
 }
 
@@ -155,9 +152,6 @@ int main(int argc, const char **argv)
     // Benchmarking for OP analysis
     auto tstart_op = std::chrono::high_resolution_clock::now();
     solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, solution, history_voltages, h, history_steps, mode);
-    
-    // change the second row element of solution to 5
-    solution(1) = 5;
 
     // add the solution(voltage) to the history
     history_voltages.push_front(solution);
@@ -183,8 +177,6 @@ int main(int argc, const char **argv)
         double step = h;
         LHS = init_LHS;
         RHS = init_RHS;
-
-        
 
         // Calling the Newton-Raphson system here
         solution = NewtonRaphson_system(init_LHS, init_RHS, LHS, RHS, solution, history_voltages, h, history_steps, mode);
