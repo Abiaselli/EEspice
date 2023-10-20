@@ -1,2 +1,0 @@
-segmentation fault:
-f sanitize memory - compile (clang debugger)
