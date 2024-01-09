@@ -1,0 +1,9 @@
+circuit netlist
+
+V1 1 0 pulse 0 2 6 1e-3 0.5e-3 0.2e-3 2e-3 4e-3
+R1 1 2 3e3
+R2 2 3 1e3
+C1 2 0 0.4e-6
+C2 3 0 0.8e-6
+
+.tran 0 8e-3
