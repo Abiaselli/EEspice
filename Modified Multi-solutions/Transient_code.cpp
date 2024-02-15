@@ -42,9 +42,9 @@ int const supply_voltage_node = 1; // supply voltage node for the ring oscillato
 // TRANSIENT SIMULATION SETTINGS
 double t_start = 0;
 
-double t_end = 1.2e-3;
+double t_end = 4e-2;
 
-double h = t_end/5000; // t_end/5000 is the default value
+double h = 1e-6 * 1e-2; // t_end/5000 is the default value
 int num_v = 1; // number of voltage sources
 
 int if_step_down = 0;
@@ -67,7 +67,8 @@ int const no_of_mosfets = 0; // Total number of MOSFETs
 int const T_nodes = external_nodes + 4 * no_of_mosfets + 2 * cascaded_level;
 
 
-#include "Transient_code.h"
+//#include "test_bao.hpp"
+#include "LTE_Charge.hpp"
 
 /*  The line above the code means that the section can be changed by the user which analyses circuit simulation
 P
@@ -108,7 +109,7 @@ void UpdateStates(arma::mat &LHS, arma::mat &RHS,
     //     LHS.print("LHS matrix after UpdateStates =");
         
     // }
-    // NMOS_assigner(1,1,2,3,3, W, L, h, solution, history_voltages, LHS, RHS, mode);
+
 }
 
 // Main function for the circuit simulation
@@ -141,6 +142,14 @@ int main(int argc, const char **argv)
     // R_assigner(2,0,3,LHS,RHS);
 
     //R_assigner(3,0,3,LHS,RHS);
+    capacitor c1;
+    c1.id = 1;
+    c1.C = 1e-9;
+    c1.node_x = 2;
+    c1.node_y = 0; 
+    C_list_down.push_back(c1);
+    C_list_mid.push_back(c1);
+    C_list_up.push_back(c1);
 
     /*--------------------------------------------can be changed-------------------------------------------------*/
     // ASSIGNING THE CURRENT STAMP (Is_assigner, VCCS_assigner)
@@ -154,8 +163,8 @@ int main(int argc, const char **argv)
     double td = 0;
     double tr = 1e-5;
     double tf = 1e-5;
-    double tpw = 1e-3;
-    double tper = 1.02e-3;
+    double tpw = 1e-2;
+    double tper = 2e-2;
 
     std::vector<double> RHS_locate = {
         // Assigning the voltage matrix on LHS and RHS for the pulse voltage
@@ -201,7 +210,7 @@ int main(int argc, const char **argv)
     // exit(true);
 
     // add the solution(voltage) to the history
-    history_voltages.push_front(solution);
+    history_voltages_update(solution, history_voltages);
 
     auto tstop_op = std::chrono::high_resolution_clock::now();
 
@@ -222,7 +231,6 @@ int main(int argc, const char **argv)
     int tran_count = 0;
     auto tstart_trans = std::chrono::high_resolution_clock::now();
 
-    history_voltages_update(solution, history_voltages);
     std::cout << "transient simulation start" << std::endl;
     while (time_trans < t_end)
     {
@@ -233,13 +241,29 @@ int main(int argc, const char **argv)
         std::cout << "-------------------------------------------------------" << std::endl;
         std::cout << "Step one" << std::endl;
 
-        solution = multi_next_h(init_LHS, init_RHS, LHS, RHS, solution, history_voltages, h, history_steps, mode, RHS_locate, V1, V2, t1_pulse, td, tr, tf,  tpw, tper, Maxi, time_trans);
-        solution.print("The solution is:");
+        if(tran_count == 0){
+            std::vector<double> RHS_value_initial = {V_pulse(V1, V2, h, td, tr, tf, tpw, tper)};
+            RHS = RHS_update(RHS_locate, init_RHS, RHS_value_initial);
+            solution = NewtonRaphson_system(LHS, RHS, solution, history_voltages, h, mode);
+            update_preClist(solution, tran_count, h, history_voltages);
+        }
+
+        else if(tran_count > 0){
+            solution = multi_next_h(init_LHS, init_RHS, LHS, RHS, solution, history_voltages, h, history_steps, mode, RHS_locate, V1, V2, t1_pulse, td, tr, tf,  tpw, tper, Maxi, time_trans);
+        }
+        else{
+            std::cout << "tran_count error. It is:" << tran_count << std::endl;
+            exit(1);
+        };
+
         history_voltages_update(solution, history_voltages); // save the solution to the history
 
         double step = h;
 
-        // if(step == 0) exit(true);
+        if(step == 0){
+            std::cout << "Step in main.cpp is zero" << std::endl;
+            exit(1);
+        }
 
         // Assigning the variables that will be plotted and analysed as seen in a circuit simulator
         solution_csv = arma::join_cols(solution_csv, solution);
@@ -255,7 +279,19 @@ int main(int argc, const char **argv)
         std::cout<< "current step is:" << step << std::endl;
         std::cout << "h_step size is:" << history_steps.size() << std::endl;
         std::cout<< "time_trans is: " << time_trans << std::endl;
+        solution.print("The solution is:");
 
+        if(time_trans >= 0.00935)
+        {
+            int sdssa{};
+        }
+
+        C_list_down.at(0).temp_current_up.clear();
+        C_list_down.at(0).temp_charge_up.clear();
+        C_list_mid.at(0).temp_current_up.clear();
+        C_list_mid.at(0).temp_charge_up.clear();
+        C_list_up.at(0).temp_current_up.clear();
+        C_list_up.at(0).temp_charge_up.clear();
     
 
         // if (history_steps.size() == 30)
