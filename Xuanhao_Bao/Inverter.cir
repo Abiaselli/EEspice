@@ -1,0 +1,15 @@
+Test Inverter
+* V Gate
+V1 3 0 0.8
+* VDD
+V2 1 0 pulse (0 5 0 9u 9u 2u 20u)
+
+
+* Mnumber d g s b model W=w L=l 
+M1 2 3 0 0 NMOS W=100u L=1u
+R1 1 2 1
+
+
+
+
+.tran 1u 20u
