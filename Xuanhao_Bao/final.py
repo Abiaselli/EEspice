@@ -24,7 +24,7 @@ plt.legend()
 
 # Current
 plt.subplot(2, 1, 2)  # 2 rows, 1 column, 2nd subplot
-plt.plot(df['Time'], df['Current 2'], label='Current', color='green', marker='^')  # Current is the sixth column
+plt.plot(df['Time'], df['Current'], label='Current', color='green', marker='^')  # Current is the sixth column
 plt.xlabel('Time')
 plt.ylabel('Current')
 plt.title('Current vs. Time')
@@ -33,13 +33,25 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-# Plotting Current 2 vs. Voltage 2
-plt.figure(figsize=(12, 8))
-plt.plot(df['Voltage 2'], -df['Current 2'], label='Current vs. Voltage 2', marker='^', color='blue')
-plt.xlabel('Voltage 2')
-plt.ylabel('Current 2')
-plt.title('Current 2 vs. Voltage 2')
-plt.legend()
-plt.grid(True)  # Optional: Adds a grid for better readability
+# # Plotting Current 2 vs. Voltage 2
+# plt.figure(figsize=(12, 8))
+# plt.plot(df['Voltage 2'], -df['Current'], label='Current vs. Voltage 2', marker='^', color='blue')
+# plt.xlabel('Voltage 2')
+# plt.ylabel('Current')
+# plt.title('Current 1 vs. Voltage 2')
+# plt.legend()
+# plt.grid(True)  # Optional: Adds a grid for better readability
+# plt.show()
+
+# Directly sort 'Voltage 2' and 'Current' for plotting, no need to save and reload
+df_sorted = df.sort_values(by='Voltage 2')
+
+# Plotting the I-V curve directly
+plt.figure(figsize=(10, 6))
+plt.plot(df_sorted['Voltage 2'], df_sorted['Current'], marker='o', linestyle='-', color='blue')
+plt.xlabel('Voltage 2 (V)')
+plt.ylabel('Current (A)')
+plt.title('I-V Curve')
+plt.grid(True)
 plt.show()
 

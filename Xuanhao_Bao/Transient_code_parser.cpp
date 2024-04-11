@@ -13,10 +13,7 @@
     9) P-MOS Transistor - PMOS_assigner(number, node_vs, node_vg, node_vd, node_vb, h, solution, LHS, RHS, mode);
     10) Ring Oscillator - RingOscillatorStages(W, L, R, C, LHS, RHS, solution, h, mode);
 
-    The linear components could be assigned inside the main function while the non-linear and dynamic components can be assigned inside the DynamicNonLinear function.
 
-    V_pulse also has a special assignment where the normal voltage source needs to be assigned with the initial voltage (V1) inside the RHS_locate list. 
-    The V_pulse function will then be called inside the transient simulation loop.
 */
 
 // Global variables
@@ -30,6 +27,7 @@
     Number of MOSFETs and cascaded levels are assigned above too. External nodes are the nodes which  */
 
 #include "Transient_code_parser.hpp"
+// #include "old.hpp"
 
 /*  The line above the code means that the section can be changed by the user which analyses circuit simulation
 
@@ -211,7 +209,7 @@ int main(int argc, const char ** argv)
 
         }
 
-
+        // time step control: varibale time step
 
         if(vec_trans.size() == 1){
             // The first step of the transient simulation
@@ -356,7 +354,7 @@ int main(int argc, const char ** argv)
     std::chrono::duration<double, std::milli> time_span = (t2 - t1) ;
     std::cout << "Total time:" <<  time_span.count() << "ms\n";
 
-    save_csv();
+    save_csv(ckt);
 
     return 0;
     /*-----------------------------------------------------------------------------------------------------------*/

@@ -23,7 +23,7 @@ class multi_timestep;
 class Truncation_error;
 class Capacitor;
 
-void R_assigner(double node_x, double node_y, double G, arma::mat &LHS, arma::mat &RHS);
+void R_assigner(double node_x, double node_y, double R, arma::mat &LHS, arma::mat &RHS);
 void Vs_assigner(int node_x, int node_y, double V_value, arma::mat &LHS, arma::mat &RHS);
 double convertToValue(const std::string& valueStr);
 arma::mat branch_ext(arma::mat M, int node_x, int node_y);
@@ -646,7 +646,6 @@ public:
     int external_nodes{};                       // Number of external nodes (excluding ground and ring oscillator loop nodes)
     //int external_mosfets{};                   // Number of standalone mosfets (excluding mosfets from ring oscillator)
     int no_of_mosfets{};                        // Total number of MOSFETs
-    int no_of_V_sources{};                      // Total number of voltage sources
     int T_nodes{};                              // Total number of nodes excluding ground
 
     DenseMatrix* cktdematrix;                   // Dense matrix class object
@@ -684,20 +683,15 @@ void CKTload(CKTcircuit &ckt){
             if constexpr(std::is_same_v<std::decay_t<decltype(arg)>, Resistor>){
                 std::cout << "R Element ID: " << arg.id << ", Node Pos: " << arg.nodePos << ", Node Neg: " << arg.nodeNeg << "value: "<< arg.value << std::endl;
 
-                R_assigner(arg.nodePos, arg.nodeNeg, 1/arg.value, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
-                std::cout << 1/arg.value << std::endl;
+                R_assigner(arg.nodePos, arg.nodeNeg, arg.value, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
 
             }else if constexpr(std::is_same_v<std::decay_t<decltype(arg)>, VoltageSource>){
                 std::cout << "VS Element ID: " << arg.id << ", Node Pos: " << arg.nodePos << ", Node Neg: " << arg.nodeNeg << "value: "<< arg.value << std::endl;
 
                 Vs_assigner(arg.nodePos, arg.nodeNeg, arg.value, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
 
-                ckt.no_of_V_sources++;
-
             }else if constexpr(std::is_same_v<std::decay_t<decltype(arg)>, Pulsevoltage>){
                 std::cout << "VPulse Element ID: " << arg.id << ", Node Pos: " << arg.nodePos << ", Node Neg: " << arg.nodeNeg << std::endl;
-
-                ckt.no_of_V_sources++;
 
                 ckt.pulse_num++;
 
@@ -733,7 +727,7 @@ void Transsetup(Transient &trans, const CircuitParser &parser, CKTcircuit &ckt){
     trans.t_end = parser.double_t_end;
     // trans.h = parser.double_init_h / 100;     // initial time step
 
-    if(ckt.pulse_num > 0 && ckt.C_list.size() > 0){
+    if(ckt.pulse_num > 0 && ckt.C_list.size() > 0 || ckt.no_of_mosfets > 0){
         for (const auto& element : ckt.CKTelements) {
             std::visit([&](auto&& arg) {
 
@@ -756,12 +750,9 @@ void Transsetup(Transient &trans, const CircuitParser &parser, CKTcircuit &ckt){
             }, element.element);
         }
     }
-    // else if(ckt.no_of_mosfets > 0){
-        
-    // }
     else{
 
-        trans.h_MAX = trans.t_end / 1000;
+        trans.h_MAX = trans.t_end / 100;
         trans.init_h = trans.h_MAX;
 
     }
@@ -823,13 +814,16 @@ std::deque<double> get_breakpoints(const CKTcircuit &ckt, const Transient &trans
 
 
 // create resistor matrix stamp
-void R_assigner(double node_x, double node_y, double G, arma::mat &LHS, arma::mat &RHS){
+void R_assigner(double node_x, double node_y, double R, arma::mat &LHS, arma::mat &RHS){
     int maxi = LHS.n_cols;
     int maxj = LHS.n_rows;
     double x = 0;
     arma::mat a = arma::zeros(maxi,maxj);
 
-    x = G;
+    if(R == 0)
+        x = 0;
+    else
+        x = cond(R);
 
     if((node_x == 0) && (node_y == 0)){
         x = 0;
@@ -938,7 +932,7 @@ void C_assigner_BE(int node_x,int node_y,double C, double h, arma::mat &LHS, arm
         vol = 0;
     }
     // Matrix stamp for a capacitor on LHS
-    R_assigner(node_x,node_y, x,LHS,RHS);
+    R_assigner(node_x,node_y,cond(x),LHS,RHS);
     // Matrix stamp for a capacitor on RHS
     Is_assigner(node_x,node_y,-(x * vol),LHS,RHS);
 }
@@ -990,7 +984,7 @@ double Diode_assigner(int node_x, int node_y, double Is, double VT, arma::mat &L
     // Matrix stamp for a diode on RHS
     Is_assigner(node_x, node_y, x1, LHS, RHS);
     // Matrix stamp for a diode on LHS
-    R_assigner(node_x, node_y, x, LHS, RHS);
+    R_assigner(node_x, node_y, cond(x), LHS, RHS);
 
     Id = Is * (exp(vol / VT) - 1);
     return Id;
@@ -1178,14 +1172,14 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
     double gds = 0;
     double gm = 0;
     double gmb = 0;
-    double Ld = 0.08e-6;
+    double Ld = 0;
     double Leff = L;
     double kp = 2e-5; // default is 2e-5
     double mCox = kp;
-    double LAMBDA = 0.02;
+    double LAMBDA = 0.01;
 
     double Beta = (mCox) * (W / Leff);
-    double gamma = 0.37;
+    double gamma = 0;
     double phi = 0.65;
     double vt0 = 0.7; // default is 0
     double vt = 0;
@@ -1194,7 +1188,7 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
     // Capacitances settings
     double CGSO = 4e-11;
     double CGDO = 4e-11;
-    double CGBO = 2e-11;
+    double CGBO = 2e-10;
     double CGS = CGSO * W;
     double CGD = CGDO * W;
     double CGB = CGBO * L;
@@ -1202,18 +1196,18 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
     double CBS = 20e-15; // typical value for CBS
 
     double FC = 0.5;     // Coefficient for forward-bias depletion capacitance formula
-    double PB = 0.9;     // Bulk junction potential
-    double CJ = 0.56e-3;    // Zero bias bulk junction capacitance per unit area
-    double MJ = 0.45;     // Bulk junction bottom grading coefficient
+    double PB = 0.8;     // Bulk junction potential
+    double CJ = 2e-4;    // Zero bias bulk junction capacitance per unit area
+    double MJ = 0.5;     // Bulk junction bottom grading coefficient
     double AD = 200e-12; // Drain area
     double AS = 200e-12; // Source area
-    double CJSW = 0.35e-11; // Zero bias bulk junction sidewall capacitance per unit periphery
+    double CJSW = 1e-12; // Zero bias bulk junction sidewall capacitance per unit periphery
     double PD = 20e-6;   // Drain junction potential
     double PS = 20e-6;   // Source junction potential
     double TT = 1e-9;    // Transit time
-    double MJSW = 0.2;   // Bulk junction sidewall grading coefficient level 1
+    double MJSW = 0.5;   // Bulk junction sidewall grading coefficient level 1
     double JSSW = 1e-9;  // Bulk junction saturation current per meter of sidewall
-    double JS = 1e-8;    // Bulk junction saturation current per meter of junction perimeter
+    double JS = 1e-6;    // Bulk junction saturation current per meter of junction perimeter
 
     if (vbd <= FC * PB)
     {
@@ -1235,15 +1229,16 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
     // # the settings for fet model based on the large signal analysis
     
 
-        R_assigner(node_vd, T_nodes - (4 * number) + 2, 1/0.2, LHS, RHS); // # RD
+        R_assigner(node_vd, T_nodes - (4 * number) + 2, 0.2, LHS, RHS); // # RD
         R_assigner(node_vg, T_nodes - (4 * number) + 1, 1, LHS, RHS);   // # RG
-        R_assigner(T_nodes - (4 * number) + 4, node_vs, 1/0.1, LHS, RHS); // # RS
+        R_assigner(T_nodes - (4 * number) + 4, node_vs, 0.1, LHS, RHS); // # RS
         R_assigner(T_nodes - (4 * number) + 3, node_vb, 1, LHS, RHS);   // # RB
 
         // // New model for Diode
-        Diode_assigner(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 2, 1e-14, 0.05, LHS, RHS, solution, mode); // # Diode BD
-        Diode_assigner(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 4, 1e-14, 0.05, LHS, RHS, solution, mode); // # Diode BS
-
+        // Diode_assigner(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 2, 1e-14, 0.05, LHS, RHS, solution, mode); // # Diode BD
+        // Diode_assigner(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 4, 1e-14, 0.05, LHS, RHS, solution, mode); // # Diode BS
+        R_assigner(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 2, 1e15, LHS, RHS); // # Diode BD
+        R_assigner(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 4, 1e15, LHS, RHS); // # Diode BS
         
     
 
@@ -1274,7 +1269,7 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
 
     
     I_DSeq = id - gds * vds - gm * vgs - gmb * vbs; // # 10.190 equation
-
+    // I_DSeq = id; // # 10.190 equation
 
     
         // C_assigner_BE(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 2, CBD, h, LHS, RHS, solution, mode); // # Capacitor CBD
@@ -1283,12 +1278,18 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
         // C_assigner_BE(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 3, CGB, h, LHS, RHS, solution, mode); // # Capacitor GBO
         // C_assigner_BE(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CGD, h, LHS, RHS, solution, mode); // # Capacitor GDO
 
+        C_assigner_BE(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 2, 0, h, LHS, RHS, solution, mode); // # Capacitor CBD
+        C_assigner_BE(T_nodes - (4 * number) + 3, T_nodes - (4 * number) + 4, 0, h, LHS, RHS, solution, mode); // # Capacitor CBS
+        C_assigner_BE(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 4, 0, h, LHS, RHS, solution, mode); // # Capacitor GSO
+        C_assigner_BE(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 3, 0, h, LHS, RHS, solution, mode); // # Capacitor GBO
+        C_assigner_BE(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, 0, h, LHS, RHS, solution, mode); // # Capacitor GDO
 
         double rds = 1 / gds;
 
         Is_assigner(node_vd, node_vs, I_DSeq, LHS, RHS);
         VCCS_assigner(node_vd, node_vs, node_vb, node_vs, gmb, LHS); // assigning gmb
-        R_assigner(node_vd, node_vs, gds, LHS, RHS);           // # assigning gds
+        R_assigner(node_vd, node_vs, 1/gds, LHS, RHS);           // # assigning gds
+        // R_assigner(node_vd, node_vs, 1e10, LHS, RHS);           // # assigning gds
         VCCS_assigner(node_vd, node_vs, node_vg, node_vs, gm, LHS);  // # assigning gm
 
         std::cout << "1/gds: " << rds << std::endl;  
@@ -1405,8 +1406,8 @@ double PMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
     double I_DSeq = 0;
 
     // Capacitances settings
-    double CGSO = 4e-10;
-    double CGDO = 4e-10;
+    double CGSO = 4e-11;
+    double CGDO = 4e-11;
     double CGBO = 2e-10;
     double CGS = CGSO * W;
     double CGD = CGDO * W;
@@ -1447,15 +1448,14 @@ double PMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
 
     // # the settings for fet model based on the large signal analysis
     
-        R_assigner(node_vd, T_nodes - (4 * number) + 2, 1/0.2, LHS, RHS); // # RD
+        R_assigner(node_vd, T_nodes - (4 * number) + 2, 0.2, LHS, RHS); // # RD
         R_assigner(node_vg, T_nodes - (4 * number) + 1, 1, LHS, RHS);   // # RG
-        R_assigner(T_nodes - (4 * number) + 4, node_vs, 1/0.1, LHS, RHS); // # RS
+        R_assigner(T_nodes - (4 * number) + 4, node_vs, 0.1, LHS, RHS); // # RS
         R_assigner(T_nodes - (4 * number) + 3, node_vb, 1, LHS, RHS);   // # RB
 
         
         Diode_assigner(T_nodes - (4 * number) + 2, T_nodes - (4 * number) + 3, 1e-14, 0.05, LHS, RHS,  solution, mode); // # Diode BD
         Diode_assigner(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, 1e-14, 0.05, LHS, RHS,  solution, mode); // # Diode BS
-
 
         
     
@@ -1487,57 +1487,57 @@ double PMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
     }
 
     
-        // C_assigner_BE(T_nodes - (4 * number) + 2, T_nodes - (4 * number) + 3, CBD, h, LHS, RHS, solution, mode); // # Capacitor CBD
-        // C_assigner_BE(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CBS, h, LHS, RHS, solution, mode); // # Capacitor CBS
-        // C_assigner_BE(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 4, CGS, h, LHS, RHS, solution, mode); // # Capacitor GSO
-        // C_assigner_BE(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 3, CGB, h, LHS, RHS, solution, mode); // # Capacitor GBO
-        // C_assigner_BE(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CGD, h, LHS, RHS, solution, mode); // # Capacitor GDO
+        C_assigner_BE(T_nodes - (4 * number) + 2, T_nodes - (4 * number) + 3, CBD, h, LHS, RHS, solution, mode); // # Capacitor CBD
+        C_assigner_BE(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CBS, h, LHS, RHS, solution, mode); // # Capacitor CBS
+        C_assigner_BE(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 4, CGS, h, LHS, RHS, solution, mode); // # Capacitor GSO
+        C_assigner_BE(T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 3, CGB, h, LHS, RHS, solution, mode); // # Capacitor GBO
+        C_assigner_BE(T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CGD, h, LHS, RHS, solution, mode); // # Capacitor GDO
     
     I_DSeq = id - gds * vsd - gm * vsg - gmb * vsb;
 
 
         Is_assigner(node_vs, node_vd, I_DSeq, LHS, RHS);
         VCCS_assigner(node_vs, node_vd, node_vs, node_vb, gmb, LHS); // assigning gmb
-        R_assigner(node_vd, node_vs, gds, LHS, RHS);           // # assigning gds
+        R_assigner(node_vd, node_vs, cond(gds), LHS, RHS);           // # assigning gds
         VCCS_assigner(node_vs, node_vd, node_vs, node_vg, gm, LHS);  // # assigning gm
 
 
 
-    // if(mode == 0){
+    if(mode == 0){
 
-    //     Capacitor c1{0, "M"+std::to_string(number)+".1", T_nodes - (4 * number) + 2, T_nodes - (4 * number) + 3, CBD}; // M1.1
-    //     Capacitor c2{0, "M"+std::to_string(number)+".2", T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CBS}; // M1.2
-    //     Capacitor c3{0, "M"+std::to_string(number)+".3", T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 4, CGS}; // M1.3
-    //     Capacitor c4{0, "M"+std::to_string(number)+".4", T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 3, CGB}; // M1.4
-    //     Capacitor c5{0, "M"+std::to_string(number)+".5", T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CGD}; // M1.5
+        Capacitor c1{0, "M"+std::to_string(number)+".1", T_nodes - (4 * number) + 2, T_nodes - (4 * number) + 3, CBD}; // M1.1
+        Capacitor c2{0, "M"+std::to_string(number)+".2", T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CBS}; // M1.2
+        Capacitor c3{0, "M"+std::to_string(number)+".3", T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 4, CGS}; // M1.3
+        Capacitor c4{0, "M"+std::to_string(number)+".4", T_nodes - (4 * number) + 1, T_nodes - (4 * number) + 3, CGB}; // M1.4
+        Capacitor c5{0, "M"+std::to_string(number)+".5", T_nodes - (4 * number) + 4, T_nodes - (4 * number) + 3, CGD}; // M1.5
 
-    //     C_list.push_back(c1);
-    //     C_list.push_back(c2);
-    //     C_list.push_back(c3);
-    //     C_list.push_back(c4);
-    //     C_list.push_back(c5);
-    // }
-    // else{
+        C_list.push_back(c1);
+        C_list.push_back(c2);
+        C_list.push_back(c3);
+        C_list.push_back(c4);
+        C_list.push_back(c5);
+    }
+    else{
 
-    //     for(auto& Cap: C_list){                                      // Update the Capacitance values
-    //         if(Cap.name == "M"+std::to_string(number)+".1"){
-    //             Cap.value = CBD;
-    //         }
-    //         else if(Cap.name == "M"+std::to_string(number)+".2"){
-    //             Cap.value = CBS;
-    //         }
-    //         else if(Cap.name == "M"+std::to_string(number)+".3"){
-    //             Cap.value = CGS;
-    //         }
-    //         else if(Cap.name == "M"+std::to_string(number)+".4"){
-    //             Cap.value = CGB;
-    //         }
-    //         else if(Cap.name == "M"+std::to_string(number)+".5"){
-    //             Cap.value = CGD;
-    //         }
+        for(auto& Cap: C_list){                                      // Update the Capacitance values
+            if(Cap.name == "M"+std::to_string(number)+".1"){
+                Cap.value = CBD;
+            }
+            else if(Cap.name == "M"+std::to_string(number)+".2"){
+                Cap.value = CBS;
+            }
+            else if(Cap.name == "M"+std::to_string(number)+".3"){
+                Cap.value = CGS;
+            }
+            else if(Cap.name == "M"+std::to_string(number)+".4"){
+                Cap.value = CGB;
+            }
+            else if(Cap.name == "M"+std::to_string(number)+".5"){
+                Cap.value = CGD;
+            }
 
-    //     }
-    // }
+        }
+    }
     
 
     return id;
@@ -2183,23 +2183,15 @@ arma::mat multi_next_h(Transient &trans, const CKTcircuit &ckt){
     return solution;
 }
 
-void save_csv(const CKTcircuit &ckt){
+void save_csv(){
     std::ofstream file("final_solution.csv");
     for(size_t i = 0; i < vec_trans.size(); ++i){
-        file << std::scientific << std::setprecision(20); // Set precision to 20 decimal places
-        file << vec_trans.at(i).time_trans << ", " << vec_trans.at(i).h ; //time
-
-        for(size_t j = 0; j < ckt.external_nodes; ++j){
-            file << ", " << vec_trans.at(i).solution(j,0); // Voltages
-        }
-
-        for(size_t z = ckt.no_of_V_sources; z > 0; --z){
-            file << ", " << vec_trans.at(i).solution(ckt.cktdematrix-> n_rows - z,0); // Currents
-        }
-        file << std::endl;
+        file << std::scientific << std::setprecision(10); // Set precision to 10 decimal places
+        file << vec_trans.at(i).time_trans << ", " << vec_trans.at(i).h << ", " << vec_trans.at(i).solution(0,0) << ", "<< vec_trans.at(i).solution(1,0) << ", " << vec_trans.at(i).solution(2,0) <<  ", " << vec_trans.at(i).solution(7,0) << ", " << vec_trans.at(i).solution(8,0) << std::endl;
     }
 
     file.close();
 
 }
+
 
