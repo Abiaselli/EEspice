@@ -1,0 +1,23 @@
+Inverter test with R
+
+* VDD
+V1 1 0 5
+
+* Mnumber d g s b model W=w L=l
+M1 3 2 1 1 PMOS W=50u L=5u
+M2 3 2 0 0 NMOS W=50u L=5u
+C1 4 0 1p
+R1 3 4 1k
+
+M3 5 4 1 1 PMOS W=50u L=5u
+M4 5 4 0 0 NMOS W=50u L=5u
+C2 6 0 1p
+R2 5 6 1k
+
+M5 7 6 1 1 PMOS W=50u L=5u
+M6 7 6 0 0 NMOS W=50u L=5u
+C3 2 0 1p
+R3 7 2 1k
+
+.tran 0.0005u 0.3u
+

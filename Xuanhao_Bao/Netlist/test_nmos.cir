@@ -1,0 +1,16 @@
+Test NMOS
+
+* V Gate
+*V2 2 0 0
+V2 2 0 pulse (0 5 0 1u 1u 1u 20u)
+* VDD
+V1 1 0 5
+
+
+* Mnumber d g s b model W=w L=l 
+M1 3 2 0 0 NMOS W=100u L=100u
+R1 1 3 10k
+R2 3 4 1m
+C1 4 0 1f
+
+.tran 1u 5u

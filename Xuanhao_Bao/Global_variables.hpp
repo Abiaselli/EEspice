@@ -22,9 +22,15 @@ double lteretol = 0.01;
 // Absolute tolerance for truncation error in SPICE OPUS
 double lteabstol = 1e-6;
 
+double h_op = 1e-25; // Initial timestep in OP
+
 /*If timestep reach the limit*/
 // bool TMAX_reach = false;
 // bool TMIN_reach = false;
+auto totalNR = std::chrono::milliseconds::zero();
+auto totalMulti_h = std::chrono::milliseconds::zero();
+auto totalSolver = std::chrono::milliseconds::zero();
 
+int NR_ITE{};
 
 

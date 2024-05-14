@@ -2,21 +2,14 @@
 // #include <armadillo>
 // #include <iostream>
 
-// Custom test function to compare matrices and print result
+
 
 int main() {
-    CKTcircuit ckt;
-    DenseMatrix dematrix;
-    Transient trans_op;
+    // arma::mat solution = arma::zeros<arma::mat>(3, 1);
+    double v = V_pulse_value(0, 5, 1e-10, 0, 5e-6, 5e-6, 2e-6, 20e-6);
+    std::cout << v << std::endl;
 
-    CircuitParser parser("Inverter.cir");
-    parser.parser();
 
-    CKTsetup(ckt, parser, dematrix);            // Pass the parser to the ckt and the initialise LHS and RHS matrices
-    ckt.setcktmatrix(dematrix);
-
-    CKTload(ckt);
-  
     return 0;
 }
 

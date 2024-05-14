@@ -3,7 +3,8 @@
 
     The assignments are given as following (with solution, LHS, and RHS being constant):
     1) Resistor - R_assigner(node_x, node_y, cond(R), LHS, RHS);
-    2) Capacitors - C_assigner(node_x, node_y, C, h, LHS, RHS, solution, mode);
+    2) Capacitors - C_assigner(node_x, node_y, C, h, LHS, RHS, so
+    lution, mode);
     3) Diodes - Diode_assigner( node_x, node_y, Is, VT, cd, h, LHS, RHS, solution, mode);
     4) Current Source - Is_assigner( node_x, node_y, I, LHS, RHS);
     5) Voltage Source - Vs_assigner(node_x, node_y, V_value, LHS, RHS);
@@ -27,7 +28,6 @@
     Number of MOSFETs and cascaded levels are assigned above too. External nodes are the nodes which  */
 
 #include "Transient_code_parser.hpp"
-// #include "old.hpp"
 
 /*  The line above the code means that the section can be changed by the user which analyses circuit simulation
 
@@ -45,7 +45,7 @@ int main(int argc, const char ** argv)
     DenseMatrix dematrix;
     Transient trans_op;
 
-    CircuitParser parser("Inverter.cir");
+    CircuitParser parser("Netlist/test_inv.cir");
     parser.parser();
 
     CKTsetup(ckt, parser, dematrix);            // Pass the parser to the ckt and the initialise LHS and RHS matrices
@@ -79,12 +79,15 @@ int main(int argc, const char ** argv)
     // Benchmarking for OP analysis
     auto tstart_op = std::chrono::high_resolution_clock::now();
 
-    auto matrixs_op = DynamicNonLinear(ckt, 0, solution, 0, 0, trans_op.C_list);  // mode = 0 for DC OP analysis
-    solution = NewtonRaphson_system(matrixs_op.first, matrixs_op.second, ckt, solution);
+    solution = NewtonRaphson_system(ckt, solution, 0, 0, 0, trans_op.C_list);
+    // auto matrixs_op = DynamicNonLinear(ckt, 0, solution, 0, 0, trans_op.C_list);
+    // solution = arma::solve(matrixs_op.first, matrixs_op.second);
+
     if(trans_op.C_list.size() > 0){
-        auto cur_vol_op = get_currents_voltages(trans_op.C_list, 1e-25, solution, arma::zeros(dematrix.RHS.n_rows,dematrix.RHS.n_cols));
+        auto cur_vol_op = get_currents_voltages(trans_op.C_list, trans_op.h, solution, arma::zeros(dematrix.RHS.n_rows,dematrix.RHS.n_cols));
         trans_op.Capacitance = get_capacitance(trans_op.C_list);                    // Get the capacitance matrix from c_list
         trans_op.C_current = cur_vol_op.first;
+        trans_op.C_current.print("The current matrix is: ");
         trans_op.C_voltage = cur_vol_op.second;
         trans_op.C_charge = trans_op.C_voltage % trans_op.Capacitance;
 
@@ -111,6 +114,7 @@ int main(int argc, const char ** argv)
     std::cout << "transient simulation start" << std::endl;
 
     std::deque<double> breakpoints;
+    bool trans_end = false;
 
     if(ckt.pulse_num != 0){
         breakpoints = get_breakpoints(ckt, trans_op);  // Get the time of breakpoints for the transient simulation
@@ -127,6 +131,7 @@ int main(int argc, const char ** argv)
         std::cout << "-------------------------------------------------------" << std::endl;
         std::cout << "Next step" << std::endl;
 
+        
         Transient trans;
         trans.t_end = trans_op.t_end;
         trans.h_MAX = trans_op.h_MAX;
@@ -135,66 +140,46 @@ int main(int argc, const char ** argv)
         trans.C_list = trans_op.C_list;
 
         // Fixed time step
-        if(ckt.pulse_num == 0 || trans.C_list.size() == 0){
+        if(ckt.pulse_num == 0 && trans.C_list.size() == 0){
             trans.h = trans_op.init_h;  // Initial time step
             trans.time_trans = vec_trans.back().time_trans;
             trans.C_list = vec_trans.back().C_list;
 
-            // If circuit includes V_pulse.
-            if(trans.time_trans + trans.h > breakpoints.front() && ckt.pulse_num > 0){
-                std::cout<< breakpoints.front()<< std::endl;
-                Transient breakpoints_trans;
-                breakpoints_trans.t_end = trans_op.t_end;
-                breakpoints_trans.h_MAX = trans_op.h_MAX;
-                breakpoints_trans.h_MIN = trans_op.h_MIN;
-                breakpoints_trans.mode = 1; // 0 to do OP analysis, 1 to do transient simulation
-                breakpoints_trans.C_list = vec_trans.back().C_list;
+
+
             
-
-                std::cout << "The time step is too large, back to breakpoint" << std::endl;
-                breakpoints_trans.time_trans = breakpoints.front();
-                breakpoints_trans.h = breakpoints_trans.time_trans - vec_trans.back().time_trans;
-                auto matrixs = DynamicNonLinear(ckt, breakpoints_trans.h, vec_trans.back().solution, 1, breakpoints_trans.time_trans, breakpoints_trans.C_list);
-                solution = NewtonRaphson_system(matrixs.first, matrixs.second, ckt, vec_trans.back().solution);
-
-                breakpoints_trans.solution = solution;
-                breakpoints_trans.LHS = matrixs.first;
-                breakpoints_trans.RHS = matrixs.second;
-                breakpoints_trans.trans_count = vec_trans.back().trans_count + 1;
-
-                history_steps.push_front(breakpoints_trans.h);
-                history_trans_update(breakpoints_trans);
-
-                solution.print("The transient analysis of the circuit is: ");
-                std::cout << "time step: " << breakpoints_trans.h << std::endl;
-                std::cout << "time_trans: " << breakpoints_trans.time_trans << std::endl;
-
-                solution_csv = arma::join_cols(solution_csv, solution);
-                breakpoints.pop_front();
-                continue;
-
-            }
-
-            auto matrixs = DynamicNonLinear(ckt, trans.h, vec_trans.back().solution, trans.mode, trans.time_trans, trans.C_list);  // Update LHS and RHS matrices
-            solution = NewtonRaphson_system(matrixs.first, matrixs.second, ckt, vec_trans.back().solution);
+            solution = NewtonRaphson_system(ckt, vec_trans.back().solution, trans.h, 1, trans.time_trans, trans.C_list);
             solution.print("The transient analysis of the circuit is: ");
 
             if(trans.C_list.size() > 0){
 
                 auto cur_vol = get_currents_voltages(trans.C_list, trans.h, solution, vec_trans.back().solution);
                 trans.Capacitance = get_capacitance(trans.C_list);
-                
-                
                 trans.C_current = cur_vol.first;
                 trans.C_voltage = cur_vol.second;
                 trans.C_charge = trans.C_voltage % trans.Capacitance;
                 trans.C_list_update();
+
+                /*--------------------------------------*/
+                double current = arma::abs(trans.C_current).max();
+                double pre_current = arma::abs(vec_trans.back().C_current).max();
+                double charge = arma::abs(trans.C_charge).max();
+                double pre_charge = arma::abs(vec_trans.back().C_charge).max();
+                double LTE_B_C = RELTOL * std::max(current, pre_current) + ABSTOL;
+                double LTE_B_Q = RELTOL * std::max({charge, pre_charge, CHGTOL}) / trans.h;
+                double LTE_bound = std::max(LTE_B_C, LTE_B_Q);
+
+                double LTE = trans.h/(2 * trans.C_list.at(0).value) * std::abs((current - pre_current));
+
+                if(LTE > 7 * LTE_bound){
+                    std::cout << "LTE > LTE_bound" << std::endl;
+                }
             }
             
             trans.time_trans = vec_trans.back().time_trans + trans.h;
             trans.solution = solution;
-            trans.LHS = matrixs.first;
-            trans.RHS = matrixs.second;
+            // trans.LHS = matrixs.first;
+            // trans.RHS = matrixs.second;
             trans.trans_count = vec_trans.back().trans_count + 1;
             // trans.C_current.print("The current matrix is: ");
             std::cout << "time trans: " << trans.time_trans << std::endl;
@@ -216,8 +201,7 @@ int main(int argc, const char ** argv)
             trans.h = trans_op.init_h;  // Initial time step
             trans.time_trans = trans.t_start + trans.h;
 
-            auto matrixs = DynamicNonLinear(ckt, trans.h, trans_op.solution, trans.mode, trans.time_trans, trans.C_list);  // Update LHS and RHS matrices
-            solution = NewtonRaphson_system(matrixs.first, matrixs.second, ckt, trans_op.solution);
+            solution = NewtonRaphson_system(ckt, trans_op.solution, trans.h, 1, trans.time_trans, trans.C_list);
             solution.print("The transient analysis of the circuit is: ");
 
             if(trans.C_list.size() > 0){
@@ -226,14 +210,15 @@ int main(int argc, const char ** argv)
                 trans.Capacitance = get_capacitance(trans.C_list);
                 
                 trans.C_current = cur_vol.first;
+                trans.C_current.print("The current matrix is: ");
                 trans.C_voltage = cur_vol.second;
                 trans.C_charge = trans.C_voltage % trans.Capacitance;
                 trans.C_list_update();
             }
             
             trans.solution = solution;
-            trans.LHS = matrixs.first;
-            trans.RHS = matrixs.second;
+            // trans.LHS = matrixs.first;
+            // trans.RHS = matrixs.second;
             trans.trans_count += 1;
             // trans.C_current.print("The current matrix is: ");
 
@@ -257,8 +242,17 @@ int main(int argc, const char ** argv)
             
             trans.time_trans = trans.time_trans + trans.h;
 
+            /* If the time difference between the previous simulation time point and the breakpoint is less than 10*hmin, 
+               it will be counted as 1 time point and no additional breakpoint simulation will be performed.*/
+            if(breakpoints.front() - vec_trans.back().time_trans < 10 * trans.h_MIN && breakpoints.empty() == false){
+                
+                breakpoints.pop_front();
+                if(breakpoints.empty()){
+                    trans_end = true;
+                }
+            }
 
-            if(trans.time_trans > breakpoints.front()){
+            if(trans.time_trans > breakpoints.front() && breakpoints.empty() == false){
                 
                 Transient breakpoints_trans;
                 breakpoints_trans.t_end = trans_op.t_end;
@@ -271,8 +265,10 @@ int main(int argc, const char ** argv)
                 std::cout << "The time step is too large, back to breakpoint" << std::endl;
                 breakpoints_trans.time_trans = breakpoints.front();
                 breakpoints_trans.h = breakpoints_trans.time_trans - vec_trans.back().time_trans;
-                auto matrixs = DynamicNonLinear(ckt, breakpoints_trans.h, vec_trans.back().solution, 1, breakpoints_trans.time_trans, breakpoints_trans.C_list);
-                solution = NewtonRaphson_system(matrixs.first, matrixs.second, ckt, vec_trans.back().solution);
+                std::cout << "breakpoints_trans.time_trans: " << breakpoints_trans.time_trans << std::endl;
+                std::cout << "vec_trans.back().time_trans: " << vec_trans.back().time_trans << std::endl;
+            
+                solution = NewtonRaphson_system(ckt, vec_trans.back().solution, breakpoints_trans.h, 1, breakpoints_trans.time_trans, breakpoints_trans.C_list);
                 auto cur_vol = get_currents_voltages(breakpoints_trans.C_list, breakpoints_trans.h, solution, vec_trans.back().solution);
                 breakpoints_trans.Capacitance = get_capacitance(breakpoints_trans.C_list);
 
@@ -282,8 +278,8 @@ int main(int argc, const char ** argv)
                 breakpoints_trans.C_charge = breakpoints_trans.C_voltage % breakpoints_trans.Capacitance;
                 breakpoints_trans.C_list_update();
 
-                breakpoints_trans.LHS = matrixs.first;
-                breakpoints_trans.RHS = matrixs.second;
+                // breakpoints_trans.LHS = matrixs.first;
+                // breakpoints_trans.RHS = matrixs.second;
                 breakpoints_trans.trans_count = vec_trans.back().trans_count + 1;
 
                 history_steps.push_front(breakpoints_trans.h);
@@ -295,15 +291,18 @@ int main(int argc, const char ** argv)
 
                 solution_csv = arma::join_cols(solution_csv, solution);
                 breakpoints.pop_front();
-                continue;
+                // continue;
 
             }
 
             else{
+
+                if(trans.time_trans == breakpoints.front() && breakpoints.empty() == false){
+                    breakpoints.pop_front();
+                }
                 solution.print("The transient analysis of the circuit is: ");
                 std::cout <<"the time step is: "<< trans.h << std::endl;
                 std::cout << "time_trans: " << trans.time_trans << std::endl;
-
 
                 trans.C_list_update();
                 trans.trans_count = vec_trans.back().trans_count + 1;
@@ -321,7 +320,7 @@ int main(int argc, const char ** argv)
         // Update the data
         // solution_csv = arma::join_cols(solution_csv, solution);
 
-    }while (vec_trans.back().time_trans < vec_trans.back().t_end);
+    }while (vec_trans.back().time_trans < vec_trans.back().t_end && trans_end == false);
 
     auto tstop_trans = std::chrono::high_resolution_clock::now();
     // time vector to be inputted in plot for python analysis
@@ -355,6 +354,10 @@ int main(int argc, const char ** argv)
     std::cout << "Total time:" <<  time_span.count() << "ms\n";
 
     save_csv(ckt);
+
+    std::cout << "Time NR is: " << totalNR.count() << "ms\n";
+    std::cout << "Time Multi_h is: " << totalMulti_h.count() << "ms\n";
+    std::cout << "Time Solver is: " << totalSolver.count() << "ms\n";
 
     return 0;
     /*-----------------------------------------------------------------------------------------------------------*/

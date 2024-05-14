@@ -1,0 +1,8 @@
+netlist
+
+* t1_pulse >> v1 >> v2 >> td >> tr >> tf >> pw >> per
+V1 1 0 pulse (5 0 0 5u 5u 2u 20u)
+R1 1 2 10k
+C1 2 0 1n
+
+.tran 0.01u 20u

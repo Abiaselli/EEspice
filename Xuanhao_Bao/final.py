@@ -2,9 +2,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # Load the data from the CSV file
-df = pd.read_csv('final_solution.csv', header=None)
+# df = pd.read_csv('final_solution.csv', header=None)
+df = pd.read_csv('final_solution.csv')
 # Correctly name the columns based on your data structure
-df.columns = ['Time', 'Time Step', 'Voltage 1', 'Voltage 2', 'Voltage 3', 'Current', 'Current 2']
+df.columns = ['Time', 'Time Step', 'Voltage 1', 'Voltage 2', 'Current']
 
 # Ensure the CSV structure matches the expected format
 # It's crucial that your CSV data is correctly formatted to match the expected six columns
@@ -16,7 +17,7 @@ plt.figure(figsize=(12, 8))
 plt.subplot(2, 1, 1)  # 2 rows, 1 column, 1st subplot
 plt.plot(df['Time'], df['Voltage 1'], label='Voltage 1', marker='o')  # Time is the first column, Voltage 1 is the third
 plt.plot(df['Time'], df['Voltage 2'], label='Voltage 2', marker='x')  # Voltage 2 is the fourth column
-plt.plot(df['Time'], df['Voltage 3'], label='Voltage 3', color='red', marker='^')  # Voltage 3 is the fifth column
+# plt.plot(df['Time'], df['Voltage 3'], label='Voltage 3', color='red', marker='^')  # Voltage 3 is the fifth column
 plt.xlabel('Time')
 plt.ylabel('Voltage')
 plt.title('Voltage vs. Time')

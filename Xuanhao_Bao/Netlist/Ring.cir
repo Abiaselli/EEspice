@@ -1,0 +1,17 @@
+Ring
+
+V1 1 0 5
+V2 2 0 pulse (0 5 0 0.001u 0.001u 0.01u 0.05u)
+*Mnumber d g s b model W=w L=l 
+M1 3 2 1 1 PMOS W=10u L=5u 
+M2 3 2 0 0 NMOS W=10u L=50u
+M3 4 3 1 1 PMOS W=10u L=5u 
+M4 4 3 0 0 NMOS W=10u L=50u
+M5 2 4 1 1 PMOS W=10u L=5u 
+M6 2 4 0 0 NMOS W=10u L=50u
+
+C1 2 0 1p
+C2 3 0 1p
+C3 4 0 1p
+
+.tran 0.001u 3u
