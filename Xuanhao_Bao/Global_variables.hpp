@@ -33,4 +33,11 @@ auto totalSolver = std::chrono::milliseconds::zero();
 
 int NR_ITE{};
 
+double RD = 1.0;
+double RG = 1.0;
+double RS = 1.0;
+
+// To control debug mode
+bool debugMode = false;
+
 

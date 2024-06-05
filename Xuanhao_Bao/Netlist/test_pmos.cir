@@ -1,16 +1,13 @@
 Test PMOS
 
 * V Gate
-V2 2 0 0
-
+V2 2 0 5
 * VDD
-*V1 1 0 pulse (0 5 0 9u 9u 2u 20u)
 V1 1 0 5
 
 * Mnumber d g s b model W=w L=l 
-M1 3 2 1 1 PMOS W=100u L=100u
-R1 3 0 5
+M1 3 2 1 1 PMOS W=10u L=0.9u
+R1 3 0 1
 
-
-.tran 1u 20u
+.tran 0.1u 2u
 

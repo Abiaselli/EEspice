@@ -1,26 +1,16 @@
-Test Inverter
+Delay
 
-* V Gate
-V2 2 0 pulse (0 5 0 5u 5u 10u 25u)
-*V2 2 0 5
-* VDD
 V1 1 0 5
+V2 2 0 pulse (0 5 5n 10p 10p 5n 10n)
 
-R1 1 3 0.1
-*Vg
-R2 2 4 1
-* Mnumber d g s b model W=w L=l
-M1 5 4 3 9 PMOS W=100u L=10u
-R3 5 6 0.2
-R4 6 7 0.2
-M2 7 4 8 10 NMOS W=10u L=10u
-R5 8 0 0.1
-R6 1 9 1
-R7 10 0 1
+*Mnumber d g s b model W=w L=l 
+M1 3 2 0 0 NMOS W=1u L=0.09u
+M2 3 2 1 1 PMOS W=1u L=0.09u
 
+R1 3 4 1
+C1 4 0 0.1p
 
-* Node 6 is output
-* Node 2 is input
+M3 5 4 0 0 NMOS W=10u L=0.9u
+M4 5 4 1 1 PMOS W=10u L=0.9u
 
-
-.tran 0.1u 10u
+.tran 1p 10n
