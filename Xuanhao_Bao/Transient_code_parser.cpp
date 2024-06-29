@@ -41,7 +41,13 @@ int main(int argc, const char ** argv)
 {   
     setDebugMode(false);                        // Set the debug mode to false or true
 
+    for(int i = 0; i < 3; i++){
+        pool.submit_task(dummy_task);
+    }
+    pool.wait();
+
     auto t1 = std::chrono::high_resolution_clock::now(); // Start time
+                                
     CKTcircuit ckt;
     DenseMatrix dematrix;
     Transient trans_op;
@@ -146,8 +152,6 @@ int main(int argc, const char ** argv)
             trans.time_trans = vec_trans.back().time_trans;
             trans.C_list = vec_trans.back().C_list;
 
-
-
             
             solution = NewtonRaphson_system(ckt, vec_trans.back().solution, trans.h, 1, trans.time_trans, trans.C_list);
             // solution.print("The transient analysis of the circuit is: ");
@@ -225,9 +229,6 @@ int main(int argc, const char ** argv)
             // trans.C_current.print("The current matrix is: ");
 
             history_trans_update(trans);
-           
-
-
 
         }
 
@@ -245,7 +246,7 @@ int main(int argc, const char ** argv)
 
             /* If the time difference between the previous simulation time point and the breakpoint is less than 10*hmin, 
                it will be counted as 1 time point and no additional breakpoint simulation will be performed.*/
-            if(breakpoints.front() - vec_trans.back().time_trans < 10 * trans.h_MIN && breakpoints.empty() == false){
+            if(breakpoints.empty() == false && breakpoints.front() - vec_trans.back().time_trans < 10 * trans.h_MIN){
                 
                 breakpoints.pop_front();
                 if(breakpoints.empty()){
@@ -253,7 +254,7 @@ int main(int argc, const char ** argv)
                 }
             }
 
-            if(trans.time_trans > breakpoints.front() && breakpoints.empty() == false){
+            if(breakpoints.empty() == false && trans.time_trans > breakpoints.front()){
                 
                 Transient breakpoints_trans;
                 breakpoints_trans.t_end = trans_op.t_end;
@@ -301,7 +302,7 @@ int main(int argc, const char ** argv)
 
             else{
 
-                if(trans.time_trans == breakpoints.front() && breakpoints.empty() == false){
+                if(breakpoints.empty() == false && trans.time_trans == breakpoints.front()){
                     breakpoints.pop_front();
                 }
                 // solution.print("The transient analysis of the circuit is: ");
@@ -336,29 +337,23 @@ int main(int argc, const char ** argv)
 
     /*-----------------------------------------------------------------------------------------------------------*/
     // SAVING THE SOLUTION AND TIME MATRICES INTO CSV FILES
-    // std::ofstream file("solution.csv");
-    // file << "X_matrix" << std::endl;
-    // solution_csv.save(file, arma::csv_ascii);
-    // file.close();
-    // std::ofstream file2("MaxI.csv");
-    // file2 << "Max_I" << std::endl;
-    // Max_I.save(file2, arma::csv_ascii);
-    // file2.close();
-    // std::ofstream file3("time.csv");
-    // file3 << "time" << std::endl;
-    // time.save(file3, arma::csv_ascii);
-    // file3.close();
 
     save_csv(ckt);
 
     auto t2 = std::chrono::high_resolution_clock::now(); // End time
+    
     std::chrono::duration<double, std::milli> time_span = (t2 - t1) ;
     std::cout << "Total time:" <<  time_span.count() << "ms\n";
+    std::cout << "The Total time for multi-solver is: " << timer.total_ms() << "ms\n";
 
-    std::cout << "Time NR is: " << totalNR.count() << "ms\n";
-    std::cout << "Time Multi_h is: " << totalMulti_h.count() << "ms\n";
-    std::cout << "Time Solver is: " << totalSolver.count() << "ms\n";
+    save_threads_time(t1, t2);
+    
+    // std::cout << "Time NR is: " << totalNR.count() << "ms\n";
+    // std::cout << "Time EV is: " << totalEV.count() << "ms\n";
+    // std::cout << "Time solve()" << totalSOLVE.count() << "ms\n";
 
+
+    
     return 0;
     /*-----------------------------------------------------------------------------------------------------------*/
 }

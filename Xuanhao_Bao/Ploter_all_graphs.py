@@ -49,14 +49,26 @@ axes[2].legend()
 axes[2].grid(True)
 
 # Figure 3: Current vs. Voltage
-if voltage_columns and current_columns:
-    selected_voltage = voltage_columns[0]
-    selected_current = current_columns[0]
-    df_sorted = df.sort_values(by=selected_voltage)
-    ax3.plot(df_sorted[selected_voltage], df_sorted[selected_current], label=f'Current vs. {selected_voltage}', marker='^', color='purple')
-ax3.set_xlabel(selected_voltage)
-ax3.set_ylabel(selected_current)
-ax3.set_title('Current vs. Voltage')
+# if voltage_columns and current_columns:
+#     selected_voltage = voltage_columns[0]
+#     selected_current = current_columns[0]
+#     df_sorted = df.sort_values(by=selected_voltage)
+#     ax3.plot(df_sorted[selected_voltage], df_sorted[selected_current], label=f'Current vs. {selected_voltage}', marker='^', color='purple')
+# ax3.set_xlabel(selected_voltage)
+# ax3.set_ylabel(selected_current)
+# ax3.set_title('Current vs. Voltage')
+# ax3.legend()
+# ax3.grid(True)
+
+# Figure 3: Selected Voltages vs. Time
+# Specify the selected voltages by index or name here
+# selected_voltages = [voltage_columns[1], voltage_columns[5], voltage_columns[9], voltage_columns[13]]  # Adjust indices according to your needs
+selected_voltages = [voltage_columns[1], voltage_columns[5], voltage_columns[9]]
+for voltage in selected_voltages:
+    ax3.plot(df['Time'], df[voltage], label=f'{voltage} vs Time', marker='^')
+ax3.set_xlabel('Time')
+ax3.set_ylabel('Voltage')
+ax3.set_title('Selected Voltages vs. Time')
 ax3.legend()
 ax3.grid(True)
 

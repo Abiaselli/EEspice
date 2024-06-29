@@ -9,7 +9,7 @@ M2 3 2 1 1 PMOS W=1u L=0.09u
 
 R1 3 4 1
 C1 4 0 0.1p
-
+ 
 M3 5 4 0 0 NMOS W=10u L=0.9u
 M4 5 4 1 1 PMOS W=10u L=0.9u
 

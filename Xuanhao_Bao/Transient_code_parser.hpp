@@ -15,6 +15,9 @@
 #include <iomanip>
 #include <typeinfo>
 #include "Global_variables.hpp"
+#include "BS_thread_pool.hpp"
+#include "BS_thread_pool_utils.hpp"
+#include "XB_timer.hpp"
 
 // Macro to enable debug code
 #define DEBUG_PRINT(x) if (isDebugMode()) { std::cout << x << std::endl; }
@@ -22,6 +25,7 @@
 
 
 // Forward declarations
+class XB_Timer;
 class CircuitElement;
 class Transient;
 class CKTcircuit;
@@ -31,7 +35,7 @@ class Capacitor;
 
 void setDebugMode(bool mode);
 bool isDebugMode();
-void R_assigner(double node_x, double node_y, double G, arma::mat &LHS, arma::mat &RHS);
+void R_assigner(int node_x, int node_y, double G, arma::mat &LHS, arma::mat &RHS);
 void Vs_assigner(int node_x, int node_y, double V_value, arma::mat &LHS, arma::mat &RHS);
 double convertToValue(const std::string& valueStr);
 arma::mat branch_ext(arma::mat M, int node_x, int node_y);
@@ -43,12 +47,23 @@ void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, a
 double Diode_assigner(int node_x, int node_y, double Is, double VT, arma::mat &LHS, arma::mat &RHS, arma::mat solution, int mode);
 std::pair<arma::mat,arma::mat> DynamicNonLinear(const CKTcircuit &ckt, double h, arma::mat pre_solution, int mode, const double time_trans, std::vector<Capacitor> &C_list, int NR_iteration_counter);
 arma::mat NewtonRaphson_system(const CKTcircuit &ckt, const arma::mat &pre_solution, const double &h, const int &mode, const double time_trans, std::vector<Capacitor> &C_list);
-
+void dummy_task();
 /*  Global variables:
-    Among the 3 global variables, vec_trans inserts data to the end. 
-    history_voltages and history_steps insert data to the front.
+
 */  
 std::vector<Transient> vec_trans;
+BS::thread_pool pool(3);
+BS::timer tmr;
+BS::synced_stream sync_out;
+XB_Timer timer;
+XB_Timer multi_timer;
+
+std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> begin_mid;
+std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> begin_up;
+std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> begin_down;
+std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> end_mid;
+std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> end_up;
+std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> end_down;
 
 
 /*-----------------------------------------------------------------------------------------------------------------------------------------------------*/
@@ -83,6 +98,8 @@ void history_trans_update(Transient &trans){
 //         history_voltages.pop_back();
 //     }
 // }
+
+
 
 
 
@@ -877,18 +894,16 @@ std::deque<double> get_breakpoints(const CKTcircuit &ckt, const Transient &trans
 
 
 // create resistor matrix stamp
-void R_assigner(double node_x, double node_y, double G, arma::mat &LHS, arma::mat &RHS){
+void R_assigner(int node_x, int node_y, double G, arma::mat &LHS, arma::mat &RHS){
     int maxi = LHS.n_cols;
     int maxj = LHS.n_rows;
-    double x = 0;
-    arma::mat a = arma::zeros(maxi,maxj);
+    double x = G;
 
     // if(G == 0){
     //     std::cerr << "Error: Resistor value cannot be zero" << std::endl;
     //     exit(1);
     // }
 
-    x = G;
 
     if((node_x == 0) && (node_y == 0)){
         x = 0;
@@ -896,20 +911,21 @@ void R_assigner(double node_x, double node_y, double G, arma::mat &LHS, arma::ma
     }
     else{
         if(node_x == 0){
-            a.row(node_y-1).col(node_y-1) = x;
+            LHS.row(node_y-1).col(node_y-1) += x;
         }
         else if(node_y == 0){
-            a.row(node_x-1).col(node_x-1) = x;
+            LHS.row(node_x-1).col(node_x-1) += x;
         }
         else{
-            a.row(node_x-1).col(node_x-1) = x;
-            a.row(node_x-1).col(node_y-1) = -x;
-            a.row(node_y-1).col(node_x-1) = -x;
-            a.row(node_y-1).col(node_y-1) = x;
+            LHS.row(node_x-1).col(node_x-1) += x;
+            LHS.row(node_x-1).col(node_y-1) += -x;
+            LHS.row(node_y-1).col(node_x-1) += -x;
+            LHS.row(node_y-1).col(node_y-1) += x;
         }
     }
-    LHS = LHS + a;
+
     
+    // RR = RR +1;
 }
 
 // Voltage source stamp assigner
@@ -959,23 +975,23 @@ arma::mat branch_ext(arma::mat M, int node_x, int node_y){
 void Is_assigner(double node_x, double node_y, double I, arma::mat &LHS, arma::mat &RHS){
     int maxi = LHS.n_cols;
     int maxj = 1;
-    arma::mat a = arma::zeros(maxi,maxj);
+
     if((node_x == 0) && (node_y == 0)){
         I = 0;
     }
     else{
         if(node_x == 0){
-            a.row(node_y-1).col(0) = I;
+            RHS.row(node_y-1).col(0) += I;
         }
         else if(node_y == 0){
-            a.row(node_x-1).col(0) = -I;
+            RHS.row(node_x-1).col(0) += -I;
         }
         else{
-            a.row(node_x-1).col(0) = -I;
-            a.row(node_y-1).col(0) = I;
+            RHS.row(node_x-1).col(0) += -I;
+            RHS.row(node_y-1).col(0) += I;
         }
     }
-    RHS = RHS + a;
+    
 }
 
 // Capacitor stamp assigner with backward euler method
@@ -1129,7 +1145,6 @@ void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, a
 {
     int maxi = LHS.n_cols;
     int maxj = LHS.n_rows;
-    arma::mat a = arma::zeros(maxi, maxj);
 
     if (node_x == 0)
     {
@@ -1137,20 +1152,20 @@ void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, a
         {
             if (node_cy > 0)
             {
-                a.row(node_y - 1).col(node_cy - 1) = R;
+                LHS.row(node_y - 1).col(node_cy - 1) += R;
             }
         }
         else if (node_cy == 0)
         {
             if (node_cx > 0)
             {
-                a.row(node_y - 1).col(node_cx - 1) = -R;
+                LHS.row(node_y - 1).col(node_cx - 1) += -R;
             }
         }
         else
         {
-            a.row(node_y - 1).col(node_cx - 1) = -R;
-            a.row(node_y - 1).col(node_cy - 1) = R;
+            LHS.row(node_y - 1).col(node_cx - 1) += -R;
+            LHS.row(node_y - 1).col(node_cy - 1) += R;
         }
     }
     else if (node_y == 0)
@@ -1159,20 +1174,20 @@ void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, a
         {
             if (node_cy > 0)
             {
-                a.row(node_x - 1).col(node_cy - 1) = -R;
+                LHS.row(node_x - 1).col(node_cy - 1) += -R;
             }
         }
         else if (node_cy == 0)
         {
             if (node_cx > 0)
             {
-                a.row(node_x - 1).col(node_cx - 1) = R;
+                LHS.row(node_x - 1).col(node_cx - 1) += R;
             }
         }
         else
         {
-            a.row(node_x - 1).col(node_cx - 1) = R;
-            a.row(node_x - 1).col(node_cy - 1) = -R;
+            LHS.row(node_x - 1).col(node_cx - 1) += R;
+            LHS.row(node_x - 1).col(node_cy - 1) += -R;
         }
     }
     else
@@ -1181,27 +1196,28 @@ void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, a
         {
             if (node_cy > 0)
             {
-                a.row(node_x - 1).col(node_cy - 1) = -R;
-                a.row(node_y - 1).col(node_cy - 1) = R;
+                LHS.row(node_x - 1).col(node_cy - 1) += -R;
+                LHS.row(node_y - 1).col(node_cy - 1) += R;
             }
         }
         else if (node_cy == 0)
         {
             if (node_cx > 0)
             {
-                a.row(node_x - 1).col(node_cx - 1) = R;
-                a.row(node_y - 1).col(node_cx - 1) = -R;
+                LHS.row(node_x - 1).col(node_cx - 1) += R;
+                LHS.row(node_y - 1).col(node_cx - 1) += -R;
             }
         }
         else
         {
-            a.row(node_x - 1).col(node_cx - 1) = R;
-            a.row(node_x - 1).col(node_cy - 1) = -R;
-            a.row(node_y - 1).col(node_cx - 1) = -R;
-            a.row(node_y - 1).col(node_cy - 1) = R;
+            LHS.row(node_x - 1).col(node_cx - 1) += R;
+            LHS.row(node_x - 1).col(node_cy - 1) += -R;
+            LHS.row(node_y - 1).col(node_cx - 1) += -R;
+            LHS.row(node_y - 1).col(node_cy - 1) += R;
         }
     }
-    LHS = LHS + a;
+
+
 }
 
 double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node_vb, double W, double L, double h,
@@ -1741,7 +1757,7 @@ double PMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
 
 // Assigning the stamp matrices for dynamic and non-linear components and update the LHS and RHS matrices
 std::pair<arma::mat,arma::mat> DynamicNonLinear(const CKTcircuit &ckt, double h, arma::mat pre_solution, int mode,const double time_trans, std::vector<Capacitor> &C_list, int NR_iteration_counter){
-
+   
     arma::mat LHS = ckt.cktdematrix->get_init_LHS();
     arma::mat RHS = ckt.cktdematrix->get_init_RHS();
     // LHS.print("LHS matrix =");
@@ -1775,13 +1791,14 @@ std::pair<arma::mat,arma::mat> DynamicNonLinear(const CKTcircuit &ckt, double h,
         }, element.element);
     }
 
-    arma::mat J_x = LHS;
-    arma::mat F_x = RHS;
+    const arma::mat &J_x = LHS;
+    const arma::mat &F_x = RHS;
     // J_x.print("J_x matrix =");
     // F_x.print("F_x matrix =");
     ARMA_PRINT(J_x,"J_x matrix =");
     ARMA_PRINT(F_x,"F_x matrix =");
     
+
     return {J_x,F_x};
 }
 
@@ -1904,40 +1921,24 @@ arma::mat NewtonRaphson_system(const CKTcircuit &ckt, const arma::mat &pre_solut
 
     do{
         auto matrices = DynamicNonLinear(ckt,h, solution, mode, time_trans, C_list, NR_iteration_counter);
-        arma::mat LHS = matrices.first;
-        arma::mat RHS = matrices.second;
-        double rcond_LHS = rcond(LHS);
+        const arma::mat &LHS = matrices.first;
+        const arma::mat &RHS = matrices.second;
+        // double rcond_LHS = rcond(LHS);
         // std::cout << "rcond_LHS is: " << rcond_LHS << std::endl;
-        DEBUG_PRINT("rcond_LHS is: " << rcond_LHS);
+        // DEBUG_PRINT("rcond_LHS is: " << rcond_LHS);
         // if(rcond_LHS < 1e-15){
         //     std::cout << "rcond_LHS is smaller than 1e-15 in NR" << std::endl;
         //     exit(1);
         // }
-        // LHS.print("LHS matrix =");
-        // RHS.print("RHS matrix =");
-            // std::cout << std::scientific << std::setprecision(20) << "LHS (scientific format) =\n";
-            // for (size_t i = 0; i < LHS.n_rows; ++i) {
-            //     for (size_t j = 0; j < LHS.n_cols; ++j) {
-            //         std::cout << LHS(i, j) << "   ";
-            //     }   
-            //     std::cout << std::endl;
-            // }
-
-            // std::cout << std::scientific << std::setprecision(20) << "RHS (scientific format) =\n";
-            // for (size_t i = 0; i < RHS.n_rows; ++i) {
-            //     for (size_t j = 0; j < RHS.n_cols; ++j) {
-            //         std::cout << RHS(i, j) << "   ";
-            //     }   
-            //     std::cout << std::endl;
-            // }
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
             // arma::sp_mat LHS_sparse(LHS);
 
             // arma::mat solution_sparse = spsolve(LHS_sparse, RHS);
             // solution = solution_sparse;
-            
+        
         solution = arma::solve(LHS, RHS);
+
 
         // solution.print("Solution in NR =");
         // ARMA_PRINT(solution, "Solution in NR =");
@@ -1964,11 +1965,8 @@ arma::mat NewtonRaphson_system(const CKTcircuit &ckt, const arma::mat &pre_solut
         NR_ITE = NR_iteration_counter; // Global variable for the number of NR iterations
 
     }while(!isconverge);
-    auto endNR = std::chrono::high_resolution_clock::now();
-    auto timeNR = std::chrono::duration_cast<std::chrono::milliseconds>(endNR - startNR);
-    totalNR = totalNR + timeNR;
-    // std::cout << "Newton Raphson time: " << timeNR.count() << " ms" << std::endl;
-    // std::cout << "totalNR time: " << totalNR.count() << " ms" << std::endl; 
+    // auto endNR = std::chrono::high_resolution_clock::now();
+    // totalNR += (endNR - startNR);
 
     return solution;
 }
@@ -2033,12 +2031,12 @@ std::pair<arma::mat,arma::mat> get_currents_voltages(const std::vector<Capacitor
 
 // New timestep options
 void timestep_options(double & temp_h, double & next_h_up, double & next_h_down, const Transient &trans, bool & TMAX_reach, bool & TMIN_reach) {
-    if(temp_h > trans.h_MAX) {
+    if(temp_h >= trans.h_MAX) {
         temp_h = trans.h_MAX;
         TMAX_reach = true;
         
     }
-    if(temp_h < trans.h_MIN) {
+    if(temp_h <= trans.h_MIN) {
         temp_h = trans.h_MIN;
         TMIN_reach = true;
         
@@ -2049,141 +2047,159 @@ void timestep_options(double & temp_h, double & next_h_up, double & next_h_down,
 
     if(next_h_up > trans.h_MAX) {
         next_h_up = trans.h_MAX;
-        TMAX_reach = true;
+        // TMAX_reach = true;
         
     }
     if(next_h_up < trans.h_MIN) {
         next_h_down = trans.h_MIN;
-        TMAX_reach = true;
+        // TMAX_reach = true;
         
     }
     if(next_h_down > trans.h_MAX) {
         next_h_up = trans.h_MAX;
-        TMAX_reach = true;
+        // TMAX_reach = true;
         
     }
     if(next_h_down < trans.h_MIN) {
         next_h_down = trans.h_MIN;
-        TMIN_reach = true;
+        // TMIN_reach = true;
         
     }
+
 }
 
 int h_reach_new(const Truncation_error LTE, int &last_decision, const multi_timestep &multi_h){
 
+        /* index_h:
+            0 = temp_h / 4
+            1 = down
+            2 = mid
+            3 = up
+            4 = temp_h * 2
+        */ 
     int reach{};
 
-    bool mid = multi_h.h_mid <= TRTOL * LTE.LTE_BE_mid_h.min();
-    bool up = multi_h.h_up <= TRTOL * LTE.LTE_BE_up_h.min();
-    bool down = multi_h.h_down <= TRTOL * LTE.LTE_BE_down_h.min();
+    // if(multi_h.TMAX_reach){
+    //     bool mid = multi_h.h_mid <= TRTOL * LTE.LTE_BE_mid_h.min();
+    //     bool down = multi_h.h_down <= TRTOL * LTE.LTE_BE_down_h.min();
 
-    // if(multi_h.ITE_reach_mid){
-    //     mid = false;
-    // }
-    // if(multi_h.ITE_reach_up){
-    //     up = false;
-    // }
-    // if(multi_h.ITE_reach_down){
-    //     down = false;
-    // }
+    //     if(down == false){
+    //         last_decision = 2; 
+    //         reach = 0;          // temp_h / 4
+    //         return reach;
+    //     }
+
+    //     if(mid == true && down == true){
+
+    //         reach = 2;          // mid
+    //         return reach;
+    //     }
+
+    //     if(mid == false && down == false){
+
+    //         last_decision = 2;
+    //         reach = 0;          // temp_h / 4
+    //         return reach;
+
+    //     }
+
+    //     if(mid == false && down == true){
+    //         last_decision = 0;
+    //         reach = 1;          // down
+    //         return reach;
+    //     }
+        
+    //     std::cerr << "h_reach_new function error" << std::endl;
+    //     exit(1);
     
-    if(down == false){
-        last_decision = 2; // temp_h / 8
-        reach = 0;
-        return reach;
-    }
-
-    if(mid == true && up == true && down == true){
-        // if(last_decision == 2){ // if last time step is all false
-        //     last_decision = 1; // All true
-        //     reach = 3;  // up
-        //     return reach;
-        // }
-        // else{
-        //     if(last_decision == 1){
-        //         reach = 2;  // mid
-        //         return reach;
-        //     }
-
-        //     last_decision = 1; // All true
-
-        //     if(multi_h.TMAX_reach){
-        //         reach = 3;  // up
-        //         return reach;
-        //     }
-        //     // reach = 4;  // temp_h * 2
-        //     reach = 3;  // up
-        //     return reach;
-        // }
-        reach = 3;  // up
-        return reach;
-    }
-
-    if(mid == false && up == false && down == false){
-        // if(last_decision == 1){ // if last time step is all true
-        //     last_decision = 2;
-        //     reach = 5;  // previous up
-        //     return reach;
-        // }
-        // else{
-        //     last_decision = 2;
-        //     reach = 0;  // temp_h / 2
-        //     return reach;
-        // }
-        last_decision = 2;
-        reach = 0;  // temp_h / 8
-        return reach;
-
-    }
-
-    if(mid == true && up == false && down == true){
-        last_decision = 0;
-        reach = 2;  // mid
-        return reach;
-    }
-
-    if(mid == false && up == false && down == true){
-        last_decision = 0;
-        reach = 1;  // down
-        return reach;
-    }
-    
-        // last_decision = 2; // temp_h / 2
-        // reach = 0;
-        // return reach;
-    /*-----------------------------------------------------------*/
-    // if(up){
-    //     reach = 3;
-    //     return reach;
     // }
-    // else if(mid){
-    //     reach = 2;
-    //     return reach;
-    // }
-    // else if(down){
-    //     reach = 1;
-    //     return reach;
-    // }
-    // else{
-    //     std::cout << "h_reach_new function error" << std::endl;
+
+    // else if(multi_h.TMIN_reach){
+    //     bool mid = multi_h.h_mid <= TRTOL * LTE.LTE_BE_mid_h.min();
+    //     bool up = multi_h.h_up <= TRTOL * LTE.LTE_BE_up_h.min();
+   
+    //     if(mid == false){
+    //         last_decision = 2;   // temp_h / 4
+    //         reach = 0;
+    //         return reach;
+    //     }
+
+    //     if(mid == true && up == true){
+
+    //         reach = 3;          // up
+    //         return reach;
+    //     }
+
+    //     if(mid == false && up == false){
+
+    //         std::cerr << "Time step is too small (Reach minimum!)" << std::endl;
+    //         exit(1);
+
+    //     }
+
+    //     if(mid == true && up == false){
+    //         last_decision = 0;
+    //         reach = 2;          // mid
+    //         return reach;
+    //     }
+        
+    //     std::cerr << "h_reach_new function error" << std::endl;
     //     exit(1);
     // }
-    std::cerr << "h_reach_new function error" << std::endl;
-    exit(1);
+
+    // else{
+        bool mid = multi_h.h_mid <= TRTOL * LTE.LTE_BE_mid_h.min();
+        bool up = multi_h.h_up <= TRTOL * LTE.LTE_BE_up_h.min();
+        bool down = multi_h.h_down <= TRTOL * LTE.LTE_BE_down_h.min();
+
+        
+        if(down == false){
+            last_decision = 2; // temp_h / 8
+            reach = 0;
+            return reach;
+        }
+
+        if(mid == true && up == true && down == true){
+
+            reach = 3;  // up
+            return reach;
+        }
+
+        if(mid == false && up == false && down == false){
+
+            last_decision = 2;
+            reach = 0;  // temp_h / 8
+            return reach;
+
+        }
+
+        if(mid == true && up == false && down == true){
+            last_decision = 0;
+            reach = 2;  // mid
+            return reach;
+        }
+
+        if(mid == false && up == false && down == true){
+            last_decision = 0;
+            reach = 1;  // down
+            return reach;
+        }
+        
+        std::cerr << "h_reach_new function error" << std::endl;
+        exit(1);
+    // }
     
 
 }
 
 
+
 multi_timestep multi_solution_solver(const double &h, const Transient &trans, const CKTcircuit &ckt){
-    auto startTime = std::chrono::high_resolution_clock::now();
+    
     multi_timestep multi_h;
 
     multi_h.TMAX_reach = false;
     multi_h.TMIN_reach = false;
-    multi_h.ITE_reach_mid = false;
-    multi_h.ITE_reach_up = false;
-    multi_h.ITE_reach_down = false;
 
     multi_h.h_mid = h;
 
@@ -2193,66 +2209,149 @@ multi_timestep multi_solution_solver(const double &h, const Transient &trans, co
     multi_h.t_up = trans.time_trans + multi_h.h_up;
     multi_h.t_down = trans.time_trans + multi_h.h_down;
 
+    // // Double check the time steps
+    // if(multi_h.t_mid == multi_h.t_up){
+    //     if(multi_h.TMAX_reach == false){
+    //         std::cerr << "The TMAX_reach is false in multi_solution_solver function" << std::endl;
+    //         exit(1);
+    //     }
+    // }
+
+    // if(multi_h.t_mid == multi_h.t_down){
+    //     if(multi_h.TMIN_reach == false){
+    //         std::cerr << "The TMIN_reach is false in multi_solution_solver function" << std::endl;
+    //         exit(1);
+    //     }
+    // }
+
     // std::cout << "The time steps are:" << multi_h.h_mid << " " << multi_h.h_up << " " << multi_h.h_down << std::endl;
     DEBUG_PRINT("The time steps are: " << multi_h.h_mid << " " << multi_h.h_up << " " << multi_h.h_down);
+    
+    // Mid time step
+    pool.detach_task(
+        [&trans, &ckt, &multi_h]
+        {   
+            begin_mid.push_back(std::chrono::high_resolution_clock::now());
+            std::vector<Capacitor> C_list_mid = trans.C_list;
+            arma::mat mid_solution = NewtonRaphson_system(ckt, vec_trans.back().solution, multi_h.h_mid, 1, multi_h.t_mid, C_list_mid);
+            ARMA_PRINT(mid_solution, "mid_solution =");
 
-    std::vector<Capacitor> C_list_mid = trans.C_list;
-    arma::mat mid_solution = NewtonRaphson_system(ckt, vec_trans.back().solution, multi_h.h_mid, 1, multi_h.t_mid, C_list_mid);
-    // mid_solution.print("mid_solution =");
-    ARMA_PRINT(mid_solution, "mid_solution =");
-    if(NR_ITE > 10){
-        multi_h.ITE_reach_mid = true;
-    }
-    multi_h.solution_mid = mid_solution;
-    auto mid_currents_voltages = get_currents_voltages(C_list_mid, multi_h.h_mid, mid_solution, vec_trans.back().solution);
-    multi_h.C_current_mid = mid_currents_voltages.first;
-    multi_h.C_voltage_mid = mid_currents_voltages.second;
-    arma::mat mid_Capacitance = get_capacitance(C_list_mid);       // Update the capacitance values because the MOSFETs
-    multi_h.C_charge_mid = mid_Capacitance % multi_h.C_voltage_mid;  // element-wise multiplication of two objects (Schur product)
-    // multi_h.LHS_mid = mid_matrixs.first;
-    // multi_h.RHS_mid = mid_matrixs.second;
-    multi_h.Capacitance_mid = mid_Capacitance;
-    multi_h.C_list_mid = C_list_mid;
+            multi_h.solution_mid = mid_solution;
+            auto mid_currents_voltages = get_currents_voltages(C_list_mid, multi_h.h_mid, mid_solution, vec_trans.back().solution);
+            multi_h.C_current_mid = mid_currents_voltages.first;
+            multi_h.C_voltage_mid = mid_currents_voltages.second;
+            arma::mat mid_Capacitance = get_capacitance(C_list_mid);       // Update the capacitance values because the MOSFETs
+            multi_h.C_charge_mid = mid_Capacitance % multi_h.C_voltage_mid;  // element-wise multiplication of two objects (Schur product)
+            multi_h.Capacitance_mid = mid_Capacitance;
+            multi_h.C_list_mid = C_list_mid;
+            end_mid.push_back(std::chrono::high_resolution_clock::now());
+            
+            // sync_out.print("Time mid_solution_solver = ", tmr.current_ms(),"\n");
+        }
+    );
+    
+    // Up time step
+    // if(multi_h.TMAX_reach == false){
+        pool.detach_task(
+            [&trans, &ckt, &multi_h]
+            {   
+                begin_up.push_back(std::chrono::high_resolution_clock::now());
+                std::vector<Capacitor> C_list_up = trans.C_list;
+                arma::mat up_solution = NewtonRaphson_system(ckt, vec_trans.back().solution, multi_h.h_up, 1, multi_h.t_up, C_list_up);
+                // up_solution.print("up_solution =");
+                ARMA_PRINT(up_solution, "up_solution =");
 
-    std::vector<Capacitor> C_list_up = trans.C_list;
-    arma::mat up_solution = NewtonRaphson_system(ckt, vec_trans.back().solution, multi_h.h_up, 1, multi_h.t_up, C_list_up);
-    // up_solution.print("up_solution =");
-    ARMA_PRINT(up_solution, "up_solution =");
-    if(NR_ITE > 10){
-        multi_h.ITE_reach_up = true;
-    }
-    multi_h.solution_up = up_solution;
-    auto up_currents_voltages = get_currents_voltages(C_list_up, multi_h.h_up, up_solution, vec_trans.back().solution);
-    multi_h.C_current_up = up_currents_voltages.first;
-    multi_h.C_voltage_up = up_currents_voltages.second;
-    arma::mat up_Capacitance = get_capacitance(C_list_up);       // Update the capacitance values because the MOSFETs
-    multi_h.C_charge_up = up_Capacitance % multi_h.C_voltage_up;  // element-wise multiplication of two objects (Schur product)
-    // multi_h.LHS_up = up_matrixs.first;
-    // multi_h.RHS_up = up_matrixs.second;
-    multi_h.Capacitance_up = up_Capacitance;
-    multi_h.C_list_up = C_list_up;
-
-
-    std::vector<Capacitor> C_list_down = trans.C_list;
-    arma::mat down_solution = NewtonRaphson_system(ckt, vec_trans.back().solution, multi_h.h_down, 1, multi_h.t_down, C_list_down);
-    // down_solution.print("down_solution =");
-    ARMA_PRINT(down_solution, "down_solution =");
-    // if(NR_ITE > 10){
-    //     multi_h.ITE_reach_down = true;
+                multi_h.solution_up = up_solution;
+                auto up_currents_voltages = get_currents_voltages(C_list_up, multi_h.h_up, up_solution, vec_trans.back().solution);
+                multi_h.C_current_up = up_currents_voltages.first;
+                multi_h.C_voltage_up = up_currents_voltages.second;
+                arma::mat up_Capacitance = get_capacitance(C_list_up);       // Update the capacitance values because the MOSFETs
+                multi_h.C_charge_up = up_Capacitance % multi_h.C_voltage_up;  // element-wise multiplication of two objects (Schur product)
+                multi_h.Capacitance_up = up_Capacitance;
+                multi_h.C_list_up = C_list_up;
+                end_up.push_back(std::chrono::high_resolution_clock::now());
+                // sync_out.print("Time up_solution_solver = ", tmr.current_ms(),"\n");
+            }
+        );
     // }
-    multi_h.solution_down = down_solution;
-    auto down_currents_voltages = get_currents_voltages(C_list_down, multi_h.h_down, down_solution, vec_trans.back().solution);
-    multi_h.C_current_down = down_currents_voltages.first;
-    multi_h.C_voltage_down = down_currents_voltages.second;
-    arma::mat down_Capacitance = get_capacitance(C_list_down);       // Update the capacitance values because the MOSFETs
-    multi_h.C_charge_down = down_Capacitance % multi_h.C_voltage_down;  // element-wise multiplication of two objects (Schur product)
-    // multi_h.LHS_down = down_matrixs.first;
-    // multi_h.RHS_down = down_matrixs.second;
-    multi_h.Capacitance_down = down_Capacitance;
-    multi_h.C_list_down = C_list_down;
 
-    auto endTime = std::chrono::high_resolution_clock::now();
-    totalSolver += std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+    // Down time step
+    // if(multi_h.TMIN_reach == false){
+        pool.detach_task(
+            [&trans, &ckt, &multi_h]
+            {   
+                begin_down.push_back(std::chrono::high_resolution_clock::now());
+                std::vector<Capacitor> C_list_down = trans.C_list;
+                arma::mat down_solution = NewtonRaphson_system(ckt, vec_trans.back().solution, multi_h.h_down, 1, multi_h.t_down, C_list_down);
+                // down_solution.print("down_solution =");
+                ARMA_PRINT(down_solution, "down_solution =");
+
+                multi_h.solution_down = down_solution;
+                auto down_currents_voltages = get_currents_voltages(C_list_down, multi_h.h_down, down_solution, vec_trans.back().solution);
+                multi_h.C_current_down = down_currents_voltages.first;
+                multi_h.C_voltage_down = down_currents_voltages.second;
+                arma::mat down_Capacitance = get_capacitance(C_list_down);       // Update the capacitance values because the MOSFETs
+                multi_h.C_charge_down = down_Capacitance % multi_h.C_voltage_down;  // element-wise multiplication of two objects (Schur product)
+                multi_h.Capacitance_down = down_Capacitance;
+                multi_h.C_list_down = C_list_down;
+                end_down.push_back(std::chrono::high_resolution_clock::now());
+            }
+        );
+    // }
+
+    pool.wait();
+
+
+            
+
+    // std::vector<Capacitor> C_list_mid = trans.C_list;
+    // arma::mat mid_solution = NewtonRaphson_system(ckt, vec_trans.back().solution, multi_h.h_mid, 1, multi_h.t_mid, C_list_mid);
+    // // mid_solution.print("mid_solution =");
+    // ARMA_PRINT(mid_solution, "mid_solution =");
+    // multi_h.solution_mid = mid_solution;
+    // auto mid_currents_voltages = get_currents_voltages(C_list_mid, multi_h.h_mid, mid_solution, vec_trans.back().solution);
+    // multi_h.C_current_mid = mid_currents_voltages.first;
+    // multi_h.C_voltage_mid = mid_currents_voltages.second;
+    // arma::mat mid_Capacitance = get_capacitance(C_list_mid);       // Update the capacitance values because the MOSFETs
+    // multi_h.C_charge_mid = mid_Capacitance % multi_h.C_voltage_mid;  // element-wise multiplication of two objects (Schur product)
+    // // multi_h.LHS_mid = mid_matrixs.first;
+    // // multi_h.RHS_mid = mid_matrixs.second;
+    // multi_h.Capacitance_mid = mid_Capacitance;
+    // multi_h.C_list_mid = C_list_mid;
+
+
+    // std::vector<Capacitor> C_list_up = trans.C_list;
+    // arma::mat up_solution = NewtonRaphson_system(ckt, vec_trans.back().solution, multi_h.h_up, 1, multi_h.t_up, C_list_up);
+    // // up_solution.print("up_solution =");
+    // ARMA_PRINT(up_solution, "up_solution =");
+    // multi_h.solution_up = up_solution;
+    // auto up_currents_voltages = get_currents_voltages(C_list_up, multi_h.h_up, up_solution, vec_trans.back().solution);
+    // multi_h.C_current_up = up_currents_voltages.first;
+    // multi_h.C_voltage_up = up_currents_voltages.second;
+    // arma::mat up_Capacitance = get_capacitance(C_list_up);       // Update the capacitance values because the MOSFETs
+    // multi_h.C_charge_up = up_Capacitance % multi_h.C_voltage_up;  // element-wise multiplication of two objects (Schur product)
+    // // multi_h.LHS_up = up_matrixs.first;
+    // // multi_h.RHS_up = up_matrixs.second;
+    // multi_h.Capacitance_up = up_Capacitance;
+    // multi_h.C_list_up = C_list_up;
+
+
+    // std::vector<Capacitor> C_list_down = trans.C_list;
+    // arma::mat down_solution = NewtonRaphson_system(ckt, vec_trans.back().solution, multi_h.h_down, 1, multi_h.t_down, C_list_down);
+    // // down_solution.print("down_solution =");
+    // ARMA_PRINT(down_solution, "down_solution =");
+    // multi_h.solution_down = down_solution;
+    // auto down_currents_voltages = get_currents_voltages(C_list_down, multi_h.h_down, down_solution, vec_trans.back().solution);
+    // multi_h.C_current_down = down_currents_voltages.first;
+    // multi_h.C_voltage_down = down_currents_voltages.second;
+    // arma::mat down_Capacitance = get_capacitance(C_list_down);       // Update the capacitance values because the MOSFETs
+    // multi_h.C_charge_down = down_Capacitance % multi_h.C_voltage_down;  // element-wise multiplication of two objects (Schur product)
+    // // multi_h.LHS_down = down_matrixs.first;
+    // // multi_h.RHS_down = down_matrixs.second;
+    // multi_h.Capacitance_down = down_Capacitance;
+    // multi_h.C_list_down = C_list_down;
+
+
     return multi_h;
 }
 
@@ -2260,8 +2359,6 @@ arma::mat multi_next_h(Transient &trans, const CKTcircuit &ckt){
 
     // std::cout << "Enter multi_next_h" << std::endl;
     DEBUG_PRINT("Enter multi_next_h");
-
-    auto startmulti_next_h = std::chrono::high_resolution_clock::now();
 
     arma::mat solution;
 
@@ -2277,9 +2374,14 @@ arma::mat multi_next_h(Transient &trans, const CKTcircuit &ckt){
     Truncation_error LTE;
 
     do{
+        timer.start();
 
         multi_h = multi_solution_solver(temp_h, trans, ckt);
-        
+
+        timer.stop();
+        timer.total();
+        // auto NR_end = std::chrono::high_resolution_clock::now(); // End time
+        // totalNR += (NR_end - NR_strat);
         // multi_h.Capacitance_mid.print("Capacitance_mid =");
         // multi_h.Capacitance_up.print("Capacitance_up =");
         // multi_h.Capacitance_down.print("Capacitance_down =");
@@ -2304,134 +2406,97 @@ arma::mat multi_next_h(Transient &trans, const CKTcircuit &ckt){
         ARMA_PRINT(multi_h.C_charge_up, "C_charge_up = ");
         ARMA_PRINT(multi_h.C_charge_down, "C_charge_down = ");
 
-        // double mid_max_current = arma::abs(multi_h.C_current_mid).max();  //finding the max current in C
-        // double up_max_current = arma::abs(multi_h.C_current_up).max();
-        // double down_max_current = arma::abs(multi_h.C_current_down).max();
+        // if(multi_h.TMAX_reach){
+        //     arma::mat mid_max_current = arma::max(arma::abs(multi_h.C_current_mid), arma::abs(pre_current));
+        //     arma::mat down_max_current = arma::max(arma::abs(multi_h.C_current_down), arma::abs(pre_current));
 
-        // arma::uword mid_index_current = arma::abs(multi_h.C_current_mid).index_max();  //finding the linear index of the maximum current in C
-        // arma::uword up_index_current = arma::abs(multi_h.C_current_up).index_max();
-        // arma::uword down_index_current = arma::abs(multi_h.C_current_down).index_max();
-        
-        // double mid_max_charge = arma::abs(multi_h.C_charge_mid).max();  //finding the maximum charge in C
-        // double up_max_charge = arma::abs(multi_h.C_charge_up).max();
-        // double down_max_charge = arma::abs(multi_h.C_charge_down).max();
+        //     arma::mat mid_max_charge = arma::max(arma::abs(multi_h.C_charge_mid), arma::abs(pre_charge));
+        //     arma::mat down_max_charge = arma::max(arma::abs(multi_h.C_charge_down), arma::abs(pre_charge));
 
-        // arma::uword mid_index_charge = arma::abs(multi_h.C_charge_mid).index_max();  //finding the linear index of the maximum charge in C
-        // arma::uword up_index_charge = arma::abs(multi_h.C_charge_up).index_max();
-        // arma::uword down_index_charge = arma::abs(multi_h.C_charge_down).index_max();
+        //     // LTE current = ABSTOL + RELTOL * max(|ik+1|,|ik|) in SPICE book
+        //     arma::mat mid_LTE_current = ABSTOL + RELTOL * mid_max_current;
+        //     arma::mat down_LTE_current = ABSTOL + RELTOL * down_max_current;
 
-        // arma::uword mid_row_current = mid_index_current % multi_h.C_current_mid.n_rows;     // index of row of the maximum current in C
-        // arma::uword up_row_current = up_index_current % multi_h.C_current_up.n_rows;
-        // arma::uword down_row_current = down_index_current % multi_h.C_current_down.n_rows;
+        //     // LTE charge = RELTOL * max(|qk+1|,|qk|, chgtol) / h(k) in SPICE book
+        //     arma::mat CHGTOL_MAT = arma::mat(mid_max_charge.n_rows, mid_max_charge.n_cols).fill(CHGTOL);
+        //     arma::mat mid_LTE_charge = RELTOL * arma::max(mid_max_charge, CHGTOL_MAT) / multi_h.h_mid;
+        //     arma::mat down_LTE_charge = RELTOL * arma::max(down_max_charge, CHGTOL_MAT) / multi_h.h_down;
 
-        // arma::uword mid_row_charge = mid_index_charge % multi_h.C_charge_mid.n_rows;     // index of row of the maximum charge in C
-        // arma::uword up_row_charge = up_index_charge % multi_h.C_charge_up.n_rows;
-        // arma::uword down_row_charge = down_index_charge % multi_h.C_charge_down.n_rows;
+        //     // LTE bound = max(LTE_current, LTE_charge)
+        //     LTE.LTE_bound_mid = arma::max(mid_LTE_current, mid_LTE_charge);
+        //     LTE.LTE_bound_down = arma::max(down_LTE_current, down_LTE_charge);
 
-        // // LTE current = ABSTOL + RELTOL * max(|ik+1|,|ik|) in SPICE book
-        // LTE.LTE_current_mid = ABSTOL + RELTOL * std::max(mid_max_current, std::abs(vec_trans.back().C_current(mid_row_current,0)));
-        // LTE.LTE_current_up = ABSTOL + RELTOL * std::max(up_max_current, std::abs(vec_trans.back().C_current(up_row_current,0)));
-        // LTE.LTE_current_down = ABSTOL + RELTOL * std::max(down_max_current, std::abs(vec_trans.back().C_current(down_row_current,0)));
+        //     arma::mat BEcur_diff_mid = multi_h.C_current_mid - pre_current;
+        //     arma::mat BEcur_diff_down = multi_h.C_current_down - pre_current;
 
-        // // LTE charge = RELTOL * max(|qk+1|,|qk|, chgtol) / h(k) in SPICE book
-        // LTE.LTE_charge_mid = RELTOL * (std::max({mid_max_charge, std::abs(vec_trans.back().C_charge(mid_row_charge,0)), CHGTOL}) / multi_h.h_mid);
-        // LTE.LTE_charge_up = RELTOL * (std::max({up_max_charge, std::abs(vec_trans.back().C_charge(up_row_charge,0)), CHGTOL}) / multi_h.h_up);
-        // LTE.LTE_charge_down = RELTOL * (std::max({down_max_charge, std::abs(vec_trans.back().C_charge(down_row_charge,0)), CHGTOL}) / multi_h.h_down);
-
-        // // LTE bound = min(LTE_current, LTE_charge)
-        // LTE.LTE_bound_mid = std::max(std::abs(LTE.LTE_current_mid), std::abs(LTE.LTE_charge_mid));
-        // LTE.LTE_bound_up = std::max(std::abs(LTE.LTE_current_up), std::abs(LTE.LTE_charge_up));
-        // LTE.LTE_bound_down = std::max(std::abs(LTE.LTE_current_down), std::abs(LTE.LTE_charge_down));
-        // // LTE.LTE_bound_mid = LTE.LTE_current_mid;
-        // // LTE.LTE_bound_up = LTE.LTE_current_up;
-        // // LTE.LTE_bound_down = LTE.LTE_current_down;
-
-        // arma::uword mid_index_LTE;  
-        // arma::uword up_index_LTE;
-        // arma::uword down_index_LTE;
-
-        // // mid_index_LTE = mid_row_current;
-        // // up_index_LTE = up_row_current;
-        // // down_index_LTE = down_row_current;
-
-
-        // if(LTE.LTE_current_mid > LTE.LTE_charge_mid){
-
-        //     mid_index_LTE = mid_row_current;
+        //     // tol_h = 2C / |i(k+1) - i(k)| * LTE_bound 
+        //     LTE.LTE_BE_mid_h = (2 * multi_h.Capacitance_mid) / arma::abs(BEcur_diff_mid) % LTE.LTE_bound_mid;
+        //     LTE.LTE_BE_down_h = (2 * multi_h.Capacitance_down) / arma::abs(BEcur_diff_down) % LTE.LTE_bound_down;
         // }
+
+        // else if(multi_h.TMIN_reach){
+        //     arma::mat mid_max_current = arma::max(arma::abs(multi_h.C_current_mid), arma::abs(pre_current));
+        //     arma::mat up_max_current = arma::max(arma::abs(multi_h.C_current_up), arma::abs(pre_current));
+
+        //     arma::mat mid_max_charge = arma::max(arma::abs(multi_h.C_charge_mid), arma::abs(pre_charge));
+        //     arma::mat up_max_charge = arma::max(arma::abs(multi_h.C_charge_up), arma::abs(pre_charge));
+
+        //     // LTE current = ABSTOL + RELTOL * max(|ik+1|,|ik|) in SPICE book
+        //     arma::mat mid_LTE_current = ABSTOL + RELTOL * mid_max_current;
+        //     arma::mat up_LTE_current = ABSTOL + RELTOL * up_max_current;
+
+        //     // LTE charge = RELTOL * max(|qk+1|,|qk|, chgtol) / h(k) in SPICE book
+        //     arma::mat CHGTOL_MAT = arma::mat(mid_max_charge.n_rows, mid_max_charge.n_cols).fill(CHGTOL);
+        //     arma::mat mid_LTE_charge = RELTOL * arma::max(mid_max_charge, CHGTOL_MAT) / multi_h.h_mid;
+        //     arma::mat up_LTE_charge = RELTOL * arma::max(up_max_charge, CHGTOL_MAT) / multi_h.h_up;
+
+        //     // LTE bound = max(LTE_current, LTE_charge)
+        //     LTE.LTE_bound_mid = arma::max(mid_LTE_current, mid_LTE_charge);
+        //     LTE.LTE_bound_up = arma::max(up_LTE_current, up_LTE_charge);
+
+        //     arma::mat BEcur_diff_mid = multi_h.C_current_mid - pre_current;
+        //     arma::mat BEcur_diff_up = multi_h.C_current_up - pre_current;
+
+        //     // tol_h = 2C / |i(k+1) - i(k)| * LTE_bound 
+        //     LTE.LTE_BE_mid_h = (2 * multi_h.Capacitance_mid) / arma::abs(BEcur_diff_mid) % LTE.LTE_bound_mid;
+        //     LTE.LTE_BE_up_h = (2 * multi_h.Capacitance_up) / arma::abs(BEcur_diff_up) % LTE.LTE_bound_up;
+        // }
+
         // else{
+            arma::mat mid_max_current = arma::max(arma::abs(multi_h.C_current_mid), arma::abs(pre_current));
+            arma::mat up_max_current = arma::max(arma::abs(multi_h.C_current_up), arma::abs(pre_current));
+            arma::mat down_max_current = arma::max(arma::abs(multi_h.C_current_down), arma::abs(pre_current));
 
-        //     mid_index_LTE = mid_row_charge;
+            arma::mat mid_max_charge = arma::max(arma::abs(multi_h.C_charge_mid), arma::abs(pre_charge));
+            arma::mat up_max_charge = arma::max(arma::abs(multi_h.C_charge_up), arma::abs(pre_charge));
+            arma::mat down_max_charge = arma::max(arma::abs(multi_h.C_charge_down), arma::abs(pre_charge));
+
+            // LTE current = ABSTOL + RELTOL * max(|ik+1|,|ik|) in SPICE book
+            arma::mat mid_LTE_current = ABSTOL + RELTOL * mid_max_current;
+            arma::mat up_LTE_current = ABSTOL + RELTOL * up_max_current;
+            arma::mat down_LTE_current = ABSTOL + RELTOL * down_max_current;
+
+            // LTE charge = RELTOL * max(|qk+1|,|qk|, chgtol) / h(k) in SPICE book
+            arma::mat CHGTOL_MAT = arma::mat(mid_max_charge.n_rows, mid_max_charge.n_cols).fill(CHGTOL);
+            arma::mat mid_LTE_charge = RELTOL * arma::max(mid_max_charge, CHGTOL_MAT) / multi_h.h_mid;
+            arma::mat up_LTE_charge = RELTOL * arma::max(up_max_charge, CHGTOL_MAT) / multi_h.h_up;
+            arma::mat down_LTE_charge = RELTOL * arma::max(down_max_charge, CHGTOL_MAT) / multi_h.h_down;
+
+            // LTE bound = max(LTE_current, LTE_charge)
+            LTE.LTE_bound_mid = arma::max(mid_LTE_current, mid_LTE_charge);
+            LTE.LTE_bound_up = arma::max(up_LTE_current, up_LTE_charge);
+            LTE.LTE_bound_down = arma::max(down_LTE_current, down_LTE_charge);
+
+            arma::mat BEcur_diff_mid = multi_h.C_current_mid - pre_current;
+            arma::mat BEcur_diff_up = multi_h.C_current_up - pre_current;
+            arma::mat BEcur_diff_down = multi_h.C_current_down - pre_current;
+
+            // tol_h = 2C / |i(k+1) - i(k)| * LTE_bound 
+            LTE.LTE_BE_mid_h = (2 * multi_h.Capacitance_mid) / arma::abs(BEcur_diff_mid) % LTE.LTE_bound_mid;
+            LTE.LTE_BE_up_h = (2 * multi_h.Capacitance_up) / arma::abs(BEcur_diff_up) % LTE.LTE_bound_up;
+            LTE.LTE_BE_down_h = (2 * multi_h.Capacitance_down) / arma::abs(BEcur_diff_down) % LTE.LTE_bound_down;
         // }
 
-        // if(LTE.LTE_current_up > LTE.LTE_charge_up){
-
-        //     up_index_LTE = up_row_current;
-        // }
-        // else{
-
-        //     up_index_LTE = up_row_charge;
-        // }
-
-        // if(LTE.LTE_current_down > LTE.LTE_charge_down){
-
-        //     down_index_LTE = down_row_current;
-        // }
-        // else{
-
-        //     down_index_LTE = down_row_charge;
-        // }
-
-        // vec_trans.back().C_current.print("vec_trans C_current =");
-
-        // // LTE_BE calculated by Lang's method: x'' = 1/C * (I(k+1) - I(k))/h(k+1)
-        // // LTE_BE = h/2C * |i(k+1) - i(k)|
-        // double BEcur_diff_mid = multi_h.C_current_mid(mid_index_LTE,0) - vec_trans.back().C_current(mid_index_LTE,0);
-        // LTE.LTE_BE_mid = (multi_h.h_mid / (2*multi_h.Capacitance_mid(mid_index_LTE,0))) * std::abs(BEcur_diff_mid);
-
-        // double BEcur_diff_up = multi_h.C_current_up(up_index_LTE,0) - vec_trans.back().C_current(up_index_LTE,0);
-        // LTE.LTE_BE_up = (multi_h.h_up / (2*multi_h.Capacitance_up(up_index_LTE,0))) * std::abs(BEcur_diff_up);
-
-        // double BEcur_diff_down = multi_h.C_current_down(down_index_LTE,0) - vec_trans.back().C_current(down_index_LTE,0);
-        // LTE.LTE_BE_down = (multi_h.h_down / (2*multi_h.Capacitance_down(down_index_LTE,0))) * std::abs(BEcur_diff_down);
-    
-        arma::mat mid_max_current = arma::max(arma::abs(multi_h.C_current_mid), arma::abs(pre_current));
-        arma::mat up_max_current = arma::max(arma::abs(multi_h.C_current_up), arma::abs(pre_current));
-        arma::mat down_max_current = arma::max(arma::abs(multi_h.C_current_down), arma::abs(pre_current));
-
-        arma::mat mid_max_charge = arma::max(arma::abs(multi_h.C_charge_mid), arma::abs(pre_charge));
-        arma::mat up_max_charge = arma::max(arma::abs(multi_h.C_charge_up), arma::abs(pre_charge));
-        arma::mat down_max_charge = arma::max(arma::abs(multi_h.C_charge_down), arma::abs(pre_charge));
-
-        // LTE current = ABSTOL + RELTOL * max(|ik+1|,|ik|) in SPICE book
-        arma::mat mid_LTE_current = ABSTOL + RELTOL * mid_max_current;
-        arma::mat up_LTE_current = ABSTOL + RELTOL * up_max_current;
-        arma::mat down_LTE_current = ABSTOL + RELTOL * down_max_current;
-
-        // LTE charge = RELTOL * max(|qk+1|,|qk|, chgtol) / h(k) in SPICE book
-        arma::mat CHGTOL_MAT = arma::mat(mid_max_charge.n_rows, mid_max_charge.n_cols).fill(CHGTOL);
-        arma::mat mid_LTE_charge = RELTOL * arma::max(mid_max_charge, CHGTOL_MAT) / multi_h.h_mid;
-        arma::mat up_LTE_charge = RELTOL * arma::max(up_max_charge, CHGTOL_MAT) / multi_h.h_up;
-        arma::mat down_LTE_charge = RELTOL * arma::max(down_max_charge, CHGTOL_MAT) / multi_h.h_down;
-
-        // LTE bound = max(LTE_current, LTE_charge)
-        LTE.LTE_bound_mid = arma::max(mid_LTE_current, mid_LTE_charge);
-        LTE.LTE_bound_up = arma::max(up_LTE_current, up_LTE_charge);
-        LTE.LTE_bound_down = arma::max(down_LTE_current, down_LTE_charge);
-
-        arma::mat BEcur_diff_mid = multi_h.C_current_mid - pre_current;
-        arma::mat BEcur_diff_up = multi_h.C_current_up - pre_current;
-        arma::mat BEcur_diff_down = multi_h.C_current_down - pre_current;
-
-        // tol_h = 2C / |i(k+1) - i(k)| * LTE_bound 
-        LTE.LTE_BE_mid_h = (2 * multi_h.Capacitance_mid) / arma::abs(BEcur_diff_mid) % LTE.LTE_bound_mid;
-        LTE.LTE_BE_up_h = (2 * multi_h.Capacitance_up) / arma::abs(BEcur_diff_up) % LTE.LTE_bound_up;
-        LTE.LTE_BE_down_h = (2 * multi_h.Capacitance_down) / arma::abs(BEcur_diff_down) % LTE.LTE_bound_down;
-
-
-
-
-        // LTE_BE in spice book.
 
         index_h = h_reach_new(LTE, pre_decision, multi_h);
 
@@ -2513,9 +2578,6 @@ arma::mat multi_next_h(Transient &trans, const CKTcircuit &ckt){
     }while(index_h == 0 || index_h == 4);
 
 
-    auto endmulti_next_h = std::chrono::high_resolution_clock::now();
-    totalMulti_h += std::chrono::duration_cast<std::chrono::milliseconds>(endmulti_next_h - startmulti_next_h);
-
     return solution;
 }
 
@@ -2553,3 +2615,44 @@ void save_csv(const CKTcircuit &ckt){
 
 }
 
+void save_threads_time(const std::chrono::time_point<std::chrono::high_resolution_clock> &t1, const std::chrono::time_point<std::chrono::high_resolution_clock> &t2){
+    std::ofstream file("Threads time.csv");
+    if(begin_mid.size() != begin_down.size() || begin_mid.size() != begin_up.size() || begin_down.size() != begin_up.size()){
+        std::cerr << "The size of the vectors are not equal" << std::endl;
+        exit(1);
+    }
+    if(end_mid.size() != end_down.size() || end_mid.size() != end_up.size() || end_down.size() != end_up.size()){
+        std::cerr << "The size of the vectors are not equal" << std::endl;
+        exit(1);
+    }
+
+    std::vector<std::chrono::duration<double, std::milli>> bg_mid(begin_mid.size()), bg_up(begin_mid.size()), bg_down(begin_mid.size()), 
+        ed_mid(begin_mid.size()), ed_up(begin_mid.size()), ed_down(begin_mid.size());
+    
+    for(int i = 0; i < begin_mid.size(); ++i){
+        bg_mid.at(i) = begin_mid.at(i) - t1;
+        bg_up.at(i) = begin_up.at(i) - t1;
+        bg_down.at(i) = begin_down.at(i) - t1;
+
+        ed_mid.at(i) = end_mid.at(i) - t1;
+        ed_up.at(i) = end_up.at(i) - t1;
+        ed_down.at(i) = end_down.at(i) - t1;
+    }
+
+    file << "Begin Mid, Begin Up, Begin Down, End Mid, End Up, End Down" << std::endl;
+    for(int i = 0; i < begin_mid.size(); ++i){
+        file << bg_mid.at(i).count() << ", " << bg_up.at(i).count() << ", " << bg_down.at(i).count() << ", " 
+        << ed_mid.at(i).count() << ", " << ed_up.at(i).count() << ", " << ed_down.at(i).count() << std::endl;
+    }
+
+    std::ofstream file2("simulation end time.csv");
+    file2 << "Simulation end time" << std::endl;
+    std::chrono::duration<double, std::milli> total_time = (t2 - t1);
+    file2 << total_time.count() << std::endl;
+}
+
+void dummy_task()
+{
+    // std::cout << "dummy task" << std::endl;
+    std::this_thread::sleep_for(std::chrono::microseconds(100));
+}
