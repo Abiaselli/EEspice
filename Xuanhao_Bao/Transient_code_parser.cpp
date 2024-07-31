@@ -1,19 +1,6 @@
 /*  This code could run a Direct Current Operating Point (DC OP) Analysis and Transient Analysis of a circuit. The circuit could be consisting of
     resistors, capacitors, diodes, current source, voltage source, voltage-controlled current source (VCCS), pulsed voltage source, and N-MOS transistor. 
 
-    The assignments are given as following (with solution, LHS, and RHS being constant):
-    1) Resistor - R_assigner(node_x, node_y, cond(R), LHS, RHS);
-    2) Capacitors - C_assigner(node_x, node_y, C, h, LHS, RHS, so
-    lution, mode);
-    3) Diodes - Diode_assigner( node_x, node_y, Is, VT, cd, h, LHS, RHS, solution, mode);
-    4) Current Source - Is_assigner( node_x, node_y, I, LHS, RHS);
-    5) Voltage Source - Vs_assigner(node_x, node_y, V_value, LHS, RHS);
-    6) VCCS - VCCS_assigner(node_x, node_y, node_cx, node_cy, R, LHS);
-    7) Pulsed Voltage Source - V_pulse(V1, V2, t1, td, tr, tf, tpw, tper, h);
-    8) N-MOS Transistor - NMOS_assigner(number, node_vd, node_vg, node_vs, node_vb, h, solution, LHS, RHS, mode);
-    9) P-MOS Transistor - PMOS_assigner(number, node_vs, node_vg, node_vd, node_vb, h, solution, LHS, RHS, mode);
-    10) Ring Oscillator - RingOscillatorStages(W, L, R, C, LHS, RHS, solution, h, mode);
-
 
 */
 
@@ -28,6 +15,7 @@
 
 #include "Transient_code_parser.hpp"
 
+
 /*  The line above the code means that the section can be changed by the user which analyses circuit simulation
 
     --fixed--           : can't be edited for circuit simulation purposes, but can be edited for code debugging.
@@ -39,15 +27,16 @@
 // Main function for the circuit simulation
 int main(int argc, const char ** argv)
 {   
+    // coot::coot_init("cuda", true);
     setDebugMode(false);                        // Set the debug mode to false or true
 
-    for(int i = 0; i < 3; i++){
-        pool.submit_task(dummy_task);
-    }
-    pool.wait();
+    // for(int i = 0; i < 3; i++){
+    //     pool.detach_task(dummy_task);
+    // }
+    // pool.wait();
 
     auto t1 = std::chrono::high_resolution_clock::now(); // Start time
-                                
+                        
     CKTcircuit ckt;
     DenseMatrix dematrix;
     Transient trans_op;
@@ -66,9 +55,6 @@ int main(int argc, const char ** argv)
     trans_op.C_list = ckt.C_list;               // Pass the capacitance list to the transient analysis
     trans_op.h = 0;
 
-    
-
-
 
     /*----------------------------------------------fixed--------------------------------------------------------*/
     // Checking the LHS and RHS matrices
@@ -81,14 +67,13 @@ int main(int argc, const char ** argv)
     trans_op.mode = 0; // 0 to do OP analysis, 1 to do transient simulation
 
     // OP analysis used as initial condition for next evaluation
-    arma::vec solution= arma::zeros(dematrix.RHS.n_rows,dematrix.RHS.n_cols);
+    arma::vec solution= arma::zeros(dematrix.RHS.n_rows, dematrix.RHS.n_cols);
     
     // Benchmarking for OP analysis
     auto tstart_op = std::chrono::high_resolution_clock::now();
 
     solution = NewtonRaphson_system(ckt, solution, 0, 0, 0, trans_op.C_list);
-    // auto matrixs_op = DynamicNonLinear(ckt, 0, solution, 0, 0, trans_op.C_list);
-    // solution = arma::solve(matrixs_op.first, matrixs_op.second);
+
 
     if(trans_op.C_list.size() > 0){
         auto cur_vol_op = get_currents_voltages(trans_op.C_list, trans_op.h, solution, arma::zeros(dematrix.RHS.n_rows,dematrix.RHS.n_cols));
@@ -99,13 +84,15 @@ int main(int argc, const char ** argv)
         trans_op.C_charge = trans_op.C_voltage % trans_op.Capacitance;
 
     }
-   
+
     auto tstop_op = std::chrono::high_resolution_clock::now();
 
     trans_op.solution = solution;
     history_trans_update(trans_op);
     
-    arma::mat op_solution_print = solution.submat(0,0,ckt.external_nodes-1,0);
+    arma::vec node_volt_print = solution.submat(0,0,ckt.external_nodes-1,0);
+    arma::vec current_print = solution.submat(solution.n_rows - ckt.no_of_V_sources,0,solution.n_rows-1,0);
+    arma::vec op_solution_print = arma::join_vert(node_volt_print, current_print);
     if(debugMode == false){
         op_solution_print.print("The OP analysis of the circuit is: ");
     }
@@ -144,15 +131,15 @@ int main(int argc, const char ** argv)
         trans.h_MAX = trans_op.h_MAX;
         trans.h_MIN = trans_op.h_MIN;
         trans.mode = 1; // 0 to do OP analysis, 1 to do transient simulation
-        trans.C_list = trans_op.C_list;
+        // trans.C_list = trans_op.C_list;
 
         // Fixed time step
-        if(ckt.pulse_num == 0 && trans.C_list.size() == 0){
+        if(ckt.pulse_num == 0 && trans_op.C_list.size() == 0){
             trans.h = trans_op.init_h;  // Initial time step
             trans.time_trans = vec_trans.back().time_trans;
             trans.C_list = vec_trans.back().C_list;
 
-            
+            std::cout << "Fixed time step" << std::endl;
             solution = NewtonRaphson_system(ckt, vec_trans.back().solution, trans.h, 1, trans.time_trans, trans.C_list);
             // solution.print("The transient analysis of the circuit is: ");
             ARMA_PRINT(solution, "The transient analysis of the circuit is: ");
@@ -188,8 +175,8 @@ int main(int argc, const char ** argv)
             // trans.RHS = matrixs.second;
             trans.trans_count = vec_trans.back().trans_count + 1;
             // trans.C_current.print("The current matrix is: ");
-            std::cout << "time trans: " << trans.time_trans << std::endl;
-            std::cout << "time step: " << trans.h << std::endl;
+            // std::cout << "time trans: " << trans.time_trans << std::endl;
+            // std::cout << "time step: " << trans.h << std::endl;
 
             history_trans_update(trans);
 
@@ -202,6 +189,7 @@ int main(int argc, const char ** argv)
 
         if(vec_trans.size() == 1){
             // The first step of the transient simulation
+            trans.C_list = trans_op.C_list;
             trans.h = trans_op.init_h;  // Initial time step
             trans.time_trans = trans.t_start + trans.h;
 
@@ -211,17 +199,15 @@ int main(int argc, const char ** argv)
 
             if(trans.C_list.size() > 0){
 
-                auto cur_vol = get_currents_voltages(trans.C_list, trans.h, solution, trans_op.solution);
+                std::pair<arma::vec, arma::vec> cur_vol = get_currents_voltages(trans.C_list, trans.h, solution, trans_op.solution);
                 trans.Capacitance = get_capacitance(trans.C_list);
                 
                 trans.C_current = cur_vol.first;
-                // trans.C_current.print("The current matrix is: ");
-                ARMA_PRINT(trans.C_current, "The current matrix is: ");
                 trans.C_voltage = cur_vol.second;
                 trans.C_charge = trans.C_voltage % trans.Capacitance;
                 trans.C_list_update();
             }
-            
+
             trans.solution = solution;
             // trans.LHS = matrixs.first;
             // trans.RHS = matrixs.second;
@@ -243,6 +229,7 @@ int main(int argc, const char ** argv)
             solution = multi_next_h(trans, ckt);
             
             trans.time_trans = trans.time_trans + trans.h;
+
 
             /* If the time difference between the previous simulation time point and the breakpoint is less than 10*hmin, 
                it will be counted as 1 time point and no additional breakpoint simulation will be performed.*/
@@ -304,29 +291,25 @@ int main(int argc, const char ** argv)
 
                 if(breakpoints.empty() == false && trans.time_trans == breakpoints.front()){
                     breakpoints.pop_front();
+                    if(breakpoints.empty()){
+                        trans_end = true;
+                    }
                 }
-                // solution.print("The transient analysis of the circuit is: ");
                 ARMA_PRINT(solution, "The transient analysis of the circuit is: ");
-                // std::cout <<"the time step is: "<< trans.h << std::endl;
-                // std::cout << "time_trans: " << trans.time_trans << std::endl;
 
+                // trans has already been updated in the multi_next_h function
                 trans.C_list_update();
                 trans.trans_count = vec_trans.back().trans_count + 1;
                 history_trans_update(trans);
 
-
-
             }
             
-
         }
-
-
 
     }while (vec_trans.back().time_trans < vec_trans.back().t_end && trans_end == false);
 
     auto tstop_trans = std::chrono::high_resolution_clock::now();
- 
+
 
     /* Getting number of milliseconds as a double. */
     std::chrono::duration<double, std::milli> OP_time = (tstop_op - tstart_op) ;
@@ -337,23 +320,23 @@ int main(int argc, const char ** argv)
 
     /*-----------------------------------------------------------------------------------------------------------*/
     // SAVING THE SOLUTION AND TIME MATRICES INTO CSV FILES
+    auto t2 = std::chrono::high_resolution_clock::now(); // End time
 
     save_csv(ckt);
-
-    auto t2 = std::chrono::high_resolution_clock::now(); // End time
     
-    std::chrono::duration<double, std::milli> time_span = (t2 - t1) ;
+    auto t3 = std::chrono::high_resolution_clock::now(); // End time
+    
+    std::chrono::duration<double, std::milli> time_span = (t3 - t1) ;
+    std::cout << "Total analysis time:" << OP_time.count() + trans_time.count() << "ms\n";
     std::cout << "Total time:" <<  time_span.count() << "ms\n";
     std::cout << "The Total time for multi-solver is: " << timer.total_ms() << "ms\n";
 
-    save_threads_time(t1, t2);
+    // save_threads_time(t1, tstop_trans);
     
-    // std::cout << "Time NR is: " << totalNR.count() << "ms\n";
-    // std::cout << "Time EV is: " << totalEV.count() << "ms\n";
-    // std::cout << "Time solve()" << totalSOLVE.count() << "ms\n";
 
+    std::cout << "Total timepoint is: " << total_timepoint << std::endl;
+   
 
-    
     return 0;
     /*-----------------------------------------------------------------------------------------------------------*/
 }

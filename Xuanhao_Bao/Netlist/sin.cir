@@ -1,0 +1,20 @@
+sine wave
+
+V1 1 0 3.3
+ 
+M1 3 2 1 1 PMOS W=10u L=0.09u
+M2 3 2 0 0 NMOS W=10u L=0.09u
+
+C1 2 0 0.1p
+
+C2 3 0 0.1p
+
+M3 4 3 1 1 PMOS W=10u L=0.09u
+M4 4 3 0 0 NMOS W=10u L=0.09u
+
+C3 4 0 0.1p
+
+M5 2 4 1 1 PMOS W=10u L=0.09u
+M6 2 4 0 0 NMOS W=10u L=0.09u
+
+.tran 0.5p 20n

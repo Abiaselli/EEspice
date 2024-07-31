@@ -1,2 +1,2 @@
 chatgpt:
-	curly --path . --language c++ > output.txt
+	curl --path . --language c++ > output.txt
