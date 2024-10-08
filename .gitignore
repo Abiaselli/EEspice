@@ -1,27 +1,7 @@
-MatrixMul/.vscode/
-
-MatrixMul/onemkl/build/
-
-MatrixMul/sycl/build/
-
-circuit_test/C\+\+/.vscode/
-
-circuit_test/C\+\+/Circuit_test/build/
-.vscode/settings.json
-
-circuit_test/C\+\+/Circuit_test/.vscode/
-
-Random_Circuit_Generator/__pycache__/
-
-Random_Circuit_Generator/.idea/
-
-Random_Circuit_Generator/random_circuit_matrixs/
-
-Benchmark/.vscode/
-
-Benchmark/random_circuit_matrixs/
-
+*.a
 *.o
+*.so
+temp
 
 
 
