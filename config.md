@@ -5,7 +5,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/src/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/g++",
@@ -18,6 +18,8 @@
 }
 ```
 
+
+
 # launch.json
 ```json
 {
@@ -27,7 +29,7 @@
             "name": "g++ - Build and debug active file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}/${fileBasenameNoExtension}",
+            "program": "${workspaceFolder}/${fileBasenameNoExtension}.o",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -48,167 +50,13 @@
 }
 ```
 
-# setting.json
-```json
-{
-    "files.associations": {
-        "cctype": "cpp",
-        "clocale": "cpp",
-        "cmath": "cpp",
-        "cstdarg": "cpp",
-        "cstddef": "cpp",
-        "cstdio": "cpp",
-        "cstdlib": "cpp",
-        "cstring": "cpp",
-        "ctime": "cpp",
-        "cwchar": "cpp",
-        "cwctype": "cpp",
-        "array": "cpp",
-        "atomic": "cpp",
-        "bit": "cpp",
-        "*.tcc": "cpp",
-        "chrono": "cpp",
-        "compare": "cpp",
-        "complex": "cpp",
-        "concepts": "cpp",
-        "condition_variable": "cpp",
-        "cstdint": "cpp",
-        "deque": "cpp",
-        "list": "cpp",
-        "map": "cpp",
-        "unordered_map": "cpp",
-        "vector": "cpp",
-        "exception": "cpp",
-        "algorithm": "cpp",
-        "functional": "cpp",
-        "iterator": "cpp",
-        "memory": "cpp",
-        "memory_resource": "cpp",
-        "numeric": "cpp",
-        "optional": "cpp",
-        "random": "cpp",
-        "ratio": "cpp",
-        "string": "cpp",
-        "string_view": "cpp",
-        "system_error": "cpp",
-        "tuple": "cpp",
-        "type_traits": "cpp",
-        "utility": "cpp",
-        "fstream": "cpp",
-        "initializer_list": "cpp",
-        "iosfwd": "cpp",
-        "iostream": "cpp",
-        "istream": "cpp",
-        "limits": "cpp",
-        "mutex": "cpp",
-        "new": "cpp",
-        "numbers": "cpp",
-        "ostream": "cpp",
-        "ranges": "cpp",
-        "sstream": "cpp",
-        "stdexcept": "cpp",
-        "stop_token": "cpp",
-        "streambuf": "cpp",
-        "thread": "cpp",
-        "typeinfo": "cpp",
-        "variant": "cpp",
-        "semaphore": "cpp",
-        "set": "cpp"
-    }
-}
-```
 
-# settings.json
-```json
-{
-    "files.associations": {
-        "cctype": "cpp",
-        "clocale": "cpp",
-        "cmath": "cpp",
-        "cstdarg": "cpp",
-        "cstddef": "cpp",
-        "cstdio": "cpp",
-        "cstdlib": "cpp",
-        "cstring": "cpp",
-        "ctime": "cpp",
-        "cwchar": "cpp",
-        "cwctype": "cpp",
-        "array": "cpp",
-        "atomic": "cpp",
-        "bit": "cpp",
-        "*.tcc": "cpp",
-        "chrono": "cpp",
-        "compare": "cpp",
-        "complex": "cpp",
-        "concepts": "cpp",
-        "condition_variable": "cpp",
-        "cstdint": "cpp",
-        "deque": "cpp",
-        "map": "cpp",
-        "unordered_map": "cpp",
-        "vector": "cpp",
-        "exception": "cpp",
-        "algorithm": "cpp",
-        "functional": "cpp",
-        "iterator": "cpp",
-        "memory": "cpp",
-        "memory_resource": "cpp",
-        "numeric": "cpp",
-        "optional": "cpp",
-        "random": "cpp",
-        "ratio": "cpp",
-        "string": "cpp",
-        "string_view": "cpp",
-        "system_error": "cpp",
-        "tuple": "cpp",
-        "type_traits": "cpp",
-        "utility": "cpp",
-        "fstream": "cpp",
-        "initializer_list": "cpp",
-        "iosfwd": "cpp",
-        "iostream": "cpp",
-        "istream": "cpp",
-        "limits": "cpp",
-        "mutex": "cpp",
-        "new": "cpp",
-        "numbers": "cpp",
-        "ostream": "cpp",
-        "ranges": "cpp",
-        "sstream": "cpp",
-        "stdexcept": "cpp",
-        "stop_token": "cpp",
-        "streambuf": "cpp",
-        "thread": "cpp",
-        "cinttypes": "cpp",
-        "typeinfo": "cpp",
-        "variant": "cpp",
-        "semaphore": "cpp",
-        "armadillo": "cpp",
-        "iomanip": "cpp",
-        "csetjmp": "cpp",
-        "bitset": "cpp",
-        "codecvt": "cpp",
-        "list": "cpp",
-        "set": "cpp",
-        "typeindex": "cpp"
-    }
-}
-```
 
-# tasks.json
+
+
+# tasks.json (LAPACK)
 ```json
 {
-    "version": "2.0.0",
-    "configurations": [
-        {
-            "name": "Python: Current File",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        }
-    ],
     "tasks": [
         {
             "type": "cppbuild",
@@ -219,9 +67,18 @@
                 "-g",
                 "${file}",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}",
+                "../${fileBasenameNoExtension}.o",
                 "-O3",
                 "-std=c++17",
+                "-Wall",
+                "-Wextra",
+                "-march=native",
+                "-fopenmp",
+                "-pthread",
+                "-lm",
+                "-ldl",
+                "-lsuperlu",
+                "-llapack",
                 "-larmadillo"
             ],
             "options": {
@@ -236,12 +93,13 @@
             },
             "detail": "Task generated by Debugger."
         }
-    ]
+    ],
+    "version": "2.0.0"
 }
 ```
 
 
-## newer task
+# task.json (MKL)
 
 ```json
 {
