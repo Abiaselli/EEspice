@@ -164,3 +164,21 @@
     ]
 }
 ```
+
+
+# settings.json
+```json
+{
+    "files.associations": {
+        "sstream": "cpp",
+        "variant": "cpp",
+        "deque": "cpp",
+        "string": "cpp",
+        "vector": "cpp"
+    },
+    "clang-tidy.compilerArgs": [
+        "-std=c++17",
+    ]
+}
+
+```
