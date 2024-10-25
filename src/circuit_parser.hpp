@@ -17,9 +17,8 @@
 
 #include "global.hpp"
 
-class CircuitParser
+struct CircuitParser
 {
-public:
     std::string filename;
     std::vector<CircuitElement> elements;
     double double_t_end; // This double_t_end can be passed to the CKTcircuit class

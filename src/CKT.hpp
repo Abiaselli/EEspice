@@ -10,9 +10,8 @@
 #include "circuit_parser.hpp"
 #include "device.hpp"
 
-class CKTcircuit
+struct CKTcircuit
 {
-public:
     int const supply_voltage_node = 1; // supply voltage node for the ring oscillator
     int pulse_num{};                   // Number of pulse voltages
     // uword is a typedef for an unsigned integer type; it is used for matrix indices as well as all internal counters and loops
@@ -24,7 +23,7 @@ public:
     int no_of_V_sources{}; // Total number of voltage sources
     int T_nodes{};         // Total number of nodes excluding ground
 
-    DenseMatrix *cktdematrix; // Dense matrix class object
+    DenseMatrix *cktdematrix; // Dense matrix struct
     void setcktmatrix(DenseMatrix &DenseMatrix)
     {
         cktdematrix = &DenseMatrix;

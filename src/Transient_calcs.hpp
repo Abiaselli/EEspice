@@ -30,6 +30,7 @@
 #include "device.hpp"
 #include "matrix.hpp"
 #include "CKT.hpp"
+#include "global.hpp"
 
 // Macro to enable debug code
 
@@ -86,31 +87,8 @@ void history_trans_update(Transient &trans)
     vec_trans.push_back(trans);
 }
 
-class Truncation_error
+struct multi_timestep
 {
-public:
-    // double LTE_current_mid{};
-    // double LTE_current_up{};
-    // double LTE_current_down{};
-
-    // double LTE_charge_mid{};
-    // double LTE_charge_up{};
-    // double LTE_charge_down{};
-
-    arma::vec LTE_bound_mid{};
-    arma::vec LTE_bound_up{};
-    arma::vec LTE_bound_down{};
-
-    arma::vec LTE_BE_mid_h{};
-    arma::vec LTE_BE_up_h{};
-    arma::vec LTE_BE_down_h{};
-};
-
-class multi_timestep
-{
-public:
-    // This class is used to store the data during multi-timestep algorithm
-
     arma::vec C_current_mid;
     arma::vec C_voltage_mid;
     arma::vec C_charge_mid;
@@ -149,37 +127,32 @@ public:
     bool TMAX_reach;
     bool TMIN_reach;
 
-    // bool ITE_reach_mid;
-    // bool ITE_reach_up;
-    // bool ITE_reach_down;
-
     std::vector<Capacitor> C_list_mid;
     std::vector<Capacitor> C_list_up;
     std::vector<Capacitor> C_list_down;
 };
 
-class Transient
+struct Transient
 {
-public:
-    const int code = 0; // Choosing code for transient simulation
-    const double t_start = 0;
+    int code = 0;
+    double t_start = 0;
     double t_end{};
-    double h{};      // time step
-    double init_h{}; // initial time step
+    double h{};
+    double init_h{};
     double h_MAX{};
     double h_MIN{};
-    double time_trans{};   // transient time
-    int mode{};            // 0 to do OP analysis, 1 to do transient simulation
-    int trans_count{};     // the count of the transient simulation loop
-    arma::vec solution;    // Solution matrix
-    arma::mat LHS;         // LHS matrix
-    arma::vec RHS;         // RHS matrix
-    arma::vec C_current;   // Current matrix
-    arma::vec C_voltage;   // Voltage matrix
-    arma::vec C_charge;    // Charge matrix
-    arma::vec Capacitance; // Capacitance matrix
+    double time_trans{};
+    int mode{};
+    int trans_count{};
+    arma::vec solution;
+    arma::mat LHS;
+    arma::vec RHS;
+    arma::vec C_current;
+    arma::vec C_voltage;
+    arma::vec C_charge;
+    arma::vec Capacitance;
 
-    std::vector<Capacitor> C_list; // Vector of capacitors in trans (including the parasitic capacitance of the MOSFETs)
+    std::vector<Capacitor> C_list;
 
     void C_list_update()
     {
@@ -200,6 +173,16 @@ public:
             Capacitance(i, 0) = C_list.at(i).value;
         }
     }
+};
+struct Truncation_error
+{
+    arma::vec LTE_bound_mid{};
+    arma::vec LTE_bound_up{};
+    arma::vec LTE_bound_down{};
+
+    arma::vec LTE_BE_mid_h{};
+    arma::vec LTE_BE_up_h{};
+    arma::vec LTE_BE_down_h{};
 };
 
 arma::vec get_capacitance(const std::vector<Capacitor> &C_list)
@@ -1153,45 +1136,6 @@ arma::vec multi_next_h(Transient &trans, const CKTcircuit &ckt)
     } while (index_h == 0);
 
     return solution;
-}
-
-void save_csv(const CKTcircuit &ckt)
-{
-    std::ofstream file("final_solution.csv");
-
-    // Write the header
-    file << "Time, Time Step";
-    for (size_t j = 0; j < ckt.external_nodes; ++j)
-    {
-        file << ", Voltage " << (j + 1);
-    }
-    for (size_t z = ckt.no_of_V_sources; z > 0; --z)
-    {
-        file << ", Current " << (ckt.no_of_V_sources - z + 1);
-    }
-    // file << ", Current 2";
-    file << std::endl;
-
-    // Write the data
-    for (size_t i = 0; i < vec_trans.size(); ++i)
-    {
-        file << std::scientific << std::setprecision(20);                // Set precision to 20 decimal places
-        file << vec_trans.at(i).time_trans << ", " << vec_trans.at(i).h; // Time and Timestep
-
-        for (size_t j = 0; j < ckt.external_nodes; ++j)
-        {
-            file << ", " << vec_trans.at(i).solution(j, 0); // Voltages
-        }
-
-        for (size_t z = ckt.no_of_V_sources; z > 0; --z)
-        {
-            file << ", " << vec_trans.at(i).solution(ckt.cktdematrix->n_rows - z, 0); // Currents
-        }
-        // file << ", " << vec_trans.at(i).C_current(0,0);
-        file << std::endl;
-    }
-
-    file.close();
 }
 
 // void save_threads_time(const std::chrono::time_point<std::chrono::high_resolution_clock> &t1, const std::chrono::time_point<std::chrono::high_resolution_clock> &t2){

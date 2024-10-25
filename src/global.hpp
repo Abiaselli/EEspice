@@ -8,25 +8,23 @@
 #include "sim_variables.hpp"
 
 // Forward declarations
-class XB_Timer;
-class CircuitElement;
-class Transient;
-class CKTcircuit;
-class multi_timestep;
-class Truncation_error;
-class Capacitor;
+struct XB_Timer;
+struct CircuitElement;
+struct Transient;
+struct CKTcircuit;
+struct multi_timestep;
+struct Truncation_error;
+struct Capacitor;
 
-class VoltageSource
+struct VoltageSource
 {
-public:
     int id;
     int nodePos, nodeNeg;
     double value;
 };
 
-class Pulsevoltage
+struct Pulsevoltage
 {
-public:
     int id{};
     int nodePos{}, nodeNeg{};
     double t1_pulse{};
@@ -41,58 +39,51 @@ public:
     int RHS_locate{};
 };
 
-class Diode
+struct Diode
 {
-public:
     int id{};
     int nodePos{}, nodeNeg{};
     double Is{};
     double VT{};
 };
 
-class VCCS
+struct VCCS
 {
-public:
     int id{};
     int node_x{}, node_y{}, node_cx{}, node_cy{};
     double value{};
 };
 
-class NMOS
+struct NMOS
 {
-public:
     int id{};
     int node_vd{}, node_vg{}, node_vs{}, node_vb{};
     double W{}, L{};
 };
 
-class PMOS
+struct PMOS
 {
-public:
     int id{};
     int node_vd{}, node_vg{}, node_vs{}, node_vb{};
     double W{}, L{};
 };
 
-class CurrentSource
+struct CurrentSource
 {
-public:
     int id;
     int nodePos, nodeNeg;
     double value;
 };
 
-class Resistor
+struct Resistor
 {
-public:
     int id;
     int nodePos, nodeNeg;
     double value;
 };
 
-class Capacitor
+struct Capacitor
 {
-public:
     int id{};
     std::string name{}; // It's used in MOSFETs Eg: M1.1, M1.2, M1.3, M1.4
     int nodePos{}, nodeNeg{};
@@ -105,9 +96,8 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////////
 
-class CircuitElement
+struct CircuitElement
 {
-public:
     std::variant<VoltageSource, CurrentSource, Resistor, Capacitor, Pulsevoltage, Diode, NMOS, PMOS, VCCS> element;
 };
 

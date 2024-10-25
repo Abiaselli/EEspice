@@ -2,7 +2,8 @@
 
 #include <chrono>
 
-class XB_Timer{
+struct XB_Timer
+{
 public:
     double current_ms() const
     {
