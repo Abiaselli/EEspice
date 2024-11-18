@@ -8,9 +8,9 @@
 #include "device.hpp"
 #include "matrix.hpp"
 #include "CKT.hpp"
-#include "Transient_calcs.hpp"
+#include "Transient.hpp"
 
-void save_csv(const CKTcircuit &ckt)
+void save_csv(const CKTcircuit &ckt, std::vector<Transient> &vec_trans)
 {
     std::ofstream file("final_solution.csv");
 

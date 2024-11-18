@@ -40,7 +40,7 @@
         (var).print(label);    \
     }
 
-void setDebugMode(bool mode);
+/*void setDebugMode(bool mode);
 bool isDebugMode();
 void R_assigner(int node_x, int node_y, double G, arma::mat &LHS);
 void Vs_assigner(int node_x, int node_y, double V_value, arma::mat &LHS, arma::vec &RHS);
@@ -51,14 +51,13 @@ void C_assigner_BE(int node_x, int node_y, double C, double h, arma::mat &LHS, a
 int V_pulse_assigner(int node_x, int node_y, double V_value, arma::mat &LHS, arma::vec &RHS);
 double V_pulse_value(double V1, double V2, double t1, double td, double tr, double tf, double tpw, double tper);
 void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, arma::mat &LHS);
-double Diode_assigner(int node_x, int node_y, double Is, double VT, arma::mat &LHS, arma::vec &RHS, const arma::vec &solution, int mode);
-std::pair<arma::mat, arma::vec> DynamicNonLinear(const CKTcircuit &ckt, double h, const arma::vec &pre_solution, int mode, const double time_trans, std::vector<Capacitor> &C_list, int NR_iteration_counter);
+double Diode_assigner(int node_x, int node_y, double Is, double VT, arma::mat &LHS, arma::vec &RHS, const arma::vec &solution, int mode);std::pair<arma::mat, arma::vec> DynamicNonLinear(const CKTcircuit &ckt, double h, const arma::vec &pre_solution, int mode, const double time_trans, std::vector<Capacitor> &C_list, int NR_iteration_counter);
 arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const arma::vec &pre_solution, const double &h, const int &mode, const double time_trans, std::vector<Capacitor> &C_list);
-void dummy_task();
+void dummy_task();*/
 /*  Global variables:
 
 */
-std::vector<Transient> vec_trans;
+// std::vector<Transient> vec_trans;
 BS::thread_pool pool(3);
 BS::synced_stream sync_out;
 XB_Timer timer;
@@ -81,7 +80,7 @@ double cond(double R)
     return 1 / R;
 }
 
-void history_trans_update(Transient &trans)
+void history_trans_update(Transient &trans, std::vector<Transient> &vec_trans)
 {
     // Update transient history
     vec_trans.push_back(trans);
@@ -314,7 +313,7 @@ std::deque<double> get_breakpoints(const CKTcircuit &ckt, const Transient &trans
 }
 
 // Assigning the stamp matrices for dynamic and non-linear components and update the LHS and RHS matrices
-std::pair<arma::mat, arma::vec> DynamicNonLinear(const CKTcircuit &ckt, double h, const arma::vec &pre_solution, int mode, const double time_trans, std::vector<Capacitor> &C_list, int NR_iteration_counter)
+std::pair<arma::mat, arma::vec> DynamicNonLinear(const CKTcircuit &ckt, double h, const arma::vec &pre_solution, int mode, const double time_trans, std::vector<Capacitor> &C_list, int NR_iteration_counter, std::vector<Transient> &vec_trans)
 {
 
     arma::mat LHS = ckt.cktdematrix->get_init_LHS();
@@ -448,7 +447,7 @@ bool isConverge(const std::vector<arma::vec> &NR_solutions, const CKTcircuit &ck
 }
 
 // Newton Raphson system solver for non-linear and dynamic elements
-arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const arma::vec &pre_solution, const double &h, const int &mode, const double time_trans, std::vector<Capacitor> &C_list)
+arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const arma::vec &pre_solution, const double &h, const int &mode, const double time_trans, std::vector<Capacitor> &C_list, std::vector<Transient> &vec_trans)
 {
 
     // std::cout << "Enter NewtonRaphson system" << std::endl;
@@ -464,7 +463,7 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const arma::vec &pre_solut
 
     for (int i = 1; i < 3; i++)
     {
-        matrices = DynamicNonLinear(ckt, h, solution, mode, time_trans, C_list, NR_iteration_counter);
+        matrices = DynamicNonLinear(ckt, h, solution, mode, time_trans, C_list, NR_iteration_counter, vec_trans);
         // const arma::mat &LHS = matrices.first;
         // const arma::mat &RHS = matrices.second;
 
@@ -488,7 +487,7 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const arma::vec &pre_solut
             return solution;
         }
 
-        matrices = DynamicNonLinear(ckt, h, solution, mode, time_trans, C_list, NR_iteration_counter);
+        matrices = DynamicNonLinear(ckt, h, solution, mode, time_trans, C_list, NR_iteration_counter, vec_trans);
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
@@ -693,7 +692,7 @@ int h_reach_new(const Truncation_error LTE, int &last_decision, const multi_time
     }
 }
 
-multi_timestep multi_solution_solver(const double &h, const Transient &trans, const CKTcircuit &ckt)
+multi_timestep multi_solution_solver(const double &h, const Transient &trans, const CKTcircuit &ckt, std::vector<Transient> &vec_trans)
 {
 
     multi_timestep multi_h;
@@ -707,11 +706,11 @@ multi_timestep multi_solution_solver(const double &h, const Transient &trans, co
 
     // Generic lambda function for solving
     auto solve = [&trans, &ckt](const double h, double &t, arma::vec &solution, arma::vec &C_current, arma::vec &C_voltage,
-                                arma::vec &C_charge, arma::vec &capacitance, std::vector<Capacitor> &C_list)
+                                arma::vec &C_charge, arma::vec &capacitance, std::vector<Capacitor> &C_list, std::vector<Transient> &vec_trans)
     {
         t = trans.time_trans + h;
         std::vector<Capacitor> C_list_copy = trans.C_list;
-        arma::vec local_solution = NewtonRaphson_system(ckt, vec_trans.back().solution, h, 1, t, C_list_copy);
+        arma::vec local_solution = NewtonRaphson_system(ckt, vec_trans.back().solution, h, 1, t, C_list_copy, vec_trans);
 
         solution = std::move(local_solution);
         std::pair<arma::vec, arma::vec> currents_voltages = get_currents_voltages(C_list_copy, h, solution, vec_trans.back().solution);
@@ -725,16 +724,16 @@ multi_timestep multi_solution_solver(const double &h, const Transient &trans, co
     if (multi_h.TMAX_reach)
     {
         // Only Mid time step
-        solve(multi_h.h_mid, multi_h.t_mid, multi_h.solution_mid, multi_h.C_current_mid, multi_h.C_voltage_mid, multi_h.C_charge_mid, multi_h.Capacitance_mid, multi_h.C_list_mid);
+        solve(multi_h.h_mid, multi_h.t_mid, multi_h.solution_mid, multi_h.C_current_mid, multi_h.C_voltage_mid, multi_h.C_charge_mid, multi_h.Capacitance_mid, multi_h.C_list_mid, vec_trans);
     }
     else if (multi_h.TMIN_reach)
     {
         // Mid time step
         pool.detach_task(
-            [&multi_h, &solve]
+            [&multi_h, &solve, &vec_trans]
             {
                 // auto t1 = std::chrono::high_resolution_clock::now();
-                solve(multi_h.h_mid, multi_h.t_mid, multi_h.solution_mid, multi_h.C_current_mid, multi_h.C_voltage_mid, multi_h.C_charge_mid, multi_h.Capacitance_mid, multi_h.C_list_mid);
+                solve(multi_h.h_mid, multi_h.t_mid, multi_h.solution_mid, multi_h.C_current_mid, multi_h.C_voltage_mid, multi_h.C_charge_mid, multi_h.Capacitance_mid, multi_h.C_list_mid, vec_trans);
                 // auto t2 = std::chrono::high_resolution_clock::now();
                 // begin_mid.push_back(t1);
                 // end_mid.push_back(t2);
@@ -742,10 +741,10 @@ multi_timestep multi_solution_solver(const double &h, const Transient &trans, co
 
         // Up time step
         pool.detach_task(
-            [&multi_h, &solve]
+            [&multi_h, &solve, &vec_trans]
             {
                 // auto t1 = std::chrono::high_resolution_clock::now();
-                solve(multi_h.h_up, multi_h.t_up, multi_h.solution_up, multi_h.C_current_up, multi_h.C_voltage_up, multi_h.C_charge_up, multi_h.Capacitance_up, multi_h.C_list_up);
+                solve(multi_h.h_up, multi_h.t_up, multi_h.solution_up, multi_h.C_current_up, multi_h.C_voltage_up, multi_h.C_charge_up, multi_h.Capacitance_up, multi_h.C_list_up, vec_trans);
                 // auto t2 = std::chrono::high_resolution_clock::now();
                 // begin_up.push_back(t1);
                 // end_up.push_back(t2);
@@ -755,10 +754,10 @@ multi_timestep multi_solution_solver(const double &h, const Transient &trans, co
     {
         // Mid time step
         pool.detach_task(
-            [&multi_h, &solve]
+            [&multi_h, &solve, &vec_trans]
             {
                 // auto t1 = std::chrono::high_resolution_clock::now();
-                solve(multi_h.h_mid, multi_h.t_mid, multi_h.solution_mid, multi_h.C_current_mid, multi_h.C_voltage_mid, multi_h.C_charge_mid, multi_h.Capacitance_mid, multi_h.C_list_mid);
+                solve(multi_h.h_mid, multi_h.t_mid, multi_h.solution_mid, multi_h.C_current_mid, multi_h.C_voltage_mid, multi_h.C_charge_mid, multi_h.Capacitance_mid, multi_h.C_list_mid, vec_trans);
                 // auto t2 = std::chrono::high_resolution_clock::now();
                 // begin_mid.push_back(t1);
                 // end_mid.push_back(t2);
@@ -766,10 +765,10 @@ multi_timestep multi_solution_solver(const double &h, const Transient &trans, co
 
         // Up time step
         pool.detach_task(
-            [&multi_h, &solve]
+            [&multi_h, &solve, &vec_trans]
             {
                 // auto t1 = std::chrono::high_resolution_clock::now();
-                solve(multi_h.h_up, multi_h.t_up, multi_h.solution_up, multi_h.C_current_up, multi_h.C_voltage_up, multi_h.C_charge_up, multi_h.Capacitance_up, multi_h.C_list_up);
+                solve(multi_h.h_up, multi_h.t_up, multi_h.solution_up, multi_h.C_current_up, multi_h.C_voltage_up, multi_h.C_charge_up, multi_h.Capacitance_up, multi_h.C_list_up, vec_trans);
                 // auto t2 = std::chrono::high_resolution_clock::now();
                 // begin_up.push_back(t1);
                 // end_up.push_back(t2);
@@ -777,10 +776,10 @@ multi_timestep multi_solution_solver(const double &h, const Transient &trans, co
 
         // Down time step
         pool.detach_task(
-            [&multi_h, &solve]
+            [&multi_h, &solve, &vec_trans]
             {
                 // auto t1 = std::chrono::high_resolution_clock::now();
-                solve(multi_h.h_down, multi_h.t_down, multi_h.solution_down, multi_h.C_current_down, multi_h.C_voltage_down, multi_h.C_charge_down, multi_h.Capacitance_down, multi_h.C_list_down);
+                solve(multi_h.h_down, multi_h.t_down, multi_h.solution_down, multi_h.C_current_down, multi_h.C_voltage_down, multi_h.C_charge_down, multi_h.Capacitance_down, multi_h.C_list_down, vec_trans);
                 // auto t2 = std::chrono::high_resolution_clock::now();
                 // begin_down.push_back(t1);
                 // end_down.push_back(t2);
@@ -958,7 +957,7 @@ multi_timestep multi_solution_solver(const double &h, const Transient &trans, co
 //     return multi_h;
 // }
 
-arma::vec multi_next_h(Transient &trans, const CKTcircuit &ckt)
+arma::vec multi_next_h(Transient &trans, const CKTcircuit &ckt, std::vector<Transient> &vec_trans)
 {
 
     // std::cout << "Enter multi_next_h" << std::endl;
@@ -981,7 +980,7 @@ arma::vec multi_next_h(Transient &trans, const CKTcircuit &ckt)
     {
         timer.start();
 
-        multi_h = multi_solution_solver(temp_h, trans, ckt);
+        multi_h = multi_solution_solver(temp_h, trans, ckt, vec_trans);
 
         timer.stop();
         timer.total();
