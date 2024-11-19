@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Transient_calcs.hpp"
+#include "Transient_multi_solvers.hpp"
 
 std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, Transient &trans_op)
 {
@@ -28,7 +29,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, Tra
     // Benchmarking for OP analysis
     auto tstart_op = std::chrono::high_resolution_clock::now();
 
-    solution = NewtonRaphson_system(ckt, solution, 0, 0, 0, trans_op.C_list, vec_trans);
+    solution = NewtonRaphson_system(ckt, solution, 0, 0, 0, trans_op.C_list, vec_trans.back().solution);
 
     if (trans_op.C_list.size() > 0)
     {
@@ -95,7 +96,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, Tra
             trans.C_list = vec_trans.back().C_list;
 
             std::cout << "Fixed time step" << std::endl;
-            solution = NewtonRaphson_system(ckt, vec_trans.back().solution, trans.h, 1, trans.time_trans, trans.C_list, vec_trans);
+            solution = NewtonRaphson_system(ckt, vec_trans.back().solution, trans.h, 1, trans.time_trans, trans.C_list, vec_trans.back().solution);
             // solution.print("The transient analysis of the circuit is: ");
             ARMA_PRINT(solution, "The transient analysis of the circuit is: ");
 
@@ -148,7 +149,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, Tra
             trans.h = trans_op.init_h; // Initial time step
             trans.time_trans = trans.t_start + trans.h;
 
-            solution = NewtonRaphson_system(ckt, trans_op.solution, trans.h, 1, trans.time_trans, trans.C_list, vec_trans);
+            solution = NewtonRaphson_system(ckt, trans_op.solution, trans.h, 1, trans.time_trans, trans.C_list, vec_trans.back().solution);
             // solution.print("The transient analysis of the circuit is: ");
             ARMA_PRINT(solution, "The transient analysis of the circuit is: ");
 
@@ -215,7 +216,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, Tra
                 DEBUG_PRINT("breakpoints_trans.time_trans: " << breakpoints_trans.time_trans);
                 DEBUG_PRINT("vec_trans.back().time_trans: " << vec_trans.back().time_trans);
 
-                solution = NewtonRaphson_system(ckt, vec_trans.back().solution, breakpoints_trans.h, 1, breakpoints_trans.time_trans, breakpoints_trans.C_list, vec_trans);
+                solution = NewtonRaphson_system(ckt, vec_trans.back().solution, breakpoints_trans.h, 1, breakpoints_trans.time_trans, breakpoints_trans.C_list, vec_trans.back().solution);
                 auto cur_vol = get_currents_voltages(breakpoints_trans.C_list, breakpoints_trans.h, solution, vec_trans.back().solution);
                 breakpoints_trans.Capacitance = get_capacitance(breakpoints_trans.C_list);
 

@@ -1,0 +1,212 @@
+#pragma once
+
+#include <iostream>
+#include <armadillo>
+#include <fstream>
+#include <tuple>
+#include <cmath>
+#include <chrono>
+#include <string>
+#include <variant>
+#include <vector>
+#include <algorithm>
+#include <deque>
+#include <iomanip>
+#include <typeinfo>
+#include "sim_variables.hpp"
+#include "BS_thread_pool/BS_thread_pool.hpp"
+#include "BS_thread_pool/BS_thread_pool_utils.hpp"
+#include "circuit_parser.hpp"
+#include "XB_timer.hpp"
+
+#include "CKT.hpp"
+#include "device.hpp"
+
+std::pair<arma::mat, arma::vec> DynamicNonLinear(const CKTcircuit &ckt, double h, const arma::vec &pre_NR_solution, int mode, const double time_trans, std::vector<Capacitor> &C_list, int NR_iteration_counter, arma::vec &pre_global_solution)
+{
+
+    arma::mat LHS = ckt.cktdematrix->get_init_LHS();
+    arma::vec RHS = ckt.cktdematrix->get_init_RHS();
+    // LHS.print("in_LHS matrix =");
+    // RHS.print("RHS matrix =");
+
+    for (const auto &element : ckt.CKTelements)
+    {
+        std::visit([&](auto &&arg)
+                   {
+                       if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Capacitor>)
+                       {
+                           // Linear Capacitor
+                           C_assigner_BE(arg.nodePos, arg.nodeNeg, arg.value, h, LHS, RHS, pre_global_solution, mode);
+                       }
+                       else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Pulsevoltage>)
+                       {
+
+                           double val_pulse = V_pulse_value(arg.V1, arg.V2, time_trans, arg.td, arg.tr, arg.tf, arg.pw, arg.per);
+
+                           RHS.row(arg.RHS_locate - 1).col(0) += val_pulse;
+                       }
+                       else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS>)
+                       {
+                           NMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, h, pre_NR_solution, ckt.T_nodes, LHS, RHS, mode, C_list, NR_iteration_counter);
+                       }
+                       else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Diode>)
+                       {
+                           Diode_assigner(arg.nodePos, arg.nodeNeg, arg.Is, arg.VT, LHS, RHS, pre_NR_solution, mode);
+                       }
+                       else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
+                       {
+                           PMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, h, pre_NR_solution, ckt.T_nodes, LHS, RHS, mode, C_list, NR_iteration_counter);
+                       } },
+                   element.element);
+    }
+
+    return {LHS, RHS};
+}
+
+bool isConverge(const std::vector<arma::vec> &NR_solutions, const CKTcircuit &ckt, const int &NR_iteration_counter)
+{
+
+    const arma::vec &pre_solution = NR_solutions.at(NR_iteration_counter - 2);
+    const arma::vec &current_solution = NR_solutions.at(NR_iteration_counter - 1);
+    const arma::vec &next_solution = NR_solutions.at(NR_iteration_counter);
+
+    if (pre_solution.n_rows != current_solution.n_rows || pre_solution.n_rows != next_solution.n_rows || current_solution.n_rows != next_solution.n_rows)
+    {
+        std::cerr << "The size of pre_solution, current_solution, next_solution is not the same in isConverge function." << std::endl;
+        exit(1);
+    }
+
+    arma::vec pre_voltages = pre_solution.submat(0, 0, ckt.T_nodes - 1, 0);
+    arma::vec current_voltages = current_solution.submat(0, 0, ckt.T_nodes - 1, 0);
+    arma::vec next_voltages = next_solution.submat(0, 0, ckt.T_nodes - 1, 0);
+
+    arma::vec pre_current = pre_solution.submat(ckt.T_nodes, 0, pre_solution.n_rows - 1, 0);
+    arma::vec current_current = current_solution.submat(ckt.T_nodes, 0, current_solution.n_rows - 1, 0);
+    arma::vec next_current = next_solution.submat(ckt.T_nodes, 0, next_solution.n_rows - 1, 0);
+
+    // |v(k+1)-v(k)| <= RELTOL*max(|v(k+1)|,|v(k)|) + VNTOL
+
+    arma::vec Vmax_next_current = arma::max(arma::abs(next_voltages), arma::abs(current_voltages));
+    arma::vec Vdelta_next_current = arma::abs(next_voltages - current_voltages);
+    arma::vec tolerance_1 = RELTOL * Vmax_next_current + VNTOL;
+    // tolerance_1.print("tolerance_1 =");
+
+    // If |v(k+1)-v(k)| is bigger arma::any will return true and the function will return false.
+    if (arma::any(Vdelta_next_current > tolerance_1))
+    {
+        return false;
+    }
+
+    // |i(k+1)-i(k)| <= RELTOL*max(|i(k+1)|,|i(k)|) + ABSTOL
+
+    arma::vec Imax_next_current = arma::max(arma::abs(next_current), arma::abs(current_current));
+    arma::vec Idelta_next_current = arma::abs(next_current - current_current);
+    arma::vec tolerance_2 = RELTOL * Imax_next_current + ABSTOL;
+    // tolerance_2.print("tolerance_2 =");
+
+    if (arma::any(Idelta_next_current > tolerance_2))
+    {
+        return false;
+    }
+
+    // |v(k) - v(k-1)| <= RELTOL*max(|v(k)|,|v(k-1)|) + VNTOL
+
+    arma::vec Vmax_current_pre = arma::max(arma::abs(current_voltages), arma::abs(pre_voltages));
+    arma::vec Vdelta_current_pre = arma::abs(current_voltages - pre_voltages);
+    arma::vec tolerance_3 = RELTOL * Vmax_current_pre + VNTOL;
+
+    if (arma::any(Vdelta_current_pre > tolerance_3))
+    {
+        return false;
+    }
+
+    // |i(k) - i(k-1)| <= RELTOL*max(|i(k)|,|i(k-1)|) + ABSTOL
+
+    arma::vec Imax_current_pre = arma::max(arma::abs(current_current), arma::abs(pre_current));
+    arma::vec Idelta_current_pre = arma::abs(current_current - pre_current);
+    arma::vec tolerance_4 = RELTOL * Imax_current_pre + ABSTOL;
+
+    if (arma::any(Idelta_current_pre > tolerance_4))
+    {
+        return false;
+    }
+
+    // // |v(k+1) - v(k-1)| <= √|v(k) - v(k-1)|^2 + |v(k+1) - v(k)|^2
+
+    //     arma::mat Vdelta_next_pre = arma::abs(next_voltages - pre_voltages);
+    //     arma::mat V_Perpendicular = arma::sqrt(arma::pow(arma::abs(Vdelta_current_pre),2) + arma::pow(arma::abs(Vdelta_next_current),2));
+
+    //     if (arma::any(arma::vectorise(Vdelta_next_pre > V_Perpendicular)) )
+    //     {
+    //         return false;
+    //     }
+
+    // // |i(k+1) - i(k-1)| <= √|i(k) - i(k-1)|^2 + |i(k+1) - i(k)|^2
+
+    //     arma::mat Idelta_next_pre = arma::abs(next_current - pre_current);
+    //     arma::mat I_Perpendicular = arma::sqrt(arma::pow(arma::abs(Idelta_current_pre),2) + arma::pow(arma::abs(Idelta_next_current),2));
+
+    //     if (arma::any(arma::vectorise(Idelta_next_pre > I_Perpendicular)))
+    //     {
+    //         return false;
+    //     }
+
+    return true;
+}
+
+// Newton Raphson system solver for non-linear and dynamic elements
+arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const arma::vec &pre_solution, const double &h, const int &mode, const double time_trans, std::vector<Capacitor> &C_list, arma::vec &pre_global_solution)
+{
+
+    // std::cout << "Enter NewtonRaphson system" << std::endl;
+    DEBUG_PRINT("Enter NewtonRaphson system");
+
+    int NR_iteration_counter = 0;
+    bool isconverge = false;
+    arma::vec solution = pre_solution;
+    std::pair<arma::mat, arma::vec> matrices;
+
+    std::vector<arma::vec> NR_solutions(100);
+    NR_solutions[0] = pre_solution;
+
+    for (int i = 1; i < 3; i++)
+    {
+        matrices = DynamicNonLinear(ckt, h, solution, mode, time_trans, C_list, NR_iteration_counter, pre_global_solution);
+        // const arma::mat &LHS = matrices.first;
+        // const arma::mat &RHS = matrices.second;
+
+        // Solve Ax = b
+        // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
+        // solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
+        solution = arma::solve(matrices.first, matrices.second);
+        NR_iteration_counter += 1;
+        NR_solutions.at(NR_iteration_counter) = solution;
+    }
+
+    isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
+
+    while (!isconverge)
+    {
+
+        if (NR_iteration_counter >= 99)
+        {
+            std::cerr << "The Newton Raphson method did not converge after 100 iterations." << std::endl;
+            // exit(1);
+            return solution;
+        }
+
+        matrices = DynamicNonLinear(ckt, h, solution, mode, time_trans, C_list, NR_iteration_counter, pre_global_solution);
+
+        // Solve Ax = b
+        // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
+        // solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
+        solution = arma::solve(matrices.first, matrices.second);
+        NR_iteration_counter += 1;
+        NR_solutions.at(NR_iteration_counter) = solution;
+
+        isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
+    }
+
+    return solution;
+}
