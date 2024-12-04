@@ -3,9 +3,9 @@
 # install
 
 ```bash
-sudo apt-get install libarmadillo-dev
+sudo apt-get install liblapack-dev
 ```
 
 ```bash
-sudo apt-get install liblapack-dev
+sudo apt-get install libarmadillo-dev
 ```
