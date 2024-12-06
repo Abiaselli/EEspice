@@ -1,10 +1,4 @@
 #pragma once
-// #define ARMA_DONT_USE_WRAPPER
-// #define ARMA_USE_MKL_ALLOC
-
-// #define ARMA_USE_SUPERLU
-// #define COOT_DONT_USE_OPENCL
-// #define COOT_USE_CUDA
 
 #include <iostream>
 #include <armadillo>

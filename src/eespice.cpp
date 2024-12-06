@@ -1,3 +1,7 @@
+#define ARMA_DONT_USE_WRAPPER
+#define ARMA_USE_MKL_ALLOC
+// #define ARMA_USE_SUPERLU
+
 // #include "Transient_calcs.hpp"
 #include "Transient.hpp"
 #include "saveCSV.hpp"
