@@ -2,7 +2,6 @@
 #define ARMA_USE_MKL_ALLOC
 // #define ARMA_USE_SUPERLU
 
-// #include "Transient_calcs.hpp"
 #include "Transient.hpp"
 #include "saveCSV.hpp"
 
@@ -31,10 +30,10 @@ int main(int argc, const char **argv)
     CKTload(ckt);
     ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
 
-    Transient trans_op;
-    Transsetup(trans_op, parser, ckt);
+    TransientConfig trans_config;
+    Transsetup(trans_config, parser, ckt);
 
-    auto vec_trans_result = Transient_ops(ckt, dematrix, trans_op);
+    auto vec_trans_result = Transient_ops(ckt, dematrix, trans_config);
 
     auto tstop_trans = std::chrono::high_resolution_clock::now();
 

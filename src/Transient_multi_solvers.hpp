@@ -71,39 +71,39 @@ struct multi_timestep
 // New timestep options
 void timestep_options(double &temp_h, double &next_h_up, double &next_h_down, const Transient &trans, bool &TMAX_reach, bool &TMIN_reach)
 {
-    if (temp_h >= trans.h_MAX)
+    if (temp_h >= trans.config->h_MAX)
     {
-        temp_h = trans.h_MAX;
+        temp_h = trans.config->h_MAX;
         TMAX_reach = true;
     }
-    else if (temp_h <= trans.h_MIN)
+    else if (temp_h <= trans.config->h_MIN)
     {
-        temp_h = trans.h_MIN;
+        temp_h = trans.config->h_MIN;
         TMIN_reach = true;
     }
 
     next_h_up = temp_h * 2;
     next_h_down = temp_h / 2;
 
-    if (next_h_up > trans.h_MAX)
+    if (next_h_up > trans.config->h_MAX)
     {
-        next_h_up = trans.h_MAX;
+        next_h_up = trans.config->h_MAX;
         // TMAX_reach = true;
     }
-    else if (next_h_up < trans.h_MIN)
+    else if (next_h_up < trans.config->h_MIN)
     {
-        next_h_down = trans.h_MIN;
+        next_h_down = trans.config->h_MIN;
         // TMAX_reach = true;
     }
 
-    if (next_h_down > trans.h_MAX)
+    if (next_h_down > trans.config->h_MAX)
     {
-        next_h_up = trans.h_MAX;
+        next_h_up = trans.config->h_MAX;
         // TMAX_reach = true;
     }
-    else if (next_h_down < trans.h_MIN)
+    else if (next_h_down < trans.config->h_MIN)
     {
-        next_h_down = trans.h_MIN;
+        next_h_down = trans.config->h_MIN;
         // TMIN_reach = true;
     }
 }

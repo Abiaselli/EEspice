@@ -24,8 +24,8 @@
 #include "BS_thread_pool/BS_thread_pool_utils.hpp"
 #include "circuit_parser.hpp"
 #include "XB_timer.hpp"
-// #include <mutex>
-// #include <bandicoot>
+
+
 
 #include "device.hpp"
 #include "matrix.hpp"
@@ -87,15 +87,23 @@ void history_trans_update(Transient &trans, std::vector<Transient> &vec_trans)
     vec_trans.push_back(trans);
 }
 
-struct Transient
-{
-    int code = 0;
-    double t_start = 0;
+/*
+    Clearly distinguishes between data that never changes and data that evolves in Transient simulation.
+    TransientConfig is a constant data structure that never changes.
+*/
+struct TransientConfig {
+    double t_start{};
     double t_end{};
-    double h{};
     double init_h{};
     double h_MAX{};
     double h_MIN{};
+};
+
+struct Transient
+{
+    const TransientConfig* config; // pointer to a shared config (read-only)
+
+    double h{};
     double time_trans{};
     int mode{};
     int trans_count{};
@@ -108,6 +116,9 @@ struct Transient
     arma::vec Capacitance;
 
     std::vector<Capacitor> C_list;
+
+    // Constructor to link the Transient to the config
+    Transient(const TransientConfig* cfg) : config(cfg) {}
 
     void C_list_update()
     {
@@ -150,9 +161,9 @@ arma::vec get_capacitance(const std::vector<Capacitor> &C_list)
     return Capacitance;
 }
 
-void Transsetup(Transient &trans, const CircuitParser &parser, CKTcircuit &ckt)
+void Transsetup(TransientConfig &config, const CircuitParser &parser, CKTcircuit &ckt)
 {
-    trans.t_end = parser.double_t_end;
+    config.t_end = parser.double_t_end;
 
     if (ckt.pulse_num > 0 && (ckt.C_list.size() > 0))
     {
@@ -164,17 +175,17 @@ void Transsetup(Transient &trans, const CircuitParser &parser, CKTcircuit &ckt)
                            {
 
                                double step = std::min(arg.tr, arg.tf);
-                               trans.h_MAX = parser.double_init_h; // 5 is rmax in spice opus
+                               config.h_MAX = parser.double_init_h; // 5 is rmax in spice opus
                                // trans.h_MIN = std::max(1e-9 * parser.double_init_h, 1e-14);    // 1e-9 is rmin in spice opus
-                               trans.h_MIN = 1e-14;
+                               config.h_MIN = 1e-14;
 
                                if (arg.td == 0)
                                {
-                                   trans.init_h = parser.double_init_h / 100; // initial time step, fs = 0.25 from spice opus
+                                   config.init_h = parser.double_init_h / 100; // initial time step, fs = 0.25 from spice opus
                                }
                                else
                                {
-                                   trans.init_h = std::min(arg.td * 0.25, parser.double_init_h * 0.25);
+                                   config.init_h = std::min(arg.td * 0.25, parser.double_init_h * 0.25);
                                }
                            } },
                        element.element);
@@ -182,17 +193,17 @@ void Transsetup(Transient &trans, const CircuitParser &parser, CKTcircuit &ckt)
     }
     else if (ckt.no_of_mosfets > 0)
     {
-        trans.init_h = parser.double_init_h / 100; // initial time step
-        trans.h_MAX = parser.double_init_h;        // maximum time step
-        // trans.h_MIN = std::max(1e-9 * parser.double_init_h, 1e-14);     // minimum time step
-        trans.h_MIN = 1e-14;
+        config.init_h = parser.double_init_h / 100; // initial time step
+        config.h_MAX = parser.double_init_h;        // maximum time step
+        // config.h_MIN = std::max(1e-9 * parser.double_init_h, 1e-14);     // minimum time step
+        config.h_MIN = 1e-14;
     }
     else
     {
 
         // trans.h_MAX = trans.t_end / 5000;
-        trans.h_MAX = 1e-9;
-        trans.init_h = trans.h_MAX;
+        config.h_MAX = 1e-9;
+        config.init_h = config.h_MAX;
     }
 }
 
@@ -218,7 +229,7 @@ std::deque<double> get_breakpoints(const CKTcircuit &ckt, const Transient &trans
                    {
             if constexpr(std::is_same_v<std::decay_t<decltype(arg)>, Pulsevoltage>){
                 
-                for(double cycle_start = 0; cycle_start < trans.t_end; cycle_start += arg.per){
+                for(double cycle_start = 0; cycle_start < trans.config->t_end; cycle_start += arg.per){
 
                     double cycle_times[] = {
                         arg.td+cycle_start, 
@@ -228,7 +239,7 @@ std::deque<double> get_breakpoints(const CKTcircuit &ckt, const Transient &trans
                     };
 
                     for(double t : cycle_times){
-                        if(t <= trans.t_end){
+                        if(t <= trans.config->t_end){
                             breakpoints.push_back(t);
                         }
                     }
@@ -245,9 +256,9 @@ std::deque<double> get_breakpoints(const CKTcircuit &ckt, const Transient &trans
         breakpoints.pop_front();
     }
 
-    if (breakpoints.back() != trans.t_end)
+    if (breakpoints.back() != trans.config->t_end)
     {
-        breakpoints.push_back(trans.t_end);
+        breakpoints.push_back(trans.config->t_end);
     }
 
     // Ensure the difference between consecutive breakpoints is at least 1e-13
