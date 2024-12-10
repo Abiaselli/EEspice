@@ -3,8 +3,11 @@
 #include <vector>
 
 // Global variables
+/* Upper transient iteration limit for iteration count in time-step control algorithm*/
+const constexpr int ITL4 = 10;
+
 /* Scale factor for predicting*/
-const constexpr int TRTOL = 7;
+const constexpr double TRTOL = 7.0;
 
 /* Error Charge Factor*/
 const constexpr double CHGTOL = 1e-14;
