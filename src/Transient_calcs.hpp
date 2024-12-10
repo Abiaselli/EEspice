@@ -97,6 +97,9 @@ struct TransientConfig {
     double init_h{};
     double h_MAX{};
     double h_MIN{};
+    bool timestep_control;          // true for variable time step, false for fixed time step
+    bool non_linear;                // true for non-linear solver, false for linear solver
+    std::vector<Capacitor> C_list;  // Initial list of capacitors
 };
 
 struct Transient
@@ -190,6 +193,8 @@ void Transsetup(TransientConfig &config, const CircuitParser &parser, CKTcircuit
                            } },
                        element.element);
         }
+
+        config.timestep_control = true;  // Turn on the time step control
     }
     else if (ckt.no_of_mosfets > 0)
     {
@@ -197,14 +202,34 @@ void Transsetup(TransientConfig &config, const CircuitParser &parser, CKTcircuit
         config.h_MAX = parser.double_init_h;        // maximum time step
         // config.h_MIN = std::max(1e-9 * parser.double_init_h, 1e-14);     // minimum time step
         config.h_MIN = 1e-14;
+        config.timestep_control = true;  // Turn on the time step control
     }
     else
     {
-
         // trans.h_MAX = trans.t_end / 5000;
         config.h_MAX = 1e-9;
         config.init_h = config.h_MAX;
+        config.timestep_control = false; // Turn off the time step control
     }
+
+    // Check if the transient simulation is non-linear
+    for (const auto &element : ckt.CKTelements)
+    {
+        std::visit([&](auto &&arg)
+                   {
+                       if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS> || 
+                                     std::is_same_v<std::decay_t<decltype(arg)>, PMOS> || 
+                                     std::is_same_v<std::decay_t<decltype(arg)>, Diode>)
+                       {
+                           config.non_linear = true;
+                       } },
+                   element.element);
+
+        if(config.non_linear) break;
+    }
+
+    // Setup the initial capacitance list
+    config.C_list = ckt.C_list;
 }
 
 /*
