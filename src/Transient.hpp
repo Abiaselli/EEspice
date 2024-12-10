@@ -2,6 +2,7 @@
 
 #include "Transient_calcs.hpp"
 #include "Transient_multi_solvers.hpp"
+#include "Transient_single_solvers.hpp"
 
 std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, const TransientConfig &trans_config)
 {
@@ -178,7 +179,8 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, con
 
             trans.time_trans = vec_trans.back().time_trans;
 
-            solution = multi_next_h(trans, ckt, vec_trans);
+            // solution = multi_next_h(trans, ckt, vec_trans);
+            solution = single_next_h(trans, ckt, vec_trans);
 
             trans.time_trans = trans.time_trans + trans.h;
 

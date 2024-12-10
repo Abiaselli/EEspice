@@ -208,5 +208,7 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int
         isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
     }
 
+    NR_ITE = NR_iteration_counter;
+    
     return solution;
 }
