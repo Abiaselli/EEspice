@@ -217,7 +217,7 @@ multi_timestep multi_solution_solver(const double &h, const Transient &trans, co
     {
         t = trans.time_trans + h;
         std::vector<Capacitor> C_list_copy = trans.C_list;
-        arma::vec local_solution = NewtonRaphson_system(ckt, vec_trans.back().solution, h, 1, t, C_list_copy, vec_trans.back().solution);
+        arma::vec local_solution = NewtonRaphson_system(ckt, h, 1, t, C_list_copy, vec_trans.back().solution);
 
         solution = std::move(local_solution);
         std::pair<arma::vec, arma::vec> currents_voltages = get_currents_voltages(C_list_copy, h, solution, vec_trans.back().solution);
