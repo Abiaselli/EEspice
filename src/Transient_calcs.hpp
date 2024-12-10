@@ -217,7 +217,7 @@ void Transsetup(TransientConfig &config, const CircuitParser &parser, CKTcircuit
                        } },
                    element.element);
 
-        if(config.non_linear) break;
+        if(config.non_linear == true) break;
     }
 
     // Setup the initial capacitance list

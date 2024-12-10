@@ -22,13 +22,9 @@
 #include "CKT.hpp"
 #include "device.hpp"
 
-std::pair<arma::mat, arma::vec> DynamicNonLinear(const CKTcircuit &ckt, double h, const arma::vec &pre_NR_solution, int mode, const double time_trans, std::vector<Capacitor> &C_list, int NR_iteration_counter, const arma::vec &pre_global_solution)
-{
-
+std::pair<arma::mat, arma::vec> Dynamic(const CKTcircuit &ckt, const double h, const arma::vec &pre_global_solution, const int mode, const double time_trans){
     arma::mat LHS = ckt.cktdematrix->get_init_LHS();
     arma::vec RHS = ckt.cktdematrix->get_init_RHS();
-    // LHS.print("in_LHS matrix =");
-    // RHS.print("RHS matrix =");
 
     for (const auto &element : ckt.CKTelements)
     {
@@ -38,15 +34,31 @@ std::pair<arma::mat, arma::vec> DynamicNonLinear(const CKTcircuit &ckt, double h
                        {
                            // Linear Capacitor
                            C_assigner_BE(arg.nodePos, arg.nodeNeg, arg.value, h, LHS, RHS, pre_global_solution, mode);
-                       }
+                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Pulsevoltage>)
                        {
+                            double val_pulse = V_pulse_value(arg.V1, arg.V2, time_trans, arg.td, arg.tr, arg.tf, arg.pw, arg.per);
 
-                           double val_pulse = V_pulse_value(arg.V1, arg.V2, time_trans, arg.td, arg.tr, arg.tf, arg.pw, arg.per);
+                            RHS.row(arg.RHS_locate - 1).col(0) += val_pulse;
+                        }},
+                    element.element);
+    }
+    return {LHS, RHS};
+}
 
-                           RHS.row(arg.RHS_locate - 1).col(0) += val_pulse;
-                       }
-                       else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS>)
+std::pair<arma::mat, arma::vec> NonLinear(const CKTcircuit &ckt, const double h, const arma::vec &pre_NR_solution, int mode, const double time_trans, std::vector<Capacitor> &C_list, int NR_iteration_counter, std::pair<arma::mat, arma::vec> &matrixes)
+{
+
+    arma::mat LHS = matrixes.first;
+    arma::vec RHS = matrixes.second;
+    // LHS.print("in_LHS matrix =");
+    // RHS.print("RHS matrix =");
+
+    for (const auto &element : ckt.CKTelements)
+    {
+        std::visit([&](auto &&arg)
+                   {
+                       if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS>)
                        {
                            NMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, h, pre_NR_solution, ckt.T_nodes, LHS, RHS, mode, C_list, NR_iteration_counter);
                        }
@@ -165,21 +177,24 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int
     int NR_iteration_counter = 0;
     bool isconverge = false;
     arma::vec solution = pre_global_solution;
+    std::pair<arma::mat, arma::vec> init_matrices;
     std::pair<arma::mat, arma::vec> matrices;
 
     std::vector<arma::vec> NR_solutions(100);
     NR_solutions[0] = pre_global_solution;
 
+    init_matrices = Dynamic(ckt, h, pre_global_solution, mode, time_trans);
+
     for (int i = 1; i < 3; i++)
     {
-        matrices = DynamicNonLinear(ckt, h, solution, mode, time_trans, C_list, NR_iteration_counter, pre_global_solution);
+        matrices = NonLinear(ckt, h, solution, mode, time_trans, C_list, NR_iteration_counter, init_matrices);
         // const arma::mat &LHS = matrices.first;
         // const arma::mat &RHS = matrices.second;
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        // solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
-        solution = arma::solve(matrices.first, matrices.second);
+        solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
+        // solution = arma::solve(matrices.first, matrices.second);
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
     }
@@ -196,12 +211,12 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int
             return solution;
         }
 
-        matrices = DynamicNonLinear(ckt, h, solution, mode, time_trans, C_list, NR_iteration_counter, pre_global_solution);
+        matrices = NonLinear(ckt, h, solution, mode, time_trans, C_list, NR_iteration_counter, init_matrices);
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        // solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
-        solution = arma::solve(matrices.first, matrices.second);
+        solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
+        // solution = arma::solve(matrices.first, matrices.second);
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
 
@@ -209,6 +224,6 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int
     }
 
     NR_ITE = NR_iteration_counter;
-    
+
     return solution;
 }

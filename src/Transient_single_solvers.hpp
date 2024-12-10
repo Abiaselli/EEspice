@@ -85,7 +85,9 @@ single_timestep single_solution_solver(const double &h, const Transient &trans, 
         single_h.C_list = C_list_copy;
     }
     else if(trans.config->non_linear == false){
-        single_h.solution = arma::solve(ckt.cktdematrix->get_init_LHS(), ckt.cktdematrix->get_init_RHS());
+        std::pair<arma::mat, arma::vec> matrices;
+        matrices = Dynamic(ckt, h, vec_trans.back().solution, trans.mode, single_h.t);
+        single_h.solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
         std::pair<arma::vec, arma::vec> currents_voltages = get_currents_voltages(C_list_copy, h, single_h.solution, vec_trans.back().solution);
         single_h.C_current = currents_voltages.first;
         single_h.C_voltage = currents_voltages.second;
@@ -101,8 +103,8 @@ single_timestep single_solution_solver(const double &h, const Transient &trans, 
     return single_h;
 }
 
-bool single_LTE_check(single_Truncation_error &LTE, single_timestep &single_h, const std::vector<Transient> &vec_trans, 
-                        double &temp_h, const Transient &trans, const CKTcircuit &ckt){
+bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &single_h, const std::vector<Transient> &vec_trans, 
+                        double &temp_h, const Transient &trans){
     if(NR_ITE < ITL4){
 
        LTE = single_LTE_BE_calculation(single_h, vec_trans);
@@ -116,17 +118,7 @@ bool single_LTE_check(single_Truncation_error &LTE, single_timestep &single_h, c
            // Accept the solution
            temp_h = std::min({(LTE.LTE_BE_h.min() * TRTOL), 2.0 * single_h.h, trans.config->h_MAX});
 
-           if(temp_h == LTE.LTE_BE_h.min() * TRTOL){
-                return true;
-           }
-           else if(temp_h == 2 * single_h.h){
-                single_h = single_solution_solver(temp_h, trans, ckt, vec_trans);
-                return true;
-           }
-           else{
-                single_h = single_solution_solver(temp_h, trans, ckt, vec_trans);
-                return true;
-           } 
+           return true;
        }
     }
 
@@ -159,7 +151,7 @@ arma::vec single_next_h(Transient &trans, const CKTcircuit &ckt, const std::vect
 
         total_timepoint += 1;
 
-        LTE_check = single_LTE_check(LTE, single_h, vec_trans, temp_h, trans, ckt);
+        LTE_check = single_LTE_check(LTE, single_h, vec_trans, temp_h, trans);
 
     }while(LTE_check == false);
 

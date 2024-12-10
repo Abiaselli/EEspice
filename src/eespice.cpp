@@ -53,9 +53,10 @@ int main(int argc, const char **argv)
     auto t3 = std::chrono::high_resolution_clock::now(); // End time
 
     std::chrono::duration<double, std::milli> time_span = (t3 - t1);
-    // std::cout << "Total analysis time:" << OP_time.count() + trans_time.count() << "ms\n";
+    std::chrono::duration<double, std::milli> analysis_time = (tstop_trans - t1);
+    std::cout << "Total analysis time:" << (analysis_time).count()  << "ms\n";
     std::cout << "Total time:" << time_span.count() << "ms\n";
-    std::cout << "The Total time for multi-solver is: " << timer.total_ms() << "ms\n";
+    // std::cout << "The Total time for multi-solver is: " << timer.total_ms() << "ms\n";
 
     // save_threads_time(t1, tstop_trans);
 
