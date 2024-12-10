@@ -99,6 +99,7 @@ struct Transient
     const TransientConfig* config; // pointer to a shared config (read-only)
 
     double h{};
+    double next_h{};
     double time_trans{};
     int mode{};
     int trans_count{};

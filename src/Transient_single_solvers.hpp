@@ -124,7 +124,7 @@ bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &singl
 
     else{
         // Reject the solution, hn = hn/8 and recompute the new hn
-        temp_h = single_h.h / 8;
+        temp_h = single_h.h / 8.0;
 
         if(temp_h > trans.config->h_MIN){
             return false;
@@ -139,7 +139,7 @@ bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &singl
 arma::vec single_next_h(Transient &trans, const CKTcircuit &ckt, const std::vector<Transient> &vec_trans){
 
     arma::vec solution;
-    double temp_h = vec_trans.back().h;                     // The temporary time step for this function
+    double temp_h = vec_trans.back().next_h;                     // The temporary time step for this function
 
     bool LTE_check= false;
 
@@ -155,7 +155,8 @@ arma::vec single_next_h(Transient &trans, const CKTcircuit &ckt, const std::vect
 
     }while(LTE_check == false);
 
-    trans.h = temp_h;
+    trans.h = single_h.h;
+    trans.next_h = temp_h;
     trans.solution = single_h.solution;
     trans.C_list = single_h.C_list;
     trans.Capacitance = single_h.Capacitance;

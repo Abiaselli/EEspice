@@ -45,6 +45,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, con
     auto tstop_op = std::chrono::high_resolution_clock::now();
 
     trans_op.solution = solution;
+    trans_op.next_h = trans_config.init_h;
     history_trans_update(trans_op, vec_trans);
 
     arma::vec node_volt_print = solution.submat(0, 0, ckt.external_nodes - 1, 0);
@@ -167,6 +168,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, con
             // trans.LHS = matrixs.first;
             // trans.RHS = matrixs.second;
             trans.trans_count += 1;
+            trans.next_h = trans.h;
             // trans.C_current.print("The current matrix is: ");
 
             history_trans_update(trans, vec_trans);
@@ -226,6 +228,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, con
                 // breakpoints_trans.LHS = matrixs.first;
                 // breakpoints_trans.RHS = matrixs.second;
                 breakpoints_trans.trans_count = vec_trans.back().trans_count + 1;
+                breakpoints_trans.next_h = breakpoints_trans.h;
 
                 history_trans_update(breakpoints_trans, vec_trans);
 
