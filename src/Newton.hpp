@@ -22,7 +22,7 @@
 #include "CKT.hpp"
 #include "device.hpp"
 
-std::pair<arma::mat, arma::vec> DynamicNonLinear(const CKTcircuit &ckt, double h, const arma::vec &pre_NR_solution, int mode, const double time_trans, std::vector<Capacitor> &C_list, int NR_iteration_counter, arma::vec &pre_global_solution)
+std::pair<arma::mat, arma::vec> DynamicNonLinear(const CKTcircuit &ckt, double h, const arma::vec &pre_NR_solution, int mode, const double time_trans, std::vector<Capacitor> &C_list, int NR_iteration_counter, const arma::vec &pre_global_solution)
 {
 
     arma::mat LHS = ckt.cktdematrix->get_init_LHS();
@@ -156,7 +156,7 @@ bool isConverge(const std::vector<arma::vec> &NR_solutions, const CKTcircuit &ck
 }
 
 // Newton Raphson system solver for non-linear and dynamic elements
-arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const arma::vec &pre_solution, const double &h, const int &mode, const double time_trans, std::vector<Capacitor> &C_list, arma::vec &pre_global_solution)
+arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int &mode, const double time_trans, std::vector<Capacitor> &C_list, const arma::vec &pre_global_solution)
 {
 
     // std::cout << "Enter NewtonRaphson system" << std::endl;
@@ -164,11 +164,11 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const arma::vec &pre_solut
 
     int NR_iteration_counter = 0;
     bool isconverge = false;
-    arma::vec solution = pre_solution;
+    arma::vec solution = pre_global_solution;
     std::pair<arma::mat, arma::vec> matrices;
 
     std::vector<arma::vec> NR_solutions(100);
-    NR_solutions[0] = pre_solution;
+    NR_solutions[0] = pre_global_solution;
 
     for (int i = 1; i < 3; i++)
     {
