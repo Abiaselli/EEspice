@@ -19,6 +19,7 @@ struct Capacitor;
 struct VoltageSource
 {
     int id;
+    std::string nodePos_str, nodeNeg_str;
     int nodePos, nodeNeg;
     double value;
 };
@@ -26,6 +27,7 @@ struct VoltageSource
 struct Pulsevoltage
 {
     int id{};
+    std::string nodePos_str, nodeNeg_str;
     int nodePos{}, nodeNeg{};
     double t1_pulse{};
     double V1{};
@@ -42,6 +44,7 @@ struct Pulsevoltage
 struct Diode
 {
     int id{};
+    std::string nodePos_str, nodeNeg_str;
     int nodePos{}, nodeNeg{};
     double Is{};
     double VT{};
@@ -50,6 +53,7 @@ struct Diode
 struct VCCS
 {
     int id{};
+    std::string node_x_str, node_y_str, node_cx_str, node_cy_str;
     int node_x{}, node_y{}, node_cx{}, node_cy{};
     double value{};
 };
@@ -57,6 +61,7 @@ struct VCCS
 struct NMOS
 {
     int id{};
+    std::string node_vd_str, node_vg_str, node_vs_str, node_vb_str;
     int node_vd{}, node_vg{}, node_vs{}, node_vb{};
     double W{}, L{};
 };
@@ -64,6 +69,7 @@ struct NMOS
 struct PMOS
 {
     int id{};
+    std::string node_vd_str, node_vg_str, node_vs_str, node_vb_str;
     int node_vd{}, node_vg{}, node_vs{}, node_vb{};
     double W{}, L{};
 };
@@ -71,6 +77,7 @@ struct PMOS
 struct CurrentSource
 {
     int id;
+    std::string nodePos_str, nodeNeg_str;
     int nodePos, nodeNeg;
     double value;
 };
@@ -78,6 +85,7 @@ struct CurrentSource
 struct Resistor
 {
     int id;
+    std::string nodePos_str, nodeNeg_str;
     int nodePos, nodeNeg;
     double value;
 };
@@ -86,6 +94,7 @@ struct Capacitor
 {
     int id{};
     std::string name{}; // It's used in MOSFETs Eg: M1.1, M1.2, M1.3, M1.4
+    std::string nodePos_str, nodeNeg_str;
     int nodePos{}, nodeNeg{};
     double value{};
 
@@ -148,6 +157,26 @@ double convertToValue(const std::string &valueStr)
 
     return value * 1.0; // No unit or unrecognized unit, assume the value is in base units
 }
+
+int convertToNode(const std::string &nodeStr, std::vector<Nodes> &vec_nodes)
+{
+    int node = 0;
+    for(int i = 0; i < vec_nodes.size(); i++){
+        if(nodeStr == vec_nodes.at(i).name){
+            node = vec_nodes.at(i).id;
+            return node;
+        }
+    }
+
+    node = vec_nodes.size() + 1;
+    vec_nodes.push_back(Nodes{nodeStr, node});
+    return node;
+}
+
+struct Nodes{
+    std::string name;
+    int id;
+};
 
 //////////////////////////////////////////////////////////////
 
