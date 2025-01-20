@@ -158,25 +158,16 @@ double convertToValue(const std::string &valueStr)
     return value * 1.0; // No unit or unrecognized unit, assume the value is in base units
 }
 
-int convertToNode(const std::string &nodeStr, std::vector<Nodes> &vec_nodes)
+int convertToNode(const std::string &nodeStr, std::map<std::string, int> &map_nodes)
 {
-    int node = 0;
-    for(int i = 0; i < vec_nodes.size(); i++){
-        if(nodeStr == vec_nodes.at(i).name){
-            node = vec_nodes.at(i).id;
-            return node;
-        }
+    auto it = map_nodes.find(nodeStr);
+    if (it != map_nodes.end()) {
+        return it->second;
     }
-
-    node = vec_nodes.size() + 1;
-    vec_nodes.push_back(Nodes{nodeStr, node});
+    int node = map_nodes.size() + 1;
+    map_nodes.emplace(nodeStr, node);
     return node;
 }
-
-struct Nodes{
-    std::string name;
-    int id;
-};
 
 //////////////////////////////////////////////////////////////
 

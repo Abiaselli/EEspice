@@ -24,7 +24,7 @@ struct CircuitParser
     double double_t_end; // This double_t_end can be passed to the CKTcircuit class
     double double_init_h;
     int num_mosfets{};
-    std::vector<Nodes> vec_nodes;
+    std::map<std::string, int> map_nodes;
 
     CircuitParser(const std::string &filename) : filename(filename) {}
 
