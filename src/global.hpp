@@ -159,7 +159,10 @@ double convertToValue(const std::string &valueStr)
 }
 
 int convertToNode(const std::string &nodeStr, std::map<std::string, int> &map_nodes)
-{
+{   
+    if(nodeStr == "0"){
+        return 0;
+    }
     auto it = map_nodes.find(nodeStr);
     if (it != map_nodes.end()) {
         return it->second;

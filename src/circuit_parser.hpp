@@ -139,6 +139,8 @@ struct CircuitParser
                 pv.id = v_id;
                 pv.nodePos_str = v_nodePos_str;
                 pv.nodeNeg_str = v_nodeNeg_str;
+                pv.nodePos = convertToNode(v_nodePos_str, map_nodes);
+                pv.nodeNeg = convertToNode(v_nodeNeg_str, map_nodes);
 
                 pulseParamsStream >> v1 >> v2 >> td >> tr >> tf >> pw >> per;
 
@@ -160,6 +162,8 @@ struct CircuitParser
                 vs.id = v_id;
                 vs.nodePos_str = v_nodePos_str;
                 vs.nodeNeg_str = v_nodeNeg_str;
+                vs.nodePos = convertToNode(v_nodePos_str, map_nodes);
+                vs.nodeNeg = convertToNode(v_nodeNeg_str, map_nodes);
 
                 vs.value = convertToValue(v_type);
 
@@ -175,6 +179,8 @@ struct CircuitParser
 
             iss >> r.nodePos_str >> r.nodeNeg_str >> valueStr;
 
+            r.nodePos = convertToNode(r.nodePos_str, map_nodes);
+            r.nodeNeg = convertToNode(r.nodeNeg_str, map_nodes);
             r.value = convertToValue(valueStr);
 
             elements.push_back(CircuitElement{r});
@@ -188,6 +194,8 @@ struct CircuitParser
 
             iss >> c.nodePos_str >> c.nodeNeg_str >> valueStr;
 
+            c.nodePos = convertToNode(c.nodePos_str, map_nodes);
+            c.nodeNeg = convertToNode(c.nodeNeg_str, map_nodes);
             c.value = convertToValue(valueStr);
 
             elements.push_back(CircuitElement{c});
@@ -201,6 +209,8 @@ struct CircuitParser
 
             iss >> cs.nodePos_str >> cs.nodeNeg_str >> valueStr;
 
+            cs.nodePos = convertToNode(cs.nodePos_str, map_nodes);
+            cs.nodeNeg = convertToNode(cs.nodeNeg_str, map_nodes);
             cs.value = convertToValue(valueStr);
 
             elements.push_back(CircuitElement{cs});
@@ -214,6 +224,8 @@ struct CircuitParser
 
             iss >> d.nodePos_str >> d.nodeNeg_str >> valueStr;
 
+            d.nodePos = convertToNode(d.nodePos_str, map_nodes);
+            d.nodeNeg = convertToNode(d.nodeNeg_str, map_nodes);
             d.Is = convertToValue(valueStr);
 
             iss >> valueStr;
@@ -229,6 +241,10 @@ struct CircuitParser
 
             iss >> g.node_x_str >> g.node_y_str >> g.node_cx_str >> g.node_cy_str >> valueStr;
 
+            g.node_x = convertToNode(g.node_x_str, map_nodes);
+            g.node_y = convertToNode(g.node_y_str, map_nodes);
+            g.node_cx = convertToNode(g.node_cx_str, map_nodes);
+            g.node_cy = convertToNode(g.node_cy_str, map_nodes);
             g.value = convertToValue(valueStr);
 
             elements.push_back(CircuitElement{g});
@@ -255,12 +271,14 @@ struct CircuitParser
                 mn.id = M_id;
 
                 mn.node_vd_str = M_node_vd_str;
-
                 mn.node_vg_str = M_node_vg_str;
-
                 mn.node_vs_str = M_node_vs_str;
-
                 mn.node_vb_str = M_node_vb_str;
+
+                mn.node_vd = convertToNode(M_node_vd_str, map_nodes);
+                mn.node_vg = convertToNode(M_node_vg_str, map_nodes);
+                mn.node_vs = convertToNode(M_node_vs_str, map_nodes);
+                mn.node_vb = convertToNode(M_node_vb_str, map_nodes);
 
                 // Read and parse the W and L parameters with their prefixes
                 while (iss >> parameter)
@@ -297,12 +315,14 @@ struct CircuitParser
                 mp.id = M_id;
 
                 mp.node_vd_str = M_node_vd_str;
-
                 mp.node_vg_str = M_node_vg_str;
-
                 mp.node_vs_str = M_node_vs_str;
-
                 mp.node_vb_str = M_node_vb_str;
+
+                mp.node_vd = convertToNode(M_node_vd_str, map_nodes);  
+                mp.node_vg = convertToNode(M_node_vg_str, map_nodes);
+                mp.node_vs = convertToNode(M_node_vs_str, map_nodes);
+                mp.node_vb = convertToNode(M_node_vb_str, map_nodes);
 
                 while (iss >> parameter)
                 {
