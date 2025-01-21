@@ -1,7 +1,9 @@
 *.a
 *.o
 *.so
+*.csv
 temp
 .vscode
+test.cpp
 
 
