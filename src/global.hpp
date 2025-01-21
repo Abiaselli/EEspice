@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <variant>
+#include <map>
 
 // for debug mode
 #include "sim_variables.hpp"
@@ -17,7 +18,8 @@ struct Truncation_error;
 struct Capacitor;
 
 struct VoltageSource
-{
+{   
+    std::string id_str;
     int id;
     std::string nodePos_str, nodeNeg_str;
     int nodePos, nodeNeg;
@@ -25,7 +27,8 @@ struct VoltageSource
 };
 
 struct Pulsevoltage
-{
+{   
+    std::string id_str;
     int id{};
     std::string nodePos_str, nodeNeg_str;
     int nodePos{}, nodeNeg{};
@@ -42,7 +45,8 @@ struct Pulsevoltage
 };
 
 struct Diode
-{
+{   
+    std::string id_str;
     int id{};
     std::string nodePos_str, nodeNeg_str;
     int nodePos{}, nodeNeg{};
@@ -51,7 +55,8 @@ struct Diode
 };
 
 struct VCCS
-{
+{   
+    std::string id_str;
     int id{};
     std::string node_x_str, node_y_str, node_cx_str, node_cy_str;
     int node_x{}, node_y{}, node_cx{}, node_cy{};
@@ -59,7 +64,8 @@ struct VCCS
 };
 
 struct NMOS
-{
+{   
+    std::string id_str;
     int id{};
     std::string node_vd_str, node_vg_str, node_vs_str, node_vb_str;
     int node_vd{}, node_vg{}, node_vs{}, node_vb{};
@@ -67,7 +73,8 @@ struct NMOS
 };
 
 struct PMOS
-{
+{   
+    std::string id_str;
     int id{};
     std::string node_vd_str, node_vg_str, node_vs_str, node_vb_str;
     int node_vd{}, node_vg{}, node_vs{}, node_vb{};
@@ -75,7 +82,8 @@ struct PMOS
 };
 
 struct CurrentSource
-{
+{   
+    std::string id_str;
     int id;
     std::string nodePos_str, nodeNeg_str;
     int nodePos, nodeNeg;
@@ -83,7 +91,8 @@ struct CurrentSource
 };
 
 struct Resistor
-{
+{   
+    std::string id_str;
     int id;
     std::string nodePos_str, nodeNeg_str;
     int nodePos, nodeNeg;
@@ -91,7 +100,8 @@ struct Resistor
 };
 
 struct Capacitor
-{
+{   
+    std::string id_str;
     int id{};
     std::string name{}; // It's used in MOSFETs Eg: M1.1, M1.2, M1.3, M1.4
     std::string nodePos_str, nodeNeg_str;
@@ -167,9 +177,20 @@ int convertToNode(const std::string &nodeStr, std::map<std::string, int> &map_no
     if (it != map_nodes.end()) {
         return it->second;
     }
-    int node = map_nodes.size() + 1;
-    map_nodes.emplace(nodeStr, node);
-    return node;
+    int new_node = map_nodes.size() + 1;
+    map_nodes.emplace(nodeStr, new_node);
+    return new_node;
+}
+
+int convertToDevice(const std::string &nodeStr, std::map<std::string, int> &map_device){
+    auto it = map_device.find(nodeStr);
+    if (it != map_device.end()) {
+       std::cerr << "Error: Device " << nodeStr << " already exists!" << std::endl;
+       exit(1);
+    }
+    int new_device = map_device.size() + 1;
+    map_device.emplace(nodeStr, new_device);
+    return new_device;
 }
 
 //////////////////////////////////////////////////////////////

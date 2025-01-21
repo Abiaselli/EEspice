@@ -9,6 +9,7 @@
 #include <fstream>
 #include <tuple>
 #include <cmath>
+#include <map>
 
 #include <algorithm>
 #include <deque>
@@ -16,6 +17,7 @@
 #include <typeinfo>
 
 #include "global.hpp"
+#include "map.hpp"
 
 struct CircuitParser
 {
@@ -24,349 +26,334 @@ struct CircuitParser
     double double_t_end; // This double_t_end can be passed to the CKTcircuit class
     double double_init_h;
     int num_mosfets{};
-    std::map<std::string, int> map_nodes;
 
     CircuitParser(const std::string &filename) : filename(filename) {}
 
-    void parser()
-    {
-
-        std::ifstream file(filename);
-
-        if (!file.is_open())
-        {
-
-            std::cerr << "Error opening file: " << filename << std::endl;
-
-            exit(1);
-
-            return;
-        }
-
-        std::string line;
-
-        std::getline(file, line); // Read and discard the first line
-
-        while (std::getline(file, line))
-        {
-
-            size_t commentPos = line.find('*');
-
-            if (commentPos != std::string::npos)
-            {
-
-                line = line.substr(0, commentPos); // Remove comment
-            }
-
-            if (!line.empty())
-            {
-
-                parseLine(line);
-            }
-        }
-    }
-
     const std::vector<CircuitElement> &getCircuitElements() const
     {
-
         return elements;
     }
 
-    int getMaxNode() const
+};
+
+int getMaxNode(const std::vector<CircuitElement> &elements)
+{
+    int maxNode = 0;
+    for (const auto &element : elements)
     {
-        int maxNode = 0;
-        for (const auto &element : elements)
-        {
-            std::visit([&maxNode](auto &&arg)
-                       {
-                           if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS>)
-                           {
-                               maxNode = std::max({maxNode, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb});
-                           }
-                           else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
-                           {
-                               maxNode = std::max({maxNode, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb});
-                           }
-                           else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, VCCS>)
-                           {
-                               maxNode = std::max({maxNode, arg.node_x, arg.node_y, arg.node_cx, arg.node_cy});
-                           }
-                           else
-                           {
-                               maxNode = std::max(maxNode, arg.nodePos);
-                               maxNode = std::max(maxNode, arg.nodeNeg);
-                           } },
-                       element.element);
-        }
-        return maxNode;
+        std::visit([&maxNode](auto &&arg)
+                    {
+                        if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS>)
+                        {
+                            maxNode = std::max({maxNode, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb});
+                        }
+                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
+                        {
+                            maxNode = std::max({maxNode, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb});
+                        }
+                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, VCCS>)
+                        {
+                            maxNode = std::max({maxNode, arg.node_x, arg.node_y, arg.node_cx, arg.node_cy});
+                        }
+                        else
+                        {
+                            maxNode = std::max(maxNode, arg.nodePos);
+                            maxNode = std::max(maxNode, arg.nodeNeg);
+                        } },
+                    element.element);
+    }
+    return maxNode;
+}
+
+void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
+{
+
+    std::istringstream iss(line);
+    std::string type, id_str, valueStr;
+    std::string v_nodePos_str, v_nodeNeg_str;
+    std::string v_type, t1_pulse;
+
+    iss >> type; // Automatically skips leading whitespace before reading type
+    // std::cout<<"type is "<<type<<std::endl;
+
+    if (type.empty())
+    {
+        return; // Skip empty lines or lines with only whitespaces
     }
 
-    void parseLine(const std::string &line)
-    {
+    if (type[0] == 'V' || type[0] == 'v')
+    {   
+        id_str = type;
+        int v_id = convertToDevice(id_str, map.map_voltages);
 
-        std::istringstream iss(line);
-        std::string type, valueStr;
-        // int v_nodePos, v_nodeNeg;
-        std::string v_nodePos_str, v_nodeNeg_str;
-        std::string v_type, t1_pulse;
+        iss >> v_nodePos_str >> v_nodeNeg_str >> v_type;
+        if (v_type == "pulse" || v_type == "PULSE")
+        { // Pulse voltage settings
+            Pulsevoltage pv;
+            std::string pulseParamsString;
+            std::getline(iss, pulseParamsString);
+            // Remove the parentheses
+            pulseParamsString.erase(std::remove(pulseParamsString.begin(), pulseParamsString.end(), '('), pulseParamsString.end());
+            pulseParamsString.erase(std::remove(pulseParamsString.begin(), pulseParamsString.end(), ')'), pulseParamsString.end());
 
-        iss >> type; // Automatically skips leading whitespace before reading type
-        // std::cout<<"type is "<<type<<std::endl;
+            // Split the pulseParamsString into individual parameters
+            std::istringstream pulseParamsStream(pulseParamsString);
+            std::string v1, v2, td, tr, tf, pw, per;
 
-        if (type.empty())
-        {
-            return; // Skip empty lines or lines with only whitespaces
-        }
+            pv.id_str = id_str;
+            pv.id = v_id;
+            pv.nodePos_str = v_nodePos_str;
+            pv.nodeNeg_str = v_nodeNeg_str;
+            pv.nodePos = convertToNode(v_nodePos_str, map.map_nodes);
+            pv.nodeNeg = convertToNode(v_nodeNeg_str, map.map_nodes);
 
-        if (type[0] == 'V' || type[0] == 'v')
-        {
-            int v_id = std::stoi(type.substr(1));
+            pulseParamsStream >> v1 >> v2 >> td >> tr >> tf >> pw >> per;
 
-            iss >> v_nodePos_str >> v_nodeNeg_str >> v_type;
-            if (v_type == "pulse" || v_type == "PULSE")
-            { // Pulse voltage settings
-                Pulsevoltage pv;
-                std::string pulseParamsString;
-                std::getline(iss, pulseParamsString);
-                // Remove the parentheses
-                pulseParamsString.erase(std::remove(pulseParamsString.begin(), pulseParamsString.end(), '('), pulseParamsString.end());
-                pulseParamsString.erase(std::remove(pulseParamsString.begin(), pulseParamsString.end(), ')'), pulseParamsString.end());
+            pv.V1 = convertToValue(v1);
+            pv.V2 = convertToValue(v2);
+            pv.td = convertToValue(td);
+            pv.tr = convertToValue(tr);
+            pv.tf = convertToValue(tf);
+            pv.pw = convertToValue(pw);
+            pv.per = convertToValue(per);
 
-                // Split the pulseParamsString into individual parameters
-                std::istringstream pulseParamsStream(pulseParamsString);
-                std::string v1, v2, td, tr, tf, pw, per;
-
-                pv.id = v_id;
-                pv.nodePos_str = v_nodePos_str;
-                pv.nodeNeg_str = v_nodeNeg_str;
-                pv.nodePos = convertToNode(v_nodePos_str, map_nodes);
-                pv.nodeNeg = convertToNode(v_nodeNeg_str, map_nodes);
-
-                pulseParamsStream >> v1 >> v2 >> td >> tr >> tf >> pw >> per;
-
-                pv.V1 = convertToValue(v1);
-                pv.V2 = convertToValue(v2);
-                pv.td = convertToValue(td);
-                pv.tr = convertToValue(tr);
-                pv.tf = convertToValue(tf);
-                pv.pw = convertToValue(pw);
-                pv.per = convertToValue(per);
-
-                elements.push_back(CircuitElement{pv});
-            }
-            else
-            {
-
-                VoltageSource vs;
-
-                vs.id = v_id;
-                vs.nodePos_str = v_nodePos_str;
-                vs.nodeNeg_str = v_nodeNeg_str;
-                vs.nodePos = convertToNode(v_nodePos_str, map_nodes);
-                vs.nodeNeg = convertToNode(v_nodeNeg_str, map_nodes);
-
-                vs.value = convertToValue(v_type);
-
-                elements.push_back(CircuitElement{vs});
-            }
-        }
-        else if (type[0] == 'R' || type[0] == 'r')
-        {
-
-            Resistor r;
-
-            r.id = std::stoi(type.substr(1));
-
-            iss >> r.nodePos_str >> r.nodeNeg_str >> valueStr;
-
-            r.nodePos = convertToNode(r.nodePos_str, map_nodes);
-            r.nodeNeg = convertToNode(r.nodeNeg_str, map_nodes);
-            r.value = convertToValue(valueStr);
-
-            elements.push_back(CircuitElement{r});
-        }
-        else if (type[0] == 'C' || type[0] == 'c')
-        {
-
-            Capacitor c;
-
-            c.id = std::stoi(type.substr(1));
-
-            iss >> c.nodePos_str >> c.nodeNeg_str >> valueStr;
-
-            c.nodePos = convertToNode(c.nodePos_str, map_nodes);
-            c.nodeNeg = convertToNode(c.nodeNeg_str, map_nodes);
-            c.value = convertToValue(valueStr);
-
-            elements.push_back(CircuitElement{c});
-        }
-        else if (type[0] == 'I' || type[0] == 'i')
-        {
-
-            CurrentSource cs;
-
-            cs.id = std::stoi(type.substr(1));
-
-            iss >> cs.nodePos_str >> cs.nodeNeg_str >> valueStr;
-
-            cs.nodePos = convertToNode(cs.nodePos_str, map_nodes);
-            cs.nodeNeg = convertToNode(cs.nodeNeg_str, map_nodes);
-            cs.value = convertToValue(valueStr);
-
-            elements.push_back(CircuitElement{cs});
-        }
-        else if (type[0] == 'D' || type[0] == 'd')
-        {
-
-            Diode d;
-
-            d.id = std::stoi(type.substr(1));
-
-            iss >> d.nodePos_str >> d.nodeNeg_str >> valueStr;
-
-            d.nodePos = convertToNode(d.nodePos_str, map_nodes);
-            d.nodeNeg = convertToNode(d.nodeNeg_str, map_nodes);
-            d.Is = convertToValue(valueStr);
-
-            iss >> valueStr;
-
-            d.VT = convertToValue(valueStr);
-
-            elements.push_back(CircuitElement{d});
-        }
-        else if (type[0] == 'G' || type[0] == 'g')
-        {
-            VCCS g;
-            g.id = std::stoi(type.substr(1));
-
-            iss >> g.node_x_str >> g.node_y_str >> g.node_cx_str >> g.node_cy_str >> valueStr;
-
-            g.node_x = convertToNode(g.node_x_str, map_nodes);
-            g.node_y = convertToNode(g.node_y_str, map_nodes);
-            g.node_cx = convertToNode(g.node_cx_str, map_nodes);
-            g.node_cy = convertToNode(g.node_cy_str, map_nodes);
-            g.value = convertToValue(valueStr);
-
-            elements.push_back(CircuitElement{g});
-        }
-
-        else if (type[0] == 'M' || type[0] == 'm')
-        {
-
-            int M_id = std::stoi(type.substr(1));
-
-            std::string M_node_vd_str, M_node_vg_str, M_node_vs_str, M_node_vb_str;
-
-            std::string M_model, parameter;
-
-            num_mosfets = num_mosfets + 1;
-
-            iss >> M_node_vd_str >> M_node_vg_str >> M_node_vs_str >> M_node_vb_str >> M_model;
-
-            if (M_model == "NMOS")
-            {
-
-                NMOS mn;
-
-                mn.id = M_id;
-
-                mn.node_vd_str = M_node_vd_str;
-                mn.node_vg_str = M_node_vg_str;
-                mn.node_vs_str = M_node_vs_str;
-                mn.node_vb_str = M_node_vb_str;
-
-                mn.node_vd = convertToNode(M_node_vd_str, map_nodes);
-                mn.node_vg = convertToNode(M_node_vg_str, map_nodes);
-                mn.node_vs = convertToNode(M_node_vs_str, map_nodes);
-                mn.node_vb = convertToNode(M_node_vb_str, map_nodes);
-
-                // Read and parse the W and L parameters with their prefixes
-                while (iss >> parameter)
-                {
-                    size_t pos = parameter.find('=');
-                    if (pos != std::string::npos)
-                    {
-                        std::string key = parameter.substr(0, pos);
-                        std::string value = parameter.substr(pos + 1);
-
-                        if (key == "W")
-                        {
-                            valueStr = value;
-                            mn.W = convertToValue(valueStr);
-                        }
-                        else if (key == "L")
-                        {
-                            valueStr = value;
-                            mn.L = convertToValue(valueStr);
-
-                            // std::cout<<"L is "<<mn.L<<std::endl;
-                            // std::cout<<"type of L is "<<typeid(mn.L).name() << std::endl;
-                        }
-                    }
-                }
-
-                elements.push_back(CircuitElement{mn});
-            }
-            else if (M_model == "PMOS")
-            {
-
-                PMOS mp;
-
-                mp.id = M_id;
-
-                mp.node_vd_str = M_node_vd_str;
-                mp.node_vg_str = M_node_vg_str;
-                mp.node_vs_str = M_node_vs_str;
-                mp.node_vb_str = M_node_vb_str;
-
-                mp.node_vd = convertToNode(M_node_vd_str, map_nodes);  
-                mp.node_vg = convertToNode(M_node_vg_str, map_nodes);
-                mp.node_vs = convertToNode(M_node_vs_str, map_nodes);
-                mp.node_vb = convertToNode(M_node_vb_str, map_nodes);
-
-                while (iss >> parameter)
-                {
-                    size_t pos = parameter.find('=');
-                    if (pos != std::string::npos)
-                    {
-                        std::string key = parameter.substr(0, pos);
-                        std::string value = parameter.substr(pos + 1);
-
-                        if (key == "W")
-                        {
-                            valueStr = value;
-                            mp.W = convertToValue(valueStr);
-                        }
-                        else if (key == "L")
-                        {
-                            valueStr = value;
-                            mp.L = convertToValue(valueStr);
-                        }
-                    }
-                }
-
-                elements.push_back(CircuitElement{mp});
-            }
-            else
-            {
-                std::cerr << "Error: Unknown MOSFET model: " << M_model << std::endl;
-                exit(1);
-            }
-        }
-        else if (type == ".tran")
-        {
-            std::string string_h, string_t_end;
-
-            iss >> string_h >> string_t_end;
-
-            double_init_h = convertToValue(string_h);
-            double_t_end = convertToValue(string_t_end);
+            parser.elements.push_back(CircuitElement{pv});
         }
         else
         {
+            VoltageSource vs;
+            vs.id_str = id_str;
+            vs.id = v_id;
+            vs.nodePos_str = v_nodePos_str;
+            vs.nodeNeg_str = v_nodeNeg_str;
+            vs.nodePos = convertToNode(v_nodePos_str, map.map_nodes);
+            vs.nodeNeg = convertToNode(v_nodeNeg_str, map.map_nodes);
 
-            std::cerr << "Error: Unknown element type: " << type << std::endl;
+            vs.value = convertToValue(v_type);
+
+            parser.elements.push_back(CircuitElement{vs});
+        }
+    }
+    else if (type[0] == 'R' || type[0] == 'r')
+    {
+        Resistor r;
+        r.id_str = type;
+        r.id = convertToDevice(r.id_str, map.map_resistors);
+
+
+        iss >> r.nodePos_str >> r.nodeNeg_str >> valueStr;
+
+        r.nodePos = convertToNode(r.nodePos_str, map.map_nodes);
+        r.nodeNeg = convertToNode(r.nodeNeg_str, map.map_nodes);
+        r.value = convertToValue(valueStr);
+
+        parser.elements.push_back(CircuitElement{r});
+    }
+    else if (type[0] == 'C' || type[0] == 'c')
+    {
+        Capacitor c;
+        c.id_str = type;
+        c.id = convertToDevice(c.id_str, map.map_capacitors);
+
+        iss >> c.nodePos_str >> c.nodeNeg_str >> valueStr;
+
+        c.nodePos = convertToNode(c.nodePos_str, map.map_nodes);
+        c.nodeNeg = convertToNode(c.nodeNeg_str, map.map_nodes);
+        c.value = convertToValue(valueStr);
+
+        parser.elements.push_back(CircuitElement{c});
+    }
+    else if (type[0] == 'I' || type[0] == 'i')
+    {
+        CurrentSource cs;
+        cs.id_str = type;
+        cs.id = convertToDevice(cs.id_str, map.map_currents);
+
+        iss >> cs.nodePos_str >> cs.nodeNeg_str >> valueStr;
+
+        cs.nodePos = convertToNode(cs.nodePos_str, map.map_nodes);
+        cs.nodeNeg = convertToNode(cs.nodeNeg_str, map.map_nodes);
+        cs.value = convertToValue(valueStr);
+
+        parser.elements.push_back(CircuitElement{cs});
+    }
+    else if (type[0] == 'D' || type[0] == 'd')
+    {
+
+        Diode d;
+        d.id_str = type;
+        d.id = convertToDevice(d.id_str, map.map_diodes);
+        iss >> d.nodePos_str >> d.nodeNeg_str >> valueStr;
+
+        d.nodePos = convertToNode(d.nodePos_str, map.map_nodes);
+        d.nodeNeg = convertToNode(d.nodeNeg_str, map.map_nodes);
+        d.Is = convertToValue(valueStr);
+
+        iss >> valueStr;
+        d.VT = convertToValue(valueStr);
+
+        parser.elements.push_back(CircuitElement{d});
+    }
+    else if (type[0] == 'G' || type[0] == 'g')
+    {
+        VCCS g;
+        g.id_str = type;
+        g.id = convertToDevice(g.id_str, map.map_vccs);
+
+        iss >> g.node_x_str >> g.node_y_str >> g.node_cx_str >> g.node_cy_str >> valueStr;
+
+        g.node_x = convertToNode(g.node_x_str, map.map_nodes);
+        g.node_y = convertToNode(g.node_y_str, map.map_nodes);
+        g.node_cx = convertToNode(g.node_cx_str, map.map_nodes);
+        g.node_cy = convertToNode(g.node_cy_str, map.map_nodes);
+        g.value = convertToValue(valueStr);
+
+        parser.elements.push_back(CircuitElement{g});
+    }
+
+    else if (type[0] == 'M' || type[0] == 'm')
+    {
+        id_str = type;
+        int M_id = convertToDevice(id_str, map.map_mosfets);
+
+        std::string M_node_vd_str, M_node_vg_str, M_node_vs_str, M_node_vb_str;
+        std::string M_model, parameter;
+
+        parser.num_mosfets = parser.num_mosfets + 1;
+
+        iss >> M_node_vd_str >> M_node_vg_str >> M_node_vs_str >> M_node_vb_str >> M_model;
+
+        if (M_model == "NMOS")
+        {
+            NMOS mn;
+            mn.id_str = id_str;
+            mn.id = M_id;
+
+            mn.node_vd_str = M_node_vd_str;
+            mn.node_vg_str = M_node_vg_str;
+            mn.node_vs_str = M_node_vs_str;
+            mn.node_vb_str = M_node_vb_str;
+
+            mn.node_vd = convertToNode(M_node_vd_str, map.map_nodes);
+            mn.node_vg = convertToNode(M_node_vg_str, map.map_nodes);
+            mn.node_vs = convertToNode(M_node_vs_str, map.map_nodes);
+            mn.node_vb = convertToNode(M_node_vb_str, map.map_nodes);
+
+            // Read and parse the W and L parameters with their prefixes
+            while (iss >> parameter)
+            {
+                size_t pos = parameter.find('=');
+                if (pos != std::string::npos)
+                {
+                    std::string key = parameter.substr(0, pos);
+                    std::string value = parameter.substr(pos + 1);
+
+                    if (key == "W")
+                    {
+                        valueStr = value;
+                        mn.W = convertToValue(valueStr);
+                    }
+                    else if (key == "L")
+                    {
+                        valueStr = value;
+                        mn.L = convertToValue(valueStr);
+
+                        // std::cout<<"L is "<<mn.L<<std::endl;
+                        // std::cout<<"type of L is "<<typeid(mn.L).name() << std::endl;
+                    }
+                }
+            }
+
+            parser.elements.push_back(CircuitElement{mn});
+        }
+        else if (M_model == "PMOS")
+        {
+            PMOS mp;
+            mp.id_str = id_str;
+            mp.id = M_id;
+
+            mp.node_vd_str = M_node_vd_str;
+            mp.node_vg_str = M_node_vg_str;
+            mp.node_vs_str = M_node_vs_str;
+            mp.node_vb_str = M_node_vb_str;
+
+            mp.node_vd = convertToNode(M_node_vd_str, map.map_nodes);  
+            mp.node_vg = convertToNode(M_node_vg_str, map.map_nodes);
+            mp.node_vs = convertToNode(M_node_vs_str, map.map_nodes);
+            mp.node_vb = convertToNode(M_node_vb_str, map.map_nodes);
+
+            while (iss >> parameter)
+            {
+                size_t pos = parameter.find('=');
+                if (pos != std::string::npos)
+                {
+                    std::string key = parameter.substr(0, pos);
+                    std::string value = parameter.substr(pos + 1);
+
+                    if (key == "W")
+                    {
+                        valueStr = value;
+                        mp.W = convertToValue(valueStr);
+                    }
+                    else if (key == "L")
+                    {
+                        valueStr = value;
+                        mp.L = convertToValue(valueStr);
+                    }
+                }
+            }
+
+            parser.elements.push_back(CircuitElement{mp});
+        }
+        else
+        {
+            std::cerr << "Error: Unknown MOSFET model: " << M_model << std::endl;
             exit(1);
         }
     }
-};
+    else if (type == ".tran")
+    {
+        std::string string_h, string_t_end;
+
+        iss >> string_h >> string_t_end;
+
+        parser.double_init_h = convertToValue(string_h);
+        parser.double_t_end = convertToValue(string_t_end);
+    }
+    else
+    {
+
+        std::cerr << "Error: Unknown element type: " << type << std::endl;
+        exit(1);
+    }
+}
+
+void parser_netlist(CircuitParser &parser, Circuitmap &map)
+{
+
+    std::ifstream file(parser.filename);
+    if (!file.is_open())
+    {
+        std::cerr << "Error opening file: " << parser.filename << std::endl;
+        exit(1);
+        return;
+    }
+
+    std::string line;
+    std::getline(file, line); // Read and discard the first line
+
+    while (std::getline(file, line))
+    {
+        size_t commentPos = line.find('*');
+
+        if (commentPos != std::string::npos)
+        {
+            line = line.substr(0, commentPos); // Remove comment
+        }
+
+        if (!line.empty())
+        {
+            parseLine(line, parser, map);
+        }
+    }
+}

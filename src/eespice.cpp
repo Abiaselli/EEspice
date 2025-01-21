@@ -20,9 +20,10 @@ int main(int argc, const char **argv)
 
     CKTcircuit ckt;
     DenseMatrix dematrix;
+    Circuitmap map;
 
     CircuitParser parser("Netlist/Ring.cir");
-    parser.parser();
+    parser_netlist(parser, map);
 
     CKTsetup(ckt, parser, dematrix); // Pass the parser to the ckt and the initialise LHS and RHS matrices
     ckt.setcktmatrix(dematrix);
@@ -48,7 +49,7 @@ int main(int argc, const char **argv)
     // SAVING THE SOLUTION AND TIME MATRICES INTO CSV FILES
     auto t2 = std::chrono::high_resolution_clock::now(); // End time
 
-    save_csv(ckt, vec_trans_result);
+    save_csv(ckt, vec_trans_result, map);
 
     auto t3 = std::chrono::high_resolution_clock::now(); // End time
 
@@ -59,8 +60,6 @@ int main(int argc, const char **argv)
     // std::cout << "The Total time for multi-solver is: " << timer.total_ms() << "ms\n";
 
     // save_threads_time(t1, tstop_trans);
-
-    std::cout << "Total timepoint is: " << total_timepoint << std::endl;
 
     return 0;
     /*-----------------------------------------------------------------------------------------------------------*/
