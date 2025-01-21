@@ -10,21 +10,25 @@
 #include "CKT.hpp"
 #include "Transient.hpp"
 
-void save_csv(const CKTcircuit &ckt, std::vector<Transient> &vec_trans)
+void save_csv(const CKTcircuit &ckt, const std::vector<Transient> &vec_trans, const Circuitmap &map)
 {
     std::ofstream file("final_solution.csv");
 
     // Write the header
     file << "Time, Time Step";
     for (size_t j = 0; j < ckt.external_nodes; ++j)
-    {
-        file << ", Voltage " << (j + 1);
+    {   
+        for(auto it = map.map_nodes.begin(); it != map.map_nodes.end(); ++it){
+            if(it->second == j + 1){
+                file << ", Voltage " << it->first;
+            }
+        }
     }
-    for (size_t z = ckt.no_of_V_sources; z > 0; --z)
-    {
-        file << ", Current " << (ckt.no_of_V_sources - z + 1);
+
+    for(auto it = map.map_voltages.begin(); it != map.map_voltages.end(); ++it){
+        file << ", Current " << it->first;
     }
-    // file << ", Current 2";
+
     file << std::endl;
 
     // Write the data

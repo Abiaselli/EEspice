@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <variant>
+#include <map>
 
 // for debug mode
 #include "sim_variables.hpp"
@@ -17,15 +18,19 @@ struct Truncation_error;
 struct Capacitor;
 
 struct VoltageSource
-{
+{   
+    std::string id_str;
     int id;
+    std::string nodePos_str, nodeNeg_str;
     int nodePos, nodeNeg;
     double value;
 };
 
 struct Pulsevoltage
-{
+{   
+    std::string id_str;
     int id{};
+    std::string nodePos_str, nodeNeg_str;
     int nodePos{}, nodeNeg{};
     double t1_pulse{};
     double V1{};
@@ -40,52 +45,66 @@ struct Pulsevoltage
 };
 
 struct Diode
-{
+{   
+    std::string id_str;
     int id{};
+    std::string nodePos_str, nodeNeg_str;
     int nodePos{}, nodeNeg{};
     double Is{};
     double VT{};
 };
 
 struct VCCS
-{
+{   
+    std::string id_str;
     int id{};
+    std::string node_x_str, node_y_str, node_cx_str, node_cy_str;
     int node_x{}, node_y{}, node_cx{}, node_cy{};
     double value{};
 };
 
 struct NMOS
-{
+{   
+    std::string id_str;
     int id{};
+    std::string node_vd_str, node_vg_str, node_vs_str, node_vb_str;
     int node_vd{}, node_vg{}, node_vs{}, node_vb{};
     double W{}, L{};
 };
 
 struct PMOS
-{
+{   
+    std::string id_str;
     int id{};
+    std::string node_vd_str, node_vg_str, node_vs_str, node_vb_str;
     int node_vd{}, node_vg{}, node_vs{}, node_vb{};
     double W{}, L{};
 };
 
 struct CurrentSource
-{
+{   
+    std::string id_str;
     int id;
+    std::string nodePos_str, nodeNeg_str;
     int nodePos, nodeNeg;
     double value;
 };
 
 struct Resistor
-{
+{   
+    std::string id_str;
     int id;
+    std::string nodePos_str, nodeNeg_str;
     int nodePos, nodeNeg;
     double value;
 };
 
 struct Capacitor
-{
+{   
+    std::string id_str;
     int id{};
     std::string name{}; // It's used in MOSFETs Eg: M1.1, M1.2, M1.3, M1.4
+    std::string nodePos_str, nodeNeg_str;
     int nodePos{}, nodeNeg{};
     double value{};
 
@@ -147,6 +166,31 @@ double convertToValue(const std::string &valueStr)
     }
 
     return value * 1.0; // No unit or unrecognized unit, assume the value is in base units
+}
+
+int convertToNode(const std::string &nodeStr, std::map<std::string, int> &map_nodes)
+{   
+    if(nodeStr == "0"){
+        return 0;
+    }
+    auto it = map_nodes.find(nodeStr);
+    if (it != map_nodes.end()) {
+        return it->second;
+    }
+    int new_node = map_nodes.size() + 1;
+    map_nodes.emplace(nodeStr, new_node);
+    return new_node;
+}
+
+int convertToDevice(const std::string &nodeStr, std::map<std::string, int> &map_device){
+    auto it = map_device.find(nodeStr);
+    if (it != map_device.end()) {
+       std::cerr << "Error: Device " << nodeStr << " already exists!" << std::endl;
+       exit(1);
+    }
+    int new_device = map_device.size() + 1;
+    map_device.emplace(nodeStr, new_device);
+    return new_device;
 }
 
 //////////////////////////////////////////////////////////////

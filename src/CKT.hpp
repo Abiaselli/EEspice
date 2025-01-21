@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <variant>
+#include <map>
 
 #include "global.hpp"
 #include "matrix.hpp"
@@ -12,16 +13,16 @@
 
 struct CKTcircuit
 {
-    int const supply_voltage_node = 1; // supply voltage node for the ring oscillator
-    int pulse_num{};                   // Number of pulse voltages
+    int const supply_voltage_node = 1;              // supply voltage node for the ring oscillator
+    int pulse_num{};                                // Number of pulse voltages
     // uword is a typedef for an unsigned integer type; it is used for matrix indices as well as all internal counters and loops
 
-    std::vector<CircuitElement> CKTelements; // Vector of circuit elements
-    int external_nodes{};                    // Number of external nodes (excluding ground and ring oscillator loop nodes)
-    // int external_mosfets{};                   // Number of standalone mosfets (excluding mosfets from ring oscillator)
-    int no_of_mosfets{};   // Total number of MOSFETs
-    int no_of_V_sources{}; // Total number of voltage sources
-    int T_nodes{};         // Total number of nodes excluding ground
+    std::vector<CircuitElement> CKTelements;        // Vector of circuit elements
+    int external_nodes{};                           // Number of external nodes (excluding ground and ring oscillator loop nodes)
+    // int external_mosfets{};                      // Number of standalone mosfets (excluding mosfets from ring oscillator)
+    int no_of_mosfets{};                            // Total number of MOSFETs
+    int no_of_V_sources{};                          // Total number of voltage sources
+    int T_nodes{};                                  // Total number of nodes excluding ground
 
     DenseMatrix *cktdematrix; // Dense matrix struct
     void setcktmatrix(DenseMatrix &DenseMatrix)
@@ -40,7 +41,7 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, DenseMatrix &DenseMa
     // Careful! getCircuitElements function is const, so it can't be used to modify the elements vector
     // ckt.elements = parser.getCircuitElements();
     ckt.CKTelements = parser.elements;
-    ckt.external_nodes = parser.getMaxNode();
+    ckt.external_nodes = getMaxNode(ckt.CKTelements);
     ckt.no_of_mosfets = parser.num_mosfets;
     ckt.T_nodes = ckt.external_nodes + 3 * ckt.no_of_mosfets;
     // ckt.T_nodes = ckt.external_nodes;
@@ -62,7 +63,7 @@ void CKTload(CKTcircuit &ckt)
                    {
                        if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Resistor>)
                        {
-                           // std::cout << "R Element ID: " << arg.id << ", Node Pos: " << arg.nodePos << ", Node Neg: " << arg.nodeNeg << ", value: "<< arg.value << std::endl;
+                            // std::cout << "R Element ID: " << arg.id << ", Node Pos: " << arg.nodePos << ", Node Neg: " << arg.nodeNeg << ", value: "<< arg.value << std::endl;
 
                            if (arg.value == 0)
                            {
@@ -107,11 +108,11 @@ void CKTload(CKTcircuit &ckt)
                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS>)
                        {
-                           // std::cout << "NMOS Element ID: " << arg.id << ", Node VD: " << arg.node_vd << ", Node VG: " << arg.node_vg << ", Node VS: " << arg.node_vs << ", Node VB: " << arg.node_vb << std::endl;
+                        //    std::cout << "NMOS Element ID: " << arg.id << ", Node VD: " << arg.node_vd << ", Node VG: " << arg.node_vg << ", Node VS: " << arg.node_vs << ", Node VB: " << arg.node_vb << std::endl;
                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
                        {
-                           // std::cout << "PMOS Element ID: " << arg.id << ", Node VD: " << arg.node_vd << ", Node VG: " << arg.node_vg << ", Node VS: " << arg.node_vs << ", Node VB: " << arg.node_vb << std::endl;
+                        //    std::cout << "PMOS Element ID: " << arg.id << ", Node VD: " << arg.node_vd << ", Node VG: " << arg.node_vg << ", Node VS: " << arg.node_vs << ", Node VB: " << arg.node_vb << std::endl;
                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, VCCS>)
                        {
