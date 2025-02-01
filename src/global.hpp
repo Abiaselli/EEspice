@@ -170,7 +170,7 @@ double convertToValue(const std::string &valueStr)
 
 int convertToNode(const std::string &nodeStr, std::map<std::string, int> &map_nodes)
 {   
-    if(nodeStr == "0"){
+    if(nodeStr == "0" || nodeStr == "GND" || nodeStr == "gnd"){
         return 0;
     }
     auto it = map_nodes.find(nodeStr);
@@ -182,14 +182,14 @@ int convertToNode(const std::string &nodeStr, std::map<std::string, int> &map_no
     return new_node;
 }
 
-int convertToDevice(const std::string &nodeStr, std::map<std::string, int> &map_device){
-    auto it = map_device.find(nodeStr);
+int convertToDevice(const std::string &deviceStr, std::map<std::string, int> &map_device){
+    auto it = map_device.find(deviceStr);
     if (it != map_device.end()) {
-       std::cerr << "Error: Device " << nodeStr << " already exists!" << std::endl;
+       std::cerr << "Error: Device " << deviceStr << " already exists!" << std::endl;
        exit(1);
     }
     int new_device = map_device.size() + 1;
-    map_device.emplace(nodeStr, new_device);
+    map_device.emplace(deviceStr, new_device);
     return new_device;
 }
 
