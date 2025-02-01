@@ -14,24 +14,46 @@ void save_csv(const CKTcircuit &ckt, const std::vector<Transient> &vec_trans, co
 {
     std::ofstream file("final_solution.csv");
 
-    // Write the header
-    file << "Time, Time Step";
-    for (size_t j = 0; j < ckt.external_nodes; ++j)
-    {   
-        for(auto it = map.map_nodes.begin(); it != map.map_nodes.end(); ++it){
-            if(it->second == j + 1){
-                file << ", Voltage " << it->first;
-            }
+    // All std::map elements are <std::string, int>
+
+    // 1) Build a helper vector for nodeIndex -> nodeName
+    //    We'll index from 1..ckt.external_nodes
+    std::vector<std::string> nodeIndexToName(ckt.external_nodes + 1);
+    for (const auto &pair : map.map_nodes)
+    {
+        int nodeIndex = pair.second;   // e.g. 1,2,3 ...
+        if (nodeIndex >= 1 && nodeIndex <= ckt.external_nodes)
+        {
+            nodeIndexToName[nodeIndex] = pair.first;
         }
     }
 
-    for(auto it = map.map_voltages.begin(); it != map.map_voltages.end(); ++it){
-        file << ", Current " << it->first;
+    std::vector<std::string> volIndexToName(ckt.no_of_V_sources + 1);
+    for (const auto &pair : map.map_voltages)
+    {
+        int volIndex = pair.second;   // e.g. 1,2,3 ...
+        if (volIndex >= 1 && volIndex <= ckt.no_of_V_sources)
+        {
+            volIndexToName[volIndex] = pair.first;
+        }
+    }
+
+    // 2) Write the header
+    file << "Time, Time Step";
+    // Output node voltages in ascending node index
+    for (int j = 1; j <= ckt.external_nodes; ++j)
+    {
+        file << ", Voltage " << nodeIndexToName[j];
+    }
+
+    for (int j = 1; j <= ckt.no_of_V_sources; ++j)
+    {
+        file << ", Current " << volIndexToName[j];
     }
 
     file << std::endl;
 
-    // Write the data
+    // 3) Write the data rows
     for (size_t i = 0; i < vec_trans.size(); ++i)
     {
         file << std::scientific << std::setprecision(20);                // Set precision to 20 decimal places
