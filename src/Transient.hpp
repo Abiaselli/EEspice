@@ -81,19 +81,18 @@ Transient Varibale_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim
     else
     {
         trans.C_list = trans_sim.vec_trans.back().C_list;
+        // Just to prevent single_next_h from directly using time_trans as the time_trans of the previous timestep (not recommended).
+        trans.time_trans = trans_sim.vec_trans.back().time_trans; 
 
-        trans.time_trans = trans_sim.vec_trans.back().time_trans;
+        single_timestep single_h = single_next_h(trans, ckt, trans_sim);
+        
+        // The current time of the transient simulation. Use to compare with the breakpoints!
+        double current_time = single_h.h + trans_sim.vec_trans.back().time_trans;
 
-        // solution = multi_next_h(trans, ckt, vec_trans);
-        trans.solution = single_next_h(trans, ckt, trans_sim);
-
-        trans.time_trans = trans.time_trans + trans.h;
-
-        /* If the time difference between the previous simulation time point and the breakpoint is less than 10*hmin,
-        it will be counted as 1 time point and no additional breakpoint simulation will be performed.*/
+        /*  If the time difference between the previous simulation time point and the breakpoint is less than 10*hmin,
+            it will be counted as 1 time point and no additional breakpoint simulation will be performed.*/
         if (trans_sim.breakpoints.empty() == false && trans_sim.breakpoints.front() - trans_sim.vec_trans.back().time_trans < 10 * trans_sim.trans_config.h_MIN)
         {
-
             trans_sim.breakpoints.pop_front();
             if (trans_sim.breakpoints.empty())
             {
@@ -101,19 +100,15 @@ Transient Varibale_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim
             }
         }
 
-        if (trans_sim.breakpoints.empty() == false && trans.time_trans > trans_sim.breakpoints.front())
+        if (trans_sim.breakpoints.empty() == false && current_time > trans_sim.breakpoints.front())
         {
-
             Transient breakpoints_trans;
-
             breakpoints_trans.mode = 1; // 0 to do OP analysis, 1 to do transient simulation
             breakpoints_trans.C_list = trans_sim.vec_trans.back().C_list;
 
             std::cout << "The time step is too large, back to breakpoint" << std::endl;
             breakpoints_trans.time_trans = trans_sim.breakpoints.front();
             breakpoints_trans.h = breakpoints_trans.time_trans - trans_sim.vec_trans.back().time_trans;
-            // std::cout << "breakpoints_trans.time_trans: " << breakpoints_trans.time_trans << std::endl;
-            // std::cout << "vec_trans.back().time_trans: " << vec_trans.back().time_trans << std::endl;
 
             breakpoints_trans.solution = NewtonRaphson_system(ckt, breakpoints_trans.h, 1, breakpoints_trans.time_trans, breakpoints_trans.C_list, trans_sim.vec_trans.back().solution);
             auto cur_vol = get_currents_voltages(breakpoints_trans.C_list, breakpoints_trans.h, breakpoints_trans.solution, trans_sim.vec_trans.back().solution);
@@ -124,8 +119,6 @@ Transient Varibale_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim
             breakpoints_trans.C_charge = breakpoints_trans.C_voltage % breakpoints_trans.Capacitance;
             breakpoints_trans.C_list_update();
 
-            // breakpoints_trans.LHS = matrixs.first;
-            // breakpoints_trans.RHS = matrixs.second;
             breakpoints_trans.trans_count = trans_sim.vec_trans.back().trans_count + 1;
             breakpoints_trans.next_h = breakpoints_trans.h;
             
@@ -133,21 +126,30 @@ Transient Varibale_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim
             std::cout << "time_trans: " << breakpoints_trans.time_trans << std::endl;
 
             trans_sim.breakpoints.pop_front();
+            trans = std::move(breakpoints_trans);
         }
 
         else
         {
-            if (trans_sim.breakpoints.empty() == false && trans.time_trans == trans_sim.breakpoints.front())
+            if (trans_sim.breakpoints.empty() == false && current_time == trans_sim.breakpoints.front())
+            {
+                trans_sim.breakpoints.pop_front();
+                if (trans_sim.breakpoints.empty())
                 {
-                    trans_sim.breakpoints.pop_front();
-                    if (trans_sim.breakpoints.empty())
-                    {
-                        trans_sim.trans_end = true;
-                    }
+                    trans_sim.trans_end = true;
                 }
-            ARMA_PRINT(trans.solution, "The transient analysis of the circuit is: ");
+            }
 
             // trans has already been updated in the multi_next_h function
+            trans.h = single_h.h;
+            trans.time_trans = trans_sim.vec_trans.back().time_trans + trans.h;
+            trans.next_h = single_h.next_h;                          // Sometimes temp_h(next_h) sometimes is 2 * single_h.h!
+            trans.solution = std::move(single_h.solution);
+            trans.C_list = std::move(single_h.C_list);
+            trans.Capacitance = std::move(single_h.Capacitance);
+            trans.C_current = std::move(single_h.C_current);
+            trans.C_voltage = std::move(single_h.C_voltage);
+            trans.C_charge = std::move(single_h.C_charge);
             trans.C_list_update();
             trans.trans_count = trans_sim.vec_trans.back().trans_count + 1;
         }

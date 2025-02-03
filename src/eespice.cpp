@@ -31,8 +31,7 @@ int main(int argc, const char **argv)
     CKTload(ckt);
     ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
 
-    TransientSimulator trans_sim;
-    Transsetup(trans_sim.trans_config, parser, ckt);
+    TransientSimulator trans_sim = Transsetup(parser, ckt);
 
     auto vec_trans_result = Transient_ops(ckt, dematrix, trans_sim);
 

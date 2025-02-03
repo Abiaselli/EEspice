@@ -99,10 +99,12 @@ struct Truncation_error
 
 struct TransientSimulator
 {   
-    TransientConfig trans_config;           // Transient configuration(never changes)
-    std::vector<Transient> vec_trans;       // Transient history
-    std::deque<double> breakpoints;         // Breakpoints for the transient simulation
-    bool trans_end = false;                 // End of transient simulation
+    const TransientConfig trans_config;      // Transient configuration(never changes)
+    std::vector<Transient> vec_trans;        // Transient history
+    std::deque<double> breakpoints;          // Breakpoints for the transient simulation
+    bool trans_end = false;                  // End of transient simulation
+
+    TransientSimulator(const TransientConfig& config) : trans_config(config) {}
 };
 
 arma::vec get_capacitance(const std::vector<Capacitor> &C_list)
@@ -115,8 +117,9 @@ arma::vec get_capacitance(const std::vector<Capacitor> &C_list)
     return Capacitance;
 }
 
-void Transsetup(TransientConfig &config, const CircuitParser &parser, CKTcircuit &ckt)
+TransientSimulator Transsetup(const CircuitParser &parser, const CKTcircuit &ckt)
 {
+    TransientConfig config;
     config.t_end = parser.double_t_end;
 
     if (ckt.pulse_num > 0 && (ckt.C_list.size() > 0))
@@ -181,6 +184,9 @@ void Transsetup(TransientConfig &config, const CircuitParser &parser, CKTcircuit
 
     // Setup the initial capacitance list
     config.C_list = ckt.C_list;
+    TransientSimulator trans_sim(config);
+
+    return trans_sim;
 }
 
 /*

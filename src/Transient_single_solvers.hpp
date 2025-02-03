@@ -21,6 +21,7 @@ struct single_timestep
 
     double h{};             // time step
     double t{};             // time
+    double next_h{};        // next time step (temp_h)
 
     arma::vec RHS;
     arma::mat LHS;
@@ -136,7 +137,7 @@ bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &singl
     }
 }
 
-arma::vec single_next_h(Transient &trans, const CKTcircuit &ckt, const TransientSimulator &trans_sim){
+single_timestep single_next_h(const Transient &trans, const CKTcircuit &ckt, const TransientSimulator &trans_sim){
 
     double temp_h = trans_sim.vec_trans.back().next_h;                     // The temporary time step for this function
 
@@ -154,14 +155,8 @@ arma::vec single_next_h(Transient &trans, const CKTcircuit &ckt, const Transient
 
     }while(LTE_check == false);
 
-    trans.h = single_h.h;
-    trans.next_h = temp_h;
-    trans.solution = single_h.solution;
-    trans.C_list = single_h.C_list;
-    trans.Capacitance = single_h.Capacitance;
-    trans.C_current = single_h.C_current;
-    trans.C_voltage = single_h.C_voltage;
-    trans.C_charge = single_h.C_charge;
+    // Sometimes temp_h(next_h) sometimes is 2 * single_h.h!
+    single_h.next_h = temp_h;
 
-    return  trans.solution;
+    return  single_h;
 }
