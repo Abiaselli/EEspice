@@ -170,10 +170,6 @@ bool isConverge(const std::vector<arma::vec> &NR_solutions, const CKTcircuit &ck
 // Newton Raphson system solver for non-linear and dynamic elements
 arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int &mode, const double time_trans, std::vector<Capacitor> &C_list, const arma::vec &pre_global_solution)
 {
-
-    // std::cout << "Enter NewtonRaphson system" << std::endl;
-    DEBUG_PRINT("Enter NewtonRaphson system");
-
     int NR_iteration_counter = 0;
     bool isconverge = false;
     arma::vec solution = pre_global_solution;
@@ -203,11 +199,10 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int
 
     while (!isconverge)
     {
-
-        if (NR_iteration_counter >= 99)
+        if (NR_iteration_counter > ITL4)
         {
-            std::cerr << "The Newton Raphson method did not converge after 100 iterations." << std::endl;
-            // exit(1);
+            NR_ITE = NR_iteration_counter;
+            total_NR_iteration += NR_iteration_counter;
             return solution;
         }
 
@@ -224,6 +219,7 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int
     }
 
     NR_ITE = NR_iteration_counter;
+    total_NR_iteration += NR_iteration_counter;
 
     return solution;
 }

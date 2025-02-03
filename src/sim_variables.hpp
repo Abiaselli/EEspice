@@ -30,7 +30,7 @@ const constexpr double lteabstol = 1e-6;
 
 const constexpr double h_op = 1e-25; // Initial timestep in OP
 
-int NR_ITE = 0;
+BS::thread_pool pool(3);
 
 double RD = 1.0;
 double RG = 1.0;
@@ -39,9 +39,11 @@ double RS = 1.0;
 // To control debug mode
 bool debugMode = false;
 
+// Statistics of the transient simulation
+int NR_ITE = 0;
 int total_timepoint = 0;
+int total_NR_iteration = 0;
 
-BS::thread_pool pool(3);
 
 
 

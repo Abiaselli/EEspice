@@ -29,6 +29,7 @@ struct single_timestep
 
     bool TMAX_reach;
     bool TMIN_reach;
+    bool ITL4_reach;
 
     std::vector<Capacitor> C_list;
 };
@@ -78,12 +79,14 @@ single_timestep single_solution_solver(const double &h, const Transient &trans, 
 
     if(trans_sim.trans_config.non_linear){
         single_h.solution = NewtonRaphson_system(ckt, h, trans.mode, single_h.t, C_list_copy, trans_sim.vec_trans.back().solution);
-        std::pair<arma::vec, arma::vec> currents_voltages = get_currents_voltages(C_list_copy, h, single_h.solution, trans_sim.vec_trans.back().solution);
-        single_h.C_current = currents_voltages.first;
-        single_h.C_voltage = currents_voltages.second;
-        single_h.Capacitance = get_capacitance(C_list_copy);
-        single_h.C_charge = single_h.Capacitance % single_h.C_voltage; // element-wise multiplication of two objects (Schur product)
-        single_h.C_list = C_list_copy;
+        if(NR_ITE < ITL4){
+            std::pair<arma::vec, arma::vec> currents_voltages = get_currents_voltages(C_list_copy, h, single_h.solution, trans_sim.vec_trans.back().solution);
+            single_h.C_current = currents_voltages.first;
+            single_h.C_voltage = currents_voltages.second;
+            single_h.Capacitance = get_capacitance(C_list_copy);
+            single_h.C_charge = single_h.Capacitance % single_h.C_voltage; // element-wise multiplication of two objects (Schur product)
+            single_h.C_list = C_list_copy;
+        }
     }
     else if(trans_sim.trans_config.non_linear == false){
         std::pair<arma::mat, arma::vec> matrices;

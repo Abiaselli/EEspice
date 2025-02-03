@@ -49,6 +49,8 @@ int main(int argc, const char **argv)
     std::chrono::duration<double, std::milli> analysis_time = (tstop_trans - t1);
     std::cout << "Total analysis time:" << (analysis_time).count()  << "ms\n";
     std::cout << "Total time:" << time_span.count() << "ms\n";
+    std::cout << "Total NR iteration:" << total_NR_iteration << std::endl;
+    std::cout << "Total timepoint:" << total_timepoint << std::endl;
 
     return 0;
     /*-----------------------------------------------------------------------------------------------------------*/
