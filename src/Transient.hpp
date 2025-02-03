@@ -15,13 +15,6 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, con
     trans_op.C_list = ckt.C_list; // Pass the capacitance list to the transient analysis
     trans_op.h = 0;
 
-
-    // Checking the LHS and RHS matrices
-    // dematrix.LHS.print("Initial LHS matrix =");
-    // dematrix.RHS.print("Initial RHS matrix =");
-    ARMA_PRINT(dematrix.LHS, "Initial LHS matrix =");
-    ARMA_PRINT(dematrix.RHS, "Initial RHS matrix =");
-
     // OPERATING POINT ANALYSIS SYSTEM
     trans_op.mode = 0; // 0 to do OP analysis, 1 to do transient simulation
 

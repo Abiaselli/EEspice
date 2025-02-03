@@ -317,12 +317,7 @@ arma::vec multi_next_h(Transient &trans, const CKTcircuit &ckt, std::vector<Tran
 
     do
     {
-        timer.start();
-
         multi_h = multi_solution_solver(temp_h, trans, ckt, vec_trans);
-
-        timer.stop();
-        timer.total();
 
         if (multi_h.TMAX_reach)
         {

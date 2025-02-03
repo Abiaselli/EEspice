@@ -1,6 +1,7 @@
 #pragma once
 #include <chrono>
 #include <vector>
+#include "BS_thread_pool/BS_thread_pool.hpp"
 
 // Global variables
 /* Upper transient iteration limit for iteration count in time-step control algorithm*/
@@ -29,45 +30,20 @@ const constexpr double lteabstol = 1e-6;
 
 const constexpr double h_op = 1e-25; // Initial timestep in OP
 
-/*If timestep reach the limit*/
-// bool TMAX_reach = false;
-// bool TMIN_reach = false;
-// auto totalNR = std::chrono::duration<double, std::milli>::zero();
-// auto totalEV = std::chrono::duration<double, std::milli>::zero();
-// auto totalSOLVE = std::chrono::duration<double, std::milli>::zero();
-
-
-int NR_ITE{};
-// bool ITE_mid;
-// bool ITE_up;
-// bool ITE_down;
+int NR_ITE = 0;
 
 double RD = 1.0;
 double RG = 1.0;
 double RS = 1.0;
 
-
 // To control debug mode
 bool debugMode = false;
 
-// auto timemid = std::chrono::duration<double, std::milli>::zero();
-// auto timeup = std::chrono::duration<double, std::milli>::zero();
-// auto timedown = std::chrono::duration<double, std::milli>::zero();
-
-// std::chrono::time_point<std::chrono::high_resolution_clock> mid1, mid2, up1, up2, down1, down2;
-
-
 int total_timepoint = 0;
 
+BS::thread_pool pool(3);
 
-// std::vector<double> time_solve;
-// std::vector<double> time_ev;
-// std::vector<double> time_NR;
-// std::vector<double> time_co;
-// std::vector<double> time_part1;
-// std::vector<double> time_part2;
-// std::vector<double> time_part3;
-// std::vector<double> time_part4;
+
 
 
 

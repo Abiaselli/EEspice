@@ -16,9 +16,6 @@
 #include "sim_variables.hpp"
 #include "circuit_parser.hpp"
 #include "XB_timer.hpp"
-
-
-
 #include "device.hpp"
 #include "matrix.hpp"
 #include "CKT.hpp"
@@ -26,36 +23,11 @@
 #include "Newton.hpp"
 
 // Macro to enable debug code
-
 #define ARMA_PRINT(var, label) \
     if (isDebugMode())         \
     {                          \
         (var).print(label);    \
     }
-
-/*void setDebugMode(bool mode);
-bool isDebugMode();
-void R_assigner(int node_x, int node_y, double G, arma::mat &LHS);
-void Vs_assigner(int node_x, int node_y, double V_value, arma::mat &LHS, arma::vec &RHS);
-double convertToValue(const std::string &valueStr);
-arma::mat branch_ext(arma::mat M, int node_x, int node_y);
-void Is_assigner(double node_x, double node_y, double I, arma::vec &RHS);
-void C_assigner_BE(int node_x, int node_y, double C, double h, arma::mat &LHS, arma::vec &RHS, const arma::vec &pre_solution, int mode);
-int V_pulse_assigner(int node_x, int node_y, double V_value, arma::mat &LHS, arma::vec &RHS);
-double V_pulse_value(double V1, double V2, double t1, double td, double tr, double tf, double tpw, double tper);
-void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, arma::mat &LHS);
-double Diode_assigner(int node_x, int node_y, double Is, double VT, arma::mat &LHS, arma::vec &RHS, const arma::vec &solution, int mode);std::pair<arma::mat, arma::vec> DynamicNonLinear(const CKTcircuit &ckt, double h, const arma::vec &pre_solution, int mode, const double time_trans, std::vector<Capacitor> &C_list, int NR_iteration_counter);
-arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const arma::vec &pre_solution, const double &h, const int &mode, const double time_trans, std::vector<Capacitor> &C_list);
-void dummy_task();*/
-/*  Global variables:
-
-*/
-// std::vector<Transient> vec_trans;
-BS::thread_pool pool(3);
-BS::synced_stream sync_out;
-XB_Timer timer;
-// std::mutex mtx;
-
 /*--------------------------Timeing----------------------------------------------------------------*/
 // std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> begin_mid;
 // std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> begin_up;
@@ -67,7 +39,6 @@ XB_Timer timer;
 /*-----------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 // Function to control debug mode
-
 double cond(double R)
 {
     return 1 / R;
