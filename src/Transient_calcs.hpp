@@ -33,18 +33,6 @@ struct Transient;
 struct Truncation_error;
 struct TransientSimulator;
 
-// Function to control debug mode
-double cond(double R)
-{
-    return 1 / R;
-}
-
-void history_trans_update(Transient &trans, std::vector<Transient> &vec_trans)
-{
-    // Update transient history
-    vec_trans.push_back(trans);
-}
-
 /*
     Clearly distinguishes between data that never changes and data that evolves in Transient simulation.
     TransientConfig is a constant data structure that never changes.
@@ -324,6 +312,18 @@ std::pair<arma::vec, arma::vec> get_currents_voltages(const std::vector<Capacito
     current_matrix = arma::solve(G_matrix, delta_v, arma::solve_opts::fast);
 
     return {current_matrix, volt};
+}
+
+// Function to control debug mode
+double cond(double R)
+{
+    return 1 / R;
+}
+
+void history_trans_update(Transient &trans, TransientSimulator &trans_sim)
+{
+    // Update transient history
+    trans_sim.vec_trans.push_back(std::move(trans));
 }
 
 void dummy_task()

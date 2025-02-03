@@ -37,7 +37,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, Tra
 
     trans_op.solution = solution;
     trans_op.next_h = trans_sim.trans_config.init_h;
-    history_trans_update(trans_op, trans_sim.vec_trans);
+    history_trans_update(trans_op, trans_sim);
 
     arma::vec node_volt_print = solution.submat(0, 0, ckt.external_nodes - 1, 0);
     arma::vec current_print = solution.submat(solution.n_rows - ckt.no_of_V_sources, 0, solution.n_rows - 1, 0);
@@ -120,7 +120,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, Tra
             trans.solution = solution;
 
             trans.trans_count = trans_sim.vec_trans.back().trans_count + 1;
-            history_trans_update(trans, trans_sim.vec_trans);
+            history_trans_update(trans, trans_sim);
 
             continue;
         }
@@ -130,7 +130,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, Tra
         if (trans_sim.vec_trans.size() == 1)
         {
             // The first step of the transient simulation
-            trans.C_list = trans_op.C_list;
+            trans.C_list = trans_sim.vec_trans.back().C_list;
             trans.h = trans_sim.trans_config.init_h; // Initial time step
             trans.time_trans = trans_sim.trans_config.t_start + trans.h;
 
@@ -140,8 +140,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, Tra
 
             if (trans.C_list.size() > 0)
             {
-
-                std::pair<arma::vec, arma::vec> cur_vol = get_currents_voltages(trans.C_list, trans.h, solution, trans_op.solution);
+                std::pair<arma::vec, arma::vec> cur_vol = get_currents_voltages(trans.C_list, trans.h, solution, trans_sim.vec_trans.back().solution);
                 trans.Capacitance = get_capacitance(trans.C_list);
 
                 trans.C_current = cur_vol.first;
@@ -151,18 +150,14 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, Tra
             }
 
             trans.solution = solution;
-            // trans.LHS = matrixs.first;
-            // trans.RHS = matrixs.second;
+
             trans.trans_count += 1;
             trans.next_h = trans.h;
-            // trans.C_current.print("The current matrix is: ");
-
-            history_trans_update(trans, trans_sim.vec_trans);
+            history_trans_update(trans, trans_sim);
         }
 
         else
         {
-
             trans.C_list = trans_sim.vec_trans.back().C_list;
 
             trans.time_trans = trans_sim.vec_trans.back().time_trans;
@@ -212,21 +207,16 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, Tra
                 // breakpoints_trans.RHS = matrixs.second;
                 breakpoints_trans.trans_count = trans_sim.vec_trans.back().trans_count + 1;
                 breakpoints_trans.next_h = breakpoints_trans.h;
-
-                history_trans_update(breakpoints_trans, trans_sim.vec_trans);
-
-                // solution.print("The transient analysis of the circuit is: ");
-                ARMA_PRINT(solution, "The transient analysis of the circuit is: ");
+                
                 std::cout << "time step: " << breakpoints_trans.h << std::endl;
                 std::cout << "time_trans: " << breakpoints_trans.time_trans << std::endl;
 
+                history_trans_update(breakpoints_trans, trans_sim);
                 breakpoints.pop_front();
-                // continue;
             }
 
             else
             {
-
                 if (breakpoints.empty() == false && trans.time_trans == breakpoints.front())
                 {
                     breakpoints.pop_front();
@@ -240,7 +230,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, Tra
                 // trans has already been updated in the multi_next_h function
                 trans.C_list_update();
                 trans.trans_count = trans_sim.vec_trans.back().trans_count + 1;
-                history_trans_update(trans, trans_sim.vec_trans);
+                history_trans_update(trans, trans_sim);
             }
         }
 
