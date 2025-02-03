@@ -4,7 +4,9 @@
 #include "Transient_multi_solvers.hpp"
 #include "Transient_single_solvers.hpp"
 
-void Fixed_TimeStep(Transient &trans, const CKTcircuit &ckt, TransientSimulator &trans_sim){
+Transient Fixed_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim){
+    Transient trans;
+    trans.mode = 1; // 0 to do OP analysis, 1 to do transient simulation
     trans.h = trans_sim.trans_config.init_h; // Initial time step
     trans.time_trans = trans_sim.vec_trans.back().time_trans;
     trans.C_list = trans_sim.vec_trans.back().C_list;
@@ -43,10 +45,13 @@ void Fixed_TimeStep(Transient &trans, const CKTcircuit &ckt, TransientSimulator 
     trans.solution = solution;
 
     trans.trans_count = trans_sim.vec_trans.back().trans_count + 1;
-    history_trans_update(trans, trans_sim);
+    return trans;
 }
 
-void Varibale_TimeStep(Transient &trans, const CKTcircuit &ckt, TransientSimulator &trans_sim){
+Transient Varibale_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim){
+    Transient trans;
+    trans.mode = 1; // 0 to do OP analysis, 1 to do transient simulation
+
     if (trans_sim.vec_trans.size() == 1)
     {
         // The first step of the transient simulation
@@ -71,7 +76,6 @@ void Varibale_TimeStep(Transient &trans, const CKTcircuit &ckt, TransientSimulat
 
         trans.trans_count += 1;
         trans.next_h = trans.h;
-        history_trans_update(trans, trans_sim);
     }
 
     else
@@ -128,7 +132,6 @@ void Varibale_TimeStep(Transient &trans, const CKTcircuit &ckt, TransientSimulat
             std::cout << "time step: " << breakpoints_trans.h << std::endl;
             std::cout << "time_trans: " << breakpoints_trans.time_trans << std::endl;
 
-            history_trans_update(breakpoints_trans, trans_sim);
             trans_sim.breakpoints.pop_front();
         }
 
@@ -147,9 +150,10 @@ void Varibale_TimeStep(Transient &trans, const CKTcircuit &ckt, TransientSimulat
             // trans has already been updated in the multi_next_h function
             trans.C_list_update();
             trans.trans_count = trans_sim.vec_trans.back().trans_count + 1;
-            history_trans_update(trans, trans_sim);
         }
     }
+
+    return trans;
 }
 
 std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, TransientSimulator &trans_sim)
@@ -218,19 +222,18 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, Tra
     {
         // std::cout << "-------------------------------------------------------" << std::endl;
         // std::cout << "Next step" << std::endl;
-        Transient trans;
-
-        trans.mode = 1; // 0 to do OP analysis, 1 to do transient simulation
 
         // Fixed time step
         if (trans_sim.trans_config.timestep_control == false)
         {
-           Fixed_TimeStep(trans, ckt, trans_sim);
+           Transient trans = Fixed_TimeStep(ckt, trans_sim);
+           history_trans_update(trans, trans_sim);
             
         }
         // time step control: varibale time step
         else{
-            Varibale_TimeStep(trans, ckt, trans_sim);
+            Transient trans = Varibale_TimeStep(ckt, trans_sim);
+            history_trans_update(trans, trans_sim);
         }
 
     } while (trans_sim.vec_trans.back().time_trans < trans_sim.trans_config.t_end && trans_sim.trans_end == false);
