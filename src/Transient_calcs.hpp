@@ -28,15 +28,10 @@
     {                          \
         (var).print(label);    \
     }
-/*--------------------------Timeing----------------------------------------------------------------*/
-// std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> begin_mid;
-// std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> begin_up;
-// std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> begin_down;
-// std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> end_mid;
-// std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> end_up;
-// std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> end_down;
-
-/*-----------------------------------------------------------------------------------------------------------------------------------------------------*/
+struct TransientConfig;
+struct Transient;
+struct Truncation_error;
+struct TransientSimulator;
 
 // Function to control debug mode
 double cond(double R)
@@ -67,8 +62,6 @@ struct TransientConfig {
 
 struct Transient
 {
-    const TransientConfig* config; // pointer to a shared config (read-only)
-
     double h{};
     double next_h{};
     double time_trans{};
@@ -83,9 +76,6 @@ struct Transient
     arma::vec Capacitance;
 
     std::vector<Capacitor> C_list;
-
-    // Constructor to link the Transient to the config
-    Transient(const TransientConfig* cfg) : config(cfg) {}
 
     void C_list_update()
     {
@@ -107,6 +97,7 @@ struct Transient
         }
     }
 };
+
 struct Truncation_error
 {
     arma::vec LTE_bound_mid{};
@@ -116,6 +107,12 @@ struct Truncation_error
     arma::vec LTE_BE_mid_h{};
     arma::vec LTE_BE_up_h{};
     arma::vec LTE_BE_down_h{};
+};
+
+struct TransientSimulator
+{   
+    TransientConfig trans_config;
+    std::vector<Transient> vec_trans;
 };
 
 arma::vec get_capacitance(const std::vector<Capacitor> &C_list)
@@ -202,7 +199,7 @@ void Transsetup(TransientConfig &config, const CircuitParser &parser, CKTcircuit
     3. Start of fall time: t=td+tr+tpw. This is when the voltage begins to transition back to V1
     4​. End of fall time: t=td+tr+tpw+tf. This is when the voltage finishes transitioning back to V1​.
 */
-std::deque<double> get_breakpoints(const CKTcircuit &ckt, const Transient &trans)
+std::deque<double> get_breakpoints(const CKTcircuit &ckt, const TransientSimulator &trans_sim)
 {
 
     std::deque<double> breakpoints;
@@ -218,7 +215,7 @@ std::deque<double> get_breakpoints(const CKTcircuit &ckt, const Transient &trans
                    {
             if constexpr(std::is_same_v<std::decay_t<decltype(arg)>, Pulsevoltage>){
                 
-                for(double cycle_start = 0; cycle_start < trans.config->t_end; cycle_start += arg.per){
+                for(double cycle_start = 0; cycle_start < trans_sim.trans_config.t_end; cycle_start += arg.per){
 
                     double cycle_times[] = {
                         arg.td+cycle_start, 
@@ -228,7 +225,7 @@ std::deque<double> get_breakpoints(const CKTcircuit &ckt, const Transient &trans
                     };
 
                     for(double t : cycle_times){
-                        if(t <= trans.config->t_end){
+                        if(t <= trans_sim.trans_config.t_end){
                             breakpoints.push_back(t);
                         }
                     }
@@ -245,9 +242,9 @@ std::deque<double> get_breakpoints(const CKTcircuit &ckt, const Transient &trans
         breakpoints.pop_front();
     }
 
-    if (breakpoints.back() != trans.config->t_end)
+    if (breakpoints.back() != trans_sim.trans_config.t_end)
     {
-        breakpoints.push_back(trans.config->t_end);
+        breakpoints.push_back(trans_sim.trans_config.t_end);
     }
 
     // Ensure the difference between consecutive breakpoints is at least 1e-13

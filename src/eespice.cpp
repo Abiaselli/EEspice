@@ -31,10 +31,10 @@ int main(int argc, const char **argv)
     CKTload(ckt);
     ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
 
-    TransientConfig trans_config;
-    Transsetup(trans_config, parser, ckt);
+    TransientSimulator trans_sim;
+    Transsetup(trans_sim.trans_config, parser, ckt);
 
-    auto vec_trans_result = Transient_ops(ckt, dematrix, trans_config);
+    auto vec_trans_result = Transient_ops(ckt, dematrix, trans_sim);
 
     auto tstop_trans = std::chrono::high_resolution_clock::now();
 

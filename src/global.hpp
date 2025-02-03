@@ -9,13 +9,16 @@
 #include "sim_variables.hpp"
 
 // Forward declarations
-struct XB_Timer;
-struct CircuitElement;
-struct Transient;
-struct CKTcircuit;
-struct multi_timestep;
-struct Truncation_error;
+struct VoltageSource;
+struct Pulsevoltage;
+struct Diode;
+struct VCCS;
+struct NMOS;
+struct PMOS;
+struct CurrentSource;
+struct Resistor;
 struct Capacitor;
+struct CircuitElement;
 
 struct VoltageSource
 {   

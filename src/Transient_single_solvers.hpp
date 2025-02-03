@@ -68,27 +68,27 @@ single_Truncation_error single_LTE_BE_calculation(const single_timestep &single_
     return LTE;
 }
 
-single_timestep single_solution_solver(const double &h, const Transient &trans, const CKTcircuit &ckt, const std::vector<Transient> &vec_trans){
+single_timestep single_solution_solver(const double &h, const Transient &trans, const CKTcircuit &ckt, const TransientSimulator &trans_sim){
     
     single_timestep single_h;
     single_h.h = h;
-    single_h.t = vec_trans.back().time_trans + h;
-    std::vector<Capacitor> C_list_copy = trans.config->C_list;
+    single_h.t = trans_sim.vec_trans.back().time_trans + h;
+    std::vector<Capacitor> C_list_copy = trans_sim.trans_config.C_list;
 
-    if(trans.config->non_linear){
-        single_h.solution = NewtonRaphson_system(ckt, h, trans.mode, single_h.t, C_list_copy, vec_trans.back().solution);
-        std::pair<arma::vec, arma::vec> currents_voltages = get_currents_voltages(C_list_copy, h, single_h.solution, vec_trans.back().solution);
+    if(trans_sim.trans_config.non_linear){
+        single_h.solution = NewtonRaphson_system(ckt, h, trans.mode, single_h.t, C_list_copy, trans_sim.vec_trans.back().solution);
+        std::pair<arma::vec, arma::vec> currents_voltages = get_currents_voltages(C_list_copy, h, single_h.solution, trans_sim.vec_trans.back().solution);
         single_h.C_current = currents_voltages.first;
         single_h.C_voltage = currents_voltages.second;
         single_h.Capacitance = get_capacitance(C_list_copy);
         single_h.C_charge = single_h.Capacitance % single_h.C_voltage; // element-wise multiplication of two objects (Schur product)
         single_h.C_list = C_list_copy;
     }
-    else if(trans.config->non_linear == false){
+    else if(trans_sim.trans_config.non_linear == false){
         std::pair<arma::mat, arma::vec> matrices;
-        matrices = Dynamic(ckt, h, vec_trans.back().solution, trans.mode, single_h.t);
+        matrices = Dynamic(ckt, h, trans_sim.vec_trans.back().solution, trans.mode, single_h.t);
         single_h.solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
-        std::pair<arma::vec, arma::vec> currents_voltages = get_currents_voltages(C_list_copy, h, single_h.solution, vec_trans.back().solution);
+        std::pair<arma::vec, arma::vec> currents_voltages = get_currents_voltages(C_list_copy, h, single_h.solution, trans_sim.vec_trans.back().solution);
         single_h.C_current = currents_voltages.first;
         single_h.C_voltage = currents_voltages.second;
         single_h.Capacitance = get_capacitance(C_list_copy);
@@ -96,18 +96,18 @@ single_timestep single_solution_solver(const double &h, const Transient &trans, 
         single_h.C_list = C_list_copy;
     }
     else{
-        std::cerr << "Error in single_solution_solver function: trans.config->non_linear" << std::endl;
+        std::cerr << "Error in single_solution_solver function: trans_sim.trans_config.non_linear" << std::endl;
         exit(1);
     }
 
     return single_h;
 }
 
-bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &single_h, const std::vector<Transient> &vec_trans, 
-                        double &temp_h, const Transient &trans){
+bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &single_h,
+                        double &temp_h, const TransientSimulator &trans_sim){
     if(NR_ITE < ITL4){
 
-       LTE = single_LTE_BE_calculation(single_h, vec_trans);
+       LTE = single_LTE_BE_calculation(single_h, trans_sim.vec_trans);
 
        if(LTE.LTE_BE_h.min() * TRTOL < 0.9 * single_h.h){
            // Reject the solution, hn = hn+1 and recompute the new hn
@@ -116,7 +116,7 @@ bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &singl
        }
        else{
            // Accept the solution
-           temp_h = std::min({(LTE.LTE_BE_h.min() * TRTOL), 2.0 * single_h.h, trans.config->h_MAX});
+           temp_h = std::min({(LTE.LTE_BE_h.min() * TRTOL), 2.0 * single_h.h, trans_sim.trans_config.h_MAX});
 
            return true;
        }
@@ -126,7 +126,7 @@ bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &singl
         // Reject the solution, hn = hn/8 and recompute the new hn
         temp_h = single_h.h / 8.0;
 
-        if(temp_h > trans.config->h_MIN){
+        if(temp_h > trans_sim.trans_config.h_MIN){
             return false;
         }
         else{
@@ -136,10 +136,10 @@ bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &singl
     }
 }
 
-arma::vec single_next_h(Transient &trans, const CKTcircuit &ckt, const std::vector<Transient> &vec_trans){
+arma::vec single_next_h(Transient &trans, const CKTcircuit &ckt, const TransientSimulator &trans_sim){
 
     arma::vec solution;
-    double temp_h = vec_trans.back().next_h;                     // The temporary time step for this function
+    double temp_h = trans_sim.vec_trans.back().next_h;                     // The temporary time step for this function
 
     bool LTE_check= false;
 
@@ -147,11 +147,11 @@ arma::vec single_next_h(Transient &trans, const CKTcircuit &ckt, const std::vect
     single_Truncation_error LTE;
 
     do{
-        single_h = single_solution_solver(temp_h, trans, ckt, vec_trans);
+        single_h = single_solution_solver(temp_h, trans, ckt, trans_sim);
 
         total_timepoint += 1;
 
-        LTE_check = single_LTE_check(LTE, single_h, vec_trans, temp_h, trans);
+        LTE_check = single_LTE_check(LTE, single_h, temp_h, trans_sim);
 
     }while(LTE_check == false);
 

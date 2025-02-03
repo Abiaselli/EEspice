@@ -4,11 +4,9 @@
 #include "Transient_multi_solvers.hpp"
 #include "Transient_single_solvers.hpp"
 
-std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, const TransientConfig &trans_config)
+std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, TransientSimulator &trans_sim)
 {
-    std::vector<Transient> vec_trans;
-
-    Transient trans_op(&trans_config);
+    Transient trans_op;
 
     trans_op.LHS = dematrix.get_init_LHS();
     trans_op.RHS = dematrix.get_init_RHS();
@@ -38,8 +36,8 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, con
     auto tstop_op = std::chrono::high_resolution_clock::now();
 
     trans_op.solution = solution;
-    trans_op.next_h = trans_config.init_h;
-    history_trans_update(trans_op, vec_trans);
+    trans_op.next_h = trans_sim.trans_config.init_h;
+    history_trans_update(trans_op, trans_sim.vec_trans);
 
     arma::vec node_volt_print = solution.submat(0, 0, ckt.external_nodes - 1, 0);
     arma::vec current_print = solution.submat(solution.n_rows - ckt.no_of_V_sources, 0, solution.n_rows - 1, 0);
@@ -62,7 +60,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, con
 
     if (ckt.pulse_num != 0)
     {
-        breakpoints = get_breakpoints(ckt, trans_op); // Get the time of breakpoints for the transient simulation
+        breakpoints = get_breakpoints(ckt, trans_sim); // Get the time of breakpoints for the transient simulation
         std::cout << "The breakpoints are: ";
         for (double num : breakpoints)
         {
@@ -76,26 +74,26 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, con
         // std::cout << "-------------------------------------------------------" << std::endl;
         // std::cout << "Next step" << std::endl;
 
-        Transient trans(&trans_config);
+        Transient trans;
 
         trans.mode = 1; // 0 to do OP analysis, 1 to do transient simulation
 
         // Fixed time step
-        if (trans.config->timestep_control == false)
+        if (trans_sim.trans_config.timestep_control == false)
         {
-            trans.h = trans.config->init_h; // Initial time step
-            trans.time_trans = vec_trans.back().time_trans;
-            trans.C_list = vec_trans.back().C_list;
+            trans.h = trans_sim.trans_config.init_h; // Initial time step
+            trans.time_trans = trans_sim.vec_trans.back().time_trans;
+            trans.C_list = trans_sim.vec_trans.back().C_list;
 
             std::cout << "Fixed time step" << std::endl;
-            solution = NewtonRaphson_system(ckt, trans.h, 1, trans.time_trans, trans.C_list, vec_trans.back().solution);
+            solution = NewtonRaphson_system(ckt, trans.h, 1, trans.time_trans, trans.C_list, trans_sim.vec_trans.back().solution);
             // solution.print("The transient analysis of the circuit is: ");
             ARMA_PRINT(solution, "The transient analysis of the circuit is: ");
 
             if (trans.C_list.size() > 0)
             {
 
-                auto cur_vol = get_currents_voltages(trans.C_list, trans.h, solution, vec_trans.back().solution);
+                auto cur_vol = get_currents_voltages(trans.C_list, trans.h, solution, trans_sim.vec_trans.back().solution);
                 trans.Capacitance = get_capacitance(trans.C_list);
                 trans.C_current = cur_vol.first;
                 trans.C_voltage = cur_vol.second;
@@ -104,9 +102,9 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, con
 
                 /*--------------------------------------*/
                 double current = arma::abs(trans.C_current).max();
-                double pre_current = arma::abs(vec_trans.back().C_current).max();
+                double pre_current = arma::abs(trans_sim.vec_trans.back().C_current).max();
                 double charge = arma::abs(trans.C_charge).max();
-                double pre_charge = arma::abs(vec_trans.back().C_charge).max();
+                double pre_charge = arma::abs(trans_sim.vec_trans.back().C_charge).max();
                 double LTE_B_C = RELTOL * std::max(current, pre_current) + ABSTOL;
                 double LTE_B_Q = RELTOL * std::max({charge, pre_charge, CHGTOL}) / trans.h;
                 double LTE_bound = std::max(LTE_B_C, LTE_B_Q);
@@ -118,30 +116,25 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, con
                 // }
             }
 
-            trans.time_trans = vec_trans.back().time_trans + trans.h;
+            trans.time_trans = trans_sim.vec_trans.back().time_trans + trans.h;
             trans.solution = solution;
-            // trans.LHS = matrixs.first;
-            // trans.RHS = matrixs.second;
-            trans.trans_count = vec_trans.back().trans_count + 1;
-            // trans.C_current.print("The current matrix is: ");
-            // std::cout << "time trans: " << trans.time_trans << std::endl;
-            // std::cout << "time step: " << trans.h << std::endl;
 
-            history_trans_update(trans, vec_trans);
+            trans.trans_count = trans_sim.vec_trans.back().trans_count + 1;
+            history_trans_update(trans, trans_sim.vec_trans);
 
             continue;
         }
 
         // time step control: varibale time step
 
-        if (vec_trans.size() == 1)
+        if (trans_sim.vec_trans.size() == 1)
         {
             // The first step of the transient simulation
             trans.C_list = trans_op.C_list;
-            trans.h = trans.config->init_h; // Initial time step
-            trans.time_trans = trans.config->t_start + trans.h;
+            trans.h = trans_sim.trans_config.init_h; // Initial time step
+            trans.time_trans = trans_sim.trans_config.t_start + trans.h;
 
-            solution = NewtonRaphson_system(ckt, trans.h, 1, trans.time_trans, trans.C_list, vec_trans.back().solution);
+            solution = NewtonRaphson_system(ckt, trans.h, 1, trans.time_trans, trans.C_list, trans_sim.vec_trans.back().solution);
             // solution.print("The transient analysis of the circuit is: ");
             ARMA_PRINT(solution, "The transient analysis of the circuit is: ");
 
@@ -164,24 +157,24 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, con
             trans.next_h = trans.h;
             // trans.C_current.print("The current matrix is: ");
 
-            history_trans_update(trans, vec_trans);
+            history_trans_update(trans, trans_sim.vec_trans);
         }
 
         else
         {
 
-            trans.C_list = vec_trans.back().C_list;
+            trans.C_list = trans_sim.vec_trans.back().C_list;
 
-            trans.time_trans = vec_trans.back().time_trans;
+            trans.time_trans = trans_sim.vec_trans.back().time_trans;
 
             // solution = multi_next_h(trans, ckt, vec_trans);
-            solution = single_next_h(trans, ckt, vec_trans);
+            solution = single_next_h(trans, ckt, trans_sim);
 
             trans.time_trans = trans.time_trans + trans.h;
 
             /* If the time difference between the previous simulation time point and the breakpoint is less than 10*hmin,
                it will be counted as 1 time point and no additional breakpoint simulation will be performed.*/
-            if (breakpoints.empty() == false && breakpoints.front() - vec_trans.back().time_trans < 10 * trans.config->h_MIN)
+            if (breakpoints.empty() == false && breakpoints.front() - trans_sim.vec_trans.back().time_trans < 10 * trans_sim.trans_config.h_MIN)
             {
 
                 breakpoints.pop_front();
@@ -194,22 +187,19 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, con
             if (breakpoints.empty() == false && trans.time_trans > breakpoints.front())
             {
 
-                Transient breakpoints_trans(&trans_config);
+                Transient breakpoints_trans;
 
                 breakpoints_trans.mode = 1; // 0 to do OP analysis, 1 to do transient simulation
-                breakpoints_trans.C_list = vec_trans.back().C_list;
+                breakpoints_trans.C_list = trans_sim.vec_trans.back().C_list;
 
                 std::cout << "The time step is too large, back to breakpoint" << std::endl;
                 breakpoints_trans.time_trans = breakpoints.front();
-                breakpoints_trans.h = breakpoints_trans.time_trans - vec_trans.back().time_trans;
+                breakpoints_trans.h = breakpoints_trans.time_trans - trans_sim.vec_trans.back().time_trans;
                 // std::cout << "breakpoints_trans.time_trans: " << breakpoints_trans.time_trans << std::endl;
                 // std::cout << "vec_trans.back().time_trans: " << vec_trans.back().time_trans << std::endl;
 
-                DEBUG_PRINT("breakpoints_trans.time_trans: " << breakpoints_trans.time_trans);
-                DEBUG_PRINT("vec_trans.back().time_trans: " << vec_trans.back().time_trans);
-
-                solution = NewtonRaphson_system(ckt, breakpoints_trans.h, 1, breakpoints_trans.time_trans, breakpoints_trans.C_list, vec_trans.back().solution);
-                auto cur_vol = get_currents_voltages(breakpoints_trans.C_list, breakpoints_trans.h, solution, vec_trans.back().solution);
+                solution = NewtonRaphson_system(ckt, breakpoints_trans.h, 1, breakpoints_trans.time_trans, breakpoints_trans.C_list, trans_sim.vec_trans.back().solution);
+                auto cur_vol = get_currents_voltages(breakpoints_trans.C_list, breakpoints_trans.h, solution, trans_sim.vec_trans.back().solution);
                 breakpoints_trans.Capacitance = get_capacitance(breakpoints_trans.C_list);
 
                 breakpoints_trans.solution = solution;
@@ -220,10 +210,10 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, con
 
                 // breakpoints_trans.LHS = matrixs.first;
                 // breakpoints_trans.RHS = matrixs.second;
-                breakpoints_trans.trans_count = vec_trans.back().trans_count + 1;
+                breakpoints_trans.trans_count = trans_sim.vec_trans.back().trans_count + 1;
                 breakpoints_trans.next_h = breakpoints_trans.h;
 
-                history_trans_update(breakpoints_trans, vec_trans);
+                history_trans_update(breakpoints_trans, trans_sim.vec_trans);
 
                 // solution.print("The transient analysis of the circuit is: ");
                 ARMA_PRINT(solution, "The transient analysis of the circuit is: ");
@@ -249,12 +239,12 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, con
 
                 // trans has already been updated in the multi_next_h function
                 trans.C_list_update();
-                trans.trans_count = vec_trans.back().trans_count + 1;
-                history_trans_update(trans, vec_trans);
+                trans.trans_count = trans_sim.vec_trans.back().trans_count + 1;
+                history_trans_update(trans, trans_sim.vec_trans);
             }
         }
 
-    } while (vec_trans.back().time_trans < vec_trans.back().config->t_end && trans_end == false);
+    } while (trans_sim.vec_trans.back().time_trans < trans_sim.trans_config.t_end && trans_end == false);
 
-    return vec_trans;
+    return trans_sim.vec_trans;
 }

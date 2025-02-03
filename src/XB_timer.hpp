@@ -2,6 +2,8 @@
 
 #include <chrono>
 
+struct XB_Timer;
+
 struct XB_Timer
 {
 public:
