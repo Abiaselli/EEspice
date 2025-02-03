@@ -99,8 +99,10 @@ struct Truncation_error
 
 struct TransientSimulator
 {   
-    TransientConfig trans_config;
-    std::vector<Transient> vec_trans;
+    TransientConfig trans_config;           // Transient configuration(never changes)
+    std::vector<Transient> vec_trans;       // Transient history
+    std::deque<double> breakpoints;         // Breakpoints for the transient simulation
+    bool trans_end = false;                 // End of transient simulation
 };
 
 arma::vec get_capacitance(const std::vector<Capacitor> &C_list)

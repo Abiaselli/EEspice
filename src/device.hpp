@@ -128,7 +128,6 @@ void Is_assigner(double node_x, double node_y, double I, arma::vec &RHS)
 // Capacitor stamp assigner with backward euler method
 void C_assigner_BE(int node_x, int node_y, double C, double h, arma::mat &LHS, arma::vec &RHS, const arma::vec &pre_solution, int mode)
 {
-
     if (node_x == 0 && node_y == 0)
     {
         return;

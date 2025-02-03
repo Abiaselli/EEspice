@@ -62,7 +62,7 @@ axes[2].grid(True)
 
 # Figure 3: Selected Voltages vs. Time
 #Specify the selected voltages by index or name here
-selected_voltages = [voltage_columns[8]]  # Adjust indices according to your needs
+selected_voltages = [voltage_columns[3]]  # Adjust indices according to your needs
 
 for voltage in selected_voltages:
     ax3.plot(df['Time'], df[voltage], label=f'{voltage} vs Time', marker='^')

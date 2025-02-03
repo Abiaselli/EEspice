@@ -138,7 +138,6 @@ bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &singl
 
 arma::vec single_next_h(Transient &trans, const CKTcircuit &ckt, const TransientSimulator &trans_sim){
 
-    arma::vec solution;
     double temp_h = trans_sim.vec_trans.back().next_h;                     // The temporary time step for this function
 
     bool LTE_check= false;
@@ -164,5 +163,5 @@ arma::vec single_next_h(Transient &trans, const CKTcircuit &ckt, const Transient
     trans.C_voltage = single_h.C_voltage;
     trans.C_charge = single_h.C_charge;
 
-    return solution;
+    return  trans.solution;
 }

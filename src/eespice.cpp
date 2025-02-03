@@ -38,13 +38,6 @@ int main(int argc, const char **argv)
 
     auto tstop_trans = std::chrono::high_resolution_clock::now();
 
-    /* Getting number of milliseconds as a double. */
-    // std::chrono::duration<double, std::milli> OP_time = (tstop_op - tstart_op);
-    // std::chrono::duration<double, std::milli> trans_time = (tstop_trans - tstart_trans);
-
-    // std::cout << "DC OP time:" << OP_time.count() << "ms\n";
-    // std::cout << "Transient time:" << trans_time.count() << "ms\n";
-
     /*-----------------------------------------------------------------------------------------------------------*/
     // SAVING THE SOLUTION AND TIME MATRICES INTO CSV FILES
     auto t2 = std::chrono::high_resolution_clock::now(); // End time
@@ -57,9 +50,6 @@ int main(int argc, const char **argv)
     std::chrono::duration<double, std::milli> analysis_time = (tstop_trans - t1);
     std::cout << "Total analysis time:" << (analysis_time).count()  << "ms\n";
     std::cout << "Total time:" << time_span.count() << "ms\n";
-    // std::cout << "The Total time for multi-solver is: " << timer.total_ms() << "ms\n";
-
-    // save_threads_time(t1, tstop_trans);
 
     return 0;
     /*-----------------------------------------------------------------------------------------------------------*/
