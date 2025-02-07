@@ -5,6 +5,7 @@
 #include <vector>
 #include <variant>
 #include <map>
+#include <memory>
 
 #include "global.hpp"
 #include "matrix.hpp"
@@ -18,24 +19,20 @@ struct CKTcircuit
     // uword is a typedef for an unsigned integer type; it is used for matrix indices as well as all internal counters and loops
 
     std::vector<CircuitElement> CKTelements;        // Vector of circuit elements
-    int external_nodes{};                           // Number of external nodes (excluding ground and ring oscillator loop nodes)
+    int external_nodes{};                           // Number of external nodes excluding ground and nodes inside the MOSFETs
     // int external_mosfets{};                      // Number of standalone mosfets (excluding mosfets from ring oscillator)
     int no_of_mosfets{};                            // Total number of MOSFETs
     int no_of_V_sources{};                          // Total number of voltage sources
-    int T_nodes{};                                  // Total number of nodes excluding ground
+    int T_nodes{};                                  // Total number of nodes excluding ground (Used to create the initial matrix in CKTsetup)
 
-    DenseMatrix *cktdematrix; // Dense matrix struct
-    void setcktmatrix(DenseMatrix &DenseMatrix)
-    {
-        cktdematrix = &DenseMatrix;
-    }
+    std::shared_ptr<DenseMatrix> cktdematrix;       // Dense matrix struct
 
-    std::vector<Capacitor> C_list; // Vector of capacitors (including the parasitic capacitance of the MOSFETs)
+    std::vector<Capacitor> C_list;                  // Vector of capacitors (including the parasitic capacitance of the MOSFETs)
 
-    bool ckt_loaded{}; // To check if the circuit is loaded or not
+    bool ckt_loaded{};                              // To check if the circuit is loaded or not
 };
 
-void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, DenseMatrix &DenseMatrix)
+void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<DenseMatrix> denseMatrixPtr)
 {
 
     // Careful! getCircuitElements function is const, so it can't be used to modify the elements vector
@@ -47,10 +44,11 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, DenseMatrix &DenseMa
     // ckt.T_nodes = ckt.external_nodes;
 
     // Size of matrix
-    DenseMatrix.Maxi = ckt.T_nodes;
-    DenseMatrix.Maxj = DenseMatrix.Maxi;
-    DenseMatrix.LHS = arma::zeros(DenseMatrix.Maxi, DenseMatrix.Maxj); // LHS matrix
-    DenseMatrix.RHS = arma::zeros(DenseMatrix.Maxi, 1);                // RHS matrix
+    ckt.cktdematrix = denseMatrixPtr;
+    ckt.cktdematrix->Maxi = ckt.T_nodes;
+    ckt.cktdematrix->Maxj = ckt.cktdematrix->Maxi;
+    ckt.cktdematrix->LHS = arma::zeros(ckt.cktdematrix->Maxi, ckt.cktdematrix->Maxj);    // LHS matrix
+    ckt.cktdematrix->RHS = arma::zeros(ckt.cktdematrix->Maxi, 1);                // RHS matrix
 }
 
 void CKTload(CKTcircuit &ckt)

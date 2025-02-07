@@ -158,12 +158,12 @@ Transient Varibale_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim
     return trans;
 }
 
-std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, TransientSimulator &trans_sim)
+std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_sim)
 {
     Transient trans_op;
 
-    trans_op.LHS = dematrix.get_init_LHS();
-    trans_op.RHS = dematrix.get_init_RHS();
+    trans_op.LHS = ckt.cktdematrix->get_init_LHS();
+    trans_op.RHS = ckt.cktdematrix->get_init_RHS();
     trans_op.C_list = ckt.C_list;               // Pass the capacitance list to the transient analysis
     trans_op.h = 0;
 
@@ -171,7 +171,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, Tra
     trans_op.mode = 0;                          // 0 to do OP analysis, 1 to do transient simulation
 
     // OP analysis used as initial condition for next evaluation
-    arma::vec solution = arma::zeros(dematrix.RHS.n_rows, dematrix.RHS.n_cols);
+    arma::vec solution = arma::zeros(ckt.cktdematrix->RHS.n_rows, ckt.cktdematrix->RHS.n_cols);
 
     // Benchmarking for OP analysis
     auto tstart_op = std::chrono::high_resolution_clock::now();
@@ -180,7 +180,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, DenseMatrix &dematrix, Tra
 
     if (trans_op.C_list.size() > 0)
     {
-        auto cur_vol_op = get_currents_voltages(trans_op.C_list, trans_op.h, solution, arma::zeros(dematrix.RHS.n_rows, dematrix.RHS.n_cols));
+        auto cur_vol_op = get_currents_voltages(trans_op.C_list, trans_op.h, solution, arma::zeros(ckt.cktdematrix->RHS.n_rows, ckt.cktdematrix->RHS.n_cols));
         trans_op.Capacitance = get_capacitance(trans_op.C_list); // Get the capacitance matrix from c_list
         trans_op.C_current = cur_vol_op.first;
         // trans_op.C_current.print("The current matrix at op is: ");

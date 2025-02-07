@@ -19,21 +19,20 @@ int main(int argc, const char **argv)
     auto t1 = std::chrono::high_resolution_clock::now(); // Start time
 
     CKTcircuit ckt;
-    DenseMatrix dematrix;
+    auto denseMatrixPtr = std::make_shared<DenseMatrix>();  // Create the DenseMatrix as a shared pointer.
     Circuitmap map;
 
     CircuitParser parser("Netlist/Ring.cir");
     parser_netlist(parser, map);
 
-    CKTsetup(ckt, parser, dematrix); // Pass the parser to the ckt and the initialise LHS and RHS matrices
-    ckt.setcktmatrix(dematrix);
+    CKTsetup(ckt, parser, denseMatrixPtr); // Pass the parser to the ckt and the initialise LHS and RHS matrices
 
     CKTload(ckt);
     ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
 
     TransientSimulator trans_sim = Transsetup(parser, ckt);
 
-    auto vec_trans_result = Transient_ops(ckt, dematrix, trans_sim);
+    auto vec_trans_result = Transient_ops(ckt, trans_sim);
 
     auto tstop_trans = std::chrono::high_resolution_clock::now();
 

@@ -6,6 +6,8 @@
 #include <variant>
 #include <armadillo>
 
+struct DenseMatrix;
+
 struct DenseMatrix
 {
     int Maxi{}; // Size of matrix without branch current
