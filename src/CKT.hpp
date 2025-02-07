@@ -34,7 +34,6 @@ struct CKTcircuit
 
 void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<DenseMatrix> denseMatrixPtr)
 {
-
     // Careful! getCircuitElements function is const, so it can't be used to modify the elements vector
     // ckt.elements = parser.getCircuitElements();
     ckt.CKTelements = parser.elements;
@@ -48,7 +47,7 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     ckt.cktdematrix->Maxi = ckt.T_nodes;
     ckt.cktdematrix->Maxj = ckt.cktdematrix->Maxi;
     ckt.cktdematrix->LHS = arma::zeros(ckt.cktdematrix->Maxi, ckt.cktdematrix->Maxj);    // LHS matrix
-    ckt.cktdematrix->RHS = arma::zeros(ckt.cktdematrix->Maxi, 1);                // RHS matrix
+    ckt.cktdematrix->RHS = arma::zeros(ckt.cktdematrix->Maxi, 1);                        // RHS matrix
 }
 
 void CKTload(CKTcircuit &ckt)
@@ -65,7 +64,6 @@ void CKTload(CKTcircuit &ckt)
 
                            if (arg.value == 0)
                            {
-
                                arg.value = 1e-3;
                            }
                            R_assigner(arg.nodePos, arg.nodeNeg, 1 / arg.value, ckt.cktdematrix->LHS);

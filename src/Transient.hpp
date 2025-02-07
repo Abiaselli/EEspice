@@ -180,12 +180,10 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_
 
     if (trans_op.C_list.size() > 0)
     {
-        auto cur_vol_op = get_currents_voltages(trans_op.C_list, trans_op.h, solution, arma::zeros(ckt.cktdematrix->RHS.n_rows, ckt.cktdematrix->RHS.n_cols));
         trans_op.Capacitance = get_capacitance(trans_op.C_list); // Get the capacitance matrix from c_list
-        trans_op.C_current = cur_vol_op.first;
-        // trans_op.C_current.print("The current matrix at op is: ");
-        trans_op.C_voltage = cur_vol_op.second;
-        trans_op.C_charge = trans_op.C_voltage % trans_op.Capacitance;
+        trans_op.C_current = arma::vec(trans_op.C_list.size(), arma::fill::zeros);
+        trans_op.C_voltage = arma::vec(trans_op.C_list.size(), arma::fill::zeros);
+        trans_op.C_charge = arma::vec(trans_op.C_list.size(), arma::fill::zeros);
     }
     auto tstop_op = std::chrono::high_resolution_clock::now();
 
