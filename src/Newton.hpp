@@ -59,16 +59,18 @@ std::pair<arma::mat, arma::vec> NonLinear(const CKTcircuit &ckt, const double h,
         std::visit([&](auto &&arg)
                    {
                        if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS>)
-                       {
-                           NMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, h, pre_NR_solution, ckt.T_nodes, LHS, RHS, mode, C_list, NR_iteration_counter);
+                       {    
+                            NMOSModel nmosModel = ckt.map.nmosModels.at(arg.model);
+                            NMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, h, pre_NR_solution, ckt.T_nodes, LHS, RHS, mode, nmosModel);
                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Diode>)
                        {
-                           Diode_assigner(arg.nodePos, arg.nodeNeg, arg.Is, arg.VT, LHS, RHS, pre_NR_solution, mode);
+                            Diode_assigner(arg.nodePos, arg.nodeNeg, arg.Is, arg.VT, LHS, RHS, pre_NR_solution, mode);
                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
-                       {
-                           PMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, h, pre_NR_solution, ckt.T_nodes, LHS, RHS, mode, C_list, NR_iteration_counter);
+                       {    
+                            PMOSModel pmosModel = ckt.map.pmosModels.at(arg.model);
+                            PMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, h, pre_NR_solution, ckt.T_nodes, LHS, RHS, mode, pmosModel);
                        } },
                    element.element);
     }

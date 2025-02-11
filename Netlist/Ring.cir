@@ -1,5 +1,8 @@
 Ring
 
+.model NMOS nmos (level=1)
+.model PMOS pmos (level=1)
+
 V1 1 0 5
 * s1o3 is 6
 * s2o3 is 10

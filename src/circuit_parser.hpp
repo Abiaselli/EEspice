@@ -65,6 +65,128 @@ int getMaxNode(const std::vector<CircuitElement> &elements)
     return maxNode;
 }
 
+void parseModel(std::istringstream &iss, const std::string &line, Circuitmap &map){
+    // .model <modelName> <modelType>(pname1=pval1 pname2=pval2 ...)
+    std::string modelName;
+    iss >> modelName;  // e.g., "NMOS" or "PMOS"
+    // The rest of the line should contain the type and parameter list.
+    std::string typeAndParams;
+    std::getline(iss, typeAndParams);
+    // Trim any leading spaces
+    typeAndParams.erase(0, typeAndParams.find_first_not_of(" \t"));
+    
+    // Find the opening and closing parentheses:
+    size_t openParen = typeAndParams.find('(');
+    size_t closeParen = typeAndParams.find(')');
+    if (openParen == std::string::npos || closeParen == std::string::npos || closeParen < openParen) {
+        std::cerr << "Error: Invalid .model line (missing parentheses): " << line << std::endl;
+        exit(1);
+    }
+    
+    // The device type is the substring before the '('.
+    std::string modelType = typeAndParams.substr(0, openParen);
+    // Remove any whitespace from modelType:
+    modelType.erase(std::remove_if(modelType.begin(), modelType.end(), ::isspace), modelType.end());
+    
+    // The parameters are inside the parentheses.
+    std::string paramsStr = typeAndParams.substr(openParen + 1, closeParen - openParen - 1);
+    std::istringstream paramsStream(paramsStr);
+    std::string paramToken;
+    // Depending on the type (NMOS or PMOS), parse into the appropriate model structure.
+    if (strcasecmp(modelType.c_str(), "nmos") == 0) { // for NMOS (case-insensitive)
+        NMOSModel model;
+        while (paramsStream >> paramToken) {
+            size_t eqPos = paramToken.find('=');
+            if (eqPos == std::string::npos)
+                continue; // skip if not a key=value pair
+            std::string key = paramToken.substr(0, eqPos);
+            std::string valueStr = paramToken.substr(eqPos + 1);
+            // Update the model parameters as needed:
+            if (key == "level")
+                model.level = std::stoi(valueStr);
+            else if (key == "vto")
+                model.vt0 = std::stod(valueStr);
+            else if (key == "kp")
+                model.kp = std::stod(valueStr);
+            else if (key == "gamma")
+                model.gamma = std::stod(valueStr);
+            else if (key == "Cgso")
+                model.CGSO = std::stod(valueStr);
+            else if (key == "Cgdo")
+                model.CGDO = std::stod(valueStr);
+            else if (key == "Cgbo")
+                model.CGBO = std::stod(valueStr);
+            else if (key == "Cbd")
+                model.CBD = std::stod(valueStr);
+            else if (key == "Cbs")
+                model.CBS = std::stod(valueStr);
+            else if (key == "phi")
+                model.phi = std::stod(valueStr);
+            else if (key == "lambda")
+                model.LAMBDA = std::stod(valueStr);
+            else if (key == "RD")
+                model.RD = std::stod(valueStr);
+            else if (key == "RS")
+                model.RS = std::stod(valueStr);
+            else if (key == "RG")
+                model.RG = std::stod(valueStr);
+            else {
+                std::cerr << "Warning: Unknown NMOS model parameter: " << key << std::endl;
+            }
+        }
+        // Save the model using modelName as key.
+        map.nmosModels[modelName] = model;
+    }
+    else if (strcasecmp(modelType.c_str(), "pmos") == 0) {
+        PMOSModel model;
+        while (paramsStream >> paramToken) {
+            size_t eqPos = paramToken.find('=');
+            if (eqPos == std::string::npos)
+                continue;
+            std::string key = paramToken.substr(0, eqPos);
+            std::string valueStr = paramToken.substr(eqPos + 1);
+            // Update the model parameters as needed:
+            if (key == "level")
+                model.level = std::stoi(valueStr);
+            else if (key == "vto")
+                model.vt0 = std::stod(valueStr);
+            else if (key == "kp")
+                model.kp = std::stod(valueStr);
+            else if (key == "gamma")
+                model.gamma = std::stod(valueStr);
+            else if (key == "Cgso")
+                model.CGSO = std::stod(valueStr);
+            else if (key == "Cgdo")
+                model.CGDO = std::stod(valueStr);
+            else if (key == "Cgbo")
+                model.CGBO = std::stod(valueStr);
+            else if (key == "Cbd")
+                model.CBD = std::stod(valueStr);
+            else if (key == "Cbs")
+                model.CBS = std::stod(valueStr);
+            else if (key == "phi")
+                model.phi = std::stod(valueStr);
+            else if (key == "lambda")
+                model.LAMBDA = std::stod(valueStr);
+            else if (key == "RD")
+                model.RD = std::stod(valueStr);
+            else if (key == "RS")
+                model.RS = std::stod(valueStr);
+            else if (key == "RG")
+                model.RG = std::stod(valueStr);
+            else {
+                std::cerr << "Warning: Unknown NMOS model parameter: " << key << std::endl;
+            }
+        }
+        map.pmosModels[modelName] = model;
+    }
+    else {
+        std::cerr << "Error: Unknown model type: " << modelType << std::endl;
+        exit(1);
+    }
+    return; // done processing the .model line
+}
+
 void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
 {
 
@@ -74,14 +196,16 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
     std::string v_type, t1_pulse;
 
     iss >> type; // Automatically skips leading whitespace before reading type
-    // std::cout<<"type is "<<type<<std::endl;
 
     if (type.empty())
     {
         return; // Skip empty lines or lines with only whitespaces
     }
-
-    if (type[0] == 'V' || type[0] == 'v')
+    if(type == ".model" || type == ".MODEL")
+    {
+        parseModel(iss, line, map);
+    }
+    else if (type[0] == 'V' || type[0] == 'v')
     {   
         id_str = type;
         int v_id = convertToDevice(id_str, map.map_voltages);
@@ -223,7 +347,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
 
         iss >> M_node_vd_str >> M_node_vg_str >> M_node_vs_str >> M_node_vb_str >> M_model;
 
-        if (M_model == "NMOS")
+        if (map.nmosModels.find(M_model) != map.nmosModels.end())
         {
             NMOS mn;
             mn.id_str = id_str;
@@ -238,6 +362,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
             mn.node_vg = convertToNode(M_node_vg_str, map.map_nodes);
             mn.node_vs = convertToNode(M_node_vs_str, map.map_nodes);
             mn.node_vb = convertToNode(M_node_vb_str, map.map_nodes);
+            mn.model = M_model;
 
             // Read and parse the W and L parameters with their prefixes
             while (iss >> parameter)
@@ -248,12 +373,12 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
                     std::string key = parameter.substr(0, pos);
                     std::string value = parameter.substr(pos + 1);
 
-                    if (key == "W")
+                    if (key == "W" || key == "w")
                     {
                         valueStr = value;
                         mn.W = convertToValue(valueStr);
                     }
-                    else if (key == "L")
+                    else if (key == "L" || key == "l")
                     {
                         valueStr = value;
                         mn.L = convertToValue(valueStr);
@@ -266,7 +391,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
 
             parser.elements.push_back(CircuitElement{mn});
         }
-        else if (M_model == "PMOS")
+        else if (map.pmosModels.find(M_model) != map.pmosModels.end())
         {
             PMOS mp;
             mp.id_str = id_str;
@@ -281,6 +406,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
             mp.node_vg = convertToNode(M_node_vg_str, map.map_nodes);
             mp.node_vs = convertToNode(M_node_vs_str, map.map_nodes);
             mp.node_vb = convertToNode(M_node_vb_str, map.map_nodes);
+            mp.model = M_model;
 
             while (iss >> parameter)
             {
@@ -290,12 +416,12 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
                     std::string key = parameter.substr(0, pos);
                     std::string value = parameter.substr(pos + 1);
 
-                    if (key == "W")
+                    if (key == "W" || key == "w")
                     {
                         valueStr = value;
                         mp.W = convertToValue(valueStr);
                     }
-                    else if (key == "L")
+                    else if (key == "L" || key == "l")
                     {
                         valueStr = value;
                         mp.L = convertToValue(valueStr);

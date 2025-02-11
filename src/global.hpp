@@ -73,6 +73,7 @@ struct NMOS
     std::string node_vd_str, node_vg_str, node_vs_str, node_vb_str;
     int node_vd{}, node_vg{}, node_vs{}, node_vb{};
     double W{}, L{};
+    std::string model;
 };
 
 struct PMOS
@@ -82,6 +83,7 @@ struct PMOS
     std::string node_vd_str, node_vg_str, node_vs_str, node_vb_str;
     int node_vd{}, node_vg{}, node_vs{}, node_vb{};
     double W{}, L{};
+    std::string model;
 };
 
 struct CurrentSource

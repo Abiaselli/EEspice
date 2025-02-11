@@ -20,10 +20,9 @@ int main(int argc, const char **argv)
 
     CKTcircuit ckt;
     auto denseMatrixPtr = std::make_shared<DenseMatrix>();  // Create the DenseMatrix as a shared pointer.
-    Circuitmap map;
 
     CircuitParser parser("Netlist/Ring.cir");
-    parser_netlist(parser, map);
+    parser_netlist(parser, ckt.map);
 
     CKTsetup(ckt, parser, denseMatrixPtr); // Pass the parser to the ckt and the initialise LHS and RHS matrices
 
@@ -40,7 +39,7 @@ int main(int argc, const char **argv)
     // SAVING THE SOLUTION AND TIME MATRICES INTO CSV FILES
     auto t2 = std::chrono::high_resolution_clock::now(); // End time
 
-    save_csv(ckt, vec_trans_result, map);
+    save_csv(ckt, vec_trans_result, ckt.map);
 
     auto t3 = std::chrono::high_resolution_clock::now(); // End time
 
