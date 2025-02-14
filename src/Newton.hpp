@@ -46,7 +46,7 @@ std::pair<arma::mat, arma::vec> Dynamic(const CKTcircuit &ckt, const double h, c
     return {LHS, RHS};
 }
 
-std::pair<arma::mat, arma::vec> NonLinear(const CKTcircuit &ckt, const double h, const arma::vec &pre_NR_solution, int mode, const double time_trans, std::vector<Capacitor> &C_list, int NR_iteration_counter, std::pair<arma::mat, arma::vec> &matrixes)
+std::pair<arma::mat, arma::vec> NonLinear(const CKTcircuit &ckt, const arma::vec &pre_NR_solution, const std::pair<arma::mat, arma::vec> &matrixes)
 {
 
     arma::mat LHS = matrixes.first;
@@ -60,17 +60,17 @@ std::pair<arma::mat, arma::vec> NonLinear(const CKTcircuit &ckt, const double h,
                    {
                        if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS>)
                        {    
-                            NMOSModel nmosModel = ckt.map.nmosModels.at(arg.model);
-                            NMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, h, pre_NR_solution, ckt.T_nodes, LHS, RHS, mode, nmosModel);
+                            const NMOSModel nmosModel = ckt.map.nmosModels.at(arg.model);
+                            NMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, nmosModel);
                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Diode>)
                        {
-                            Diode_assigner(arg.nodePos, arg.nodeNeg, arg.Is, arg.VT, LHS, RHS, pre_NR_solution, mode);
+                            Diode_assigner(arg.nodePos, arg.nodeNeg, arg.Is, arg.VT, LHS, RHS, pre_NR_solution);
                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
                        {    
-                            PMOSModel pmosModel = ckt.map.pmosModels.at(arg.model);
-                            PMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, h, pre_NR_solution, ckt.T_nodes, LHS, RHS, mode, pmosModel);
+                            const PMOSModel pmosModel = ckt.map.pmosModels.at(arg.model);
+                            PMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, pmosModel);
                        } },
                    element.element);
     }
@@ -169,6 +169,7 @@ bool isConverge(const std::vector<arma::vec> &NR_solutions, const CKTcircuit &ck
     return true;
 }
 
+// Transient Simulation
 // Newton Raphson system solver for non-linear and dynamic elements
 arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int &mode, const double time_trans, std::vector<Capacitor> &C_list, const arma::vec &pre_global_solution)
 {
@@ -185,7 +186,7 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int
 
     for (int i = 1; i < 3; i++)
     {
-        matrices = NonLinear(ckt, h, solution, mode, time_trans, C_list, NR_iteration_counter, init_matrices);
+        matrices = NonLinear(ckt, solution, init_matrices);
         // const arma::mat &LHS = matrices.first;
         // const arma::mat &RHS = matrices.second;
 
@@ -208,12 +209,67 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int
             return solution;
         }
 
-        matrices = NonLinear(ckt, h, solution, mode, time_trans, C_list, NR_iteration_counter, init_matrices);
+        matrices = NonLinear(ckt, solution, init_matrices);
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
         solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
         // solution = arma::solve(matrices.first, matrices.second);
+        NR_iteration_counter += 1;
+        NR_solutions.at(NR_iteration_counter) = solution;
+
+        isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
+    }
+
+    NR_ITE = NR_iteration_counter;
+    total_NR_iteration += NR_iteration_counter;
+
+    return solution;
+}
+
+
+// DC Analysis
+arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const arma::mat &init_LHS, const arma::vec &init_RHS)
+{
+    int NR_iteration_counter = 0;
+    bool isconverge = false;
+    arma::vec solution(init_RHS.n_rows, arma::fill::zeros);
+    std::pair<arma::mat, arma::vec> init_matrices = {init_LHS, init_RHS};
+    std::pair<arma::mat, arma::vec> matrices;
+
+    std::vector<arma::vec> NR_solutions(100);
+    NR_solutions[0] = solution;
+
+    // DC Analysis does not have dynamic elements (capacitors, inductors)!
+
+    for (int i = 1; i < 3; i++)
+    {
+        matrices = NonLinear(ckt, solution, init_matrices);
+
+        // Solve Ax = b
+        // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
+        solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
+        
+        NR_iteration_counter += 1;
+        NR_solutions.at(NR_iteration_counter) = solution;
+    }
+
+    isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
+
+    while (!isconverge)
+    {
+        if (NR_iteration_counter > 99)
+        {
+            std::cerr << "DC Analysis did not converge!" << std::endl;
+            exit(1);
+        }
+
+        matrices = NonLinear(ckt, solution, init_matrices);
+
+        // Solve Ax = b
+        // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
+        solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
+
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
 

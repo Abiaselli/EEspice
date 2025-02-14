@@ -1,0 +1,10 @@
+Basic DC Sweep
+
+.model nmos nmos (level=1)
+
+m1 d g 0 0 nmos W=100.0u L=0.9u
+
+Vds d 0 1
+Vg g 0 3
+
+.dc Vg 0 5 0.05

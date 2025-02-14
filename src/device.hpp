@@ -165,7 +165,7 @@ void C_assigner_BE(int node_x, int node_y, double C, double h, arma::mat &LHS, a
 
 // Correct Diode stamp assigner (Original Diode_assigner is wrong with the node voltage assignment)
 double Diode_assigner(int node_x, int node_y, double Is, double VT, arma::mat &LHS, arma::vec &RHS,
-                      const arma::vec &solution, int mode)
+                      const arma::vec &solution)
 {
     int maxi = LHS.n_cols;
     int maxj = 1;
@@ -363,8 +363,8 @@ void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, a
     }
 }
 
-double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node_vb, double W, double L, double h,
-                     const arma::vec &solution, int T_nodes, arma::mat &LHS, arma::vec &RHS, int mode, const NMOSModel &nmosModel)
+double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node_vb, double W, double L,
+                     const arma::vec &solution, int T_nodes, arma::mat &LHS, arma::vec &RHS, const NMOSModel &nmosModel)
 {
     double vd = 0.0;
     double vg = 0.0;
@@ -493,8 +493,8 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
     return id;
 }
 
-double PMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node_vb, double W, double L, double h,
-                     const arma::vec &solution, int T_nodes, arma::mat &LHS, arma::vec &RHS, int mode, const PMOSModel &pmosModel)
+double PMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node_vb, double W, double L,
+                     const arma::vec &solution, int T_nodes, arma::mat &LHS, arma::vec &RHS, const PMOSModel &pmosModel)
 {
     double vd = 0.0;
     double vg = 0.0;

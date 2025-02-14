@@ -3,6 +3,7 @@
 // #define ARMA_USE_SUPERLU
 
 #include "Transient.hpp"
+#include "DC.hpp"
 #include "saveCSV.hpp"
 
 // Main function for the circuit simulation
@@ -21,7 +22,7 @@ int main(int argc, const char **argv)
     CKTcircuit ckt;
     auto denseMatrixPtr = std::make_shared<DenseMatrix>();  // Create the DenseMatrix as a shared pointer.
 
-    CircuitParser parser("Netlist/Ring.cir");
+    CircuitParser parser("Netlist/dc_sweep.cir");
     parser_netlist(parser, ckt.map);
 
     CKTsetup(ckt, parser, denseMatrixPtr); // Pass the parser to the ckt and the initialise LHS and RHS matrices
@@ -29,26 +30,28 @@ int main(int argc, const char **argv)
     CKTload(ckt);
     ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
 
-    TransientSimulator trans_sim = Transsetup(parser, ckt);
+    if(parser.is_transient){
+        TransientSimulator trans_sim = Transsetup(parser, ckt);
+        std::vector<Transient> vec_trans_result = Transient_ops(ckt, trans_sim);
+        save_csv(ckt, vec_trans_result, ckt.map);
 
-    auto vec_trans_result = Transient_ops(ckt, trans_sim);
-
-    auto tstop_trans = std::chrono::high_resolution_clock::now();
+    }
+    if(parser.is_dc){
+        DCSimulator dc_sim = DCsetup(parser, ckt);
+        std::vector<DC> vec_dc_result = DC_ops(ckt, dc_sim);
+        save_csv_dc(ckt, vec_dc_result, ckt.map);
+    }
+   
 
     /*-----------------------------------------------------------------------------------------------------------*/
     // SAVING THE SOLUTION AND TIME MATRICES INTO CSV FILES
-    auto t2 = std::chrono::high_resolution_clock::now(); // End time
 
-    save_csv(ckt, vec_trans_result, ckt.map);
-
-    auto t3 = std::chrono::high_resolution_clock::now(); // End time
-
-    std::chrono::duration<double, std::milli> time_span = (t3 - t1);
-    std::chrono::duration<double, std::milli> analysis_time = (tstop_trans - t1);
-    std::cout << "Total analysis time:" << (analysis_time).count()  << "ms\n";
-    std::cout << "Total time:" << time_span.count() << "ms\n";
-    std::cout << "Total NR iteration:" << total_NR_iteration << std::endl;
-    std::cout << "Total timepoint:" << total_timepoint << std::endl;
+    // std::chrono::duration<double, std::milli> time_span = (t3 - t1);
+    // std::chrono::duration<double, std::milli> analysis_time = (tstop_trans - t1);
+    // std::cout << "Total analysis time:" << (analysis_time).count()  << "ms\n";
+    // std::cout << "Total time:" << time_span.count() << "ms\n";
+    // std::cout << "Total NR iteration:" << total_NR_iteration << std::endl;
+    // std::cout << "Total timepoint:" << total_timepoint << std::endl;
 
     return 0;
     /*-----------------------------------------------------------------------------------------------------------*/

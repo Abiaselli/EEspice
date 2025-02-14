@@ -23,9 +23,19 @@ struct CircuitParser
 {
     std::string filename;
     std::vector<CircuitElement> elements;
+    // Simulation tasks
+    bool is_transient = false;
+    bool is_dc = false;
+    // CKT parameters
+    int num_mosfets{};
+    // Transient simulation parameters
     double double_t_end; // This double_t_end can be passed to the CKTcircuit class
     double double_init_h;
-    int num_mosfets{};
+    // DC simulation parameters
+    std::string dc_srcnam;
+    double double_vstart;
+    double double_vend;
+    double double_vincr;
 
     CircuitParser(const std::string &filename) : filename(filename) {}
 
@@ -437,7 +447,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
             exit(1);
         }
     }
-    else if (type == ".tran")
+    else if (type == ".tran" || type == ".TRAN")
     {
         std::string string_h, string_t_end;
 
@@ -445,7 +455,20 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
 
         parser.double_init_h = convertToValue(string_h);
         parser.double_t_end = convertToValue(string_t_end);
+        parser.is_transient = true;
     }
+    else if (type == ".dc" || type == ".DC")
+    {
+        std::string srcnam, vstart, vend, vincr;
+        iss >> srcnam >> vstart >> vend >> vincr;
+
+        parser.dc_srcnam = srcnam;
+        parser.double_vstart = convertToValue(vstart);
+        parser.double_vend = convertToValue(vend);
+        parser.double_vincr = convertToValue(vincr);
+        parser.is_dc = true;
+    }
+    
     else
     {
 

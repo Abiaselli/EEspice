@@ -12,7 +12,7 @@
 
 void save_csv(const CKTcircuit &ckt, const std::vector<Transient> &vec_trans, const Circuitmap &map)
 {
-    std::ofstream file("final_solution.csv");
+    std::ofstream file("tran_solution.csv");
 
     // All std::map elements are <std::string, int>
 
@@ -72,5 +72,65 @@ void save_csv(const CKTcircuit &ckt, const std::vector<Transient> &vec_trans, co
         file << std::endl;
     }
 
+    file.close();
+}
+
+void save_csv_dc(const CKTcircuit &ckt, const std::vector<DC> &vec_dc, const Circuitmap &map){
+    std::ofstream file("dc_solution.csv");
+
+    // 1) Build a helper vector for nodeIndex -> nodeName
+    //    We'll index from 1..ckt.external_nodes
+    std::vector<std::string> nodeIndexToName(ckt.external_nodes + 1);
+    for (const auto &pair : map.map_nodes)
+    {
+        int nodeIndex = pair.second;   // e.g. 1,2,3 ...
+        if (nodeIndex >= 1 && nodeIndex <= ckt.external_nodes)
+        {
+            nodeIndexToName[nodeIndex] = pair.first;
+        }
+    }
+
+    std::vector<std::string> volIndexToName(ckt.no_of_V_sources + 1);
+    for (const auto &pair : map.map_voltages)
+    {
+        int volIndex = pair.second;   // e.g. 1,2,3 ...
+        if (volIndex >= 1 && volIndex <= ckt.no_of_V_sources)
+        {
+            volIndexToName[volIndex] = pair.first;
+        }
+    }
+
+    // 2) Write the header
+    file << "v(v-sweep)";
+    // Output node voltages in ascending node index
+    for (int j = 1; j <= ckt.external_nodes; ++j)
+    {
+        file << ", Voltage " << nodeIndexToName[j];
+    }
+
+    for (int j = 1; j <= ckt.no_of_V_sources; ++j)
+    {
+        file << ", Current " << volIndexToName[j];
+    }
+
+    file << std::endl;
+
+    // 3) Write the data rows
+    for (size_t i = 0; i < vec_dc.size(); ++i){
+        file << std::scientific << std::setprecision(20);  
+        file << vec_dc.at(i).vol_point; // Voltage sweep point
+
+        for (size_t j = 0; j < ckt.external_nodes; ++j)
+        {
+            file << ", " << vec_dc.at(i).solution(j, 0); // Voltages
+        }
+
+        for (size_t z = ckt.no_of_V_sources; z > 0; --z)
+        {
+            file << ", " << vec_dc.at(i).solution(ckt.cktdematrix->n_rows - z, 0); // Currents
+        }
+       
+        file << std::endl;
+    }
     file.close();
 }
