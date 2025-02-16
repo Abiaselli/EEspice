@@ -19,14 +19,21 @@ struct CurrentSource;
 struct Resistor;
 struct Capacitor;
 struct CircuitElement;
+struct DCSweepSpec;
 
 struct VoltageSource
 {   
     std::string id_str;
-    int id;
+    int id{};
     std::string nodePos_str, nodeNeg_str;
-    int nodePos, nodeNeg;
-    double value;
+    int nodePos{}, nodeNeg{};
+    double value{};
+
+    // If bracket notation is used:
+    bool hasBracket = false;
+    double bracketStart{};
+    double bracketStep{};
+    double bracketEnd{};
 };
 
 struct Pulsevoltage
@@ -123,6 +130,15 @@ struct Capacitor
 struct CircuitElement
 {
     std::variant<VoltageSource, CurrentSource, Resistor, Capacitor, Pulsevoltage, Diode, NMOS, PMOS, VCCS> element;
+};
+
+struct DCSweepSpec {
+    // Using in the parser
+    std::string sourceName;
+    double vstart{};
+    double vend{};
+    double vstep{};
+    std::vector<double> sweep_values;   // All sweep values from vstart to vend
 };
 
 double convertToValue(const std::string &valueStr)

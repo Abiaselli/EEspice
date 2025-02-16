@@ -2,40 +2,45 @@
 #include <vector>
 #include <string>
 #include <armadillo>
-#include "circuit_parser.hpp"
+#include <variant>
+#include <functional>
 #include "CKT.hpp"
 #include "device.hpp"
 #include "global.hpp"
 #include "Newton.hpp"
+#include "circuit_parser.hpp"
 
-struct DCConfig{
-    std::string srcnam;                 // Name of the source
-    double vstart{};                    // Start voltage
-    double vend{};                      // End voltage
-    double vincr{};                     // Voltage increment
-    bool non_linear = false;            // true for non-linear solver, false for linear solver
-};
+struct DC;
+struct DCSimulator;
 
+// struct DCSweepSpec {
+//     // Using in the parser
+//     std::string sourceName;
+//     double vstart{};
+//     double vend{};
+//     double vstep{};
+//     std::vector<double> sweep_values;   // All sweep values from vstart to vend
+// };
+
+// A structure for multi-sweep results
 struct DC{
-    double vol_point;                   // Voltage point
-    arma::vec solution;                 // Node voltages
+    arma::mat LHS;
+    arma::vec RHS;
+    std::vector<double> sweepValues;        // All source values
+    std::vector<std::string> sweepNames;    // All source names
+    arma::vec solution;
 };
 
-struct DCSimulator{
-    const DCConfig dc_config;                   // DC configuration(never changes)
-    std::vector<DC> vec_dc;                     // DC history
-    std::vector<double> voltage_points;         // Voltage points
-    std::vector<VoltageSource> vec_voltages;    // Voltage sources in the DC simulation
-
-    DCSimulator(const DCConfig &config) : dc_config(config) {}
+struct DCSimulator {
+    // We can store multiple sweeps for multi-dim
+    std::vector<DCSweepSpec> sweeps;     // All sweep devices
+    std::vector<DC> vec_dc;             // All DC results
+    bool non_linear = false;
 };
 
+namespace dc{
 DCSimulator DCsetup(const CircuitParser &parser, const CKTcircuit &ckt){
-    DCConfig config;
-    config.srcnam = parser.dc_srcnam;
-    config.vstart = parser.double_vstart;
-    config.vend   = parser.double_vend;
-    config.vincr  = parser.double_vincr;
+    DCSimulator dcSim;
 
     // Check if the DC simulation is non-linear
     for(const auto &element : ckt.CKTelements)
@@ -46,41 +51,29 @@ DCSimulator DCsetup(const CircuitParser &parser, const CKTcircuit &ckt){
                                      std::is_same_v<std::decay_t<decltype(arg)>, PMOS> || 
                                      std::is_same_v<std::decay_t<decltype(arg)>, Diode>)
                        {
-                           config.non_linear = true;
+                        dcSim.non_linear = true;
                        } },
                    element.element);
 
-        if(config.non_linear == true) break;
+        if(dcSim.non_linear == true) break;
     }
 
-    DCSimulator dc_sim(config);
+    // Setup DC sweeps
+    dcSim.sweeps =parser.dcSweeps;
 
     // setup DC voltage points
-    double vol = config.vstart;
-    while(vol <= config.vend){
-        dc_sim.voltage_points.push_back(vol);
-        vol += config.vincr;
+    for(auto &sweep : dcSim.sweeps){
+        double vol = sweep.vstart;
+        while(vol <= sweep.vend){
+            sweep.sweep_values.push_back(vol);
+            vol += sweep.vstep;
+        }
+
+        if(sweep.vend - sweep.sweep_values.back() > LargeEpsilon){  //1e-6
+            sweep.sweep_values.push_back(sweep.vend);
+        }
     }
 
-    if(config.vend - dc_sim.voltage_points.back() > LargeEpsilon){  //1e-6
-        dc_sim.voltage_points.push_back(config.vend);
-    }
-
-    // setup DC voltage sources
-    for(const auto &element : ckt.CKTelements){
-        std::visit([&](auto &&arg)
-                   {
-                       if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, VoltageSource>){
-                           if(arg.id_str == config.srcnam){
-                                dc_sim.vec_voltages.push_back(arg);
-                           }
-                       } },
-                   element.element);
-    }
-    if(dc_sim.vec_voltages.empty()){
-        std::cerr << "Error: DC source not found for DC simulation." << std::endl;
-        exit(1);
-    }
-
-    return dc_sim;
+    return dcSim;
 }
+} // namespace dc

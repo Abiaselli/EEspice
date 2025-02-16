@@ -32,10 +32,7 @@ struct CircuitParser
     double double_t_end; // This double_t_end can be passed to the CKTcircuit class
     double double_init_h;
     // DC simulation parameters
-    std::string dc_srcnam;
-    double double_vstart;
-    double double_vend;
-    double double_vincr;
+    std::vector<DCSweepSpec> dcSweeps;
 
     CircuitParser(const std::string &filename) : filename(filename) {}
 
@@ -263,8 +260,42 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
             vs.nodePos = convertToNode(v_nodePos_str, map.map_nodes);
             vs.nodeNeg = convertToNode(v_nodeNeg_str, map.map_nodes);
 
-            vs.value = convertToValue(v_type);
+            // Parse bracket [start:step:end]
+            if(v_type.front() == '[' && v_type.back() == ']')
+            {   
+                v_type.erase(0, 1);  // remove the first bracket [
+                v_type.pop_back();   // remove the last bracket ]
+                // Now split on ':'
+                std::vector<std::string> parts;
+                {
+                    std::stringstream ss(v_type);
+                    std::string piece;
+                    while (std::getline(ss, piece, ':')) {
+                        parts.push_back(piece);
+                    }
+                }
+                if (parts.size() == 3) {
+                    vs.hasBracket = true;
+                    vs.bracketStart = convertToValue(parts[0]);
+                    vs.bracketStep  = convertToValue(parts[1]);
+                    vs.bracketEnd   = convertToValue(parts[2]);
+                    
+                    // Also store a DCSweepSpec in parser's vector
+                    DCSweepSpec spec;
+                    spec.sourceName = id_str; // e.g. "Vg"
+                    spec.vstart = vs.bracketStart;
+                    spec.vend   =  vs.bracketEnd;
+                    spec.vstep  = vs.bracketStep;
+                    parser.dcSweeps.push_back(spec);
+                } else {
+                    std::cerr << "Error parsing bracket in voltage source: " << line << std::endl;
+                }
 
+            }
+            // Normal DC voltage source
+            else{
+                vs.value = convertToValue(v_type);
+            }
             parser.elements.push_back(CircuitElement{vs});
         }
     }
@@ -462,10 +493,13 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
         std::string srcnam, vstart, vend, vincr;
         iss >> srcnam >> vstart >> vend >> vincr;
 
-        parser.dc_srcnam = srcnam;
-        parser.double_vstart = convertToValue(vstart);
-        parser.double_vend = convertToValue(vend);
-        parser.double_vincr = convertToValue(vincr);
+        DCSweepSpec spec;
+        spec.sourceName = srcnam;
+        spec.vstart = convertToValue(vstart);
+        spec.vend   = convertToValue(vend);
+        spec.vstep  = convertToValue(vincr);
+        parser.dcSweeps.push_back(spec);
+
         parser.is_dc = true;
     }
     

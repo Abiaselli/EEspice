@@ -124,6 +124,29 @@ void Is_assigner(double node_x, double node_y, double I, arma::vec &RHS)
         }
     }
 }
+// delete the current matrix stamp
+void Is_assigner_reverse(double node_x, double node_y, double I, arma::vec &RHS){
+    if ((node_x == 0) && (node_y == 0))
+    {
+        I = 0;
+    }
+    else
+    {
+        if (node_x == 0)
+        {
+            RHS.row(node_y - 1).col(0) -= I;
+        }
+        else if (node_y == 0)
+        {
+            RHS.row(node_x - 1).col(0) -= -I;
+        }
+        else
+        {
+            RHS.row(node_x - 1).col(0) -= -I;
+            RHS.row(node_y - 1).col(0) -= I;
+        }
+    }
+}
 
 // Capacitor stamp assigner with backward euler method
 void C_assigner_BE(int node_x, int node_y, double C, double h, arma::mat &LHS, arma::vec &RHS, const arma::vec &pre_solution, int mode)

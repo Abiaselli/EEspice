@@ -100,37 +100,53 @@ void save_csv_dc(const CKTcircuit &ckt, const std::vector<DC> &vec_dc, const Cir
         }
     }
 
-    // 2) Write the header
-    file << "v(v-sweep)";
-    // Output node voltages in ascending node index
-    for (int j = 1; j <= ckt.external_nodes; ++j)
+    // Sanity check: must have at least one DC solution:
+    if (vec_dc.empty())
     {
-        file << ", Voltage " << nodeIndexToName[j];
+        std::cerr << "Warning: vec_dc is empty, no DC solutions to write.\n";
+        file.close();
+        return;
     }
 
+    // We know each DC struct has DC::sweepValues (size = 1 or 2).
+    int numSweeps = static_cast<int>(vec_dc.front().sweepValues.size());
+
+    // 2) Write the header
+    for (int i = 0; i < numSweeps; ++i) {
+        file << "Sweep(" << vec_dc.front().sweepNames[i] << ")";
+        file << ", ";
+    }
+    for (int j = 1; j <= ckt.external_nodes; ++j)
+    {
+        file << "Voltage " << nodeIndexToName[j] << ", ";
+    }
     for (int j = 1; j <= ckt.no_of_V_sources; ++j)
     {
-        file << ", Current " << volIndexToName[j];
+        file << "Current " << volIndexToName[j] << ", ";
     }
 
     file << std::endl;
 
     // 3) Write the data rows
-    for (size_t i = 0; i < vec_dc.size(); ++i){
-        file << std::scientific << std::setprecision(20);  
-        file << vec_dc.at(i).vol_point; // Voltage sweep point
-
+    for (const auto &dc : vec_dc) {
+        // a) Print each sweep value
+        for (int i = 0; i < numSweeps; ++i) {
+            file << dc.sweepValues[i];
+            file << ", ";
+        }
+        // b) Print node voltages
         for (size_t j = 0; j < ckt.external_nodes; ++j)
         {
-            file << ", " << vec_dc.at(i).solution(j, 0); // Voltages
+            file << dc.solution(j, 0) << ", "; // Voltages
         }
-
+        // c) Print current sources
         for (size_t z = ckt.no_of_V_sources; z > 0; --z)
         {
-            file << ", " << vec_dc.at(i).solution(ckt.cktdematrix->n_rows - z, 0); // Currents
+            file << dc.solution(ckt.cktdematrix->n_rows - z, 0)  << ", "; // Currents
         }
-       
+
         file << std::endl;
     }
+
     file.close();
 }

@@ -37,8 +37,8 @@ int main(int argc, const char **argv)
 
     }
     if(parser.is_dc){
-        DCSimulator dc_sim = DCsetup(parser, ckt);
-        std::vector<DC> vec_dc_result = DC_ops(ckt, dc_sim);
+        DCSimulator dcSim = dc::DCsetup(parser, ckt);
+        std::vector<DC> vec_dc_result = dc::DC_ops(ckt, dcSim);
         save_csv_dc(ckt, vec_dc_result, ckt.map);
     }
    
