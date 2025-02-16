@@ -100,6 +100,12 @@ struct CurrentSource
     std::string nodePos_str, nodeNeg_str;
     int nodePos, nodeNeg;
     double value;
+
+    // If bracket notation is used:
+    bool hasBracket = false;
+    double bracketStart{};
+    double bracketStep{};
+    double bracketEnd{};
 };
 
 struct Resistor

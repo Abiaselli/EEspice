@@ -338,8 +338,42 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
 
         cs.nodePos = convertToNode(cs.nodePos_str, map.map_nodes);
         cs.nodeNeg = convertToNode(cs.nodeNeg_str, map.map_nodes);
-        cs.value = convertToValue(valueStr);
+        // Parse bracket [start:step:end]
+        if(valueStr.front() == '[' && valueStr.back() == ']')
+        {   
+            valueStr.erase(0, 1);  // remove the first bracket [
+            valueStr.pop_back();   // remove the last bracket ]
+            // Now split on ':'
+            std::vector<std::string> parts;
+            {
+                std::stringstream ss(valueStr);
+                std::string piece;
+                while (std::getline(ss, piece, ':')) {
+                    parts.push_back(piece);
+                }
+            }
+            if (parts.size() == 3) {
+                cs.hasBracket = true;
+                cs.bracketStart = convertToValue(parts[0]);
+                cs.bracketStep  = convertToValue(parts[1]);
+                cs.bracketEnd   = convertToValue(parts[2]);
+                
+                // Also store a DCSweepSpec in parser's vector
+                DCSweepSpec spec;
+                spec.sourceName = id_str; 
+                spec.vstart = cs.bracketStart;
+                spec.vend   = cs.bracketEnd;
+                spec.vstep  = cs.bracketStep;
+                parser.dcSweeps.push_back(spec);
+            } else {
+                std::cerr << "Error parsing bracket in current source: " << line << std::endl;
+            }
 
+        }
+        // Normal Current source
+        else{
+            cs.value = convertToValue(valueStr);
+        }
         parser.elements.push_back(CircuitElement{cs});
     }
     else if (type[0] == 'D' || type[0] == 'd')
