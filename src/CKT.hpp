@@ -15,7 +15,6 @@
 
 struct CKTcircuit
 {
-    int const supply_voltage_node = 1;              // supply voltage node for the ring oscillator
     int pulse_num{};                                // Number of pulse voltages
     // uword is a typedef for an unsigned integer type; it is used for matrix indices as well as all internal counters and loops
 

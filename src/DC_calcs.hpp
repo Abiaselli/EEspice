@@ -33,8 +33,8 @@ struct DC{
 
 struct DCSimulator {
     // We can store multiple sweeps for multi-dim
-    std::vector<DCSweepSpec> sweeps;     // All sweep devices
-    std::vector<DC> vec_dc;             // All DC results
+    std::vector<DCSweepSpec> sweeps;       // All sweep devices
+    std::vector<DC> vec_dc;                // All DC results
     bool non_linear = false;
 };
 
