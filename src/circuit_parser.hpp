@@ -72,6 +72,65 @@ int getMaxNode(const std::vector<CircuitElement> &elements)
     return maxNode;
 }
 
+// Parse [start:step:end] or (value1 value2 value3 ...) for batch simulation
+std::vector<double> batchVector(std::string valueStr, const std::string &line){
+    std::vector<double> vec;
+
+    // Parse bracket [start:step:end]
+    if(valueStr.front() == '[' && valueStr.back() == ']')
+    {   
+        valueStr.erase(0, 1);  // remove the first bracket [
+        valueStr.pop_back();   // remove the last bracket ]
+        // Now split on ':'
+        std::vector<std::string> parts;
+        {
+            std::stringstream ss(valueStr);
+            std::string piece;
+            while (std::getline(ss, piece, ':')) {
+                parts.push_back(piece);
+            }
+        }
+        if (parts.size() == 3) {
+            double bracketStart = convertToValue(parts[0]);
+            double bracketStep  = convertToValue(parts[1]);
+            double bracketEnd   = convertToValue(parts[2]);
+            while(bracketStart <= bracketEnd){
+                vec.push_back(bracketStart);
+                bracketStart += bracketStep;
+            }
+            if(bracketEnd - vec.back() > LargeEpsilon){
+                vec.push_back(bracketEnd);
+            }
+            
+        } else {
+            std::cerr << "Error parsing bracket in batchVector: " << line << std::endl;
+        }
+
+    }
+    // Parse bracket (value1 value2 value3 ...)
+    else if(valueStr.front() == '(' && valueStr.back() == ')')
+    {
+        valueStr.erase(0, 1);  // remove the first bracket (
+        valueStr.pop_back();   // remove the last bracket )
+        // Now split on ' '
+        std::vector<std::string> parts;
+        {
+            std::stringstream ss(valueStr);
+            std::string piece;
+            while (std::getline(ss, piece, ' ')) {
+                parts.push_back(piece);
+            }
+        }
+        for(auto &part : parts){
+            vec.push_back(convertToValue(part));
+        }
+    }
+    else{
+       std::cerr << "Error parsing bracket in batchVector: " << line << std::endl;
+    }
+    return vec;
+}
+
 void parseModel(std::istringstream &iss, const std::string &line, Circuitmap &map){
     // .model <modelName> <modelType>(pname1=pval1 pname2=pval2 ...)
     std::string modelName;
