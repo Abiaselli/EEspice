@@ -160,12 +160,12 @@ double convertToValue(const std::string &valueStr)
     catch (const std::invalid_argument &ia)
     {
         std::cerr << "Error: Invalid argument: " << ia.what() << std::endl;
-        return 0;
+        throw std::invalid_argument("Invalid numeric part in '" + valueStr + "': " + ia.what());
     }
     catch (const std::out_of_range &oor)
     {
         std::cerr << "Error: Out of Range error: " << oor.what() << std::endl;
-        return 0;
+        throw std::out_of_range("Out of range error in '" + valueStr + "': " + oor.what());
     }
 
     if (unitPos != std::string::npos)
@@ -192,7 +192,7 @@ double convertToValue(const std::string &valueStr)
         }
     }
 
-    return value * 1.0; // No unit or unrecognized unit, assume the value is in base units
+    return value; // No unit or unrecognized unit, assume the value is in base units
 }
 
 int convertToNode(const std::string &nodeStr, std::map<std::string, int> &map_nodes)
