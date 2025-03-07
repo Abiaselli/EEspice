@@ -18,6 +18,7 @@
 
 #include "global.hpp"
 #include "map.hpp"
+#include "model_parser.hpp"
 
 struct CircuitParser
 {
@@ -131,127 +132,6 @@ std::vector<double> batchVector(std::string valueStr, const std::string &line){
     return vec;
 }
 
-void parseModel(std::istringstream &iss, const std::string &line, Circuitmap &map){
-    // .model <modelName> <modelType>(pname1=pval1 pname2=pval2 ...)
-    std::string modelName;
-    iss >> modelName;  // e.g., "NMOS" or "PMOS"
-    // The rest of the line should contain the type and parameter list.
-    std::string typeAndParams;
-    std::getline(iss, typeAndParams);
-    // Trim any leading spaces
-    typeAndParams.erase(0, typeAndParams.find_first_not_of(" \t"));
-    
-    // Find the opening and closing parentheses:
-    size_t openParen = typeAndParams.find('(');
-    size_t closeParen = typeAndParams.find(')');
-    if (openParen == std::string::npos || closeParen == std::string::npos || closeParen < openParen) {
-        std::cerr << "Error: Invalid .model line (missing parentheses): " << line << std::endl;
-        exit(1);
-    }
-    
-    // The device type is the substring before the '('.
-    std::string modelType = typeAndParams.substr(0, openParen);
-    // Remove any whitespace from modelType:
-    modelType.erase(std::remove_if(modelType.begin(), modelType.end(), ::isspace), modelType.end());
-    
-    // The parameters are inside the parentheses.
-    std::string paramsStr = typeAndParams.substr(openParen + 1, closeParen - openParen - 1);
-    std::istringstream paramsStream(paramsStr);
-    std::string paramToken;
-    // Depending on the type (NMOS or PMOS), parse into the appropriate model structure.
-    if (strcasecmp(modelType.c_str(), "nmos") == 0) { // for NMOS (case-insensitive)
-        NMOSModel model;
-        while (paramsStream >> paramToken) {
-            size_t eqPos = paramToken.find('=');
-            if (eqPos == std::string::npos)
-                continue; // skip if not a key=value pair
-            std::string key = paramToken.substr(0, eqPos);
-            std::string valueStr = paramToken.substr(eqPos + 1);
-            // Update the model parameters as needed:
-            if (key == "level")
-                model.level = std::stoi(valueStr);
-            else if (key == "vto")
-                model.vt0 = std::stod(valueStr);
-            else if (key == "kp")
-                model.kp = std::stod(valueStr);
-            else if (key == "gamma")
-                model.gamma = std::stod(valueStr);
-            else if (key == "Cgso")
-                model.CGSO = std::stod(valueStr);
-            else if (key == "Cgdo")
-                model.CGDO = std::stod(valueStr);
-            else if (key == "Cgbo")
-                model.CGBO = std::stod(valueStr);
-            else if (key == "Cbd")
-                model.CBD = std::stod(valueStr);
-            else if (key == "Cbs")
-                model.CBS = std::stod(valueStr);
-            else if (key == "phi")
-                model.phi = std::stod(valueStr);
-            else if (key == "lambda")
-                model.LAMBDA = std::stod(valueStr);
-            else if (key == "RD")
-                model.RD = std::stod(valueStr);
-            else if (key == "RS")
-                model.RS = std::stod(valueStr);
-            else if (key == "RG")
-                model.RG = std::stod(valueStr);
-            else {
-                std::cerr << "Warning: Unknown NMOS model parameter: " << key << std::endl;
-            }
-        }
-        // Save the model using modelName as key.
-        map.nmosModels[modelName] = model;
-    }
-    else if (strcasecmp(modelType.c_str(), "pmos") == 0) {
-        PMOSModel model;
-        while (paramsStream >> paramToken) {
-            size_t eqPos = paramToken.find('=');
-            if (eqPos == std::string::npos)
-                continue;
-            std::string key = paramToken.substr(0, eqPos);
-            std::string valueStr = paramToken.substr(eqPos + 1);
-            // Update the model parameters as needed:
-            if (key == "level")
-                model.level = std::stoi(valueStr);
-            else if (key == "vto")
-                model.vt0 = std::stod(valueStr);
-            else if (key == "kp")
-                model.kp = std::stod(valueStr);
-            else if (key == "gamma")
-                model.gamma = std::stod(valueStr);
-            else if (key == "Cgso")
-                model.CGSO = std::stod(valueStr);
-            else if (key == "Cgdo")
-                model.CGDO = std::stod(valueStr);
-            else if (key == "Cgbo")
-                model.CGBO = std::stod(valueStr);
-            else if (key == "Cbd")
-                model.CBD = std::stod(valueStr);
-            else if (key == "Cbs")
-                model.CBS = std::stod(valueStr);
-            else if (key == "phi")
-                model.phi = std::stod(valueStr);
-            else if (key == "lambda")
-                model.LAMBDA = std::stod(valueStr);
-            else if (key == "RD")
-                model.RD = std::stod(valueStr);
-            else if (key == "RS")
-                model.RS = std::stod(valueStr);
-            else if (key == "RG")
-                model.RG = std::stod(valueStr);
-            else {
-                std::cerr << "Warning: Unknown NMOS model parameter: " << key << std::endl;
-            }
-        }
-        map.pmosModels[modelName] = model;
-    }
-    else {
-        std::cerr << "Error: Unknown model type: " << modelType << std::endl;
-        exit(1);
-    }
-    return; // done processing the .model line
-}
 
 void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
 {
@@ -516,9 +396,6 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
                     {
                         valueStr = value;
                         mn.L = convertToValue(valueStr);
-
-                        // std::cout<<"L is "<<mn.L<<std::endl;
-                        // std::cout<<"type of L is "<<typeid(mn.L).name() << std::endl;
                     }
                 }
             }

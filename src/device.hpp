@@ -388,7 +388,10 @@ void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, a
 
 double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node_vb, double W, double L,
                      const arma::vec &solution, int T_nodes, arma::mat &LHS, arma::vec &RHS, const NMOSModel &nmosModel)
-{
+{   
+    // Get the level 1 parameters
+    const auto& params = std::get<NMOSParamLV1>(nmosModel.params);
+    
     double vd = 0.0;
     double vg = 0.0;
     double vs = 0.0;
@@ -436,13 +439,13 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
     double gm = 0.0;
     double gmb = 0.0;
     double Leff = L;
-    double Beta = (nmosModel.mCox) * (W / Leff);
+    double Beta = (params.mCox) * (W / Leff);
     double I_DSeq = 0.0;
 
     // Capacitances settings
-    double CGS = nmosModel.CGSO * W;
-    double CGD = nmosModel.CGDO * W;
-    double CGB = nmosModel.CGBO * L;
+    double CGS = params.CGSO * W;
+    double CGD = params.CGDO * W;
+    double CGB = params.CGBO * L;
     // if (vbd <= FC * PB)
     // {
     //     CBD = (CJ * AD) / (pow((1.0 - vbd / PB), MJ)) + (CJSW * PD) / (pow((1.0 - vbd / PB), MJSW));
@@ -460,34 +463,34 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
     //     CBS = ((CJ * AS) * (1.0 - (1.0 + MJ) * FC + MJ * vbs / PB)) / (pow((1.0 - FC), (1.0 + MJ))) + (CJSW * PS) * (1.0 - (1.0 + MJSW) * FC + MJSW * vbs / PB) / (pow((1.0 - FC), (1.0 + MJSW)));
     // }
 
-    R_assigner(node_vd, T_nodes - (3 * number) + 1, 1.0 / nmosModel.RD, LHS); // # RD
-    R_assigner(node_vg, T_nodes - (3 * number) + 2, 1.0 / nmosModel.RG, LHS); // # RG
-    R_assigner(T_nodes - (3 * number) + 3, node_vs, 1.0 / nmosModel.RS, LHS); // # RS
+    R_assigner(node_vd, T_nodes - (3 * number) + 1, 1.0 / params.RD, LHS); // # RD
+    R_assigner(node_vg, T_nodes - (3 * number) + 2, 1.0 / params.RG, LHS); // # RG
+    R_assigner(T_nodes - (3 * number) + 3, node_vs, 1.0 / params.RS, LHS); // # RS
 
-    vt = nmosModel.vt0 + nmosModel.gamma * ((sqrt(nmosModel.phi - vbs) - sqrt(nmosModel.phi))); // # already taking into account the body effect of MOSFETs
+    vt = params.vt0 + params.gamma * ((sqrt(params.phi - vbs) - sqrt(params.phi))); // # already taking into account the body effect of MOSFETs
     double n_vt = std::abs(vt);
 
     if ((vds <= (vgs - vt)) && (vgs >= vt))
     { // # the transistor is in linear
-        id = Beta * (vgs - vt - vds / 2.0) * vds * (1.0 + nmosModel.LAMBDA * vds);
-        gds = Beta * (1.0 + nmosModel.LAMBDA * vds) * (vgs - vt - vds) + Beta * nmosModel.LAMBDA * vds * (vgs - vt - vds / 2.0);
-        gm = Beta * vds * (1.0 + nmosModel.LAMBDA * vds);
-        gmb = gm * nmosModel.gamma / (2.0 * sqrt(nmosModel.phi - vbs));
+        id = Beta * (vgs - vt - vds / 2.0) * vds * (1.0 + params.LAMBDA * vds);
+        gds = Beta * (1.0 + params.LAMBDA * vds) * (vgs - vt - vds) + Beta * params.LAMBDA * vds * (vgs - vt - vds / 2.0);
+        gm = Beta * vds * (1.0 + params.LAMBDA * vds);
+        gmb = gm * params.gamma / (2.0 * sqrt(params.phi - vbs));
 
-        // CGS = 2.0 / 3.0 * nmosModel.mCox * (1.0 - pow(vgs - vds - vt, 2) / pow(2.0 * (vgs - vt) - vds, 2)) + nmosModel.CGSO * W;
-        // CGD = 2.0 / 3.0 * nmosModel.mCox * (1.0 - pow(vgs - vt, 2) / pow(2.0 * (vgs - vt) - vds, 2)) + nmosModel.CGDO * W;
-        // CGB = 0.0 + nmosModel.CGBO * L;
+        // CGS = 2.0 / 3.0 * params.mCox * (1.0 - pow(vgs - vds - vt, 2) / pow(2.0 * (vgs - vt) - vds, 2)) + params.CGSO * W;
+        // CGD = 2.0 / 3.0 * params.mCox * (1.0 - pow(vgs - vt, 2) / pow(2.0 * (vgs - vt) - vds, 2)) + params.CGDO * W;
+        // CGB = 0.0 + params.CGBO * L;
     }
     else if ((vds >= (vgs - vt)) && (vgs >= vt))
     { // # the transistor is in saturation
-        id = (Beta / 2.0) * pow((vgs - vt), 2) * (1.0 + nmosModel.LAMBDA * vds);
-        gds = (Beta / 2.0) * nmosModel.LAMBDA * pow((vgs - vt), 2);
-        gm = Beta * (1 + nmosModel.LAMBDA * vds) * (vgs - vt);
-        gmb = gm * nmosModel.gamma / (2.0 * sqrt(nmosModel.phi - vbs));
+        id = (Beta / 2.0) * pow((vgs - vt), 2) * (1.0 + params.LAMBDA * vds);
+        gds = (Beta / 2.0) * params.LAMBDA * pow((vgs - vt), 2);
+        gm = Beta * (1 + params.LAMBDA * vds) * (vgs - vt);
+        gmb = gm * params.gamma / (2.0 * sqrt(params.phi - vbs));
 
-        // CGS = 2.0 / 3.0 * nmosModel.mCox + nmosModel.CGSO * W;
-        // CGD = nmosModel.CGDO * W;
-        // CGB = 0.0 + nmosModel.CGBO * L;
+        // CGS = 2.0 / 3.0 * params.mCox + params.CGSO * W;
+        // CGD = params.CGDO * W;
+        // CGB = 0.0 + params.CGBO * L;
     }
     else
     {
@@ -518,7 +521,10 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
 
 double PMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node_vb, double W, double L,
                      const arma::vec &solution, int T_nodes, arma::mat &LHS, arma::vec &RHS, const PMOSModel &pmosModel)
-{
+{   
+    // Get the level 1 parameters
+    const auto& params = std::get<PMOSParamLV1>(pmosModel.params);
+
     double vd = 0.0;
     double vg = 0.0;
     double vs = 0.0;
@@ -572,14 +578,14 @@ double PMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
     double gm = 0.0;
     double gmb = 0.0;
     double Leff = L;
-    double Beta = (pmosModel.mCox) * (W / Leff);
+    double Beta = (params.mCox) * (W / Leff);
     double vt = 0.0;
     double I_DSeq = 0.0;
 
     // Capacitances settings
-    double CGS = pmosModel.CGSO * W;
-    double CGD = pmosModel.CGDO * W;
-    double CGB = pmosModel.CGBO * L;
+    double CGS = params.CGSO * W;
+    double CGD = params.CGDO * W;
+    double CGB = params.CGBO * L;
     // if (vdb <= FC * PB)
     // {
     //     CBD = (CJ * AD) / (pow((1 - vdb / PB), MJ)) + (CJSW * PD) / (pow((1 - vdb / PB), MJSW));
@@ -599,35 +605,35 @@ double PMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
 
     // # the settings for fet model based on the large signal analysis
 
-    R_assigner(T_nodes - (3 * number) + 1, node_vd, 1.0 / pmosModel.RD, LHS); // # RD
-    R_assigner(node_vg, T_nodes - (3 * number) + 2, 1.0 / pmosModel.RG, LHS); // # RG
-    R_assigner(node_vs, T_nodes - (3 * number) + 3, 1.0 / pmosModel.RS, LHS); // # RS
+    R_assigner(T_nodes - (3 * number) + 1, node_vd, 1.0 / params.RD, LHS); // # RD
+    R_assigner(node_vg, T_nodes - (3 * number) + 2, 1.0 / params.RG, LHS); // # RG
+    R_assigner(node_vs, T_nodes - (3 * number) + 3, 1.0 / params.RS, LHS); // # RS
 
-    vt = pmosModel.vt0 - pmosModel.gamma * ((sqrt(pmosModel.phi - vsb) - sqrt(pmosModel.phi))); // already taking into account the body effect of MOSFETs
+    vt = params.vt0 - params.gamma * ((sqrt(params.phi - vsb) - sqrt(params.phi))); // already taking into account the body effect of MOSFETs
 
     double n_vt = std::abs(vt);
 
     if ((vds >= (vgs - vt)) && (vgs <= vt))
     { // # the transistor is in linear
-        id = Beta * (vsg - n_vt - vsd / 2.0) * vsd * (1.0 + pmosModel.LAMBDA * vsd);
-        gds = Beta * (1.0 + pmosModel.LAMBDA * vsd) * (vsg - n_vt - vsd) + Beta * pmosModel.LAMBDA * vsd * (vsg - n_vt - vsd / 2.0);
-        gm = Beta * vsd * (1.0 + pmosModel.LAMBDA * vsd);
-        gmb = gm * pmosModel.gamma / (2.0 * sqrt(pmosModel.phi - vsb));
+        id = Beta * (vsg - n_vt - vsd / 2.0) * vsd * (1.0 + params.LAMBDA * vsd);
+        gds = Beta * (1.0 + params.LAMBDA * vsd) * (vsg - n_vt - vsd) + Beta * params.LAMBDA * vsd * (vsg - n_vt - vsd / 2.0);
+        gm = Beta * vsd * (1.0 + params.LAMBDA * vsd);
+        gmb = gm * params.gamma / (2.0 * sqrt(params.phi - vsb));
 
-        // CGS = 2.0 / 3.0 * pmosModel.mCox * (1.0 - pow(vsg - vsd - n_vt, 2) / pow(2 * (vsg - n_vt) - vsd, 2)) + pmosModel.CGSO * W;
-        // CGD = 2.0 / 3.0 * pmosModel.mCox * (1.0 - pow(vsg - n_vt, 2) / pow(2 * (vsg - n_vt) - vsd, 2)) + pmosModel.CGDO * W;
-        // CGB = 0 + pmosModel.CGBO * L;
+        // CGS = 2.0 / 3.0 * params.mCox * (1.0 - pow(vsg - vsd - n_vt, 2) / pow(2 * (vsg - n_vt) - vsd, 2)) + params.CGSO * W;
+        // CGD = 2.0 / 3.0 * params.mCox * (1.0 - pow(vsg - n_vt, 2) / pow(2 * (vsg - n_vt) - vsd, 2)) + params.CGDO * W;
+        // CGB = 0 + params.CGBO * L;
     }
     else if ((vds <= (vgs - vt)) && (vgs <= vt))
     { // # the transistor is in saturation
-        id = (Beta / 2.0) * pow((vsg - n_vt), 2) * (1 + pmosModel.LAMBDA * vsd);
-        gds = (Beta / 2.0) * pmosModel.LAMBDA * pow((vsg - n_vt), 2);
-        gm = Beta * (1.0 + pmosModel.LAMBDA * vsd) * (vsg - n_vt);
-        gmb = gm * pmosModel.gamma / (2.0 * sqrt(pmosModel.phi - vsb));
+        id = (Beta / 2.0) * pow((vsg - n_vt), 2) * (1 + params.LAMBDA * vsd);
+        gds = (Beta / 2.0) * params.LAMBDA * pow((vsg - n_vt), 2);
+        gm = Beta * (1.0 + params.LAMBDA * vsd) * (vsg - n_vt);
+        gmb = gm * params.gamma / (2.0 * sqrt(params.phi - vsb));
 
-        // CGS = 2.0 / 3.0 * pmosModel.mCox + pmosModel.CGSO * W;
-        // CGD = 0.0 + pmosModel.CGDO * W;
-        // CGB = 0.0 + pmosModel.CGBO * L;
+        // CGS = 2.0 / 3.0 * params.mCox + params.CGSO * W;
+        // CGD = 0.0 + params.CGDO * W;
+        // CGB = 0.0 + params.CGBO * L;
     }
     else
     { // # the transistor is in cutoff

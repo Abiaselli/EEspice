@@ -1,8 +1,13 @@
+#pragma once
+#include <string>
+#include <variant>
+#include <map>
 struct NMOSModel;
 struct PMOSModel;
+struct NMOSParamLV1;
+struct PMOSParamLV1;
 
-struct NMOSModel{
-    int level = 1;
+struct NMOSParamLV1{
     double Ld = 0.08e-6;
     double kp = 2.0e-5; // default is 2e-5
     double mCox = kp;
@@ -41,10 +46,10 @@ struct NMOSModel{
     double RG = 1.0;
     double RS = 1.0;
 
+    void setFromMap(const std::map<std::string, std::string> &kvMap);
 };
 
-struct PMOSModel {
-    int level = 1;
+struct PMOSParamLV1{
     double Ld = 0.0;
     // double Leff = L;
     double kp = 2.0e-5; // default is 2e-5
@@ -83,4 +88,23 @@ struct PMOSModel {
     double RD = 1.0;
     double RG = 1.0;
     double RS = 1.0;
+
+    void setFromMap(const std::map<std::string, std::string> &kvMap);
+};
+
+
+struct NMOSModel{
+    int level = 1;
+    std::string version;
+
+    // NMOS parameters
+    std::variant<NMOSParamLV1> params = NMOSParamLV1{};
+};
+
+struct PMOSModel {
+    int level = 1;
+    std::string version;
+
+    // PMOS parameters
+    std::variant<PMOSParamLV1> params = PMOSParamLV1{};
 };
