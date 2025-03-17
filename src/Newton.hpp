@@ -60,7 +60,7 @@ std::pair<arma::mat, arma::vec> NonLinear(const CKTcircuit &ckt, const arma::vec
                    {
                        if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS>)
                        {    
-                            const NMOSModel nmosModel = ckt.map.nmosModels.at(arg.model);
+                            const NMOSModel nmosModel = ckt.map.nmosModels.at(arg.modelName);
                             NMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, nmosModel);
                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Diode>)
@@ -69,7 +69,7 @@ std::pair<arma::mat, arma::vec> NonLinear(const CKTcircuit &ckt, const arma::vec
                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
                        {    
-                            const PMOSModel pmosModel = ckt.map.pmosModels.at(arg.model);
+                            const PMOSModel pmosModel = ckt.map.pmosModels.at(arg.modelName);
                             PMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, pmosModel);
                        } },
                    element.element);

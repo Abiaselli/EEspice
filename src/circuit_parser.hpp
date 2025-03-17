@@ -355,13 +355,13 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
         int M_id = convertToDevice(id_str, map.map_mosfets);
 
         std::string M_node_vd_str, M_node_vg_str, M_node_vs_str, M_node_vb_str;
-        std::string M_model, parameter;
+        std::string M_modelName, parameter;
 
         parser.num_mosfets = parser.num_mosfets + 1;
 
-        iss >> M_node_vd_str >> M_node_vg_str >> M_node_vs_str >> M_node_vb_str >> M_model;
+        iss >> M_node_vd_str >> M_node_vg_str >> M_node_vs_str >> M_node_vb_str >> M_modelName;
 
-        if (map.nmosModels.find(M_model) != map.nmosModels.end())
+        if (map.nmosModels.find(M_modelName) != map.nmosModels.end())
         {
             NMOS mn;
             mn.id_str = id_str;
@@ -376,7 +376,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
             mn.node_vg = convertToNode(M_node_vg_str, map.map_nodes);
             mn.node_vs = convertToNode(M_node_vs_str, map.map_nodes);
             mn.node_vb = convertToNode(M_node_vb_str, map.map_nodes);
-            mn.model = M_model;
+            mn.modelName = M_modelName;
 
             // Read and parse the W and L parameters with their prefixes
             while (iss >> parameter)
@@ -402,7 +402,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
 
             parser.elements.push_back(CircuitElement{mn});
         }
-        else if (map.pmosModels.find(M_model) != map.pmosModels.end())
+        else if (map.pmosModels.find(M_modelName) != map.pmosModels.end())
         {
             PMOS mp;
             mp.id_str = id_str;
@@ -417,7 +417,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
             mp.node_vg = convertToNode(M_node_vg_str, map.map_nodes);
             mp.node_vs = convertToNode(M_node_vs_str, map.map_nodes);
             mp.node_vb = convertToNode(M_node_vb_str, map.map_nodes);
-            mp.model = M_model;
+            mp.modelName = M_modelName;
 
             while (iss >> parameter)
             {
@@ -444,7 +444,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
         }
         else
         {
-            std::cerr << "Error: Unknown MOSFET model: " << M_model << std::endl;
+            std::cerr << "Error: Unknown MOSFET model: " << M_modelName << std::endl;
             exit(1);
         }
     }
