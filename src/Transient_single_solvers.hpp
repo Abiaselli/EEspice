@@ -70,7 +70,8 @@ single_Truncation_error single_LTE_BE_calculation(const single_timestep &single_
     return LTE;
 }
 
-single_timestep single_solution_solver(const double &h, const Transient &trans, const CKTcircuit &ckt, const TransientSimulator &trans_sim){
+single_timestep single_solution_solver(const double &h, const Transient &trans, const CKTcircuit &ckt, const TransientSimulator &trans_sim,
+                                        const Modelmap &modmap){
     
     single_timestep single_h;
     single_h.h = h;
@@ -78,7 +79,7 @@ single_timestep single_solution_solver(const double &h, const Transient &trans, 
     std::vector<Capacitor> C_list_copy = trans_sim.trans_config.C_list;
 
     if(trans_sim.trans_config.non_linear){
-        single_h.solution = NewtonRaphson_system(ckt, h, trans.mode, single_h.t, C_list_copy, trans_sim.vec_trans.back().solution);
+        single_h.solution = NewtonRaphson_system(ckt, h, trans.mode, single_h.t, C_list_copy, trans_sim.vec_trans.back().solution, modmap);
         if(NR_ITE < ITL4){
             std::pair<arma::vec, arma::vec> currents_voltages = get_currents_voltages(C_list_copy, h, single_h.solution, trans_sim.vec_trans.back().solution);
             single_h.C_current = currents_voltages.first;
@@ -140,7 +141,7 @@ bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &singl
     }
 }
 
-single_timestep single_next_h(const Transient &trans, const CKTcircuit &ckt, const TransientSimulator &trans_sim){
+single_timestep single_next_h(const Transient &trans, const CKTcircuit &ckt, const TransientSimulator &trans_sim, const Modelmap &modmap){
 
     double temp_h = trans_sim.vec_trans.back().next_h;                     // The temporary time step for this function
 
@@ -150,7 +151,7 @@ single_timestep single_next_h(const Transient &trans, const CKTcircuit &ckt, con
     single_Truncation_error LTE;
 
     do{
-        single_h = single_solution_solver(temp_h, trans, ckt, trans_sim);
+        single_h = single_solution_solver(temp_h, trans, ckt, trans_sim, modmap);
 
         total_timepoint += 1;
 

@@ -16,7 +16,12 @@ struct Circuitmap{
     std::map<std::string, int> map_vccs;
     std::map<std::string, int> map_mosfets;
 
-    // Model maps:
+};
+
+struct Modelmap{
+    // Level 1 mosfet models
     std::unordered_map<std::string, NMOSModel> nmosModels;
     std::unordered_map<std::string, PMOSModel> pmosModels;
+    // BSIM mosfet models
+
 };

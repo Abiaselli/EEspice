@@ -39,14 +39,14 @@ void DeviceEvaluation(DC &dc, const CKTcircuit &ckt, const DCSimulator &dcSim){
     }
 }
 
-arma::vec DC_analysis_once(const CKTcircuit &ckt, const DCSimulator &dcSim, DC &dc)
+arma::vec DC_analysis_once(const CKTcircuit &ckt, const DCSimulator &dcSim, DC &dc, const Modelmap &modmap)
 {
     DeviceEvaluation(dc, ckt, dcSim);
     arma::vec solution(ckt.cktdematrix->RHS.n_rows, arma::fill::zeros);
     // Solve the system
     if(dcSim.non_linear)
     {
-        solution = NewtonRaphson_system(ckt, dc.LHS, dc.RHS);
+        solution = NewtonRaphson_system(ckt, dc.LHS, dc.RHS, modmap);
     }
     else
     {
@@ -55,7 +55,7 @@ arma::vec DC_analysis_once(const CKTcircuit &ckt, const DCSimulator &dcSim, DC &
     return solution;
 }
 
-std::vector<DC> DC_ops(const CKTcircuit &ckt, DCSimulator &dcSim)
+std::vector<DC> DC_ops(const CKTcircuit &ckt, DCSimulator &dcSim, const Modelmap &modmap)
 {
     
     if(dcSim.sweeps.size() == 1){
@@ -69,7 +69,7 @@ std::vector<DC> DC_ops(const CKTcircuit &ckt, DCSimulator &dcSim)
             dc.sweepNames.push_back(sweepName);
 
             // Run one DC analysis
-            dc.solution = DC_analysis_once(ckt, dcSim, dc);
+            dc.solution = DC_analysis_once(ckt, dcSim, dc, modmap);
 
             // Push the result
             dcSim.vec_dc.push_back(dc);
@@ -91,7 +91,7 @@ std::vector<DC> DC_ops(const CKTcircuit &ckt, DCSimulator &dcSim)
                 dc.sweepNames  = {nameA, nameB};
 
                 // Run one DC analysis
-                dc.solution = DC_analysis_once(ckt, dcSim, dc);
+                dc.solution = DC_analysis_once(ckt, dcSim, dc, modmap);
 
                 dcSim.vec_dc.push_back(dc);
             }

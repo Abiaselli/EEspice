@@ -46,7 +46,8 @@ std::pair<arma::mat, arma::vec> Dynamic(const CKTcircuit &ckt, const double h, c
     return {LHS, RHS};
 }
 
-std::pair<arma::mat, arma::vec> NonLinear(const CKTcircuit &ckt, const arma::vec &pre_NR_solution, const std::pair<arma::mat, arma::vec> &matrixes)
+std::pair<arma::mat, arma::vec> NonLinear(const CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
+    const std::pair<arma::mat, arma::vec> &matrixes, const Modelmap &modmap)
 {
 
     arma::mat LHS = matrixes.first;
@@ -60,7 +61,7 @@ std::pair<arma::mat, arma::vec> NonLinear(const CKTcircuit &ckt, const arma::vec
                    {
                        if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS>)
                        {    
-                            const NMOSModel nmosModel = ckt.map.nmosModels.at(arg.modelName);
+                            const NMOSModel nmosModel = modmap.nmosModels.at(arg.modelName);
                             NMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, nmosModel);
                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Diode>)
@@ -69,7 +70,7 @@ std::pair<arma::mat, arma::vec> NonLinear(const CKTcircuit &ckt, const arma::vec
                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
                        {    
-                            const PMOSModel pmosModel = ckt.map.pmosModels.at(arg.modelName);
+                            const PMOSModel pmosModel = modmap.pmosModels.at(arg.modelName);
                             PMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, pmosModel);
                        } },
                    element.element);
@@ -171,7 +172,8 @@ bool isConverge(const std::vector<arma::vec> &NR_solutions, const CKTcircuit &ck
 
 // Transient Simulation
 // Newton Raphson system solver for non-linear and dynamic elements
-arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int &mode, const double time_trans, std::vector<Capacitor> &C_list, const arma::vec &pre_global_solution)
+arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int &mode, const double time_trans, 
+    std::vector<Capacitor> &C_list, const arma::vec &pre_global_solution, const Modelmap &modmap)
 {
     int NR_iteration_counter = 0;
     bool isconverge = false;
@@ -186,7 +188,7 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int
 
     for (int i = 1; i < 3; i++)
     {
-        matrices = NonLinear(ckt, solution, init_matrices);
+        matrices = NonLinear(ckt, solution, init_matrices, modmap);
         // const arma::mat &LHS = matrices.first;
         // const arma::mat &RHS = matrices.second;
 
@@ -209,7 +211,7 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int
             return solution;
         }
 
-        matrices = NonLinear(ckt, solution, init_matrices);
+        matrices = NonLinear(ckt, solution, init_matrices, modmap);
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
@@ -229,7 +231,7 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int
 
 
 // DC Analysis
-arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const arma::mat &init_LHS, const arma::vec &init_RHS)
+arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const arma::mat &init_LHS, const arma::vec &init_RHS, const Modelmap &modmap)
 {
     int NR_iteration_counter = 0;
     bool isconverge = false;
@@ -244,7 +246,7 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const arma::mat &init_LHS,
 
     for (int i = 1; i < 3; i++)
     {
-        matrices = NonLinear(ckt, solution, init_matrices);
+        matrices = NonLinear(ckt, solution, init_matrices, modmap);
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
@@ -264,7 +266,7 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const arma::mat &init_LHS,
             exit(1);
         }
 
-        matrices = NonLinear(ckt, solution, init_matrices);
+        matrices = NonLinear(ckt, solution, init_matrices, modmap);
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))

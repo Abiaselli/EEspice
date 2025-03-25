@@ -22,8 +22,10 @@ int main(int argc, const char **argv)
     CKTcircuit ckt;
     auto denseMatrixPtr = std::make_shared<DenseMatrix>();  // Create the DenseMatrix as a shared pointer.
 
+    Modelmap modmap;
+
     CircuitParser parser("Netlist/dc_sweep.cir");
-    parser_netlist(parser, ckt.map);
+    parser_netlist(parser, ckt.map, modmap);
 
     CKTsetup(ckt, parser, denseMatrixPtr); // Pass the parser to the ckt and the initialise LHS and RHS matrices
 
@@ -32,13 +34,13 @@ int main(int argc, const char **argv)
 
     if(parser.is_transient){
         TransientSimulator trans_sim = Transsetup(parser, ckt);
-        std::vector<Transient> vec_trans_result = Transient_ops(ckt, trans_sim);
+        std::vector<Transient> vec_trans_result = Transient_ops(ckt, trans_sim, modmap);
         save_csv(ckt, vec_trans_result, ckt.map);
 
     }
     if(parser.is_dc){
         DCSimulator dcSim = dc::DCsetup(parser, ckt);
-        std::vector<DC> vec_dc_result = dc::DC_ops(ckt, dcSim);
+        std::vector<DC> vec_dc_result = dc::DC_ops(ckt, dcSim, modmap);
         save_csv_dc(ckt, vec_dc_result, ckt.map);
     }
    

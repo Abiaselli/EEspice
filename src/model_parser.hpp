@@ -44,7 +44,7 @@ void PMOSParamLV1::setFromMap(const std::map<std::string, std::string>& kvMap) {
     if (kvMap.count("RG")) RG = std::stod(kvMap.at("RG"));
 }
 
-void parseModel(std::istringstream &iss, const std::string &line, Circuitmap &map) {
+void parseModel(std::istringstream &iss, const std::string &line, Modelmap &modmap) {
     // Example: .model MyNMOS nmos (level=1 vto=0.7 kp=2e-5 ...)
     std::string modelName;
     iss >> modelName; // e.g., "MyNMOS"
@@ -112,7 +112,7 @@ void parseModel(std::istringstream &iss, const std::string &line, Circuitmap &ma
             exit(1);
         }
 
-        map.nmosModels[modelName] = model;
+        modmap.nmosModels[modelName] = model;
     }
     // Handle PMOS models
     else if (strcasecmp(modelType.c_str(), "pmos") == 0) {
@@ -147,7 +147,7 @@ void parseModel(std::istringstream &iss, const std::string &line, Circuitmap &ma
             exit(1);
         }
 
-        map.pmosModels[modelName] = model;
+        modmap.pmosModels[modelName] = model;
     }
     else {
         std::cerr << "Error: Unknown model type: " << modelType << " in line: " << line << std::endl;

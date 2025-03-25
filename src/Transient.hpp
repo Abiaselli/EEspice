@@ -4,7 +4,7 @@
 #include "Transient_multi_solvers.hpp"
 #include "Transient_single_solvers.hpp"
 
-Transient Fixed_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim){
+Transient Fixed_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim, const Modelmap &modmap){
     Transient trans;
     trans.mode = 1; // 0 to do OP analysis, 1 to do transient simulation
     trans.h = trans_sim.trans_config.init_h; // Initial time step
@@ -12,7 +12,7 @@ Transient Fixed_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim){
     trans.C_list = trans_sim.vec_trans.back().C_list;
 
     std::cout << "Fixed time step" << std::endl;
-    arma::vec solution = NewtonRaphson_system(ckt, trans.h, 1, trans.time_trans, trans.C_list, trans_sim.vec_trans.back().solution);
+    arma::vec solution = NewtonRaphson_system(ckt, trans.h, 1, trans.time_trans, trans.C_list, trans_sim.vec_trans.back().solution, modmap);
     // solution.print("The transient analysis of the circuit is: ");
     ARMA_PRINT(solution, "The transient analysis of the circuit is: ");
 
@@ -48,7 +48,7 @@ Transient Fixed_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim){
     return trans;
 }
 
-Transient Varibale_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim){
+Transient Varibale_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim, const Modelmap &modmap){
     Transient trans;
     trans.mode = 1; // 0 to do OP analysis, 1 to do transient simulation
 
@@ -59,7 +59,7 @@ Transient Varibale_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim
         trans.h = trans_sim.trans_config.init_h; // Initial time step
         trans.time_trans = trans_sim.trans_config.t_start + trans.h;
 
-        trans.solution = NewtonRaphson_system(ckt, trans.h, 1, trans.time_trans, trans.C_list, trans_sim.vec_trans.back().solution);
+        trans.solution = NewtonRaphson_system(ckt, trans.h, 1, trans.time_trans, trans.C_list, trans_sim.vec_trans.back().solution, modmap);
         // solution.print("The transient analysis of the circuit is: ");
         ARMA_PRINT(trans.solution, "The transient analysis of the circuit is: ");
 
@@ -84,7 +84,7 @@ Transient Varibale_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim
         // Just to prevent single_next_h from directly using time_trans as the time_trans of the previous timestep (not recommended).
         trans.time_trans = trans_sim.vec_trans.back().time_trans; 
 
-        single_timestep single_h = single_next_h(trans, ckt, trans_sim);
+        single_timestep single_h = single_next_h(trans, ckt, trans_sim, modmap);
         
         // The current time of the transient simulation. Use to compare with the breakpoints!
         double current_time = single_h.h + trans_sim.vec_trans.back().time_trans;
@@ -110,7 +110,7 @@ Transient Varibale_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim
             breakpoints_trans.time_trans = trans_sim.breakpoints.front();
             breakpoints_trans.h = breakpoints_trans.time_trans - trans_sim.vec_trans.back().time_trans;
 
-            breakpoints_trans.solution = NewtonRaphson_system(ckt, breakpoints_trans.h, 1, breakpoints_trans.time_trans, breakpoints_trans.C_list, trans_sim.vec_trans.back().solution);
+            breakpoints_trans.solution = NewtonRaphson_system(ckt, breakpoints_trans.h, 1, breakpoints_trans.time_trans, breakpoints_trans.C_list, trans_sim.vec_trans.back().solution, modmap);
             auto cur_vol = get_currents_voltages(breakpoints_trans.C_list, breakpoints_trans.h, breakpoints_trans.solution, trans_sim.vec_trans.back().solution);
             breakpoints_trans.Capacitance = get_capacitance(breakpoints_trans.C_list);
 
@@ -158,7 +158,7 @@ Transient Varibale_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim
     return trans;
 }
 
-std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_sim)
+std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_sim, const Modelmap modmap)
 {
     Transient trans_op;
 
@@ -176,7 +176,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_
     // Benchmarking for OP analysis
     auto tstart_op = std::chrono::high_resolution_clock::now();
 
-    solution = NewtonRaphson_system(ckt, 0, 0, 0, trans_op.C_list, solution);
+    solution = NewtonRaphson_system(ckt, 0, 0, 0, trans_op.C_list, solution, modmap);
 
     if (trans_op.C_list.size() > 0)
     {
@@ -226,13 +226,13 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_
         // Fixed time step
         if (trans_sim.trans_config.timestep_control == false)
         {
-           Transient trans = Fixed_TimeStep(ckt, trans_sim);
+           Transient trans = Fixed_TimeStep(ckt, trans_sim, modmap);
            history_trans_update(trans, trans_sim);
             
         }
         // time step control: varibale time step
         else{
-            Transient trans = Varibale_TimeStep(ckt, trans_sim);
+            Transient trans = Varibale_TimeStep(ckt, trans_sim, modmap);
             history_trans_update(trans, trans_sim);
         }
 

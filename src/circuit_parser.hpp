@@ -133,7 +133,7 @@ std::vector<double> batchVector(std::string valueStr, const std::string &line){
 }
 
 
-void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
+void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktmap, Modelmap &modmap)
 {
 
     std::istringstream iss(line);
@@ -149,12 +149,12 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
     }
     if(type == ".model" || type == ".MODEL")
     {
-        parseModel(iss, line, map);
+        parseModel(iss, line, modmap);
     }
     else if (type[0] == 'V' || type[0] == 'v')
     {   
         id_str = type;
-        int v_id = convertToDevice(id_str, map.map_voltages);
+        int v_id = convertToDevice(id_str, cktmap.map_voltages);
 
         iss >> v_nodePos_str >> v_nodeNeg_str >> v_type;
         if (v_type == "pulse" || v_type == "PULSE")
@@ -174,8 +174,8 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
             pv.id = v_id;
             pv.nodePos_str = v_nodePos_str;
             pv.nodeNeg_str = v_nodeNeg_str;
-            pv.nodePos = convertToNode(v_nodePos_str, map.map_nodes);
-            pv.nodeNeg = convertToNode(v_nodeNeg_str, map.map_nodes);
+            pv.nodePos = convertToNode(v_nodePos_str, cktmap.map_nodes);
+            pv.nodeNeg = convertToNode(v_nodeNeg_str, cktmap.map_nodes);
 
             pulseParamsStream >> v1 >> v2 >> td >> tr >> tf >> pw >> per;
 
@@ -196,8 +196,8 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
             vs.id = v_id;
             vs.nodePos_str = v_nodePos_str;
             vs.nodeNeg_str = v_nodeNeg_str;
-            vs.nodePos = convertToNode(v_nodePos_str, map.map_nodes);
-            vs.nodeNeg = convertToNode(v_nodeNeg_str, map.map_nodes);
+            vs.nodePos = convertToNode(v_nodePos_str, cktmap.map_nodes);
+            vs.nodeNeg = convertToNode(v_nodeNeg_str, cktmap.map_nodes);
 
             // Parse bracket [start:step:end]
             if(v_type.front() == '[' && v_type.back() == ']')
@@ -242,13 +242,13 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
     {
         Resistor r;
         r.id_str = type;
-        r.id = convertToDevice(r.id_str, map.map_resistors);
+        r.id = convertToDevice(r.id_str, cktmap.map_resistors);
 
 
         iss >> r.nodePos_str >> r.nodeNeg_str >> valueStr;
 
-        r.nodePos = convertToNode(r.nodePos_str, map.map_nodes);
-        r.nodeNeg = convertToNode(r.nodeNeg_str, map.map_nodes);
+        r.nodePos = convertToNode(r.nodePos_str, cktmap.map_nodes);
+        r.nodeNeg = convertToNode(r.nodeNeg_str, cktmap.map_nodes);
         r.value = convertToValue(valueStr);
 
         parser.elements.push_back(CircuitElement{r});
@@ -257,12 +257,12 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
     {
         Capacitor c;
         c.id_str = type;
-        c.id = convertToDevice(c.id_str, map.map_capacitors);
+        c.id = convertToDevice(c.id_str, cktmap.map_capacitors);
 
         iss >> c.nodePos_str >> c.nodeNeg_str >> valueStr;
 
-        c.nodePos = convertToNode(c.nodePos_str, map.map_nodes);
-        c.nodeNeg = convertToNode(c.nodeNeg_str, map.map_nodes);
+        c.nodePos = convertToNode(c.nodePos_str, cktmap.map_nodes);
+        c.nodeNeg = convertToNode(c.nodeNeg_str, cktmap.map_nodes);
         c.value = convertToValue(valueStr);
 
         parser.elements.push_back(CircuitElement{c});
@@ -271,12 +271,12 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
     {
         CurrentSource cs;
         cs.id_str = type;
-        cs.id = convertToDevice(cs.id_str, map.map_currents);
+        cs.id = convertToDevice(cs.id_str, cktmap.map_currents);
 
         iss >> cs.nodePos_str >> cs.nodeNeg_str >> valueStr;
 
-        cs.nodePos = convertToNode(cs.nodePos_str, map.map_nodes);
-        cs.nodeNeg = convertToNode(cs.nodeNeg_str, map.map_nodes);
+        cs.nodePos = convertToNode(cs.nodePos_str, cktmap.map_nodes);
+        cs.nodeNeg = convertToNode(cs.nodeNeg_str, cktmap.map_nodes);
         // Parse bracket [start:step:end]
         if(valueStr.front() == '[' && valueStr.back() == ']')
         {   
@@ -320,11 +320,11 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
 
         Diode d;
         d.id_str = type;
-        d.id = convertToDevice(d.id_str, map.map_diodes);
+        d.id = convertToDevice(d.id_str, cktmap.map_diodes);
         iss >> d.nodePos_str >> d.nodeNeg_str >> valueStr;
 
-        d.nodePos = convertToNode(d.nodePos_str, map.map_nodes);
-        d.nodeNeg = convertToNode(d.nodeNeg_str, map.map_nodes);
+        d.nodePos = convertToNode(d.nodePos_str, cktmap.map_nodes);
+        d.nodeNeg = convertToNode(d.nodeNeg_str, cktmap.map_nodes);
         d.Is = convertToValue(valueStr);
 
         iss >> valueStr;
@@ -336,14 +336,14 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
     {
         VCCS g;
         g.id_str = type;
-        g.id = convertToDevice(g.id_str, map.map_vccs);
+        g.id = convertToDevice(g.id_str, cktmap.map_vccs);
 
         iss >> g.node_x_str >> g.node_y_str >> g.node_cx_str >> g.node_cy_str >> valueStr;
 
-        g.node_x = convertToNode(g.node_x_str, map.map_nodes);
-        g.node_y = convertToNode(g.node_y_str, map.map_nodes);
-        g.node_cx = convertToNode(g.node_cx_str, map.map_nodes);
-        g.node_cy = convertToNode(g.node_cy_str, map.map_nodes);
+        g.node_x = convertToNode(g.node_x_str, cktmap.map_nodes);
+        g.node_y = convertToNode(g.node_y_str, cktmap.map_nodes);
+        g.node_cx = convertToNode(g.node_cx_str, cktmap.map_nodes);
+        g.node_cy = convertToNode(g.node_cy_str, cktmap.map_nodes);
         g.value = convertToValue(valueStr);
 
         parser.elements.push_back(CircuitElement{g});
@@ -352,7 +352,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
     else if (type[0] == 'M' || type[0] == 'm')
     {
         id_str = type;
-        int M_id = convertToDevice(id_str, map.map_mosfets);
+        int M_id = convertToDevice(id_str, cktmap.map_mosfets);
 
         std::string M_node_vd_str, M_node_vg_str, M_node_vs_str, M_node_vb_str;
         std::string M_modelName, parameter;
@@ -361,7 +361,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
 
         iss >> M_node_vd_str >> M_node_vg_str >> M_node_vs_str >> M_node_vb_str >> M_modelName;
 
-        if (map.nmosModels.find(M_modelName) != map.nmosModels.end())
+        if (modmap.nmosModels.find(M_modelName) != modmap.nmosModels.end())
         {
             NMOS mn;
             mn.id_str = id_str;
@@ -372,10 +372,10 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
             mn.node_vs_str = M_node_vs_str;
             mn.node_vb_str = M_node_vb_str;
 
-            mn.node_vd = convertToNode(M_node_vd_str, map.map_nodes);
-            mn.node_vg = convertToNode(M_node_vg_str, map.map_nodes);
-            mn.node_vs = convertToNode(M_node_vs_str, map.map_nodes);
-            mn.node_vb = convertToNode(M_node_vb_str, map.map_nodes);
+            mn.node_vd = convertToNode(M_node_vd_str, cktmap.map_nodes);
+            mn.node_vg = convertToNode(M_node_vg_str, cktmap.map_nodes);
+            mn.node_vs = convertToNode(M_node_vs_str, cktmap.map_nodes);
+            mn.node_vb = convertToNode(M_node_vb_str, cktmap.map_nodes);
             mn.modelName = M_modelName;
 
             // Read and parse the W and L parameters with their prefixes
@@ -402,7 +402,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
 
             parser.elements.push_back(CircuitElement{mn});
         }
-        else if (map.pmosModels.find(M_modelName) != map.pmosModels.end())
+        else if (modmap.pmosModels.find(M_modelName) != modmap.pmosModels.end())
         {
             PMOS mp;
             mp.id_str = id_str;
@@ -413,10 +413,10 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
             mp.node_vs_str = M_node_vs_str;
             mp.node_vb_str = M_node_vb_str;
 
-            mp.node_vd = convertToNode(M_node_vd_str, map.map_nodes);  
-            mp.node_vg = convertToNode(M_node_vg_str, map.map_nodes);
-            mp.node_vs = convertToNode(M_node_vs_str, map.map_nodes);
-            mp.node_vb = convertToNode(M_node_vb_str, map.map_nodes);
+            mp.node_vd = convertToNode(M_node_vd_str, cktmap.map_nodes);  
+            mp.node_vg = convertToNode(M_node_vg_str, cktmap.map_nodes);
+            mp.node_vs = convertToNode(M_node_vs_str, cktmap.map_nodes);
+            mp.node_vb = convertToNode(M_node_vb_str, cktmap.map_nodes);
             mp.modelName = M_modelName;
 
             while (iss >> parameter)
@@ -481,7 +481,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &map)
     }
 }
 
-void parser_netlist(CircuitParser &parser, Circuitmap &map)
+void parser_netlist(CircuitParser &parser, Circuitmap &cktmap, Modelmap &modmap)
 {
 
     std::ifstream file(parser.filename);
@@ -506,7 +506,7 @@ void parser_netlist(CircuitParser &parser, Circuitmap &map)
 
         if (!line.empty())
         {
-            parseLine(line, parser, map);
+            parseLine(line, parser,cktmap, modmap);
         }
     }
 }
