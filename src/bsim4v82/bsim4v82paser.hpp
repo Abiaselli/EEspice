@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <string>
 #include <algorithm>
 #include <cctype> // std::tolower
@@ -3779,8 +3780,8 @@ int BSIM4param(int param, const VariantValue &value, BSIM4V82 &inst){
 }
 
 // Paser for BSIM4 model
-BSIM4model paserBSIM4Model(const std::string& modelType, const std::string& modelName, const std::map<std::string, std::string>& kvMap){
-    BSIM4model model;
+std::shared_ptr<BSIM4model> paserBSIM4Model(const std::string& modelType, const std::string& modelName, const std::map<std::string, std::string>& kvMap){
+    std::shared_ptr<BSIM4model> model = std::make_shared<BSIM4model>();
     // Convert modelType to lowercase for case-insensitive comparison
     std::string typeLower = modelType;
     std::transform(typeLower.begin(), typeLower.end(), typeLower.begin(),
@@ -3788,17 +3789,17 @@ BSIM4model paserBSIM4Model(const std::string& modelType, const std::string& mode
     
     // Set the type based on "nmos" or "pmos"
     if (typeLower == "nmos") {
-        model.BSIM4type = BSIM4_NMOS;
-        model.BSIM4typeGiven = true;
+        model->BSIM4type = BSIM4_NMOS;
+        model->BSIM4typeGiven = true;
     } else if (typeLower == "pmos") {
-        model.BSIM4type = BSIM4_PMOS;
-        model.BSIM4typeGiven = true;
+        model->BSIM4type = BSIM4_PMOS;
+        model->BSIM4typeGiven = true;
     } else {
         std::cerr << "Error: Invalid model type for BSIM4: " << modelType << std::endl;
         exit(1);
     }
     // Set the model name
-    model.BSIM4modName = modelName;
+    model->BSIM4modName = modelName;
 
     // Parse parameters from kvMap
     for (const auto& [key, valStr] : kvMap) {
@@ -3807,7 +3808,7 @@ BSIM4model paserBSIM4Model(const std::string& modelType, const std::string& mode
             int paramIndex = iter->second;
             try {
                 VariantValue value(valStr);
-                BSIM4mParam(paramIndex, value, model);
+                BSIM4mParam(paramIndex, value, *model);
             } catch (const std::exception& e) {
                 std::cerr << "Warning: Failed to parse BSIM4 parameter " << key << " = " << valStr
                           << ": " << e.what() << std::endl;

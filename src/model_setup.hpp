@@ -6,7 +6,7 @@
 
 void modelSetup(Modelmap &modmap){
     for(auto &model : modmap.bsim4Models){
-        bsim4::modelSetup(model.second, nomTemp);
+        bsim4::modelSetup(*model.second, nomTemp);
     }
     
 }

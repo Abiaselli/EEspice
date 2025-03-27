@@ -24,5 +24,5 @@ struct Modelmap{
     std::unordered_map<std::string, NMOSModel> nmosModels;
     std::unordered_map<std::string, PMOSModel> pmosModels;
     // BSIM mosfet models
-    std::unordered_map<std::string, bsim4::BSIM4model> bsim4Models;
+    std::unordered_map<std::string, std::shared_ptr<bsim4::BSIM4model>> bsim4Models;
 };
