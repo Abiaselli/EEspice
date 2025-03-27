@@ -245,7 +245,7 @@ struct bsim4SizeDependParam
 
 struct BSIM4model
 {
-    int BSIM4modType;
+    // int BSIM4modType;
     // struct sBSIM4model *BSIM4nextModel;
 
     std::string BSIM4modName;
@@ -272,7 +272,7 @@ struct BSIM4model
     int    BSIM4tempMod;
     int    BSIM4binUnit;
     int    BSIM4paramChk;
-    double BSIM4version;
+    std::string BSIM4version;
     double BSIM4eot;
     double BSIM4vddeot;
     double BSIM4tempeot;
