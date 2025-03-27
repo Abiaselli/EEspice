@@ -4,6 +4,7 @@
 #include <map>
 #include <unordered_map>
 #include "models.hpp"
+#include "bsim4v82/bsim4v82.hpp"
 
 struct Circuitmap{
     std::map<std::string, int> map_nodes;
@@ -23,5 +24,5 @@ struct Modelmap{
     std::unordered_map<std::string, NMOSModel> nmosModels;
     std::unordered_map<std::string, PMOSModel> pmosModels;
     // BSIM mosfet models
-
+    std::unordered_map<std::string, bsim4::BSIM4model> bsim4Models;
 };

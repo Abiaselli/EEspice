@@ -4,9 +4,8 @@
 #include <vector>
 #include <variant>
 #include <map>
-
-// for debug mode
 #include "sim_variables.hpp"
+#include "bsim4v82/bsim4v82.hpp"
 
 // Forward declarations
 struct VoltageSource;
@@ -87,6 +86,7 @@ struct NMOS
     double W{}, L{};
     std::string modelName;
     MosfetModelType modelType;
+    std::shared_ptr<bsim4::BSIM4V82> bsim4v82Instance;
 };
 
 struct PMOS
@@ -98,6 +98,7 @@ struct PMOS
     double W{}, L{};
     std::string modelName;
     MosfetModelType modelType;
+    std::shared_ptr<bsim4::BSIM4V82> bsim4v82Instance;
 };
 
 struct CurrentSource

@@ -11,6 +11,7 @@
 
 #include "models.hpp"
 #include "map.hpp"
+#include "bsim4v82/bsim4v82paser.hpp"
 
 void NMOSParamLV1::setFromMap(const std::map<std::string, std::string>& kvMap) {
     if (kvMap.count("vto")) vt0 = std::stod(kvMap.at("vto"));
@@ -47,6 +48,8 @@ void PMOSParamLV1::setFromMap(const std::map<std::string, std::string>& kvMap) {
 void parseModel(std::istringstream &iss, const std::string &line, Modelmap &modmap) {
     // Example: .model MyNMOS nmos (level=1 vto=0.7 kp=2e-5 ...)
     std::string modelName;
+    int level = 1;
+    std::string version;
     iss >> modelName; // e.g., "MyNMOS"
 
     // Get the rest of the line (type and parameters)
@@ -81,25 +84,26 @@ void parseModel(std::istringstream &iss, const std::string &line, Modelmap &modm
 
     // Handle NMOS models
     if (strcasecmp(modelType.c_str(), "nmos") == 0) {
-        NMOSModel model; // Default level is 1
 
         // Set level if specified
         if (kvMap.count("level")) {
-            model.level = std::stoi(kvMap.at("level"));
-            kvMap.erase("level"); // Remove from map as it’s not a variant parameter
+            level = std::stoi(kvMap.at("level"));
         }
 
         // Set version if specified
         if (kvMap.count("version")) {
-            model.version = kvMap.at("version");
-            kvMap.erase("version");
+            version = kvMap.at("version");
         }
 
         // Assign parameters based on level
-        if (model.level == 1) {
+        if (level == 1) {
+            NMOSModel model; // Default level is 1
+            model.level = level;
+            model.version = version;
             NMOSParamLV1 param;
             param.setFromMap(kvMap);
             model.params = std::move(param);
+            modmap.nmosModels[modelName] = model;
         }
         // Add more levels as needed, e.g.:
         // else if (model.level == 2) {
@@ -107,34 +111,40 @@ void parseModel(std::istringstream &iss, const std::string &line, Modelmap &modm
         //     param.setFromMap(kvMap);
         //     model.params = param;
         // }
+        else if(level == 14){
+            bsim4::BSIM4model bsim4Model = bsim4::paserBSIM4Model("nmos", modelName, kvMap);
+            modmap.bsim4Models[modelName] = bsim4Model;
+        }
         else {
-            std::cerr << "Error: Unsupported NMOS level: " << model.level << " in line: " << line << std::endl;
+            std::cerr << "Error: Unsupported NMOS level: " << level << " in line: " << line << std::endl;
             exit(1);
         }
 
-        modmap.nmosModels[modelName] = model;
+       
     }
     // Handle PMOS models
     else if (strcasecmp(modelType.c_str(), "pmos") == 0) {
-        PMOSModel model; // Default level is 1
+        
 
         // Set level if specified
         if (kvMap.count("level")) {
-            model.level = std::stoi(kvMap.at("level"));
-            kvMap.erase("level");
+            level = std::stoi(kvMap.at("level"));
         }
 
         // Set version if specified
         if (kvMap.count("version")) {
-            model.version = kvMap.at("version");
-            kvMap.erase("version");
+            version = kvMap.at("version");
         }
 
         // Assign parameters based on level
-        if (model.level == 1) {
+        if (level == 1) {
+            PMOSModel model; // Default level is 1
+            model.level = level;
+            model.version = version;
             PMOSParamLV1 param;
             param.setFromMap(kvMap);
             model.params = std::move(param);
+            modmap.pmosModels[modelName] = model;
         }
         // Add more levels as needed, e.g.:
         // else if (model.level == 2) {
@@ -142,12 +152,15 @@ void parseModel(std::istringstream &iss, const std::string &line, Modelmap &modm
         //     param.setFromMap(kvMap);
         //     model.params = param;
         // }
+        else if(level == 14){
+            bsim4::BSIM4model bsim4Model = bsim4::paserBSIM4Model("pmos", modelName, kvMap);
+            modmap.bsim4Models[modelName] = bsim4Model;
+        }
         else {
-            std::cerr << "Error: Unsupported PMOS level: " << model.level << " in line: " << line << std::endl;
+            std::cerr << "Error: Unsupported PMOS level: " << level << " in line: " << line << std::endl;
             exit(1);
         }
-
-        modmap.pmosModels[modelName] = model;
+        
     }
     else {
         std::cerr << "Error: Unknown model type: " << modelType << " in line: " << line << std::endl;
