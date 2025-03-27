@@ -49,14 +49,32 @@ public:
 
     // Type conversion =====================================
     template <typename To>
-    std::optional<To> get_as() const noexcept {
-        return visit([](const auto& v) -> std::optional<To> {
+    std::optional<To> get_as() const noexcept {  
+        return std::visit([](const auto& v) -> std::optional<To> {
             using From = std::decay_t<decltype(v)>;
             if constexpr (std::is_convertible_v<From, To>) {
                 return static_cast<To>(v);
             }
-            return std::nullopt;
-        });
+            // Convert string to number
+            else if constexpr (std::is_same_v<From, std::string>) {
+                try {
+                    if constexpr (std::is_same_v<To, int>) {
+                        return std::stoi(v);
+                    } else if constexpr (std::is_same_v<To, float>) {
+                        return std::stof(v);
+                    } else if constexpr (std::is_same_v<To, double>) {
+                        return std::stod(v);
+                    } else {
+                        return std::nullopt;
+                    }
+                } catch (...) {
+                    return std::nullopt;
+                }
+            }
+            else {
+                return std::nullopt;
+            }
+        }, data_);  // Call std::visit directly and pass data_
     }
 
     // Visitor Mode ===================================
