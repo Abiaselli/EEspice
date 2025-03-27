@@ -2,6 +2,7 @@
 #define ARMA_USE_MKL_ALLOC
 // #define ARMA_USE_SUPERLU
 
+#include "model_setup.hpp"
 #include "Transient.hpp"
 #include "DC.hpp"
 #include "saveCSV.hpp"
@@ -26,6 +27,9 @@ int main(int argc, const char **argv)
 
     CircuitParser parser("Netlist/dc_sweep.cir");
     parser_netlist(parser, ckt.map, modmap);
+
+    // Model setup
+    modelSetup(modmap);
 
     CKTsetup(ckt, parser, denseMatrixPtr); // Pass the parser to the ckt and the initialise LHS and RHS matrices
 

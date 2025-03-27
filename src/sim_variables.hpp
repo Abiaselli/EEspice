@@ -47,6 +47,8 @@ int total_NR_iteration = 0;
 constexpr double CONSTCtoK = 273.15;
 constexpr double CONSTKtoC = -273.15;
 
+constexpr double nomTemp = 300.15; // Nominal temperature in Kelvin
+
 
 
 

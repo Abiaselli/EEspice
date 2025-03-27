@@ -31,7 +31,7 @@ struct CKTcircuit
     bool ckt_loaded{};                              // To check if the circuit is loaded or not
 
     double CKTtemp{};                               // Actual temperature of CKT, initialzed to 300.15 K 
-    double CKTnomTemp{};                            // Reference temperature 300.15 K
+    const double CKTnomTemp = 300.15;               // Reference temperature 300.15 K
 };
 
 void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<DenseMatrix> denseMatrixPtr)
@@ -44,7 +44,6 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     ckt.T_nodes = ckt.external_nodes + 3 * ckt.no_of_mosfets;
     // ckt.T_nodes = ckt.external_nodes;
     ckt.CKTtemp = 300.15;   // Initial temperature of the circuit
-    ckt.CKTnomTemp = 300.15;    // Reference temperature of the circuit
 
     // Size of matrix
     ckt.cktdematrix = denseMatrixPtr;
