@@ -363,8 +363,8 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
         if (modmap.nmosModels.find(M_modelName) != modmap.nmosModels.end())
         {
-            NMOS mn;
-            mn.id_str = id_str;
+            NMOS mn(id_str);
+            // mn.id_str = id_str;
             mn.id = M_id;
 
             mn.node_vd_str = M_node_vd_str;
@@ -404,8 +404,8 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         }
         else if (modmap.pmosModels.find(M_modelName) != modmap.pmosModels.end())
         {
-            PMOS mp;
-            mp.id_str = id_str;
+            PMOS mp(id_str);
+            // mp.id_str = id_str;
             mp.id = M_id;
 
             mp.node_vd_str = M_node_vd_str;
@@ -440,7 +440,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 }
             }
 
-            parser.elements.push_back(CircuitElement{mp});
+            parser.elements.push_back((CircuitElement{mp}));
         }
         else
         {

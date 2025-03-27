@@ -86,7 +86,8 @@ struct NMOS
     double W{}, L{};
     std::string modelName;
     MosfetModelType modelType;
-    std::unique_ptr<bsim4::BSIM4V82> bsim4v82Instance = nullptr;
+    bsim4::BSIM4V82 bsim4v82Instance;
+    NMOS(const std::string& name) : id_str(name), bsim4v82Instance(name) {}
 };
 
 struct PMOS
@@ -98,7 +99,8 @@ struct PMOS
     double W{}, L{};
     std::string modelName;
     MosfetModelType modelType;
-    std::unique_ptr<bsim4::BSIM4V82> bsim4v82Instance = nullptr;
+    bsim4::BSIM4V82 bsim4v82Instance;
+    PMOS(const std::string& name) : id_str(name), bsim4v82Instance(name) {}
 };
 
 struct CurrentSource
