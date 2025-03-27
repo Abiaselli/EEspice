@@ -86,7 +86,7 @@ struct NMOS
     double W{}, L{};
     std::string modelName;
     MosfetModelType modelType;
-    std::shared_ptr<bsim4::BSIM4V82> bsim4v82Instance;
+    std::unique_ptr<bsim4::BSIM4V82> bsim4v82Instance = nullptr;
 };
 
 struct PMOS
@@ -98,7 +98,7 @@ struct PMOS
     double W{}, L{};
     std::string modelName;
     MosfetModelType modelType;
-    std::shared_ptr<bsim4::BSIM4V82> bsim4v82Instance;
+    std::unique_ptr<bsim4::BSIM4V82> bsim4v82Instance = nullptr;
 };
 
 struct CurrentSource
