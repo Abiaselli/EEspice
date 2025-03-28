@@ -25,13 +25,13 @@ int main(int argc, const char **argv)
 
     Modelmap modmap;
 
-    CircuitParser parser("Netlist/dc_sweep.cir");
+    CircuitParser parser("Netlist/Ring.cir");
     parser_netlist(parser, ckt.map, modmap);
 
     // Model setup
     modelSetup(modmap);
 
-    CKTsetup(ckt, parser, denseMatrixPtr); // Pass the parser to the ckt and the initialise LHS and RHS matrices
+    CKTsetup(ckt, parser, denseMatrixPtr, modmap); // Pass the parser to the ckt and the initialise LHS and RHS matrices
 
     CKTload(ckt);
     ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
