@@ -41,11 +41,12 @@ void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
     {
         std::visit([&](auto &&arg) {
             if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS> || std::is_same_v<std::decay_t<decltype(arg)>, PMOS>) {
-                
+
                 if(arg.modelType == MosfetModelType::BSIM4V82){
                     auto bsim_iter = modmap.bsim4Models.find(arg.modelName);
                     if(bsim_iter != modmap.bsim4Models.end()){
-                        arg.bsim4v82Instance.BSIM4modPtr = bsim_iter->second;
+                        // Don't need to set the model pointer again, it's already set in the parser
+                        // arg.bsim4v82Instance.BSIM4modPtr = bsim_iter->second;
                         bsim4::instanceSetup(*arg.bsim4v82Instance.BSIM4modPtr, arg.bsim4v82Instance);
                     }
                     else{

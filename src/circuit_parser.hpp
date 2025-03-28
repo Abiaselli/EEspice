@@ -361,7 +361,11 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
         iss >> M_node_vd_str >> M_node_vg_str >> M_node_vs_str >> M_node_vb_str >> M_modelName;
 
-        if (modmap.nmosModels.find(M_modelName) != modmap.nmosModels.end())
+        const auto &iter_nmos = modmap.nmosModels.find(M_modelName);
+        const auto &iter_pmos = modmap.pmosModels.find(M_modelName);
+        const auto &iter_bsim4 = modmap.bsim4Models.find(M_modelName);
+
+        if (iter_nmos != modmap.nmosModels.end())
         {
             NMOS mn(id_str);
             // mn.id_str = id_str;
@@ -402,7 +406,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
             parser.elements.push_back(CircuitElement{mn});
         }
-        else if (modmap.pmosModels.find(M_modelName) != modmap.pmosModels.end())
+        else if (iter_pmos != modmap.pmosModels.end())
         {
             PMOS mp(id_str);
             // mp.id_str = id_str;
@@ -441,6 +445,97 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
             }
 
             parser.elements.push_back((CircuitElement{mp}));
+        }
+        else if (iter_bsim4 != modmap.bsim4Models.end())
+        {
+            // Parse BSIM4 instance
+            // Create a new NMOS instance
+            if (iter_bsim4->second->BSIM4type == bsim4::BSIM4_NMOS){
+                NMOS mn(id_str);
+                mn.id = M_id;
+                mn.node_vd_str = M_node_vd_str;
+                mn.node_vg_str = M_node_vg_str;
+                mn.node_vs_str = M_node_vs_str;
+                mn.node_vb_str = M_node_vb_str;
+
+                mn.node_vd = convertToNode(M_node_vd_str, cktmap.map_nodes);
+                mn.node_vg = convertToNode(M_node_vg_str, cktmap.map_nodes);
+                mn.node_vs = convertToNode(M_node_vs_str, cktmap.map_nodes);
+                mn.node_vb = convertToNode(M_node_vb_str, cktmap.map_nodes);
+                mn.modelName = M_modelName;
+                // Read and parse the W and L parameters with their prefixes
+                while (iss >> parameter)
+                {
+                    size_t pos = parameter.find('=');
+                    if (pos != std::string::npos)
+                    {
+                        std::string key = parameter.substr(0, pos);
+                        std::string value = parameter.substr(pos + 1);
+
+                        if (key == "W" || key == "w")
+                        {
+                            valueStr = value;
+                            mn.W = convertToValue(valueStr);
+                        }
+                        else if (key == "L" || key == "l")
+                        {
+                            valueStr = value;
+                            mn.L = convertToValue(valueStr);
+                        }
+                    }
+                }
+                // Setup modelType
+                mn.modelType = MosfetModelType::BSIM4V82;
+                // Set the BSIM4 model pointer
+                mn.bsim4v82Instance.BSIM4modPtr = iter_bsim4->second;
+                parser.elements.push_back(CircuitElement{mn});
+            }
+            // Create a new PMOS instance
+            else if (iter_bsim4->second->BSIM4type == bsim4::BSIM4_PMOS){
+            PMOS mp(id_str);
+            mp.id = M_id;
+
+            mp.node_vd_str = M_node_vd_str;
+            mp.node_vg_str = M_node_vg_str;
+            mp.node_vs_str = M_node_vs_str;
+            mp.node_vb_str = M_node_vb_str;
+
+            mp.node_vd = convertToNode(M_node_vd_str, cktmap.map_nodes);  
+            mp.node_vg = convertToNode(M_node_vg_str, cktmap.map_nodes);
+            mp.node_vs = convertToNode(M_node_vs_str, cktmap.map_nodes);
+            mp.node_vb = convertToNode(M_node_vb_str, cktmap.map_nodes);
+            mp.modelName = M_modelName;
+
+            while (iss >> parameter)
+            {
+                size_t pos = parameter.find('=');
+                if (pos != std::string::npos)
+                {
+                    std::string key = parameter.substr(0, pos);
+                    std::string value = parameter.substr(pos + 1);
+
+                    if (key == "W" || key == "w")
+                    {
+                        valueStr = value;
+                        mp.W = convertToValue(valueStr);
+                    }
+                    else if (key == "L" || key == "l")
+                    {
+                        valueStr = value;
+                        mp.L = convertToValue(valueStr);
+                    }
+                }
+            }
+            // Paser modelType
+            mp.modelType = MosfetModelType::BSIM4V82;
+            // Paser the BSIM4 model pointer
+            mp.bsim4v82Instance.BSIM4modPtr = iter_bsim4->second;
+            parser.elements.push_back((CircuitElement{mp}));
+            }
+            else{
+                std::cerr << "Error: Unknown BSIM4 model type for: " << M_modelName << std::endl;
+                exit(1);
+            }
         }
         else
         {
