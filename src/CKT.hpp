@@ -34,7 +34,31 @@ struct CKTcircuit
     const double CKTnomTemp = 300.15;               // Reference temperature 300.15 K
 };
 
-void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<DenseMatrix> denseMatrixPtr)
+void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
+    // 1. Setup the model shared pointer for the instances
+    // 2. Setup the instance parameters
+    for (auto &element : ckt.CKTelements)
+    {
+        std::visit([&](auto &&arg) {
+            if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS> || std::is_same_v<std::decay_t<decltype(arg)>, PMOS>) {
+                
+                if(arg.modelType == MosfetModelType::BSIM4V82){
+                    auto bsim_iter = modmap.bsim4Models.find(arg.modelName);
+                    if(bsim_iter != modmap.bsim4Models.end()){
+                        arg.bsim4v82Instance.BSIM4modPtr = bsim_iter->second;
+                        bsim4::instanceSetup(*arg.bsim4v82Instance.BSIM4modPtr, arg.bsim4v82Instance);
+                    }
+                    else{
+                        std::cerr << "Error: BSIM4 model not found in model map for: " << arg.modelName << std::endl;
+                        exit(1);
+                    }
+                }
+            }
+        }, element.element);
+    }
+}
+
+void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<DenseMatrix> denseMatrixPtr, const Modelmap &modmap)
 {
     // Careful! getCircuitElements function is const, so it can't be used to modify the elements vector
     // ckt.elements = parser.getCircuitElements();
@@ -44,6 +68,11 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     ckt.T_nodes = ckt.external_nodes + 3 * ckt.no_of_mosfets;
     // ckt.T_nodes = ckt.external_nodes;
     ckt.CKTtemp = 300.15;   // Initial temperature of the circuit
+
+    // Setup the instances in the circuit (only bsim4)
+    if(!modmap.bsim4Models.empty()){
+        CKTinstanceSetup(ckt, modmap);
+    }
 
     // Size of matrix
     ckt.cktdematrix = denseMatrixPtr;
@@ -107,7 +136,7 @@ void CKTload(CKTcircuit &ckt)
                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS>)
                        {
-                        //    std::cout << "NMOS Element ID: " << arg.id << ", Node VD: " << arg.node_vd << ", Node VG: " << arg.node_vg << ", Node VS: " << arg.node_vs << ", Node VB: " << arg.node_vb << std::endl;
+
                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
                        {
