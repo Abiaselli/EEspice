@@ -36,7 +36,7 @@ static constexpr double Charge_q = 1.60219e-19;
 
 namespace bsim4{
 
-void modelSetup(BSIM4model &model, const double CKTnomTemp){
+void modelSetup(BSIM4model &model, double CKTnomTemp){
     /* process defaults of model parameters */
     if (!model.BSIM4typeGiven)
         model.BSIM4type = BSIM4_NMOS;
@@ -2233,12 +2233,12 @@ if (!model.BSIM4idovvdscGiven)
 
 
 
-void instanceSetup(BSIM4model &model, BSIM4V82 &inst){
+void instanceSetup(const BSIM4model &model, BSIM4V82 &inst){
     // Haven't implemented the noise part yet!
         // JOB   *job;
 
         // /* Search for a noise analysis request */
-        // for (job = ((TSKtask *)ft_curckt->ci_curTask)->jobs;job;job = job->JOBnextJob) {
+        // for (job = ((TSKtask *)ft_curckt->ci_curTask)->jobs;job; job = job->JOBnextJob) {
         //     if(strcmp(job->JOBname,"Noise Analysis")==0) {
         //         noiseAnalGiven = 1;
         //         break;

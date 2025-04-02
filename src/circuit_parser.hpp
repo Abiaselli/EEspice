@@ -361,8 +361,8 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
         iss >> M_node_vd_str >> M_node_vg_str >> M_node_vs_str >> M_node_vb_str >> M_modelName;
 
-        const auto &iter_nmos = modmap.nmosModels.find(M_modelName);
-        const auto &iter_pmos = modmap.pmosModels.find(M_modelName);
+        const auto &iter_nmos  = modmap.nmosModels.find(M_modelName);
+        const auto &iter_pmos  = modmap.pmosModels.find(M_modelName);
         const auto &iter_bsim4 = modmap.bsim4Models.find(M_modelName);
 
         if (iter_nmos != modmap.nmosModels.end())

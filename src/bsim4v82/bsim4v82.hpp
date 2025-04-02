@@ -23,8 +23,30 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <array>
 
 namespace bsim4{
+
+// Temporary parameters for bsim4v82temp.hpp
+struct bsim4v82temp
+{
+    double tmp, tmp1, tmp2, tmp3, Eg, Eg0, ni, epssub;
+    double T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, Lnew, Wnew;
+    double delTemp, Temp, TRatio, Inv_L, Inv_W, Inv_LW, Dw, Dl, Vtm0, Tnom;
+    double dumPs, dumPd, dumAs, dumAd, PowWeffWr;
+    double DMCGeff, DMCIeff, DMDGeff;
+    double Nvtms, Nvtmd, SourceSatCurrent, DrainSatCurrent;
+    double T10, T11;
+    double Inv_saref, Inv_sbref, Inv_sa, Inv_sb, rho, Ldrn, dvth0_lod;
+    double W_tmp, Inv_ODeff, OD_offset, dk2_lod, deta0_lod;
+    double lnl, lnw, lnnf, rbpbx, rbpby, rbsbx, rbsby, rbdbx, rbdby,bodymode;
+    double kvsat, wlod, sceff, Wdrn;
+    double V0, lt1, ltw, Theta0, Delt_vth, TempRatio, Vth_NarrowW, Lpe_Vb, Vth;
+    double n,n0, Vgsteff, Vgs_eff, niter, toxpf, toxpi, Tcen, toxe, epsrox, vddeot;
+    double vtfbphi2eot, phieot, TempRatioeot, Vtm0eot, Vtmeot,vbieot;
+    std::shared_ptr<bsim4SizeDependParam> pParam = nullptr;
+};
+
 struct bsim4SizeDependParam
 {
     double Width;
@@ -268,7 +290,7 @@ struct BSIM4model
 {
     // int BSIM4modType;
     // struct sBSIM4model *BSIM4nextModel;
-
+    bsim4v82temp BSIM4temp;
     std::string BSIM4modName;
     int BSIM4type;
 
@@ -2139,15 +2161,19 @@ struct BSIM4model
     bool  BSIM4pku0weGiven   = false;
     bool  BSIM4gidlclampGiven   = false;
     bool  BSIM4idovvdscGiven   = false;
+
+    // If nomodcheck is true, skip the model check
+    bool modcheck = false;
 };
 
 struct BSIM4V82{
     BSIM4V82(std::string name): BSIM4name(name) {};
     // struct sBSIM4model *BSIM4modPtr;
-    std::shared_ptr<BSIM4model> BSIM4modPtr;
+    std::shared_ptr<BSIM4model> BSIM4modPtr = nullptr;
 
     std::string BSIM4name;
-    int BSIM4states;     /* index into state table for this device */
+    // int BSIM4states;     /* index into state table for this device */
+    std::array<double, 29> BSIM4states;
     int BSIM4dNode;
     int BSIM4gNodeExt;
     int BSIM4sNode;
@@ -2385,7 +2411,7 @@ struct BSIM4V82{
     double BSIM4DswgTempRevSatCur;
 
     // struct bsim4SizeDependParam  *pParam;
-    std::shared_ptr<bsim4SizeDependParam> pParam;
+    std::shared_ptr<bsim4SizeDependParam> pParam = nullptr;
 
     bool BSIM4lGiven = false;
     bool BSIM4wGiven = false;
@@ -2420,98 +2446,50 @@ struct BSIM4V82{
     bool BSIM4rbodyModGiven = false;
     bool BSIM4rgateModGiven = false;
     bool BSIM4geoModGiven = false;
-    bool BSIM4rgeoModGiven = false;
-
-
-    double *BSIM4DPdPtr;
-    double *BSIM4DPdpPtr;
-    double *BSIM4DPgpPtr;
-    double *BSIM4DPgmPtr;
-    double *BSIM4DPspPtr;
-    double *BSIM4DPbpPtr;
-    double *BSIM4DPdbPtr;
-
-    double *BSIM4DdPtr;
-    double *BSIM4DdpPtr;
-
-    double *BSIM4GPdpPtr;
-    double *BSIM4GPgpPtr;
-    double *BSIM4GPgmPtr;
-    double *BSIM4GPgePtr;
-    double *BSIM4GPspPtr;
-    double *BSIM4GPbpPtr;
-
-    double *BSIM4GMdpPtr;
-    double *BSIM4GMgpPtr;
-    double *BSIM4GMgmPtr;
-    double *BSIM4GMgePtr;
-    double *BSIM4GMspPtr;
-    double *BSIM4GMbpPtr;
-
-    double *BSIM4GEdpPtr;
-    double *BSIM4GEgpPtr;
-    double *BSIM4GEgmPtr;
-    double *BSIM4GEgePtr;
-    double *BSIM4GEspPtr;
-    double *BSIM4GEbpPtr;
-
-    double *BSIM4SPdpPtr;
-    double *BSIM4SPgpPtr;
-    double *BSIM4SPgmPtr;
-    double *BSIM4SPsPtr;
-    double *BSIM4SPspPtr;
-    double *BSIM4SPbpPtr;
-    double *BSIM4SPsbPtr;
-
-    double *BSIM4SspPtr;
-    double *BSIM4SsPtr;
-
-    double *BSIM4BPdpPtr;
-    double *BSIM4BPgpPtr;
-    double *BSIM4BPgmPtr;
-    double *BSIM4BPspPtr;
-    double *BSIM4BPdbPtr;
-    double *BSIM4BPbPtr;
-    double *BSIM4BPsbPtr;
-    double *BSIM4BPbpPtr;
-
-    double *BSIM4DBdpPtr;
-    double *BSIM4DBdbPtr;
-    double *BSIM4DBbpPtr;
-    double *BSIM4DBbPtr;
-
-    double *BSIM4SBspPtr;
-    double *BSIM4SBbpPtr;
-    double *BSIM4SBbPtr;
-    double *BSIM4SBsbPtr;
-
-    double *BSIM4BdbPtr;
-    double *BSIM4BbpPtr;
-    double *BSIM4BsbPtr;
-    double *BSIM4BbPtr;
-
-    double *BSIM4DgpPtr;
-    double *BSIM4DspPtr;
-    double *BSIM4DbpPtr;
-    double *BSIM4SdpPtr;
-    double *BSIM4SgpPtr;
-    double *BSIM4SbpPtr;
-
-    double *BSIM4QdpPtr;
-    double *BSIM4QgpPtr;
-    double *BSIM4QspPtr;
-    double *BSIM4QbpPtr;
-    double *BSIM4QqPtr;
-    double *BSIM4DPqPtr;
-    double *BSIM4GPqPtr;
-    double *BSIM4SPqPtr;
+    bool BSIM4rgeoModGiven = false;  
 };
 
+// BSIM4states index
+    constexpr int BSIM4vbd = 0;
+    constexpr int BSIM4vbs = 1;
+    constexpr int BSIM4vgs = 2;
+    constexpr int BSIM4vds = 3;
+    constexpr int BSIM4vdbs = 4;
+    constexpr int BSIM4vdbd = 5;
+    constexpr int BSIM4vsbs = 6;
+    constexpr int BSIM4vges = 7;
+    constexpr int BSIM4vgms = 8;
+    constexpr int BSIM4vses = 9;
+    constexpr int BSIM4vdes = 10;
 
+    constexpr int BSIM4qb = 11;
+    constexpr int BSIM4cqb = 12;
+    constexpr int BSIM4qg = 13;
+    constexpr int BSIM4cqg = 14;
+    constexpr int BSIM4qd = 15;
+    constexpr int BSIM4cqd = 16;
+    constexpr int BSIM4qgmid = 17;
+    constexpr int BSIM4cqgmid = 18;
 
+    constexpr int BSIM4qbs  = 19;
+    constexpr int BSIM4cqbs  = 20;
+    constexpr int BSIM4qbd  = 21;
+    constexpr int BSIM4cqbd  = 22;
+
+    constexpr int BSIM4qcheq = 23;
+    constexpr int BSIM4cqcheq = 24;
+    constexpr int BSIM4qcdump = 25;
+    constexpr int BSIM4cqcdump = 26;
+    constexpr int BSIM4qdef = 27;
+    constexpr int BSIM4qs = 28;
+
+    constexpr int BSIM4numStates = 29;
+// end of BSIM4states index
+
+/* Instance parameters */
 constexpr int BSIM4_NMOS =  1;
 constexpr int BSIM4_PMOS = -1;
-/* Instance parameters */
+
 constexpr int BSIM4_W                   = 1;
 constexpr int BSIM4_L                   = 2;
 constexpr int BSIM4_AS                  = 3;

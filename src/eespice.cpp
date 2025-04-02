@@ -28,8 +28,8 @@ int main(int argc, const char **argv)
     CircuitParser parser("Netlist/Ring.cir");
     parser_netlist(parser, ckt.map, modmap);
 
-    // Model setup
-    modelSetup(modmap);
+    // Model setup using the temperature
+    modelSetup(modmap, nomTemp);
 
     CKTsetup(ckt, parser, denseMatrixPtr, modmap); // Pass the parser to the ckt and the initialise LHS and RHS matrices
 

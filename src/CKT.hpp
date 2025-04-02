@@ -12,6 +12,7 @@
 #include "circuit_parser.hpp"
 #include "device.hpp"
 #include "map.hpp"
+#include "bsim4v82/bsim4v82temp.hpp"
 
 struct CKTcircuit
 {
@@ -35,24 +36,20 @@ struct CKTcircuit
 };
 
 void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
-    // 1. Setup the model shared pointer for the instances
-    // 2. Setup the instance parameters
+    // Setup the instance parameters
     for (auto &element : ckt.CKTelements)
     {
         std::visit([&](auto &&arg) {
-            if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS> || std::is_same_v<std::decay_t<decltype(arg)>, PMOS>) {
-
+            if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS> || 
+                            std::is_same_v<std::decay_t<decltype(arg)>, PMOS>) 
+            {
                 if(arg.modelType == MosfetModelType::BSIM4V82){
-                    auto bsim_iter = modmap.bsim4Models.find(arg.modelName);
-                    if(bsim_iter != modmap.bsim4Models.end()){
-                        // Don't need to set the model pointer again, it's already set in the parser
-                        // arg.bsim4v82Instance.BSIM4modPtr = bsim_iter->second;
-                        bsim4::instanceSetup(*arg.bsim4v82Instance.BSIM4modPtr, arg.bsim4v82Instance);
-                    }
-                    else{
-                        std::cerr << "Error: BSIM4 model not found in model map for: " << arg.modelName << std::endl;
-                        exit(1);
-                    }
+                    
+                    // Don't need to set the model pointer again, it's already set in the parser
+                    // arg.bsim4v82Instance.BSIM4modPtr = bsim_iter->second;
+                    bsim4::instanceSetup(*arg.bsim4v82Instance.BSIM4modPtr, arg.bsim4v82Instance);
+                    bsim4::modelTemp(*arg.bsim4v82Instance.BSIM4modPtr, ckt.CKTtemp);
+                    
                 }
             }
         }, element.element);
