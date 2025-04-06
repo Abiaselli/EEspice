@@ -2189,10 +2189,10 @@ struct BSIM4V82{
     int BSIM4qNode;
 
     // Nodes index for MNA matrix
-    int BSIM4dIndex;
-    int BSIM4gIndex;
-    int BSIM4sIndex;
-    int BSIM4bIndex;
+    int BSIM4dNodeIndex;
+    int BSIM4gNodeIndex;
+    int BSIM4sNodeIndex;
+    int BSIM4bNodeIndex;
 
     double BSIM4ueff;
     double BSIM4thetavth;
