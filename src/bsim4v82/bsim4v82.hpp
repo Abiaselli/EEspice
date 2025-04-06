@@ -2173,7 +2173,8 @@ struct BSIM4V82{
 
     std::string BSIM4name;
     // int BSIM4states;     /* index into state table for this device */
-    std::array<double, 29> BSIM4states;
+    std::array<double, 29> BSIM4states0;
+    std::array<double, 29> BSIM4states1;
     int BSIM4dNode;
     int BSIM4gNodeExt;
     int BSIM4sNode;
@@ -2186,6 +2187,12 @@ struct BSIM4V82{
     int BSIM4dbNode;
     int BSIM4sbNode;
     int BSIM4qNode;
+
+    // Nodes index for MNA matrix
+    int BSIM4dIndex;
+    int BSIM4gIndex;
+    int BSIM4sIndex;
+    int BSIM4bIndex;
 
     double BSIM4ueff;
     double BSIM4thetavth;

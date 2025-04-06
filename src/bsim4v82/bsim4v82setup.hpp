@@ -2480,7 +2480,34 @@ void instanceSetup(const BSIM4model &model, BSIM4V82 &inst){
         // inst.BSIM4qNode = tmp->number;
     }
     else
-        inst.BSIM4qNode = 0;
+        {inst.BSIM4qNode = 0;}
+
+    // set up the Nodes index in MNA
+    if(inst.BSIM4dNodePrime != 0){
+        inst.BSIM4dIndex = inst.BSIM4dNodePrime - 1;
+    }
+    else{
+        inst.BSIM4dIndex = 0;
+    }
+    if(inst.BSIM4gNodePrime != 0){
+        inst.BSIM4gIndex = inst.BSIM4gNodePrime - 1;
+    }
+    else{
+        inst.BSIM4gIndex = 0;
+    }
+    if(inst.BSIM4sNodePrime != 0){
+        inst.BSIM4sIndex = inst.BSIM4sNodePrime - 1;
+    }
+    else{
+        inst.BSIM4sIndex = 0;
+    }
+    if(inst.BSIM4bNodePrime != 0){
+        inst.BSIM4bIndex = inst.BSIM4bNodePrime - 1;
+    }
+    else{
+        inst.BSIM4bIndex = 0;
+    }
+
 
     /* set Sparse Matrix Pointers
     * macro to make elements with built-in out-of-memory test */
