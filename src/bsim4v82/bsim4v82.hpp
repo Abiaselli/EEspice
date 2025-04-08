@@ -294,7 +294,7 @@ struct BSIM4model
     std::string BSIM4modName;
     int BSIM4type;
 
-    int    BSIM4mobMod;
+    int    BSIM4mobMod;             // BSIM4 provides three different models of the effective mobility.
     int    BSIM4cvchargeMod;
     int    BSIM4capMod;
     int    BSIM4dioMod;
@@ -2187,12 +2187,6 @@ struct BSIM4V82{
     int BSIM4dbNode;
     int BSIM4sbNode;
     int BSIM4qNode;
-
-    // Nodes index for MNA matrix
-    int BSIM4dNodeIndex;
-    int BSIM4gNodeIndex;
-    int BSIM4sNodeIndex;
-    int BSIM4bNodeIndex;
 
     double BSIM4ueff;
     double BSIM4thetavth;

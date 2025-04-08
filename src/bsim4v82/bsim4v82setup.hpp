@@ -2482,31 +2482,6 @@ void instanceSetup(const BSIM4model &model, BSIM4V82 &inst){
     else
         {inst.BSIM4qNode = 0;}
 
-    // set up the Nodes index in MNA
-    if(inst.BSIM4dNodePrime != 0){
-        inst.BSIM4dNodeIndex = inst.BSIM4dNodePrime - 1;
-    }
-    else{
-        inst.BSIM4dNodeIndex = 0;
-    }
-    if(inst.BSIM4gNodePrime != 0){
-        inst.BSIM4gNodeIndex = inst.BSIM4gNodePrime - 1;
-    }
-    else{
-        inst.BSIM4gNodeIndex = 0;
-    }
-    if(inst.BSIM4sNodePrime != 0){
-        inst.BSIM4sNodeIndex = inst.BSIM4sNodePrime - 1;
-    }
-    else{
-        inst.BSIM4sNodeIndex = 0;
-    }
-    if(inst.BSIM4bNodePrime != 0){
-        inst.BSIM4bNodeIndex = inst.BSIM4bNodePrime - 1;
-    }
-    else{
-        inst.BSIM4bNodeIndex = 0;
-    }
 
 
     /* set Sparse Matrix Pointers
