@@ -13,6 +13,7 @@
 #include "device.hpp"
 #include "map.hpp"
 #include "bsim4v82/bsim4v82temp.hpp"
+#include "SPICEcompatible.hpp"
 
 struct CKTcircuit
 {
@@ -33,6 +34,9 @@ struct CKTcircuit
 
     double CKTtemp{};                               // Actual temperature of CKT, initialzed to 300.15 K 
     const double CKTnomTemp = 300.15;               // Reference temperature 300.15 K
+    double CKTgmin = 1.0e-20;                               // Gmin value
+
+    SPICECompatible spiceCompatible;                // SPICE-compatible (cktmode)
 };
 
 void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
