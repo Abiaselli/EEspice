@@ -5,6 +5,8 @@
 output.txt
 temp
 .vscode
+.cursor
+.cursorignore
 test.cpp
 
 
