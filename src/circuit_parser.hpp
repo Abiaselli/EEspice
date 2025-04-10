@@ -365,11 +365,13 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         const auto &iter_pmos  = modmap.pmosModels.find(M_modelName);
         const auto &iter_bsim4 = modmap.bsim4Models.find(M_modelName);
 
+        // Level 1 NMOS
         if (iter_nmos != modmap.nmosModels.end())
         {
             NMOS mn(id_str);
             // mn.id_str = id_str;
             mn.id = M_id;
+            mn.modelType = MosfetModelType::LEVEL1;
 
             mn.node_vd_str = M_node_vd_str;
             mn.node_vg_str = M_node_vg_str;
@@ -406,11 +408,13 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
             parser.elements.push_back(CircuitElement{mn});
         }
+        // Level 1 PMOS
         else if (iter_pmos != modmap.pmosModels.end())
         {
             PMOS mp(id_str);
             // mp.id_str = id_str;
             mp.id = M_id;
+            mp.modelType = MosfetModelType::LEVEL1;
 
             mp.node_vd_str = M_node_vd_str;
             mp.node_vg_str = M_node_vg_str;
@@ -446,6 +450,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
             parser.elements.push_back((CircuitElement{mp}));
         }
+        // BSIM4v82
         else if (iter_bsim4 != modmap.bsim4Models.end())
         {
             // Parse BSIM4 instance
