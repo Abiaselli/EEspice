@@ -69,6 +69,7 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     ckt.T_nodes = ckt.external_nodes + 3 * ckt.no_of_mosfets;
     // ckt.T_nodes = ckt.external_nodes;
     ckt.CKTtemp = 300.15;   // Initial temperature of the circuit
+    ckt.spiceCompatible.setMode(0); // Initialize the CKTmode to 0
 
     // Setup the instances in the circuit (only bsim4)
     if(!modmap.bsim4Models.empty()){

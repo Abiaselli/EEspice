@@ -57,7 +57,7 @@ std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_
     // LHS.print("in_LHS matrix =");
     // RHS.print("RHS matrix =");
 
-    for (const auto &element : ckt.CKTelements)
+    for (auto &element : ckt.CKTelements)
     {
         std::visit([&](auto &&arg)
                    {
