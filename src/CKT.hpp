@@ -48,8 +48,7 @@ void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
                     // Don't need to set the model pointer again, it's already set in the parser
                     // arg.bsim4v82Instance.BSIM4modPtr = bsim_iter->second;
                     bsim4::instanceSetup(*arg.bsim4v82Instance.BSIM4modPtr, arg.bsim4v82Instance);
-                    bsim4::modelTemp(*arg.bsim4v82Instance.BSIM4modPtr, ckt.CKTtemp);
-                    
+                    bsim4::instanceTemp(arg.bsim4v82Instance,*arg.bsim4v82Instance.BSIM4modPtr);
                 }
             }
         }, element.element);
