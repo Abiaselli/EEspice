@@ -4,7 +4,7 @@
 
 namespace dc{
 
-void DeviceEvaluation(DC &dc, const CKTcircuit &ckt, const DCSimulator &dcSim){
+void DeviceEvaluation(DC &dc, CKTcircuit &ckt, const DCSimulator &dcSim){
     // Modify matrixes for DC sweep
     // If the source's nodes and are not changed, we can use the same LHS
     // We only need to modify the RHS
@@ -39,7 +39,7 @@ void DeviceEvaluation(DC &dc, const CKTcircuit &ckt, const DCSimulator &dcSim){
     }
 }
 
-arma::vec DC_analysis_once(const CKTcircuit &ckt, const DCSimulator &dcSim, DC &dc, const Modelmap &modmap)
+arma::vec DC_analysis_once(CKTcircuit &ckt, const DCSimulator &dcSim, DC &dc, const Modelmap &modmap)
 {
     DeviceEvaluation(dc, ckt, dcSim);
     arma::vec solution(ckt.cktdematrix->RHS.n_rows, arma::fill::zeros);
@@ -55,7 +55,7 @@ arma::vec DC_analysis_once(const CKTcircuit &ckt, const DCSimulator &dcSim, DC &
     return solution;
 }
 
-std::vector<DC> DC_ops(const CKTcircuit &ckt, DCSimulator &dcSim, const Modelmap &modmap)
+std::vector<DC> DC_ops(CKTcircuit &ckt, DCSimulator &dcSim, const Modelmap &modmap)
 {
     
     if(dcSim.sweeps.size() == 1){

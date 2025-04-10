@@ -70,7 +70,7 @@ single_Truncation_error single_LTE_BE_calculation(const single_timestep &single_
     return LTE;
 }
 
-single_timestep single_solution_solver(const double &h, const Transient &trans, const CKTcircuit &ckt, const TransientSimulator &trans_sim,
+single_timestep single_solution_solver(const double &h, const Transient &trans, CKTcircuit &ckt, const TransientSimulator &trans_sim,
                                         const Modelmap &modmap){
     
     single_timestep single_h;
@@ -141,7 +141,7 @@ bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &singl
     }
 }
 
-single_timestep single_next_h(const Transient &trans, const CKTcircuit &ckt, const TransientSimulator &trans_sim, const Modelmap &modmap){
+single_timestep single_next_h(const Transient &trans, CKTcircuit &ckt, const TransientSimulator &trans_sim, const Modelmap &modmap){
 
     double temp_h = trans_sim.vec_trans.back().next_h;                     // The temporary time step for this function
 

@@ -21,6 +21,8 @@
 
 #include "CKT.hpp"
 #include "device.hpp"
+#include "bsim4v82/bsim4v82.hpp"
+#include "bsim4v82/bsim4v82stamp.hpp"
 
 std::pair<arma::mat, arma::vec> Dynamic(const CKTcircuit &ckt, const double h, const arma::vec &pre_global_solution, const int mode, const double time_trans){
     arma::mat LHS = ckt.cktdematrix->get_init_LHS();
@@ -46,7 +48,7 @@ std::pair<arma::mat, arma::vec> Dynamic(const CKTcircuit &ckt, const double h, c
     return {LHS, RHS};
 }
 
-std::pair<arma::mat, arma::vec> NonLinear(const CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
+std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
     const std::pair<arma::mat, arma::vec> &matrixes, const Modelmap &modmap)
 {
 
@@ -61,8 +63,15 @@ std::pair<arma::mat, arma::vec> NonLinear(const CKTcircuit &ckt, const arma::vec
                    {
                        if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS>)
                        {    
-                            const NMOSModel nmosModel = modmap.nmosModels.at(arg.modelName);
-                            NMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, nmosModel);
+                            if (arg.modelType == MosfetModelType::LEVEL1){
+                                const NMOSModel nmosModel = modmap.nmosModels.at(arg.modelName);
+                                NMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, nmosModel);
+                            }
+                            else if (arg.modelType == MosfetModelType::BSIM4V82){
+                                const bsim4::BSIM4model &b4model = *arg.bsim4v82Instance.BSIM4modPtr;
+                                bsim4::BSIM4V82 &b4instance = arg.bsim4v82Instance;
+                                bsim4::BSIM4load(b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, LHS, RHS);
+                            }
                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Diode>)
                        {
@@ -172,7 +181,7 @@ bool isConverge(const std::vector<arma::vec> &NR_solutions, const CKTcircuit &ck
 
 // Transient Simulation
 // Newton Raphson system solver for non-linear and dynamic elements
-arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int &mode, const double time_trans, 
+arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode, const double time_trans, 
     std::vector<Capacitor> &C_list, const arma::vec &pre_global_solution, const Modelmap &modmap)
 {
     int NR_iteration_counter = 0;
@@ -231,7 +240,7 @@ arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const double &h, const int
 
 
 // DC Analysis
-arma::vec NewtonRaphson_system(const CKTcircuit &ckt, const arma::mat &init_LHS, const arma::vec &init_RHS, const Modelmap &modmap)
+arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const arma::vec &init_RHS, const Modelmap &modmap)
 {
     int NR_iteration_counter = 0;
     bool isconverge = false;

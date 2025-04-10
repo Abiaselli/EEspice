@@ -4,7 +4,7 @@
 #include "Transient_multi_solvers.hpp"
 #include "Transient_single_solvers.hpp"
 
-Transient Fixed_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim, const Modelmap &modmap){
+Transient Fixed_TimeStep(CKTcircuit &ckt, TransientSimulator &trans_sim, const Modelmap &modmap){
     Transient trans;
     trans.mode = 1; // 0 to do OP analysis, 1 to do transient simulation
     trans.h = trans_sim.trans_config.init_h; // Initial time step
@@ -48,7 +48,7 @@ Transient Fixed_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim, c
     return trans;
 }
 
-Transient Varibale_TimeStep(const CKTcircuit &ckt, TransientSimulator &trans_sim, const Modelmap &modmap){
+Transient Varibale_TimeStep(CKTcircuit &ckt, TransientSimulator &trans_sim, const Modelmap &modmap){
     Transient trans;
     trans.mode = 1; // 0 to do OP analysis, 1 to do transient simulation
 
