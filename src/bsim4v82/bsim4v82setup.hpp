@@ -25,14 +25,7 @@
 #include <math.h>
 #include <string>
 #include "bsim4v82.hpp"
-
-static constexpr double MAX_EXP = 5.834617425e14;
-static constexpr double MIN_EXP = 1.713908431e-15;
-static constexpr double EXP_THRESHOLD = 34.0;
-static constexpr double EPS0 = 8.85418e-12;
-static constexpr double EPSSI = 1.03594e-10;
-static constexpr double PI = 3.141592654;
-static constexpr double Charge_q = 1.60219e-19;
+#include "bsim4v82const.hpp"
 
 namespace bsim4{
 

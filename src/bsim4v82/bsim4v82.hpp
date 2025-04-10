@@ -26,7 +26,7 @@
 #include <array>
 
 namespace bsim4{
-
+struct bsim4SizeDependParam;
 // Temporary parameters for bsim4v82temp.hpp
 struct bsim4v82temp
 {

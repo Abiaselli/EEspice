@@ -7,17 +7,9 @@
 #include "bsim4v82geo.hpp"
 #include "bsim4v82check.hpp"
 #include "sim_variables.hpp"
+#include "bsim4v82const.hpp"
 
-static constexpr double Kb            = 1.3806226e-23;
-static constexpr double KboQ          = 8.617087e-5;
-static constexpr double EPS0          = 8.85418e-12;
-static constexpr double EPSSI         = 1.03594e-10;
-static constexpr double PI            = 3.141592654;
-static constexpr double MAX_EXP       = 5.834617425e14;
-static constexpr double MIN_EXP       = 1.713908431e-15;
-static constexpr double EXP_THRESHOLD = 34.0;
-static constexpr double Charge_q      = 1.60219e-19;
-static constexpr double DELTA         = 1.0E-9;
+
 // #define DEXP(A,B) {                                                        \
 //         if (A > EXP_THRESHOLD) {                                           \
 //             B = MAX_EXP*(1.0+(A)-EXP_THRESHOLD);                           \
@@ -2339,6 +2331,7 @@ int instanceTemp(BSIM4V82 &BSIM4instance, BSIM4model &model){
                   exit(1);
               }
   /* End instance */
+  return 0;
 }
 
 

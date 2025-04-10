@@ -36,7 +36,7 @@
 
 namespace bsim4{
 
-static constexpr double CONSTCtoK = 273.15;
+inline constexpr double CONSTCtoK = 273.15;
 
 // 1. set model parameters in BSIM4model structure
 int BSIM4mParam(int param, const VariantValue &value, BSIM4model &mod){

@@ -24,27 +24,12 @@
 #include "sim_variables.hpp"
 #include "SPICEcompatible.hpp"
 #include "devsup.hpp"
+#include "bsim4v82const.hpp"
 
 #include <cmath>
 #include <armadillo>
 
 namespace bsim4{
-
-static constexpr double MAX_EXPL = 2.688117142e+43;
-static constexpr double MIN_EXPL = 3.720075976e-44;
-static constexpr double EXPL_THRESHOLD = 100.0;
-
-static constexpr double MAX_EXP = 5.834617425e14;
-static constexpr double MIN_EXP = 1.713908431e-15;
-static constexpr double EXP_THRESHOLD = 34.0;
-static constexpr double EPS0 = 8.85418e-12;
-static constexpr double EPSSI = 1.03594e-10;
-static constexpr double Charge_q = 1.60219e-19;
-static constexpr double DELTA_1 = 0.02;
-static constexpr double DELTA_2 = 0.02;
-static constexpr double DELTA_3 = 0.02;
-static constexpr double DELTA_4 = 0.02;
-static constexpr int MM = 3;  /* smooth coeff */
 
 inline void dexp(const double A, double& B, double& C) noexcept {
     if (A > EXP_THRESHOLD) {
