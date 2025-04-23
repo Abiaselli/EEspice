@@ -190,7 +190,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
     std::pair<arma::mat, arma::vec> init_matrices;
     std::pair<arma::mat, arma::vec> matrices;
 
-    std::vector<arma::vec> NR_solutions(100);
+    std::vector<arma::vec> NR_solutions(20);
     NR_solutions[0] = pre_global_solution;
 
     init_matrices = Dynamic(ckt, h, pre_global_solution, mode, time_trans);
