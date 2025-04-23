@@ -46,6 +46,9 @@ public:
 
     void setFlagsOP();
     void setFlagsTranOP();
+    void setFlagsTR();
+    void setFlagsDC();
+    void upateStateMachine(bool converged);
 
 private:
     unsigned long CKTmode;
@@ -53,11 +56,57 @@ private:
 
 // .op
 void SPICECompatible::setFlagsOP(){
-
-
+    setMode((CKTmode & MODEUIC) | MODEDCOP | MODEINITJCT);
 }
 // .tran
 void SPICECompatible::setFlagsTranOP(){
     setMode((CKTmode & MODEUIC) | MODETRANOP | MODEINITJCT);
 }
+void SPICECompatible::setFlagsTR(){
+    setMode((CKTmode & MODEUIC) | MODETRAN | MODEINITTRAN);
+}
+// .dc
+void SPICECompatible::setFlagsDC(){
+    setMode((CKTmode & MODEUIC) | MODEDCTRANCURVE | MODEINITJCT);
+}
 
+void SPICECompatible::upateStateMachine(bool converged)
+{
+    if (CKTmode & MODEAC)
+    {
+    }
+    else if (CKTmode & MODEINITFLOAT)
+    {
+        /*if ((CKTmode & MODEDC) && ckt->CKThadNodeset)
+        {
+            if (ipass)
+                ckt->CKTnoncon = ipass;
+            ipass = 0;
+        }*/
+    }
+    else if (CKTmode & MODEINITJCT)
+    {
+        CKTmode = (CKTmode & ~INITF) | MODEINITFIX;
+        /*ckt->CKTniState |= NISHOULDREORDER;*/
+    }
+    else if (CKTmode & MODEINITFIX)
+    {
+        if (converged)
+            CKTmode = (CKTmode & ~INITF) | MODEINITFLOAT;
+    }
+    else if (CKTmode & MODEINITSMSIG)
+    {
+        CKTmode = (CKTmode & ~INITF) | MODEINITFLOAT;
+    }
+    else if (CKTmode & MODEINITTRAN)
+    {
+        /*if (iterno <= 1)
+            ckt->CKTniState |= NISHOULDREORDER;*/
+        CKTmode = (CKTmode & ~INITF) | MODEINITFLOAT;
+    }
+    else if (CKTmode & MODEINITPRED)
+    {
+        CKTmode = (CKTmode & ~INITF) | MODEINITFLOAT;
+    }
+
+}
