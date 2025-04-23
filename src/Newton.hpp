@@ -207,9 +207,11 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
         // solution = arma::solve(matrices.first, matrices.second);
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
+        ckt.spiceCompatible.updateStateMachine(false);
     }
 
     isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
+    ckt.spiceCompatible.updateStateMachine(isconverge);
 
     while (!isconverge)
     {
@@ -230,6 +232,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
         NR_solutions.at(NR_iteration_counter) = solution;
 
         isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
+        ckt.spiceCompatible.updateStateMachine(isconverge);
     }
 
     NR_ITE = NR_iteration_counter;
@@ -263,9 +266,11 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
         
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
+        ckt.spiceCompatible.updateStateMachine(false);
     }
 
     isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
+    ckt.spiceCompatible.updateStateMachine(isconverge);
 
     while (!isconverge)
     {
@@ -285,6 +290,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
         NR_solutions.at(NR_iteration_counter) = solution;
 
         isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
+        ckt.spiceCompatible.updateStateMachine(isconverge);
     }
 
     NR_ITE = NR_iteration_counter;
