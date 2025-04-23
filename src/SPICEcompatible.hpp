@@ -48,7 +48,7 @@ public:
     void setFlagsTranOP();
     void setFlagsTR();
     void setFlagsDC();
-    void upateStateMachine(bool converged);
+    void updateStateMachine(bool converged);
 
 private:
     unsigned long CKTmode;
@@ -70,7 +70,7 @@ void SPICECompatible::setFlagsDC(){
     setMode((CKTmode & MODEUIC) | MODEDCTRANCURVE | MODEINITJCT);
 }
 
-void SPICECompatible::upateStateMachine(bool converged)
+void SPICECompatible::updateStateMachine(bool converged)
 {
     if (CKTmode & MODEAC)
     {
