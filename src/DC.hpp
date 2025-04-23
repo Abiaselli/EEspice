@@ -41,6 +41,8 @@ void DeviceEvaluation(DC &dc, CKTcircuit &ckt, const DCSimulator &dcSim){
 
 arma::vec DC_analysis_once(CKTcircuit &ckt, const DCSimulator &dcSim, DC &dc, const Modelmap &modmap)
 {
+    // Initialize the DC analysis
+    ckt.spiceCompatible.setFlagsDC();
     DeviceEvaluation(dc, ckt, dcSim);
     arma::vec solution(ckt.cktdematrix->RHS.n_rows, arma::fill::zeros);
     // Solve the system
