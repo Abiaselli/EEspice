@@ -172,7 +172,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_
 
     // OP analysis used as initial condition for next evaluation
     arma::vec solution = arma::zeros(ckt.cktdematrix->RHS.n_rows, ckt.cktdematrix->RHS.n_cols);
-
+    ckt.spiceCompatible.setFlagsTranOP();
     // Benchmarking for OP analysis
     auto tstart_op = std::chrono::high_resolution_clock::now();
 
@@ -219,7 +219,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_
     }
 
     do
-    {
+    {   ckt.spiceCompatible.setFlagsTR();
         // std::cout << "-------------------------------------------------------" << std::endl;
         // std::cout << "Next step" << std::endl;
 
