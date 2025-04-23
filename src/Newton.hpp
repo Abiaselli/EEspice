@@ -72,6 +72,10 @@ std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_
                                 bsim4::BSIM4V82 &b4instance = arg.bsim4v82Instance;
                                 bsim4::BSIM4load(b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, LHS, RHS);
                             }
+                            else{
+                                std::cerr << "Error: NMOS model type is not supported!" << std::endl;
+                                exit(1);
+                            }
                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Diode>)
                        {
@@ -79,8 +83,19 @@ std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_
                        }
                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
                        {    
-                            const PMOSModel pmosModel = modmap.pmosModels.at(arg.modelName);
-                            PMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, pmosModel);
+                            if (arg.modelType == MosfetModelType::LEVEL1){
+                                const PMOSModel pmosModel = modmap.pmosModels.at(arg.modelName);
+                                PMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, pmosModel);
+                            }
+                            else if (arg.modelType == MosfetModelType::BSIM4V82){
+                                const bsim4::BSIM4model &b4model = *arg.bsim4v82Instance.BSIM4modPtr;
+                                bsim4::BSIM4V82 &b4instance = arg.bsim4v82Instance;
+                                bsim4::BSIM4load(b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, LHS, RHS);
+                            }
+                            else{
+                                std::cerr << "Error: PMOS model type is not supported!" << std::endl;
+                                exit(1);
+                            }                          
                        } },
                    element.element);
     }
