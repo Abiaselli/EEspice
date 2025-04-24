@@ -2167,7 +2167,7 @@ struct BSIM4model
 };
 
 struct BSIM4V82{
-    BSIM4V82(std::string name): BSIM4name(name) {};
+    // BSIM4V82(std::string name): BSIM4name(name) {};
     // struct sBSIM4model *BSIM4modPtr;
     std::shared_ptr<BSIM4model> BSIM4modPtr = nullptr;
 

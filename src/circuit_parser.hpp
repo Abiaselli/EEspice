@@ -368,7 +368,8 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         // Level 1 NMOS
         if (iter_nmos != modmap.nmosModels.end())
         {
-            NMOS mn(id_str);
+            NMOS mn;
+            mn.id_str = id_str;
             // mn.id_str = id_str;
             mn.id = M_id;
             mn.modelType = MosfetModelType::LEVEL1;
@@ -411,7 +412,8 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         // Level 1 PMOS
         else if (iter_pmos != modmap.pmosModels.end())
         {
-            PMOS mp(id_str);
+            PMOS mp;
+            mp.id_str = id_str;
             // mp.id_str = id_str;
             mp.id = M_id;
             mp.modelType = MosfetModelType::LEVEL1;
@@ -456,7 +458,8 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
             // Parse BSIM4 instance
             // Create a new NMOS instance
             if (iter_bsim4->second->BSIM4type == bsim4::BSIM4_NMOS){
-                NMOS mn(id_str);
+                NMOS mn;
+                mn.id_str = id_str;
                 mn.id = M_id;
                 mn.node_vd_str = M_node_vd_str;
                 mn.node_vg_str = M_node_vg_str;
@@ -497,7 +500,8 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
             }
             // Create a new PMOS instance
             else if (iter_bsim4->second->BSIM4type == bsim4::BSIM4_PMOS){
-            PMOS mp(id_str);
+            PMOS mp;
+            mp.id_str = id_str;
             mp.id = M_id;
 
             mp.node_vd_str = M_node_vd_str;
