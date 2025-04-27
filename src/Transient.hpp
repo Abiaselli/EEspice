@@ -228,12 +228,14 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_
         {
            Transient trans = Fixed_TimeStep(ckt, trans_sim, modmap);
            history_trans_update(trans, trans_sim);
+           updateDeviceState(ckt); // Copy state0 to state1
             
         }
         // time step control: varibale time step
         else{
             Transient trans = Varibale_TimeStep(ckt, trans_sim, modmap);
             history_trans_update(trans, trans_sim);
+            updateDeviceState(ckt); // Copy state0 to state1
         }
 
     } while (trans_sim.vec_trans.back().time_trans < trans_sim.trans_config.t_end && trans_sim.trans_end == false);
