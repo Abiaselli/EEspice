@@ -30,20 +30,20 @@ struct bsim4SizeDependParam;
 // Temporary parameters for bsim4v82temp.hpp
 struct bsim4v82temp
 {
-    double tmp, tmp1, tmp2, tmp3, Eg, Eg0, ni, epssub;
-    double T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, Lnew, Wnew;
-    double delTemp, Temp, TRatio, Inv_L, Inv_W, Inv_LW, Dw, Dl, Vtm0, Tnom;
-    double dumPs, dumPd, dumAs, dumAd, PowWeffWr;
-    double DMCGeff, DMCIeff, DMDGeff;
-    double Nvtms, Nvtmd, SourceSatCurrent, DrainSatCurrent;
-    double T10, T11;
-    double Inv_saref, Inv_sbref, Inv_sa, Inv_sb, rho, Ldrn, dvth0_lod;
-    double W_tmp, Inv_ODeff, OD_offset, dk2_lod, deta0_lod;
-    double lnl, lnw, lnnf, rbpbx, rbpby, rbsbx, rbsby, rbdbx, rbdby,bodymode;
-    double kvsat, wlod, sceff, Wdrn;
-    double V0, lt1, ltw, Theta0, Delt_vth, TempRatio, Vth_NarrowW, Lpe_Vb, Vth;
-    double n,n0, Vgsteff, Vgs_eff, niter, toxpf, toxpi, Tcen, toxe, epsrox, vddeot;
-    double vtfbphi2eot, phieot, TempRatioeot, Vtm0eot, Vtmeot,vbieot;
+    double tmp = 0.0, tmp1 = 0.0, tmp2 = 0.0, tmp3 = 0.0, Eg = 0.0, Eg0 = 0.0, ni = 0.0, epssub = 0.0;
+    double T0 = 0.0, T1 = 0.0, T2 = 0.0, T3 = 0.0, T4 = 0.0, T5 = 0.0, T6 = 0.0, T7 = 0.0, T8 = 0.0, T9 = 0.0, Lnew = 0.0, Wnew = 0.0;
+    double delTemp = 0.0, Temp = 0.0, TRatio = 0.0, Inv_L = 0.0, Inv_W = 0.0, Inv_LW = 0.0, Dw = 0.0, Dl = 0.0, Vtm0 = 0.0, Tnom = 0.0;
+    double dumPs = 0.0, dumPd = 0.0, dumAs = 0.0, dumAd = 0.0, PowWeffWr = 0.0;
+    double DMCGeff = 0.0, DMCIeff = 0.0, DMDGeff = 0.0;
+    double Nvtms = 0.0, Nvtmd = 0.0, SourceSatCurrent = 0.0, DrainSatCurrent = 0.0;
+    double T10 = 0.0, T11 = 0.0;
+    double Inv_saref = 0.0, Inv_sbref = 0.0, Inv_sa = 0.0, Inv_sb = 0.0, rho = 0.0, Ldrn = 0.0, dvth0_lod = 0.0;
+    double W_tmp = 0.0, Inv_ODeff = 0.0, OD_offset = 0.0, dk2_lod = 0.0, deta0_lod = 0.0;
+    double lnl = 0.0, lnw = 0.0, lnnf = 0.0, rbpbx = 0.0, rbpby = 0.0, rbsbx = 0.0, rbsby = 0.0, rbdbx = 0.0, rbdby = 0.0, bodymode = 0.0;
+    double kvsat = 0.0, wlod = 0.0, sceff = 0.0, Wdrn = 0.0;
+    double V0 = 0.0, lt1 = 0.0, ltw = 0.0, Theta0 = 0.0, Delt_vth = 0.0, TempRatio = 0.0, Vth_NarrowW = 0.0, Lpe_Vb = 0.0, Vth = 0.0;
+    double n = 0.0, n0 = 0.0, Vgsteff = 0.0, Vgs_eff = 0.0, niter = 0.0, toxpf = 0.0, toxpi = 0.0, Tcen = 0.0, toxe = 0.0, epsrox = 0.0, vddeot = 0.0;
+    double vtfbphi2eot = 0.0, phieot = 0.0, TempRatioeot = 0.0, Vtm0eot = 0.0, Vtmeot = 0.0, vbieot = 0.0;
     std::shared_ptr<bsim4SizeDependParam> pParam = nullptr;
 };
 
