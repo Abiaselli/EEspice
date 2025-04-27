@@ -49,241 +49,241 @@ struct bsim4v82temp
 
 struct bsim4SizeDependParam
 {
-    double Width;
-    double Length;
-    double NFinger;
+    double Width = 0.0;
+    double Length = 0.0;
+    double NFinger = 0.0;
 
-    double BSIM4cdsc;
-    double BSIM4cdscb;
-    double BSIM4cdscd;
-    double BSIM4cit;
-    double BSIM4nfactor;
-    double BSIM4xj;
-    double BSIM4vsat;
-    double BSIM4at;
-    double BSIM4a0;
-    double BSIM4ags;
-    double BSIM4a1;
-    double BSIM4a2;
-    double BSIM4keta;
-    double BSIM4nsub;
-    double BSIM4ndep;
-    double BSIM4nsd;
-    double BSIM4phin;
-    double BSIM4ngate;
-    double BSIM4gamma1;
-    double BSIM4gamma2;
-    double BSIM4vbx;
-    double BSIM4vbi;
-    double BSIM4vbm;
-    double BSIM4xt;
-    double BSIM4phi;
-    double BSIM4litl;
-    double BSIM4k1;
-    double BSIM4kt1;
-    double BSIM4kt1l;
-    double BSIM4kt2;
-    double BSIM4k2;
-    double BSIM4k3;
-    double BSIM4k3b;
-    double BSIM4w0;
-    double BSIM4dvtp0;
-    double BSIM4dvtp1;
-    double BSIM4dvtp2;  /* New DIBL/Rout */
-    double BSIM4dvtp3;
-    double BSIM4dvtp4;
-    double BSIM4dvtp5;
-    double BSIM4lpe0;
-    double BSIM4lpeb;
-    double BSIM4dvt0;
-    double BSIM4dvt1;
-    double BSIM4dvt2;
-    double BSIM4dvt0w;
-    double BSIM4dvt1w;
-    double BSIM4dvt2w;
-    double BSIM4drout;
-    double BSIM4dsub;
-    double BSIM4vth0;
-    double BSIM4ua;
-    double BSIM4ua1;
-    double BSIM4ub;
-    double BSIM4ub1;
-    double BSIM4uc;
-    double BSIM4uc1;
-    double BSIM4ud;
-    double BSIM4ud1;
-    double BSIM4up;
-    double BSIM4lp;
-    double BSIM4u0;
-    double BSIM4eu;
-    double BSIM4ucs;
-    double BSIM4ute;
-    double BSIM4ucste;
-    double BSIM4voff;
-    double BSIM4tvoff;
-    double BSIM4tnfactor;   /* v4.7 Temp dep of leakage current */
-    double BSIM4teta0;      /* v4.7 temp dep of leakage current */
-    double BSIM4tvoffcv;    /* v4.7 temp dep of leakage current */
-    double BSIM4minv;
-    double BSIM4minvcv;
-    double BSIM4vfb;
-    double BSIM4delta;
-    double BSIM4rdsw;
-    double BSIM4rds0;
-    double BSIM4rs0;
-    double BSIM4rd0;
-    double BSIM4rsw;
-    double BSIM4rdw;
-    double BSIM4prwg;
-    double BSIM4prwb;
-    double BSIM4prt;
-    double BSIM4eta0;
-    double BSIM4etab;
-    double BSIM4pclm;
-    double BSIM4pdibl1;
-    double BSIM4pdibl2;
-    double BSIM4pdiblb;
-    double BSIM4fprout;
-    double BSIM4pdits;
-    double BSIM4pditsd;
-    double BSIM4pscbe1;
-    double BSIM4pscbe2;
-    double BSIM4pvag;
-    double BSIM4wr;
-    double BSIM4dwg;
-    double BSIM4dwb;
-    double BSIM4b0;
-    double BSIM4b1;
-    double BSIM4alpha0;
-    double BSIM4alpha1;
-    double BSIM4beta0;
-    double BSIM4agidl;
-    double BSIM4bgidl;
-    double BSIM4cgidl;
-    double BSIM4egidl;
-    double BSIM4fgidl; /* v4.7 New GIDL/GISL */
-    double BSIM4kgidl; /* v4.7 New GIDL/GISL */
-    double BSIM4rgidl; /* v4.7 New GIDL/GISL */
-    double BSIM4agisl;
-    double BSIM4bgisl;
-    double BSIM4cgisl;
-    double BSIM4egisl;
-    double BSIM4fgisl; /* v4.7 New GIDL/GISL */
-    double BSIM4kgisl; /* v4.7 New GIDL/GISL */
-    double BSIM4rgisl; /* v4.7 New GIDL/GISL */
-    double BSIM4aigc;
-    double BSIM4bigc;
-    double BSIM4cigc;
-    double BSIM4aigsd;
-    double BSIM4bigsd;
-    double BSIM4cigsd;
-    double BSIM4aigs;
-    double BSIM4bigs;
-    double BSIM4cigs;
-    double BSIM4aigd;
-    double BSIM4bigd;
-    double BSIM4cigd;
-    double BSIM4aigbacc;
-    double BSIM4bigbacc;
-    double BSIM4cigbacc;
-    double BSIM4aigbinv;
-    double BSIM4bigbinv;
-    double BSIM4cigbinv;
-    double BSIM4nigc;
-    double BSIM4nigbacc;
-    double BSIM4nigbinv;
-    double BSIM4ntox;
-    double BSIM4eigbinv;
-    double BSIM4pigcd;
-    double BSIM4poxedge;
-    double BSIM4xrcrg1;
-    double BSIM4xrcrg2;
-    double BSIM4lambda; /* overshoot */
-    double BSIM4vtl; /* thermal velocity limit */
-    double BSIM4xn; /* back scattering parameter */
-    double BSIM4lc; /* back scattering parameter */
-    double BSIM4tfactor;  /* ballistic transportation factor  */
-    double BSIM4vfbsdoff;  /* S/D flatband offset voltage  */
-    double BSIM4tvfbsdoff;
+    double BSIM4cdsc = 0.0;
+    double BSIM4cdscb = 0.0;
+    double BSIM4cdscd = 0.0;
+    double BSIM4cit = 0.0;
+    double BSIM4nfactor = 0.0;
+    double BSIM4xj = 0.0;
+    double BSIM4vsat = 0.0;
+    double BSIM4at = 0.0;
+    double BSIM4a0 = 0.0;
+    double BSIM4ags = 0.0;
+    double BSIM4a1 = 0.0;
+    double BSIM4a2 = 0.0;
+    double BSIM4keta = 0.0;
+    double BSIM4nsub = 0.0;
+    double BSIM4ndep = 0.0;
+    double BSIM4nsd = 0.0;
+    double BSIM4phin = 0.0;
+    double BSIM4ngate = 0.0;
+    double BSIM4gamma1 = 0.0;
+    double BSIM4gamma2 = 0.0;
+    double BSIM4vbx = 0.0;
+    double BSIM4vbi = 0.0;
+    double BSIM4vbm = 0.0;
+    double BSIM4xt = 0.0;
+    double BSIM4phi = 0.0;
+    double BSIM4litl = 0.0;
+    double BSIM4k1 = 0.0;
+    double BSIM4kt1 = 0.0;
+    double BSIM4kt1l = 0.0;
+    double BSIM4kt2 = 0.0;
+    double BSIM4k2 = 0.0;
+    double BSIM4k3 = 0.0;
+    double BSIM4k3b = 0.0;
+    double BSIM4w0 = 0.0;
+    double BSIM4dvtp0 = 0.0;
+    double BSIM4dvtp1 = 0.0;
+    double BSIM4dvtp2 = 0.0;  /* New DIBL/Rout */
+    double BSIM4dvtp3 = 0.0;
+    double BSIM4dvtp4 = 0.0;
+    double BSIM4dvtp5 = 0.0;
+    double BSIM4lpe0 = 0.0;
+    double BSIM4lpeb = 0.0;
+    double BSIM4dvt0 = 0.0;
+    double BSIM4dvt1 = 0.0;
+    double BSIM4dvt2 = 0.0;
+    double BSIM4dvt0w = 0.0;
+    double BSIM4dvt1w = 0.0;
+    double BSIM4dvt2w = 0.0;
+    double BSIM4drout = 0.0;
+    double BSIM4dsub = 0.0;
+    double BSIM4vth0 = 0.0;
+    double BSIM4ua = 0.0;
+    double BSIM4ua1 = 0.0;
+    double BSIM4ub = 0.0;
+    double BSIM4ub1 = 0.0;
+    double BSIM4uc = 0.0;
+    double BSIM4uc1 = 0.0;
+    double BSIM4ud = 0.0;
+    double BSIM4ud1 = 0.0;
+    double BSIM4up = 0.0;
+    double BSIM4lp = 0.0;
+    double BSIM4u0 = 0.0;
+    double BSIM4eu = 0.0;
+    double BSIM4ucs = 0.0;
+    double BSIM4ute = 0.0;
+    double BSIM4ucste = 0.0;
+    double BSIM4voff = 0.0;
+    double BSIM4tvoff = 0.0;
+    double BSIM4tnfactor = 0.0;   /* v4.7 Temp dep of leakage current */
+    double BSIM4teta0 = 0.0;      /* v4.7 temp dep of leakage current */
+    double BSIM4tvoffcv = 0.0;    /* v4.7 temp dep of leakage current */
+    double BSIM4minv = 0.0;
+    double BSIM4minvcv = 0.0;
+    double BSIM4vfb = 0.0;
+    double BSIM4delta = 0.0;
+    double BSIM4rdsw = 0.0;
+    double BSIM4rds0 = 0.0;
+    double BSIM4rs0 = 0.0;
+    double BSIM4rd0 = 0.0;
+    double BSIM4rsw = 0.0;
+    double BSIM4rdw = 0.0;
+    double BSIM4prwg = 0.0;
+    double BSIM4prwb = 0.0;
+    double BSIM4prt = 0.0;
+    double BSIM4eta0 = 0.0;
+    double BSIM4etab = 0.0;
+    double BSIM4pclm = 0.0;
+    double BSIM4pdibl1 = 0.0;
+    double BSIM4pdibl2 = 0.0;
+    double BSIM4pdiblb = 0.0;
+    double BSIM4fprout = 0.0;
+    double BSIM4pdits = 0.0;
+    double BSIM4pditsd = 0.0;
+    double BSIM4pscbe1 = 0.0;
+    double BSIM4pscbe2 = 0.0;
+    double BSIM4pvag = 0.0;
+    double BSIM4wr = 0.0;
+    double BSIM4dwg = 0.0;
+    double BSIM4dwb = 0.0;
+    double BSIM4b0 = 0.0;
+    double BSIM4b1 = 0.0;
+    double BSIM4alpha0 = 0.0;
+    double BSIM4alpha1 = 0.0;
+    double BSIM4beta0 = 0.0;
+    double BSIM4agidl = 0.0;
+    double BSIM4bgidl = 0.0;
+    double BSIM4cgidl = 0.0;
+    double BSIM4egidl = 0.0;
+    double BSIM4fgidl = 0.0; /* v4.7 New GIDL/GISL */
+    double BSIM4kgidl = 0.0; /* v4.7 New GIDL/GISL */
+    double BSIM4rgidl = 0.0; /* v4.7 New GIDL/GISL */
+    double BSIM4agisl = 0.0;
+    double BSIM4bgisl = 0.0;
+    double BSIM4cgisl = 0.0;
+    double BSIM4egisl = 0.0;
+    double BSIM4fgisl = 0.0; /* v4.7 New GIDL/GISL */
+    double BSIM4kgisl = 0.0; /* v4.7 New GIDL/GISL */
+    double BSIM4rgisl = 0.0; /* v4.7 New GIDL/GISL */
+    double BSIM4aigc = 0.0;
+    double BSIM4bigc = 0.0;
+    double BSIM4cigc = 0.0;
+    double BSIM4aigsd = 0.0;
+    double BSIM4bigsd = 0.0;
+    double BSIM4cigsd = 0.0;
+    double BSIM4aigs = 0.0;
+    double BSIM4bigs = 0.0;
+    double BSIM4cigs = 0.0;
+    double BSIM4aigd = 0.0;
+    double BSIM4bigd = 0.0;
+    double BSIM4cigd = 0.0;
+    double BSIM4aigbacc = 0.0;
+    double BSIM4bigbacc = 0.0;
+    double BSIM4cigbacc = 0.0;
+    double BSIM4aigbinv = 0.0;
+    double BSIM4bigbinv = 0.0;
+    double BSIM4cigbinv = 0.0;
+    double BSIM4nigc = 0.0;
+    double BSIM4nigbacc = 0.0;
+    double BSIM4nigbinv = 0.0;
+    double BSIM4ntox = 0.0;
+    double BSIM4eigbinv = 0.0;
+    double BSIM4pigcd = 0.0;
+    double BSIM4poxedge = 0.0;
+    double BSIM4xrcrg1 = 0.0;
+    double BSIM4xrcrg2 = 0.0;
+    double BSIM4lambda = 0.0; /* overshoot */
+    double BSIM4vtl = 0.0; /* thermal velocity limit */
+    double BSIM4xn = 0.0; /* back scattering parameter */
+    double BSIM4lc = 0.0; /* back scattering parameter */
+    double BSIM4tfactor = 0.0;  /* ballistic transportation factor  */
+    double BSIM4vfbsdoff = 0.0;  /* S/D flatband offset voltage  */
+    double BSIM4tvfbsdoff = 0.0;
 
 /* added for stress effect */
-    double BSIM4ku0;
-    double BSIM4kvth0;
-    double BSIM4ku0temp;
-    double BSIM4rho_ref;
-    double BSIM4inv_od_ref;
+    double BSIM4ku0 = 0.0;
+    double BSIM4kvth0 = 0.0;
+    double BSIM4ku0temp = 0.0;
+    double BSIM4rho_ref = 0.0;
+    double BSIM4inv_od_ref = 0.0;
 /* added for well proximity effect */
-    double BSIM4kvth0we;
-    double BSIM4k2we;
-    double BSIM4ku0we;
+    double BSIM4kvth0we = 0.0;
+    double BSIM4k2we = 0.0;
+    double BSIM4ku0we = 0.0;
 
     /* CV model */
-    double BSIM4cgsl;
-    double BSIM4cgdl;
-    double BSIM4ckappas;
-    double BSIM4ckappad;
-    double BSIM4cf;
-    double BSIM4clc;
-    double BSIM4cle;
-    double BSIM4vfbcv;
-    double BSIM4noff;
-    double BSIM4voffcv;
-    double BSIM4acde;
-    double BSIM4moin;
+    double BSIM4cgsl = 0.0;
+    double BSIM4cgdl = 0.0;
+    double BSIM4ckappas = 0.0;
+    double BSIM4ckappad = 0.0;
+    double BSIM4cf = 0.0;
+    double BSIM4clc = 0.0;
+    double BSIM4cle = 0.0;
+    double BSIM4vfbcv = 0.0;
+    double BSIM4noff = 0.0;
+    double BSIM4voffcv = 0.0;
+    double BSIM4acde = 0.0;
+    double BSIM4moin = 0.0;
 
 /* Pre-calculated constants */
 
-    double BSIM4dw;
-    double BSIM4dl;
-    double BSIM4leff;
-    double BSIM4weff;
+    double BSIM4dw = 0.0;
+    double BSIM4dl = 0.0;
+    double BSIM4leff = 0.0;
+    double BSIM4weff = 0.0;
 
-    double BSIM4dwc;
-    double BSIM4dlc;
-    double BSIM4dwj;
-    double BSIM4leffCV;
-    double BSIM4weffCV;
-    double BSIM4weffCJ;
-    double BSIM4abulkCVfactor;
-    double BSIM4cgso;
-    double BSIM4cgdo;
-    double BSIM4cgbo;
+    double BSIM4dwc = 0.0;
+    double BSIM4dlc = 0.0;
+    double BSIM4dwj = 0.0;
+    double BSIM4leffCV = 0.0;
+    double BSIM4weffCV = 0.0;
+    double BSIM4weffCJ = 0.0;
+    double BSIM4abulkCVfactor = 0.0;
+    double BSIM4cgso = 0.0;
+    double BSIM4cgdo = 0.0;
+    double BSIM4cgbo = 0.0;
 
-    double BSIM4u0temp;
-    double BSIM4vsattemp;
-    double BSIM4sqrtPhi;
-    double BSIM4phis3;
-    double BSIM4Xdep0;
-    double BSIM4sqrtXdep0;
-    double BSIM4theta0vb0;
-    double BSIM4thetaRout;
-    double BSIM4mstar;
-    double BSIM4VgsteffVth;
-    double BSIM4mstarcv;
-    double BSIM4voffcbn;
-    double BSIM4voffcbncv;
-    double BSIM4rdswmin;
-    double BSIM4rdwmin;
-    double BSIM4rswmin;
-    double BSIM4vfbsd;
+    double BSIM4u0temp = 0.0;
+    double BSIM4vsattemp = 0.0;
+    double BSIM4sqrtPhi = 0.0;
+    double BSIM4phis3 = 0.0;
+    double BSIM4Xdep0 = 0.0;
+    double BSIM4sqrtXdep0 = 0.0;
+    double BSIM4theta0vb0 = 0.0;
+    double BSIM4thetaRout = 0.0;
+    double BSIM4mstar = 0.0;
+    double BSIM4VgsteffVth = 0.0;
+    double BSIM4mstarcv = 0.0;
+    double BSIM4voffcbn = 0.0;
+    double BSIM4voffcbncv = 0.0;
+    double BSIM4rdswmin = 0.0;
+    double BSIM4rdwmin = 0.0;
+    double BSIM4rswmin = 0.0;
+    double BSIM4vfbsd = 0.0;
 
-    double BSIM4cof1;
-    double BSIM4cof2;
-    double BSIM4cof3;
-    double BSIM4cof4;
-    double BSIM4cdep0;
-    double BSIM4ToxRatio;
-    double BSIM4Aechvb;
-    double BSIM4Bechvb;
-    double BSIM4ToxRatioEdge;
-    double BSIM4AechvbEdgeS;
-    double BSIM4AechvbEdgeD;
-    double BSIM4BechvbEdge;
-    double BSIM4ldeb;
-    double BSIM4k1ox;
-    double BSIM4k2ox;
-    double BSIM4vfbzbfactor;
-    double BSIM4dvtp2factor; /* v4.7 */
+    double BSIM4cof1 = 0.0;
+    double BSIM4cof2 = 0.0;
+    double BSIM4cof3 = 0.0;
+    double BSIM4cof4 = 0.0;
+    double BSIM4cdep0 = 0.0;
+    double BSIM4ToxRatio = 0.0;
+    double BSIM4Aechvb = 0.0;
+    double BSIM4Bechvb = 0.0;
+    double BSIM4ToxRatioEdge = 0.0;
+    double BSIM4AechvbEdgeS = 0.0;
+    double BSIM4AechvbEdgeD = 0.0;
+    double BSIM4BechvbEdge = 0.0;
+    double BSIM4ldeb = 0.0;
+    double BSIM4k1ox = 0.0;
+    double BSIM4k2ox = 0.0;
+    double BSIM4vfbzbfactor = 0.0;
+    double BSIM4dvtp2factor = 0.0; /* v4.7 */
 };
 
 struct BSIM4model
