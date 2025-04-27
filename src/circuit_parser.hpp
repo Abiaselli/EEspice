@@ -73,6 +73,29 @@ int getMaxNode(const std::vector<CircuitElement> &elements)
     return maxNode;
 }
 
+int getInternalMosfetNodes(const std::vector<CircuitElement> &elements)
+{
+    int internal_nodes = 0;
+    for (const auto &element : elements)
+    {
+        std::visit([&internal_nodes](auto &&arg)
+                    {
+                        if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS> || 
+                                    std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
+                        {
+                           if(arg.modelType == MosfetModelType::LEVEL1){
+                                internal_nodes += 3;
+                           }
+                        // Add more cases for different model types if needed...
+                        //    else if(arg.modelType == MosfetModelType::BSIM4V82){
+                                
+                        //    }
+                        }},
+                    element.element);
+    }
+    return internal_nodes;
+}
+
 // Parse [start:step:end] or (value1 value2 value3 ...) for batch simulation
 std::vector<double> batchVector(std::string valueStr, const std::string &line){
     std::vector<double> vec;

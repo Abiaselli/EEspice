@@ -22,6 +22,7 @@ struct CKTcircuit
 
     std::vector<CircuitElement> CKTelements;        // Vector of circuit elements
     int external_nodes{};                           // Number of external nodes excluding ground and nodes inside the MOSFETs
+    int internal_nodes{};                           // Number of internal nodes (nodes inside the MOSFETs)
     // int external_mosfets{};                      // Number of standalone mosfets (excluding mosfets from ring oscillator)
     int no_of_mosfets{};                            // Total number of MOSFETs
     int no_of_V_sources{};                          // Total number of voltage sources
@@ -65,11 +66,12 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     // ckt.elements = parser.getCircuitElements();
     ckt.CKTelements = parser.elements;
     ckt.external_nodes = getMaxNode(ckt.CKTelements);
+    ckt.internal_nodes = getInternalMosfetNodes(ckt.CKTelements);
     ckt.no_of_mosfets = parser.num_mosfets;
-    ckt.T_nodes = ckt.external_nodes + 3 * ckt.no_of_mosfets;
-    // ckt.T_nodes = ckt.external_nodes;
-    ckt.CKTtemp = 300.15;   // Initial temperature of the circuit
-    ckt.spiceCompatible.setMode(0); // Initialize the CKTmode to 0
+    // ckt.T_nodes = ckt.external_nodes + 3 * ckt.no_of_mosfets;
+    ckt.T_nodes = ckt.external_nodes + ckt.internal_nodes;  // Total number of nodes excluding ground
+    ckt.CKTtemp = 300.15;                                   // Initial temperature of the circuit
+    ckt.spiceCompatible.setMode(0);                         // Initialize the CKTmode to 0
 
     // Setup the instances in the circuit (only bsim4)
     if(!modmap.bsim4Models.empty()){
