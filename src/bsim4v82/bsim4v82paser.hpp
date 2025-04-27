@@ -3607,7 +3607,7 @@ int BSIM4mParam(int param, const VariantValue &value, BSIM4model &mod){
             mod.BSIM4typeGiven = true;
             break;
         default:
-            std::cerr << "BSIM4param: unknown parameter " << param << std::endl;
+            std::cerr << "BSIM4mparam: unknown parameter " << param << std::endl;
             return(false);
     }
     return(true);
@@ -3823,7 +3823,7 @@ std::shared_ptr<BSIM4model> paserBSIM4Model(const std::string& modelType, const 
 }
 
 // Paser for BSIM4 instance
-BSIM4V82 paserBSIM4instance(std::string name, std::shared_ptr<BSIM4model> modelprt, int d, int g, int s, int b){
+BSIM4V82 paserBSIM4instance(std::string name, std::shared_ptr<BSIM4model> modelprt, int d, int g, int s, int b, double w, double l){
 
     BSIM4V82 inst;
     inst.BSIM4name = name;
@@ -3834,6 +3834,15 @@ BSIM4V82 paserBSIM4instance(std::string name, std::shared_ptr<BSIM4model> modelp
     inst.BSIM4gNodeExt = g;
     inst.BSIM4sNode = s;
     inst.BSIM4bNode = b;
+
+    // parameters
+    BSIM4param(BSIM4_W, VariantValue(w), inst);
+    BSIM4param(BSIM4_L, VariantValue(l), inst);
+
+    // std::cout << "BSIM4 instance created with name: " << inst.BSIM4name << std::endl;
+    // std::cout << "dNode: " << inst.BSIM4dNode << ", gNodeExt: " << inst.BSIM4gNodeExt
+    //           << ", sNode: " << inst.BSIM4sNode << ", bNode: " << inst.BSIM4bNode << std::endl;
+    // std::cout << "Width (W): " << inst.BSIM4w << ", Length (L): " << inst.BSIM4l << std::endl;
 
     return inst;
 }
