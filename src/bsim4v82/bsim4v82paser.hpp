@@ -3822,5 +3822,21 @@ std::shared_ptr<BSIM4model> paserBSIM4Model(const std::string& modelType, const 
     return model;
 }
 
+// Paser for BSIM4 instance
+BSIM4V82 paserBSIM4instance(std::string name, std::shared_ptr<BSIM4model> modelprt, int d, int g, int s, int b){
+
+    BSIM4V82 inst;
+    inst.BSIM4name = name;
+    // Set the BSIM4 model pointer
+    inst.BSIM4modPtr = modelprt;
+    // nodes
+    inst.BSIM4dNode = d;
+    inst.BSIM4gNodeExt = g;
+    inst.BSIM4sNode = s;
+    inst.BSIM4bNode = b;
+
+    return inst;
+}
+
 
 } //namespace bsim4

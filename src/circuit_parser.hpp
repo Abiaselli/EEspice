@@ -494,52 +494,50 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 }
                 // Setup modelType
                 mn.modelType = MosfetModelType::BSIM4V82;
-                // Set the BSIM4 model pointer
-                mn.bsim4v82Instance.BSIM4modPtr = iter_bsim4->second;
+                mn.bsim4v82Instance = bsim4::paserBSIM4instance(id_str, iter_bsim4->second, mn.node_vd, mn.node_vg, mn.node_vs, mn.node_vb);
                 parser.elements.push_back(CircuitElement{mn});
             }
             // Create a new PMOS instance
             else if (iter_bsim4->second->BSIM4type == bsim4::BSIM4_PMOS){
-            PMOS mp;
-            mp.id_str = id_str;
-            mp.id = M_id;
+                PMOS mp;
+                mp.id_str = id_str;
+                mp.id = M_id;
 
-            mp.node_vd_str = M_node_vd_str;
-            mp.node_vg_str = M_node_vg_str;
-            mp.node_vs_str = M_node_vs_str;
-            mp.node_vb_str = M_node_vb_str;
+                mp.node_vd_str = M_node_vd_str;
+                mp.node_vg_str = M_node_vg_str;
+                mp.node_vs_str = M_node_vs_str;
+                mp.node_vb_str = M_node_vb_str;
 
-            mp.node_vd = convertToNode(M_node_vd_str, cktmap.map_nodes);  
-            mp.node_vg = convertToNode(M_node_vg_str, cktmap.map_nodes);
-            mp.node_vs = convertToNode(M_node_vs_str, cktmap.map_nodes);
-            mp.node_vb = convertToNode(M_node_vb_str, cktmap.map_nodes);
-            mp.modelName = M_modelName;
+                mp.node_vd = convertToNode(M_node_vd_str, cktmap.map_nodes);  
+                mp.node_vg = convertToNode(M_node_vg_str, cktmap.map_nodes);
+                mp.node_vs = convertToNode(M_node_vs_str, cktmap.map_nodes);
+                mp.node_vb = convertToNode(M_node_vb_str, cktmap.map_nodes);
+                mp.modelName = M_modelName;
 
-            while (iss >> parameter)
-            {
-                size_t pos = parameter.find('=');
-                if (pos != std::string::npos)
+                while (iss >> parameter)
                 {
-                    std::string key = parameter.substr(0, pos);
-                    std::string value = parameter.substr(pos + 1);
+                    size_t pos = parameter.find('=');
+                    if (pos != std::string::npos)
+                    {
+                        std::string key = parameter.substr(0, pos);
+                        std::string value = parameter.substr(pos + 1);
 
-                    if (key == "W" || key == "w")
-                    {
-                        valueStr = value;
-                        mp.W = convertToValue(valueStr);
-                    }
-                    else if (key == "L" || key == "l")
-                    {
-                        valueStr = value;
-                        mp.L = convertToValue(valueStr);
+                        if (key == "W" || key == "w")
+                        {
+                            valueStr = value;
+                            mp.W = convertToValue(valueStr);
+                        }
+                        else if (key == "L" || key == "l")
+                        {
+                            valueStr = value;
+                            mp.L = convertToValue(valueStr);
+                        }
                     }
                 }
-            }
-            // Paser modelType
-            mp.modelType = MosfetModelType::BSIM4V82;
-            // Paser the BSIM4 model pointer
-            mp.bsim4v82Instance.BSIM4modPtr = iter_bsim4->second;
-            parser.elements.push_back((CircuitElement{mp}));
+                // Paser modelType
+                mp.modelType = MosfetModelType::BSIM4V82;
+                mp.bsim4v82Instance = bsim4::paserBSIM4instance(id_str, iter_bsim4->second, mp.node_vd, mp.node_vg, mp.node_vs, mp.node_vb);
+                parser.elements.push_back((CircuitElement{mp}));
             }
             else{
                 std::cerr << "Error: Unknown BSIM4 model type for: " << M_modelName << std::endl;
