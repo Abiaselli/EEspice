@@ -5191,6 +5191,10 @@ line1000:  ;
 return(true);
 }
 
+void updateState1(BSIM4V82 &inst){
+    inst.BSIM4states1 = inst.BSIM4states0;
+}
+
 
 } // namespace bsim4
 
