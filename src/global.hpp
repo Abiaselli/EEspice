@@ -143,9 +143,19 @@ struct Capacitor
 
 //////////////////////////////////////////////////////////////////////////////////
 
-struct CircuitElement
-{
-    std::variant<VoltageSource, CurrentSource, Resistor, Capacitor, Pulsevoltage, Diode, NMOS, PMOS, VCCS> element;
+// Store circuit elements in separate vectors by type
+struct CircuitElements
+{   
+    // std::variant<VoltageSource, CurrentSource, Resistor, Capacitor, Pulsevoltage, Diode, NMOS, PMOS, VCCS> element;
+    std::vector<VoltageSource> voltageSources;
+    std::vector<CurrentSource> currentSources;
+    std::vector<Resistor> resistors;
+    std::vector<Capacitor> capacitors;
+    std::vector<Pulsevoltage> pulseVoltages;
+    std::vector<Diode> diodes;
+    std::vector<NMOS> nmos;
+    std::vector<PMOS> pmos;
+    std::vector<VCCS> vccs;
 };
 
 struct DCSweepSpec {
