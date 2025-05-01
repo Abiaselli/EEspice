@@ -90,70 +90,38 @@ void CKTload(CKTcircuit &ckt)
 {
     // ASSIGNING THE STAMPS TO THE LHS AND RHS MATRICES
 
-    for (auto &element : ckt.CKTelements)
+    for (const auto &vol : ckt.CKTelements.voltageSources)
     {
-        std::visit([&](auto &&arg)
-                   {
-                       if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Resistor>)
-                       {
-                            // std::cout << "R Element ID: " << arg.id << ", Node Pos: " << arg.nodePos << ", Node Neg: " << arg.nodeNeg << ", value: "<< arg.value << std::endl;
-
-                           if (arg.value == 0)
-                           {
-                               arg.value = 1e-3;
-                           }
-                           R_assigner(arg.nodePos, arg.nodeNeg, 1 / arg.value, ckt.cktdematrix->LHS);
-                       }
-                       else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, VoltageSource>)
-                       {
-                           // std::cout << "VS Element ID: " << arg.id << ", Node Pos: " << arg.nodePos << ", Node Neg: " << arg.nodeNeg << ", value: "<< arg.value << std::endl;
-
-                           Vs_assigner(arg.nodePos, arg.nodeNeg, arg.value, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
-
-                           ckt.no_of_V_sources++;
-                       }
-                       else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Pulsevoltage>)
-                       {
-                           // std::cout << "VPulse Element ID: " << arg.id << ", Node Pos: " << arg.nodePos << ", Node Neg: " << arg.nodeNeg << std::endl;
-
-                           ckt.no_of_V_sources++;
-
-                           ckt.pulse_num++;
-
-                           arg.RHS_locate = V_pulse_assigner(arg.nodePos, arg.nodeNeg, arg.V1, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
-                       }
-                       else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, CurrentSource>)
-                       {
-                           // std::cout << "I Element ID: " << arg.id << ", Node Pos: " << arg.nodePos << ", Node Neg: " << arg.nodeNeg << ", value: "<< arg.value << std::endl;
-
-                           Is_assigner(arg.nodePos, arg.nodeNeg, arg.value, ckt.cktdematrix->RHS);
-                       }
-                       else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Capacitor>)
-                       {
-                           // std::cout << "C Element ID: " << arg.id << ", Node Pos: " << arg.nodePos << ", Node Neg: " << arg.nodeNeg << ", value: "<< arg.value << std::endl;
-
-                           ckt.C_list.push_back(arg);
-                       }
-                       else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Diode>)
-                       {
-                           // std::cout << "D Element ID: " << arg.id << ", Node Pos: " << arg.nodePos << ", Node Neg: " << arg.nodeNeg << ", value: "<< arg.Is << std::endl;
-                       }
-                       else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS>)
-                       {
-
-                       }
-                       else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
-                       {
-                        //    std::cout << "PMOS Element ID: " << arg.id << ", Node VD: " << arg.node_vd << ", Node VG: " << arg.node_vg << ", Node VS: " << arg.node_vs << ", Node VB: " << arg.node_vb << std::endl;
-                       }
-                       else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, VCCS>)
-                       {
-                           // std::cout << "G Element ID: " << arg.id << ", Node X: " << arg.node_x << ", Node Y: " << arg.node_y << ", Node CX: " << arg.node_cx << ", Node CY: " << arg.node_cy << ", value: " << arg.value << std::endl;
-
-                           VCCS_assigner(arg.node_x, arg.node_y, arg.node_cx, arg.node_cy, arg.value, ckt.cktdematrix->LHS);
-                       } },
-                   element.element);
+        Vs_assigner(vol.nodePos, vol.nodeNeg, vol.value, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
+        ckt.no_of_V_sources++;
     }
+    for (const auto &cur : ckt.CKTelements.currentSources)
+    {
+        Is_assigner(cur.nodePos, cur.nodeNeg, cur.value, ckt.cktdematrix->RHS);
+    }
+    for (auto &res : ckt.CKTelements.resistors)
+    {
+        if (res.value < 1.0e-3)
+        {
+            res.value = 1.0e-3;
+        }
+        R_assigner(res.nodePos, res.nodeNeg, 1.0 / res.value, ckt.cktdematrix->LHS);
+    }
+    for (const auto &cap : ckt.CKTelements.capacitors)
+    {
+        ckt.C_list.push_back(cap);
+    }
+    for (auto &pulse : ckt.CKTelements.pulseVoltages)
+    {
+        ckt.no_of_V_sources++;
+        ckt.pulse_num++;
+        pulse.RHS_locate = V_pulse_assigner(pulse.nodePos, pulse.nodeNeg, pulse.V1, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
+    }
+    for (auto &vccs : ckt.CKTelements.vccs)
+    {
+        VCCS_assigner(vccs.node_x, vccs.node_y, vccs.node_cx, vccs.node_cy, vccs.value, ckt.cktdematrix->LHS);
+    }
+    
 }
 
 void updateDeviceState(CKTcircuit &ckt){
