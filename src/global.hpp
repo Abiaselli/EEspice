@@ -8,17 +8,7 @@
 #include "bsim4v82/bsim4v82.hpp"
 
 // Forward declarations
-struct VoltageSource;
-struct Pulsevoltage;
-struct Diode;
-struct VCCS;
-struct NMOS;
-struct PMOS;
-struct CurrentSource;
-struct Resistor;
-struct Capacitor;
-struct CircuitElement;
-struct DCSweepSpec;
+
 
 struct VoltageSource
 {   

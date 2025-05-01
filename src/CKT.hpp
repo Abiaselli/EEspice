@@ -20,7 +20,7 @@ struct CKTcircuit
     int pulse_num{};                                // Number of pulse voltages
     // uword is a typedef for an unsigned integer type; it is used for matrix indices as well as all internal counters and loops
 
-    std::vector<CircuitElement> CKTelements;        // Vector of circuit elements
+    CircuitElements CKTelements;                    // Vector of circuit elements
     int external_nodes{};                           // Number of external nodes excluding ground and nodes inside the MOSFETs
     int internal_nodes{};                           // Number of internal nodes (nodes inside the MOSFETs)
     // int external_mosfets{};                      // Number of standalone mosfets (excluding mosfets from ring oscillator)
@@ -42,21 +42,21 @@ struct CKTcircuit
 
 void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
     // Setup the instance parameters
-    for (auto &element : ckt.CKTelements)
-    {
-        std::visit([&](auto &&arg) {
-            if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS> || 
-                            std::is_same_v<std::decay_t<decltype(arg)>, PMOS>) 
-            {
-                if(arg.modelType == MosfetModelType::BSIM4V82){
-                    
-                    // Don't need to set the model pointer again, it's already set in the parser
-                    // arg.bsim4v82Instance.BSIM4modPtr = bsim_iter->second;
-                    bsim4::instanceSetup(*arg.bsim4v82Instance.BSIM4modPtr, arg.bsim4v82Instance);
-                    bsim4::instanceTemp(arg.bsim4v82Instance,*arg.bsim4v82Instance.BSIM4modPtr);
-                }
-            }
-        }, element.element);
+    // Setup the mosfet instance parameters
+    // Don't need to set the model pointer again, it's already set in the parser
+    // arg.bsim4v82Instance.BSIM4modPtr = bsim_iter->second;
+
+    for (auto &nmos : ckt.CKTelements.nmos){
+        if(nmos.modelType == MosfetModelType::BSIM4V82){
+            bsim4::instanceSetup(*nmos.bsim4v82Instance.BSIM4modPtr, nmos.bsim4v82Instance);
+            bsim4::instanceTemp(nmos.bsim4v82Instance,*nmos.bsim4v82Instance.BSIM4modPtr);
+        }
+    }
+    for (auto &pmos : ckt.CKTelements.pmos){
+        if(pmos.modelType == MosfetModelType::BSIM4V82){
+            bsim4::instanceSetup(*pmos.bsim4v82Instance.BSIM4modPtr, pmos.bsim4v82Instance);
+            bsim4::instanceTemp(pmos.bsim4v82Instance,*pmos.bsim4v82Instance.BSIM4modPtr);
+        }
     }
 }
 
