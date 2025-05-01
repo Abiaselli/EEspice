@@ -33,7 +33,7 @@ struct CircuitParser
     double double_t_end; // This double_t_end can be passed to the CKTcircuit class
     double double_init_h;
     // DC simulation parameters
-    std::vector<DCSweepSpec> dcSweeps;
+    DCSweepSpec dcSweep_parser;
 
     CircuitParser(const std::string &filename) : filename(filename) {}
 
@@ -239,42 +239,9 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
             vs.nodePos = convertToNode(v_nodePos_str, cktmap.map_nodes);
             vs.nodeNeg = convertToNode(v_nodeNeg_str, cktmap.map_nodes);
 
-            // Parse bracket [start:step:end]
-            if(v_type.front() == '[' && v_type.back() == ']')
-            {   
-                v_type.erase(0, 1);  // remove the first bracket [
-                v_type.pop_back();   // remove the last bracket ]
-                // Now split on ':'
-                std::vector<std::string> parts;
-                {
-                    std::stringstream ss(v_type);
-                    std::string piece;
-                    while (std::getline(ss, piece, ':')) {
-                        parts.push_back(piece);
-                    }
-                }
-                if (parts.size() == 3) {
-                    vs.hasBracket = true;
-                    vs.bracketStart = convertToValue(parts[0]);
-                    vs.bracketStep  = convertToValue(parts[1]);
-                    vs.bracketEnd   = convertToValue(parts[2]);
-                    
-                    // Also store a DCSweepSpec in parser's vector
-                    DCSweepSpec spec;
-                    spec.sourceName = id_str; // e.g. "Vg"
-                    spec.vstart = vs.bracketStart;
-                    spec.vend   =  vs.bracketEnd;
-                    spec.vstep  = vs.bracketStep;
-                    parser.dcSweeps.push_back(spec);
-                } else {
-                    std::cerr << "Error parsing bracket in voltage source: " << line << std::endl;
-                }
-
-            }
             // Normal DC voltage source
-            else{
-                vs.value = convertToValue(v_type);
-            }
+            vs.value = convertToValue(v_type);
+
             parser.elements.voltageSources.emplace_back(vs);
         }
     }
@@ -317,42 +284,10 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
         cs.nodePos = convertToNode(cs.nodePos_str, cktmap.map_nodes);
         cs.nodeNeg = convertToNode(cs.nodeNeg_str, cktmap.map_nodes);
-        // Parse bracket [start:step:end]
-        if(valueStr.front() == '[' && valueStr.back() == ']')
-        {   
-            valueStr.erase(0, 1);  // remove the first bracket [
-            valueStr.pop_back();   // remove the last bracket ]
-            // Now split on ':'
-            std::vector<std::string> parts;
-            {
-                std::stringstream ss(valueStr);
-                std::string piece;
-                while (std::getline(ss, piece, ':')) {
-                    parts.push_back(piece);
-                }
-            }
-            if (parts.size() == 3) {
-                cs.hasBracket = true;
-                cs.bracketStart = convertToValue(parts[0]);
-                cs.bracketStep  = convertToValue(parts[1]);
-                cs.bracketEnd   = convertToValue(parts[2]);
-                
-                // Also store a DCSweepSpec in parser's vector
-                DCSweepSpec spec;
-                spec.sourceName = id_str; 
-                spec.vstart = cs.bracketStart;
-                spec.vend   = cs.bracketEnd;
-                spec.vstep  = cs.bracketStep;
-                parser.dcSweeps.push_back(spec);
-            } else {
-                std::cerr << "Error parsing bracket in current source: " << line << std::endl;
-            }
-
-        }
+        
         // Normal Current source
-        else{
-            cs.value = convertToValue(valueStr);
-        }
+        cs.value = convertToValue(valueStr);
+        
         parser.elements.currentSources.emplace_back(cs);
     }
     else if (type[0] == 'D' || type[0] == 'd')
@@ -610,7 +545,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         spec.vstart = convertToValue(vstart);
         spec.vend   = convertToValue(vend);
         spec.vstep  = convertToValue(vincr);
-        parser.dcSweeps.push_back(spec);
+        parser.dcSweep_parser = spec;
 
         parser.is_dc = true;
     }
