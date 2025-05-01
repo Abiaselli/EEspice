@@ -148,14 +148,6 @@ struct CircuitElements
     std::vector<VCCS> vccs;
 };
 
-struct DCSweepSpec {
-    // Using in the parser
-    std::string sourceName;
-    double vstart{};
-    double vend{};
-    double vstep{};
-    std::vector<double> sweep_values;   // All sweep values from vstart to vend
-};
 
 double convertToValue(const std::string &valueStr)
 {

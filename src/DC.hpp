@@ -4,6 +4,44 @@
 
 namespace dc{
 
+DCSimulator DCsetup(const CircuitParser &parser, const CKTcircuit &ckt){
+    DCSimulator dcSim;
+
+    // Check if the DC simulation is non-linear
+    for(const auto &element : ckt.CKTelements)
+    {
+        std::visit([&](auto &&arg)
+                    {
+                        if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS> || 
+                                        std::is_same_v<std::decay_t<decltype(arg)>, PMOS> || 
+                                        std::is_same_v<std::decay_t<decltype(arg)>, Diode>)
+                        {
+                        dcSim.non_linear = true;
+                        } },
+                    element.element);
+
+        if(dcSim.non_linear == true) break;
+    }
+
+    // Setup DC sweeps
+    dcSim.sweeps =parser.dcSweeps;
+
+    // setup DC voltage points
+    for(auto &sweep : dcSim.sweeps){
+        double vol = sweep.vstart;
+        while(vol <= sweep.vend){
+            sweep.sweep_values.push_back(vol);
+            vol += sweep.vstep;
+        }
+
+        if(sweep.vend - sweep.sweep_values.back() > LargeEpsilon){  //1e-6
+            sweep.sweep_values.push_back(sweep.vend);
+        }
+    }
+
+    return dcSim;
+}
+
 void DeviceEvaluation(DC &dc, CKTcircuit &ckt, const DCSimulator &dcSim){
     // Modify matrixes for DC sweep
     // If the source's nodes and are not changed, we can use the same LHS
