@@ -1,16 +1,17 @@
 Delay
-
+.model nmos nmos (level=14 version=4.8.2)
+.model pmos pmos (level=14 version=4.8.2)
 V1 1 0 5
 V2 2 0 pulse (0 5 5n 10p 10p 5n 10n)
 
 *Mnumber d g s b model W=w L=l 
-M1 3 2 0 0 NMOS W=1u L=0.09u
-M2 3 2 1 1 PMOS W=1u L=0.09u
+M1 3 2 0 0 nmos W=1u L=0.09u
+M2 3 2 1 1 pmos W=1u L=0.09u
 
 R1 3 4 1
 C1 4 0 0.1p
  
-M3 5 4 0 0 NMOS W=10u L=0.9u
-M4 5 4 1 1 PMOS W=10u L=0.9u
+M3 5 4 0 0 nmos W=10u L=0.9u
+M4 5 4 1 1 pmos W=10u L=0.9u
 
 .tran 1p 10n
