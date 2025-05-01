@@ -23,7 +23,7 @@
 struct CircuitParser
 {
     std::string filename;
-    std::vector<CircuitElement> elements;
+    CircuitElements elements;
     // Simulation tasks
     bool is_transient = false;
     bool is_dc = false;
@@ -37,39 +37,57 @@ struct CircuitParser
 
     CircuitParser(const std::string &filename) : filename(filename) {}
 
-    const std::vector<CircuitElement> &getCircuitElements() const
-    {
-        return elements;
-    }
-
 };
 
-int getMaxNode(const std::vector<CircuitElement> &elements)
+int getMaxNode(const CircuitElements &elements)
 {
     int maxNode = 0;
-    for (const auto &element : elements)
+
+    auto TwoMaxNode = [&maxNode](int nodePos, int nodeNeg){
+        maxNode = std::max(maxNode, nodePos);
+        maxNode = std::max(maxNode, nodeNeg);
+    };
+    auto FourMaxNode = [&maxNode](int node1, int node2, int node3, int node4){
+        maxNode = std::max({maxNode, node1, node2, node3, node4});
+    };
+
+    for(const auto &vol : elements.voltageSources)
     {
-        std::visit([&maxNode](auto &&arg)
-                    {
-                        if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS>)
-                        {
-                            maxNode = std::max({maxNode, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb});
-                        }
-                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
-                        {
-                            maxNode = std::max({maxNode, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb});
-                        }
-                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, VCCS>)
-                        {
-                            maxNode = std::max({maxNode, arg.node_x, arg.node_y, arg.node_cx, arg.node_cy});
-                        }
-                        else
-                        {
-                            maxNode = std::max(maxNode, arg.nodePos);
-                            maxNode = std::max(maxNode, arg.nodeNeg);
-                        } },
-                    element.element);
+        TwoMaxNode(vol.nodePos, vol.nodeNeg);
     }
+    for(const auto &cul : elements.currentSources)
+    {
+        TwoMaxNode(cul.nodePos, cul.nodeNeg);
+    }
+    for(const auto &res : elements.resistors)
+    {
+        TwoMaxNode(res.nodePos, res.nodeNeg);
+    }
+    for(const auto &cap : elements.capacitors)
+    {
+        TwoMaxNode(cap.nodePos, cap.nodeNeg);
+    }
+    for(const auto &pulse : elements.pulseVoltages)
+    {
+        TwoMaxNode(pulse.nodePos, pulse.nodeNeg);
+    }
+    for(const auto &diode : elements.diodes)
+    {
+        TwoMaxNode(diode.nodePos, diode.nodeNeg);
+    }
+    for(const auto &nmos : elements.nmos)
+    {
+        FourMaxNode(nmos.node_vd, nmos.node_vg, nmos.node_vs, nmos.node_vb);
+    }
+    for(const auto &pmos : elements.pmos)
+    {
+        FourMaxNode(pmos.node_vd, pmos.node_vg, pmos.node_vs, pmos.node_vb);
+    }
+    for(const auto &vccs : elements.vccs)
+    {
+        FourMaxNode(vccs.node_x, vccs.node_y, vccs.node_cx, vccs.node_cy);
+    }
+
     return maxNode;
 }
 
