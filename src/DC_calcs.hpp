@@ -10,8 +10,6 @@
 #include "Newton.hpp"
 #include "circuit_parser.hpp"
 
-struct DC;
-struct DCSimulator;
 
 struct DCSweepSpec {
     // Using in the parser
@@ -26,14 +24,13 @@ struct DCSweepSpec {
 struct DC{
     arma::mat LHS;
     arma::vec RHS;
-    std::vector<double> sweepValues;        // All source values
-    std::vector<std::string> sweepNames;    // All source names
+    double sweepValue;        //  source values
+    std::string sweepName;    //  source names
     arma::vec solution;
 };
 
 struct DCSimulator {
-    // We can store multiple sweeps for multi-dim
-    std::vector<DCSweepSpec> sweeps;       // All sweep devices
+    DCSweepSpec dcsweep;                   // sweep device data
     std::vector<DC> vec_dc;                // All DC results
     bool non_linear = false;
 };
