@@ -227,7 +227,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
             pv.pw = convertToValue(pw);
             pv.per = convertToValue(per);
 
-            parser.elements.push_back(CircuitElement{pv});
+            parser.elements.pulseVoltages.emplace_back(pv);
         }
         else
         {
@@ -275,7 +275,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
             else{
                 vs.value = convertToValue(v_type);
             }
-            parser.elements.push_back(CircuitElement{vs});
+            parser.elements.voltageSources.emplace_back(vs);
         }
     }
     else if (type[0] == 'R' || type[0] == 'r')
@@ -291,7 +291,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         r.nodeNeg = convertToNode(r.nodeNeg_str, cktmap.map_nodes);
         r.value = convertToValue(valueStr);
 
-        parser.elements.push_back(CircuitElement{r});
+        parser.elements.resistors.emplace_back(r);
     }
     else if (type[0] == 'C' || type[0] == 'c')
     {
@@ -305,7 +305,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         c.nodeNeg = convertToNode(c.nodeNeg_str, cktmap.map_nodes);
         c.value = convertToValue(valueStr);
 
-        parser.elements.push_back(CircuitElement{c});
+        parser.elements.capacitors.emplace_back(c);
     }
     else if (type[0] == 'I' || type[0] == 'i')
     {
@@ -353,7 +353,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         else{
             cs.value = convertToValue(valueStr);
         }
-        parser.elements.push_back(CircuitElement{cs});
+        parser.elements.currentSources.emplace_back(cs);
     }
     else if (type[0] == 'D' || type[0] == 'd')
     {
@@ -370,7 +370,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         iss >> valueStr;
         d.VT = convertToValue(valueStr);
 
-        parser.elements.push_back(CircuitElement{d});
+        parser.elements.diodes.emplace_back(d);
     }
     else if (type[0] == 'G' || type[0] == 'g')
     {
@@ -386,7 +386,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         g.node_cy = convertToNode(g.node_cy_str, cktmap.map_nodes);
         g.value = convertToValue(valueStr);
 
-        parser.elements.push_back(CircuitElement{g});
+        parser.elements.vccs.emplace_back(g);
     }
 
     else if (type[0] == 'M' || type[0] == 'm')
@@ -447,7 +447,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 }
             }
 
-            parser.elements.push_back(CircuitElement{mn});
+            parser.elements.nmos.emplace_back(mn);
         }
         // Level 1 PMOS
         else if (iter_pmos != modmap.pmosModels.end())
@@ -490,7 +490,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 }
             }
 
-            parser.elements.push_back((CircuitElement{mp}));
+            parser.elements.pmos.emplace_back(mp);
         }
         // BSIM4v82
         else if (iter_bsim4 != modmap.bsim4Models.end())
@@ -535,7 +535,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 // Setup modelType
                 mn.modelType = MosfetModelType::BSIM4V82;
                 mn.bsim4v82Instance = bsim4::paserBSIM4instance(id_str, iter_bsim4->second, mn.node_vd, mn.node_vg, mn.node_vs, mn.node_vb, mn.W, mn.L);
-                parser.elements.push_back(CircuitElement{mn});
+                parser.elements.nmos.emplace_back(mn);
             }
             // Create a new PMOS instance
             else if (iter_bsim4->second->BSIM4type == bsim4::BSIM4_PMOS){
@@ -577,7 +577,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 // Paser modelType
                 mp.modelType = MosfetModelType::BSIM4V82;
                 mp.bsim4v82Instance = bsim4::paserBSIM4instance(id_str, iter_bsim4->second, mp.node_vd, mp.node_vg, mp.node_vs, mp.node_vb, mp.W, mp.L);
-                parser.elements.push_back((CircuitElement{mp}));
+                parser.elements.pmos.emplace_back(mp);
             }
             else{
                 std::cerr << "Error: Unknown BSIM4 model type for: " << M_modelName << std::endl;
