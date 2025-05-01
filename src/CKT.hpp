@@ -125,19 +125,19 @@ void CKTload(CKTcircuit &ckt)
 }
 
 void updateDeviceState(CKTcircuit &ckt){
-    for (auto &element : ckt.CKTelements)
+
+    for (auto &nmos : ckt.CKTelements.nmos)
     {
-        std::visit([&](auto &&arg)
+        if (nmos.modelType == MosfetModelType::BSIM4V82)
         {
-            if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS> ||
-                                std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
-            {    
-                if (arg.modelType == MosfetModelType::BSIM4V82)
-                {
-                    updateState1(arg.bsim4v82Instance);
-                }
-            }
-        },
-        element.element);
+            updateState1(nmos.bsim4v82Instance);
+        }
+    }
+    for (auto &pmos : ckt.CKTelements.pmos)
+    {
+        if (pmos.modelType == MosfetModelType::BSIM4V82)
+        {
+            updateState1(pmos.bsim4v82Instance);
+        }
     }
 }
