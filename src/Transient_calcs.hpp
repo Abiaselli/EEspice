@@ -124,28 +124,21 @@ TransientSimulator Transsetup(const CircuitParser &parser, const CKTcircuit &ckt
 
     if (ckt.pulse_num > 0 && (ckt.C_list.size() > 0))
     {
-        for (const auto &element : ckt.CKTelements)
+        for (const auto &pulse : ckt.CKTelements.pulseVoltages)
         {
-            std::visit([&](auto &&arg)
-                       {
-                           if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Pulsevoltage>)
-                           {
+            double step = std::min(pulse.tr, pulse.tf);
+            config.h_MAX = parser.double_init_h; // 5 is rmax in spice opus
+            // trans.h_MIN = std::max(1e-9 * parser.double_init_h, 1e-14);    // 1e-9 is rmin in spice opus
+            config.h_MIN = 1e-14;
 
-                               double step = std::min(arg.tr, arg.tf);
-                               config.h_MAX = parser.double_init_h; // 5 is rmax in spice opus
-                               // trans.h_MIN = std::max(1e-9 * parser.double_init_h, 1e-14);    // 1e-9 is rmin in spice opus
-                               config.h_MIN = 1e-14;
-
-                               if (arg.td == 0)
-                               {
-                                   config.init_h = parser.double_init_h / 100; // initial time step, fs = 0.25 from spice opus
-                               }
-                               else
-                               {
-                                   config.init_h = std::min(arg.td * 0.25, parser.double_init_h * 0.25);
-                               }
-                           } },
-                       element.element);
+            if (pulse.td == 0)
+            {
+                config.init_h = parser.double_init_h / 100; // initial time step, fs = 0.25 from spice opus
+            }
+            else
+            {
+                config.init_h = std::min(pulse.td * 0.25, parser.double_init_h * 0.25);
+            }
         }
 
         config.timestep_control = true;  // Turn on the time step control
@@ -167,19 +160,11 @@ TransientSimulator Transsetup(const CircuitParser &parser, const CKTcircuit &ckt
     }
 
     // Check if the transient simulation is non-linear
-    for (const auto &element : ckt.CKTelements)
-    {
-        std::visit([&](auto &&arg)
-                   {
-                       if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS> || 
-                                     std::is_same_v<std::decay_t<decltype(arg)>, PMOS> || 
-                                     std::is_same_v<std::decay_t<decltype(arg)>, Diode>)
-                       {
-                           config.non_linear = true;
-                       } },
-                   element.element);
-
-        if(config.non_linear == true) break;
+    if(!ckt.CKTelements.nmos.empty() || !ckt.CKTelements.pmos.empty() || !ckt.CKTelements.diodes.empty()){
+        config.non_linear = true;
+    }
+    else{
+        config.non_linear = false;
     }
 
     // Setup the initial capacitance list
@@ -200,35 +185,28 @@ std::deque<double> get_breakpoints(const CKTcircuit &ckt, const TransientSimulat
 
     std::deque<double> breakpoints;
 
-    if (ckt.pulse_num == 0)
+    if (ckt.CKTelements.pulseVoltages.empty())
     {
         return breakpoints;
     }
 
-    for (const auto &element : ckt.CKTelements)
-    {
-        std::visit([&](auto &&arg)
-                   {
-            if constexpr(std::is_same_v<std::decay_t<decltype(arg)>, Pulsevoltage>){
-                
-                for(double cycle_start = 0; cycle_start < trans_sim.trans_config.t_end; cycle_start += arg.per){
+    for (const auto &pulse : ckt.CKTelements.pulseVoltages){
+        for(double cycle_start = 0; cycle_start < trans_sim.trans_config.t_end; cycle_start += pulse.per){
 
-                    double cycle_times[] = {
-                        arg.td+cycle_start, 
-                        arg.td+arg.tr+cycle_start, 
-                        arg.td+arg.tr+arg.pw+cycle_start, 
-                        arg.td+arg.tr+arg.pw+arg.tf+cycle_start
-                    };
+            double cycle_times[] = {
+                pulse.td + cycle_start, 
+                pulse.td + pulse.tr + cycle_start, 
+                pulse.td + pulse.tr + pulse.pw + cycle_start, 
+                pulse.td + pulse.tr + pulse.pw + pulse.tf + cycle_start
+            };
 
-                    for(double t : cycle_times){
-                        if(t <= trans_sim.trans_config.t_end){
-                            breakpoints.push_back(t);
-                        }
-                    }
-                    
+            for(double t : cycle_times){
+                if(t <= trans_sim.trans_config.t_end){
+                    breakpoints.push_back(t);
                 }
-
-            } }, element.element);
+            }
+            
+        }
     }
 
     std::sort(breakpoints.begin(), breakpoints.end());
