@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include "DC_calcs.hpp"
+#include "circuit_parser.hpp"
 
 namespace dc{
 

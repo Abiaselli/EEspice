@@ -19,6 +19,7 @@
 #include "global.hpp"
 #include "map.hpp"
 #include "model_parser.hpp"
+#include "DC_calcs.hpp"
 
 struct CircuitParser
 {

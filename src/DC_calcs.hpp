@@ -2,13 +2,6 @@
 #include <vector>
 #include <string>
 #include <armadillo>
-#include <variant>
-#include <functional>
-#include "CKT.hpp"
-#include "device.hpp"
-#include "global.hpp"
-#include "Newton.hpp"
-#include "circuit_parser.hpp"
 
 
 struct DCSweepSpec {

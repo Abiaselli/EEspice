@@ -12,7 +12,9 @@
 #include "circuit_parser.hpp"
 #include "device.hpp"
 #include "map.hpp"
+#include "bsim4v82/bsim4v82setup.hpp"
 #include "bsim4v82/bsim4v82temp.hpp"
+#include "bsim4v82/bsim4v82stamp.hpp"
 #include "SPICEcompatible.hpp"
 
 struct CKTcircuit
@@ -130,14 +132,14 @@ void updateDeviceState(CKTcircuit &ckt){
     {
         if (nmos.modelType == MosfetModelType::BSIM4V82)
         {
-            updateState1(nmos.bsim4v82Instance);
+            bsim4::updateState1(nmos.bsim4v82Instance);
         }
     }
     for (auto &pmos : ckt.CKTelements.pmos)
     {
         if (pmos.modelType == MosfetModelType::BSIM4V82)
         {
-            updateState1(pmos.bsim4v82Instance);
+            bsim4::updateState1(pmos.bsim4v82Instance);
         }
     }
 }
