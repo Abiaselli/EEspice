@@ -31,7 +31,6 @@ struct single_timestep
     bool TMIN_reach;
     bool ITL4_reach;
 
-    std::vector<Capacitor> C_list;
 };
 
 struct single_Truncation_error
@@ -70,35 +69,43 @@ single_Truncation_error single_LTE_BE_calculation(const single_timestep &single_
     return LTE;
 }
 
+// divided differences method for the LTE calculation
+single_Truncation_error single_LTE_divided_diff(const single_timestep &single_h, const std::vector<Transient> &vec_trans){
+    single_Truncation_error LTE;
+
+
+
+
+    return LTE;
+}
+
 single_timestep single_solution_solver(const double &h, const Transient &trans, CKTcircuit &ckt, const TransientSimulator &trans_sim,
                                         const Modelmap &modmap){
     
     single_timestep single_h;
     single_h.h = h;
     single_h.t = trans_sim.vec_trans.back().time_trans + h;
-    std::vector<Capacitor> C_list_copy = trans_sim.trans_config.C_list;
+
 
     if(trans_sim.trans_config.non_linear){
-        single_h.solution = NewtonRaphson_system(ckt, h, trans.mode, single_h.t, C_list_copy, trans_sim.vec_trans.back().solution, modmap);
+        single_h.solution = NewtonRaphson_system(ckt, h, trans.mode, single_h.t, trans_sim.vec_trans.back().solution, modmap);
         if(NR_ITE < ITL4){
-            std::pair<arma::vec, arma::vec> currents_voltages = get_currents_voltages(C_list_copy, h, single_h.solution, trans_sim.vec_trans.back().solution);
+            std::pair<arma::vec, arma::vec> currents_voltages = get_currents_voltages(ckt.CKTelements.capacitors, h, single_h.solution, trans_sim.vec_trans.back().solution);
             single_h.C_current = currents_voltages.first;
             single_h.C_voltage = currents_voltages.second;
-            single_h.Capacitance = get_capacitance(C_list_copy);
+            single_h.Capacitance = get_capacitance(ckt.CKTelements.capacitors);
             single_h.C_charge = single_h.Capacitance % single_h.C_voltage; // element-wise multiplication of two objects (Schur product)
-            single_h.C_list = C_list_copy;
         }
     }
     else if(trans_sim.trans_config.non_linear == false){
         std::pair<arma::mat, arma::vec> matrices;
         matrices = Dynamic(ckt, h, trans_sim.vec_trans.back().solution, trans.mode, single_h.t);
         single_h.solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
-        std::pair<arma::vec, arma::vec> currents_voltages = get_currents_voltages(C_list_copy, h, single_h.solution, trans_sim.vec_trans.back().solution);
+        std::pair<arma::vec, arma::vec> currents_voltages = get_currents_voltages(ckt.CKTelements.capacitors, h, single_h.solution, trans_sim.vec_trans.back().solution);
         single_h.C_current = currents_voltages.first;
         single_h.C_voltage = currents_voltages.second;
-        single_h.Capacitance = get_capacitance(C_list_copy);
+        single_h.Capacitance = get_capacitance(ckt.CKTelements.capacitors);
         single_h.C_charge = single_h.Capacitance % single_h.C_voltage; // element-wise multiplication of two objects (Schur product)
-        single_h.C_list = C_list_copy;
     }
     else{
         std::cerr << "Error in single_solution_solver function: trans_sim.trans_config.non_linear" << std::endl;

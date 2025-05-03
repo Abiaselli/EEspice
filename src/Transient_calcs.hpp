@@ -45,7 +45,6 @@ struct TransientConfig {
     double h_MIN{};
     bool timestep_control;          // true for variable time step, false for fixed time step
     bool non_linear;                // true for non-linear solver, false for linear solver
-    std::vector<Capacitor> C_list;  // Initial list of capacitors
 };
 
 struct Transient
@@ -63,27 +62,6 @@ struct Transient
     arma::vec C_charge;
     arma::vec Capacitance;
 
-    std::vector<Capacitor> C_list;
-
-    void C_list_update()
-    {
-        for (size_t i = 0; i < C_list.size(); i++)
-        {
-            C_list.at(i).current = C_current(i, 0);
-            C_list.at(i).voltage = C_voltage(i, 0);
-            C_list.at(i).charge = C_list.at(i).value * C_list.at(i).voltage;
-            C_list.at(i).value = Capacitance(i, 0);
-        }
-    }
-
-    void get_capacitance()
-    {
-        Capacitance = arma::zeros(C_list.size(), 1);
-        for (size_t i = 0; i < C_list.size(); i++)
-        {
-            Capacitance(i, 0) = C_list.at(i).value;
-        }
-    }
 };
 
 struct Truncation_error
@@ -122,7 +100,7 @@ TransientSimulator Transsetup(const CircuitParser &parser, const CKTcircuit &ckt
     TransientConfig config;
     config.t_end = parser.double_t_end;
 
-    if (ckt.pulse_num > 0 && (ckt.C_list.size() > 0))
+    if (ckt.pulse_num > 0 && (ckt.CKTelements.capacitors.size() > 0))
     {
         for (const auto &pulse : ckt.CKTelements.pulseVoltages)
         {
@@ -168,7 +146,6 @@ TransientSimulator Transsetup(const CircuitParser &parser, const CKTcircuit &ckt
     }
 
     // Setup the initial capacitance list
-    config.C_list = ckt.C_list;
     TransientSimulator trans_sim(config);
 
     return trans_sim;

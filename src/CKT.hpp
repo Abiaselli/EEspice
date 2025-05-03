@@ -31,7 +31,6 @@ struct CKTcircuit
     int T_nodes{};                                  // Total number of nodes excluding ground (Used to create the initial matrix in CKTsetup)
 
     std::shared_ptr<DenseMatrix> cktdematrix;       // Dense matrix struct
-    std::vector<Capacitor> C_list;                  // Vector of capacitors (including the parasitic capacitance of the MOSFETs)
     Circuitmap map;                                 // Circuit and Model Map struct
     bool ckt_loaded{};                              // To check if the circuit is loaded or not
 
@@ -111,7 +110,7 @@ void CKTload(CKTcircuit &ckt)
     }
     for (const auto &cap : ckt.CKTelements.capacitors)
     {
-        ckt.C_list.push_back(cap);
+        
     }
     for (auto &pulse : ckt.CKTelements.pulseVoltages)
     {
@@ -143,3 +142,7 @@ void updateDeviceState(CKTcircuit &ckt){
         }
     }
 }
+
+// double CKTterr(double qcap, double ccap, double timestep){
+
+// }
