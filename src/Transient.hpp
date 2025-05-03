@@ -12,7 +12,7 @@ Transient Fixed_TimeStep(CKTcircuit &ckt, TransientSimulator &trans_sim, const M
     trans.C_list = trans_sim.vec_trans.back().C_list;
 
     std::cout << "Fixed time step" << std::endl;
-    arma::vec solution = NewtonRaphson_system(ckt, trans.h, 1, trans.time_trans, trans.C_list, trans_sim.vec_trans.back().solution, modmap);
+    arma::vec solution = NewtonRaphson_system(ckt, trans.h, 1, trans.time_trans, trans_sim.vec_trans.back().solution, modmap);
     // solution.print("The transient analysis of the circuit is: ");
     ARMA_PRINT(solution, "The transient analysis of the circuit is: ");
 
@@ -59,7 +59,7 @@ Transient Varibale_TimeStep(CKTcircuit &ckt, TransientSimulator &trans_sim, cons
         trans.h = trans_sim.trans_config.init_h; // Initial time step
         trans.time_trans = trans_sim.trans_config.t_start + trans.h;
 
-        trans.solution = NewtonRaphson_system(ckt, trans.h, 1, trans.time_trans, trans.C_list, trans_sim.vec_trans.back().solution, modmap);
+        trans.solution = NewtonRaphson_system(ckt, trans.h, 1, trans.time_trans, trans_sim.vec_trans.back().solution, modmap);
         // solution.print("The transient analysis of the circuit is: ");
         ARMA_PRINT(trans.solution, "The transient analysis of the circuit is: ");
 
@@ -110,7 +110,7 @@ Transient Varibale_TimeStep(CKTcircuit &ckt, TransientSimulator &trans_sim, cons
             breakpoints_trans.time_trans = trans_sim.breakpoints.front();
             breakpoints_trans.h = breakpoints_trans.time_trans - trans_sim.vec_trans.back().time_trans;
 
-            breakpoints_trans.solution = NewtonRaphson_system(ckt, breakpoints_trans.h, 1, breakpoints_trans.time_trans, breakpoints_trans.C_list, trans_sim.vec_trans.back().solution, modmap);
+            breakpoints_trans.solution = NewtonRaphson_system(ckt, breakpoints_trans.h, 1, breakpoints_trans.time_trans, trans_sim.vec_trans.back().solution, modmap);
             auto cur_vol = get_currents_voltages(breakpoints_trans.C_list, breakpoints_trans.h, breakpoints_trans.solution, trans_sim.vec_trans.back().solution);
             breakpoints_trans.Capacitance = get_capacitance(breakpoints_trans.C_list);
 
@@ -176,7 +176,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_
     // Benchmarking for OP analysis
     auto tstart_op = std::chrono::high_resolution_clock::now();
 
-    solution = NewtonRaphson_system(ckt, 0, 0, 0, trans_op.C_list, solution, modmap);
+    solution = NewtonRaphson_system(ckt, 0, 0, 0, solution, modmap);
 
     if (trans_op.C_list.size() > 0)
     {

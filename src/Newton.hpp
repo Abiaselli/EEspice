@@ -181,7 +181,7 @@ bool isConverge(const std::vector<arma::vec> &NR_solutions, const CKTcircuit &ck
 // Transient Simulation
 // Newton Raphson system solver for non-linear and dynamic elements
 arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode, const double time_trans, 
-    std::vector<Capacitor> &C_list, const arma::vec &pre_global_solution, const Modelmap &modmap)
+    const arma::vec &pre_global_solution, const Modelmap &modmap)
 {
     int NR_iteration_counter = 0;
     bool isconverge = false;
