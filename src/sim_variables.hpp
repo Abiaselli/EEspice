@@ -93,6 +93,10 @@ constexpr double CONSTvt0 = CONSTboltz * REFTEMP / CHARGE;
 constexpr double CONSTKoverQ = CONSTboltz / CHARGE;
 constexpr double CONSTe = CONSTnap;
 
+// Integration method
+constexpr int BACKWARD_EULER = 0;
+constexpr int TRAPEZOIDAL = 1;
+constexpr int GEAR = 2;
 
 
 
