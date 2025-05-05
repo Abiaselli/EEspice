@@ -28,6 +28,7 @@ struct CKTcircuit
     // int external_mosfets{};                      // Number of standalone mosfets (excluding mosfets from ring oscillator)
     int no_of_mosfets{};                            // Total number of MOSFETs
     int no_of_V_sources{};                          // Total number of voltage sources
+    int num_of_states{};                            // Number of dynamic states (capacitors and bsim4v82)
     int T_nodes{};                                  // Total number of nodes excluding ground (Used to create the initial matrix in CKTsetup)
 
     std::shared_ptr<DenseMatrix> cktdematrix;       // Dense matrix struct
@@ -36,7 +37,9 @@ struct CKTcircuit
 
     double CKTtemp{};                               // Actual temperature of CKT, initialzed to 300.15 K 
     const double CKTnomTemp = 300.15;               // Reference temperature 300.15 K
-    double CKTgmin = 1.0e-20;                               // Gmin value
+    double CKTgmin = 1.0e-20;                       // Gmin value
+    int CKTintegrateMethod{};                       // Integration method (0 for Backward Euler, 1 for Trapezoidal, 2 for Gear)
+    int CKTorder{};                                 // Order of the integration method (1 for first order, 2 for second order)
 
     SPICECompatible spiceCompatible;                // SPICE-compatible (cktmode)
 };
@@ -51,12 +54,32 @@ void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
         if(nmos.modelType == MosfetModelType::BSIM4V82){
             bsim4::instanceSetup(*nmos.bsim4v82Instance.BSIM4modPtr, nmos.bsim4v82Instance);
             bsim4::instanceTemp(nmos.bsim4v82Instance,*nmos.bsim4v82Instance.BSIM4modPtr);
+            if (nmos.bsim4v82Instance.BSIM4trnqsMod){
+                ckt.num_of_states++; // BSIM4qcdump
+            }
+            if(nmos.bsim4v82Instance.BSIM4rbodyMod){
+                ckt.num_of_states++; // BSIM4qbs
+            }
+            if(nmos.bsim4v82Instance.BSIM4rgateMod == 3){
+                ckt.num_of_states++; // BSIM4qgmid
+            }
+            ckt.num_of_states += 3; // BSIM4qb, BSIM4qg, BSIM4qd
         }
     }
     for (auto &pmos : ckt.CKTelements.pmos){
         if(pmos.modelType == MosfetModelType::BSIM4V82){
             bsim4::instanceSetup(*pmos.bsim4v82Instance.BSIM4modPtr, pmos.bsim4v82Instance);
             bsim4::instanceTemp(pmos.bsim4v82Instance,*pmos.bsim4v82Instance.BSIM4modPtr);
+            if (pmos.bsim4v82Instance.BSIM4trnqsMod){
+                ckt.num_of_states++; // BSIM4qcdump
+            }
+            if(pmos.bsim4v82Instance.BSIM4rbodyMod){
+                ckt.num_of_states++; // BSIM4qbs
+            }
+            if(pmos.bsim4v82Instance.BSIM4rgateMod == 3){
+                ckt.num_of_states++; // BSIM4qgmid
+            }
+            ckt.num_of_states += 3; // BSIM4qb, BSIM4qg, BSIM4qd
         }
     }
 }
@@ -110,7 +133,7 @@ void CKTload(CKTcircuit &ckt)
     }
     for (const auto &cap : ckt.CKTelements.capacitors)
     {
-        
+        ckt.num_of_states++;
     }
     for (auto &pulse : ckt.CKTelements.pulseVoltages)
     {
