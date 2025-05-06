@@ -47,6 +47,12 @@ struct TransientConfig {
     bool non_linear;                // true for non-linear solver, false for linear solver
 };
 
+struct CapacitanceState
+{
+    std::vector<double> CapCharge;
+    std::vector<double> CapCurrent;
+};
+
 struct Transient
 {
     double h{};
@@ -57,10 +63,7 @@ struct Transient
     arma::vec solution;
     arma::mat LHS;
     arma::vec RHS;
-    arma::vec C_current;
-    arma::vec C_voltage;
-    arma::vec C_charge;
-    arma::vec Capacitance;
+    CapacitanceState capstate; // Capacitance state (including cap, bsim4, etc.)
 
 };
 
@@ -218,64 +221,64 @@ std::deque<double> get_breakpoints(const CKTcircuit &ckt, const TransientSimulat
 
 // Assigning the stamp matrices for dynamic and non-linear components and update the LHS and RHS matrices
 
-std::pair<arma::vec, arma::vec> get_currents_voltages(const std::vector<Capacitor> &pre_C_list, const double h, const arma::vec &solution, const arma::vec &pre_solution)
-{
+// std::pair<arma::vec, arma::vec> get_currents_voltages(const std::vector<Capacitor> &pre_C_list, const double h, const arma::vec &solution, const arma::vec &pre_solution)
+// {
 
-    // h/C * i = u(k+1) - u(k)
+//     // h/C * i = u(k+1) - u(k)
 
-    int G_rows = pre_C_list.size();
-    int G_cols = G_rows;
-    double vol{}, pre_vol{}, delta_vol{}; // Delta voltage across the capacitor u(k+1) - u(k)
+//     int G_rows = pre_C_list.size();
+//     int G_cols = G_rows;
+//     double vol{}, pre_vol{}, delta_vol{}; // Delta voltage across the capacitor u(k+1) - u(k)
 
-    arma::vec current_matrix = arma::zeros(G_rows, 1); // Currents matrix
-    arma::vec delta_v = arma::zeros(G_rows, 1);        // Delta voltage matrix
-    arma::vec G_vec(pre_C_list.size());                // Initialize arma::vec with the size of C_list
-    arma::vec volt = arma::zeros(G_rows, 1);
+//     arma::vec current_matrix = arma::zeros(G_rows, 1); // Currents matrix
+//     arma::vec delta_v = arma::zeros(G_rows, 1);        // Delta voltage matrix
+//     arma::vec G_vec(pre_C_list.size());                // Initialize arma::vec with the size of C_list
+//     arma::vec volt = arma::zeros(G_rows, 1);
 
-    for (size_t i = 0; i < pre_C_list.size(); ++i)
-    {
+//     for (size_t i = 0; i < pre_C_list.size(); ++i)
+//     {
 
-        G_vec(i) = h / pre_C_list.at(i).value;
+//         G_vec(i) = h / pre_C_list.at(i).value;
 
-        if (pre_C_list.at(i).nodePos == 0)
-        {
+//         if (pre_C_list.at(i).nodePos == 0)
+//         {
 
-            vol = solution(pre_C_list.at(i).nodeNeg - 1, 0);
-            pre_vol = pre_solution(pre_C_list.at(i).nodeNeg - 1, 0);
-            delta_vol = vol - pre_vol; // u(k+1) - u(k)
-        }
-        else if (pre_C_list.at(i).nodeNeg == 0)
-        {
+//             vol = solution(pre_C_list.at(i).nodeNeg - 1, 0);
+//             pre_vol = pre_solution(pre_C_list.at(i).nodeNeg - 1, 0);
+//             delta_vol = vol - pre_vol; // u(k+1) - u(k)
+//         }
+//         else if (pre_C_list.at(i).nodeNeg == 0)
+//         {
 
-            vol = solution(pre_C_list.at(i).nodePos - 1, 0);
-            pre_vol = pre_solution(pre_C_list.at(i).nodePos - 1, 0);
-            delta_vol = vol - pre_vol; // u(k+1) - u(k)
-        }
-        else
-        {
+//             vol = solution(pre_C_list.at(i).nodePos - 1, 0);
+//             pre_vol = pre_solution(pre_C_list.at(i).nodePos - 1, 0);
+//             delta_vol = vol - pre_vol; // u(k+1) - u(k)
+//         }
+//         else
+//         {
 
-            vol = solution(pre_C_list.at(i).nodePos - 1, 0) - solution(pre_C_list.at(i).nodeNeg - 1, 0);
-            pre_vol = pre_solution(pre_C_list.at(i).nodePos - 1, 0) - pre_solution(pre_C_list.at(i).nodeNeg - 1, 0);
-            delta_vol = vol - pre_vol; // u(k+1) - u(k)
-        }
+//             vol = solution(pre_C_list.at(i).nodePos - 1, 0) - solution(pre_C_list.at(i).nodeNeg - 1, 0);
+//             pre_vol = pre_solution(pre_C_list.at(i).nodePos - 1, 0) - pre_solution(pre_C_list.at(i).nodeNeg - 1, 0);
+//             delta_vol = vol - pre_vol; // u(k+1) - u(k)
+//         }
 
-        delta_v(i, 0) = delta_vol; // It may be negative!
-        volt(i, 0) = vol;
-        // std::cout << "c: " << pre_C_list.at(i).value << std::endl;
-        // std::cout << "C/h: " << pre_C_list.at(i).value/h << std::endl;
-        // std::cout << "delta_vol: " << delta_vol << std::endl;
-        // std::cout << "C/h * delta_vol" << pre_C_list.at(i).value/h * delta_vol << std::endl;
-    }
+//         delta_v(i, 0) = delta_vol; // It may be negative!
+//         volt(i, 0) = vol;
+//         // std::cout << "c: " << pre_C_list.at(i).value << std::endl;
+//         // std::cout << "C/h: " << pre_C_list.at(i).value/h << std::endl;
+//         // std::cout << "delta_vol: " << delta_vol << std::endl;
+//         // std::cout << "C/h * delta_vol" << pre_C_list.at(i).value/h * delta_vol << std::endl;
+//     }
 
-    arma::mat G_matrix = arma::diagmat(G_vec); // Diagonal matrix
+//     arma::mat G_matrix = arma::diagmat(G_vec); // Diagonal matrix
 
-    // G_matrix.print("G_matrix =");
-    // delta_v.print("delta_v =");
+//     // G_matrix.print("G_matrix =");
+//     // delta_v.print("delta_v =");
 
-    current_matrix = arma::solve(G_matrix, delta_v, arma::solve_opts::fast);
+//     current_matrix = arma::solve(G_matrix, delta_v, arma::solve_opts::fast);
 
-    return {current_matrix, volt};
-}
+//     return {current_matrix, volt};
+// }
 
 // Function to control debug mode
 double cond(double R)
