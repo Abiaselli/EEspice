@@ -42,7 +42,7 @@ std::pair<arma::mat, arma::vec> Dynamic(const CKTcircuit &ckt, const double h, c
 }
 
 std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
-    const std::pair<arma::mat, arma::vec> &matrixes, const Modelmap &modmap)
+    const std::pair<arma::mat, arma::vec> &matrixes, const Modelmap &modmap, double h)
 {
 
     arma::mat LHS = matrixes.first;
@@ -58,7 +58,7 @@ std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_
         else if (nmos.modelType == MosfetModelType::BSIM4V82){
             const bsim4::BSIM4model &b4model = *nmos.bsim4v82Instance.BSIM4modPtr;
             bsim4::BSIM4V82 &b4instance = nmos.bsim4v82Instance;
-            bsim4::BSIM4load(b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, LHS, RHS);
+            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, h, LHS, RHS);
         }
         else{
             std::cerr << "Error: NMOS model type is not supported!" << std::endl;
@@ -73,7 +73,7 @@ std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_
         else if (pmos.modelType == MosfetModelType::BSIM4V82){
             const bsim4::BSIM4model &b4model = *pmos.bsim4v82Instance.BSIM4modPtr;
             bsim4::BSIM4V82 &b4instance = pmos.bsim4v82Instance;
-            bsim4::BSIM4load(b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, LHS, RHS);
+            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, h, LHS, RHS);
         }
         else{
             std::cerr << "Error: PMOS model type is not supported!" << std::endl;
@@ -196,7 +196,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
     for (int i = 1; i < 3; i++)
     {
-        matrices = NonLinear(ckt, solution, init_matrices, modmap);
+        matrices = NonLinear(ckt, solution, init_matrices, modmap, h);
         // const arma::mat &LHS = matrices.first;
         // const arma::mat &RHS = matrices.second;
 
@@ -221,7 +221,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
             return solution;
         }
 
-        matrices = NonLinear(ckt, solution, init_matrices, modmap);
+        matrices = NonLinear(ckt, solution, init_matrices, modmap, h);
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
@@ -257,7 +257,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
 
     for (int i = 1; i < 3; i++)
     {
-        matrices = NonLinear(ckt, solution, init_matrices, modmap);
+        matrices = NonLinear(ckt, solution, init_matrices, modmap, 0.0);
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
@@ -279,7 +279,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
             exit(1);
         }
 
-        matrices = NonLinear(ckt, solution, init_matrices, modmap);
+        matrices = NonLinear(ckt, solution, init_matrices, modmap, 0.0);
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))

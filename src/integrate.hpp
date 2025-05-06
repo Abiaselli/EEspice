@@ -26,11 +26,11 @@ double get_cap_vol(const arma::vec &solution, int node_x, int node_y){
 
 // Get the Charge of the capacitor and the current of the capacitor
 CapacitanceState get_cap_state(const CKTcircuit &ckt, const arma::vec &solution, const double h, const std::vector<Transient> &vec_trans){
-    CapacitanceState capstate;
-    capstate.CapCharge.reserve(ckt.num_of_states);
-    capstate.CapCurrent.reserve(ckt.num_of_states);
-    auto &CapCharge = capstate.CapCharge;
-    auto &CapCurrent = capstate.CapCurrent;
+    CapacitanceState CapState;
+    CapState.CapCharge.reserve(ckt.num_of_states);
+    CapState.CapCurrent.reserve(ckt.num_of_states);
+    auto &CapCharge = CapState.CapCharge;
+    auto &CapCurrent = CapState.CapCurrent;
 
     double pre_charge{}, charge{}, current{};
 
@@ -38,7 +38,7 @@ CapacitanceState get_cap_state(const CKTcircuit &ckt, const arma::vec &solution,
     for (int i = 0; i < ckt.CKTelements.capacitors.size(); ++i){
         const auto &cap = ckt.CKTelements.capacitors[i];
         double vol = get_cap_vol(solution, cap.nodePos, cap.nodeNeg);
-        pre_charge = vec_trans.back().capstate.CapCharge[i];
+        pre_charge = vec_trans.back().CapState.CapCharge[i];
         charge = cap.value * vol;
         switch(ckt.CKTintegrateMethod) {
             // i = c/h * (u(k+1) - u(k))
@@ -164,12 +164,4 @@ NIcomCof(CKTcircuit &ckt, double h)
             break;
 
     }
-}
-
-
-double integrate(const CKTcircuit &ckt, const double h, const double charge, const std::vector<Transient> &vec_trans){
-
-    double current = 0.0;
-
-
 }

@@ -63,7 +63,7 @@ struct Transient
     arma::vec solution;
     arma::mat LHS;
     arma::vec RHS;
-    CapacitanceState capstate; // Capacitance state (including cap, bsim4, etc.)
+    CapacitanceState CapState; // Capacitance state (including cap, bsim4, etc.)
 
 };
 
