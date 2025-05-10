@@ -8,6 +8,8 @@ Author: 1985 Thomas L. Quarles
 *  ckt structure, ccap follows qcap.
 */
 #pragma once
+#include <iostream>
+#include <string>
 #include "bsim4v82.hpp"
 #include "CKT.hpp"
 
@@ -18,8 +20,8 @@ namespace bsim4{
 int
 NIintegrate(const CKTcircuit &ckt, BSIM4V82 &inst, double *geq, double *ceq, double cap, int qcap, double h)
 {
-    static char *ordmsg = "Illegal integration order";
-    static char *methodmsg = "Unknown integration method";
+    const std::string ordmsg = "Illegal integration order";
+    const std::string methodmsg = "Unknown integration method";
 
     switch(ckt.CKTintegrateMethod) {
 
