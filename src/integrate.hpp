@@ -138,6 +138,10 @@ NIcomCof(CKTcircuit &ckt, double h)
      *  compute coefficients for particular integration method 
      */ 
     switch(ckt.CKTintegrateMethod) {
+        case BACKWARD_EULER:
+            ckt.CKTag[0] = 1 / h;
+            ckt.CKTag[1] = -1 / h;
+            break;
 
         case TRAPEZOIDAL:
             switch(ckt.CKTorder) {
@@ -156,6 +160,7 @@ NIcomCof(CKTcircuit &ckt, double h)
                 default:
                     std::cerr << "Error: Trapezoidal method only supports order 1 or 2." << std::endl;
                     exit(1);
+                    break;
             }
             break;
 
