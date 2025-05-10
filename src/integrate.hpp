@@ -58,6 +58,14 @@ CapacitanceState get_cap_state(const CKTcircuit &ckt, const arma::vec &solution,
                         break;
                 }
                 break;
+            case GEAR:
+                std::cerr << "GEAR method not implemented yet." << std::endl;
+                exit(1);
+                break;
+            default:
+                std::cerr << "Unknown integration method" << std::endl;
+                exit(1);
+                break;
         }
         CapCharge.push_back(std::abs(charge));
         CapCurrent.push_back(std::abs(current));
