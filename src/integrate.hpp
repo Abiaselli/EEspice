@@ -34,6 +34,13 @@ CapacitanceState get_cap_state(const CKTcircuit &ckt, const arma::vec &solution,
 
     double pre_charge{}, charge{}, current{};
 
+    if(vec_trans.empty()){
+        // OP analysis
+        CapState.CapCharge.resize(ckt.num_of_states, 0.0);
+        CapState.CapCurrent.resize(ckt.num_of_states, 0.0);
+        return CapState;
+    }
+
     // Update the charge and current of the capacitors
     for (int i = 0; i < ckt.CKTelements.capacitors.size(); ++i){
         const auto &cap = ckt.CKTelements.capacitors[i];
@@ -133,7 +140,6 @@ Author: 1985 Thomas L. Quarles
 void
 NIcomCof(CKTcircuit &ckt, double h)
 {
-
     // double mat[8][8];   /* matrix to compute the gear coefficients in */
     // int i,j,k;          /* generic loop indicies */
     // double arg;
@@ -146,6 +152,7 @@ NIcomCof(CKTcircuit &ckt, double h)
     /*  
      *  compute coefficients for particular integration method 
      */ 
+    double xmu;
     switch(ckt.CKTintegrateMethod) {
         case BACKWARD_EULER:
             ckt.CKTag[0] = 1 / h;
@@ -161,7 +168,7 @@ NIcomCof(CKTcircuit &ckt, double h)
                     break;
 
                 case 2:
-                    double xmu = 0.5;
+                    xmu = 0.5;
                     ckt.CKTag[0] = 1.0 / h / (1.0 - xmu);
                     ckt.CKTag[1] = xmu / (1.0 - xmu);
                     break;
@@ -169,7 +176,6 @@ NIcomCof(CKTcircuit &ckt, double h)
                 default:
                     std::cerr << "Error: Trapezoidal method only supports order 1 or 2." << std::endl;
                     exit(1);
-                    break;
             }
             break;
 

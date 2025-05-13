@@ -103,7 +103,14 @@ TransientSimulator Transsetup(const CircuitParser &parser, const CKTcircuit &ckt
     TransientConfig config;
     config.t_end = parser.double_t_end;
 
-    if (ckt.pulse_num > 0 && (ckt.CKTelements.capacitors.size() > 0))
+    // Only closed when the user turns off step control or there are no dynamic elements
+    if(parser.timestep_control == false || ckt.num_of_states == 0){
+        config.h_MAX = 1e-9;
+        config.init_h = config.h_MAX;
+        config.timestep_control = false; // Turn off the time step control
+    }
+    // Turn on the time step control
+    else if (ckt.pulse_num > 0)
     {
         for (const auto &pulse : ckt.CKTelements.pulseVoltages)
         {
@@ -124,7 +131,7 @@ TransientSimulator Transsetup(const CircuitParser &parser, const CKTcircuit &ckt
 
         config.timestep_control = true;  // Turn on the time step control
     }
-    else if (ckt.no_of_mosfets > 0)
+    else
     {
         config.init_h = parser.double_init_h / 100; // initial time step
         config.h_MAX = parser.double_init_h;        // maximum time step
@@ -132,13 +139,7 @@ TransientSimulator Transsetup(const CircuitParser &parser, const CKTcircuit &ckt
         config.h_MIN = 1e-14;
         config.timestep_control = true;  // Turn on the time step control
     }
-    else
-    {
-        // trans.h_MAX = trans.t_end / 5000;
-        config.h_MAX = 1e-9;
-        config.init_h = config.h_MAX;
-        config.timestep_control = false; // Turn off the time step control
-    }
+
 
     // Check if the transient simulation is non-linear
     if(!ckt.CKTelements.nmos.empty() || !ckt.CKTelements.pmos.empty() || !ckt.CKTelements.diodes.empty()){

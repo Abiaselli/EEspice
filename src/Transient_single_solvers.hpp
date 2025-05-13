@@ -199,10 +199,10 @@ single_timestep single_solution_solver(const double &h, const Transient &trans, 
 }
 
 bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &single_h,
-                        double &temp_h, const TransientSimulator &trans_sim){
+                        double &temp_h, const TransientSimulator &trans_sim, const CKTcircuit &ckt){
     if(NR_ITE < ITL4){
 
-       LTE = single_LTE_divided_diff(single_h, trans_sim.vec_trans);
+       LTE = single_LTE_divided_diff(single_h, trans_sim.vec_trans, ckt);
 
        if(LTE.h_bound.empty()){
            std::cerr << "Error in single_LTE_check function: h_bound is empty!" << std::endl;
@@ -211,14 +211,14 @@ bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &singl
        else[[likely]]{
             auto iter_h_min = std::ranges::min_element(LTE.h_bound);
             double h_min = *iter_h_min;
-            if(h_min * TRTOL < 0.9 * single_h.h){
+            if(h_min < 0.9 * single_h.h){
                 // Reject the solution, hn = hn+1 and recompute the new hn
-                temp_h = h_min * TRTOL;
+                temp_h = h_min;
                 return false;
             }
             else{
                 // Accept the solution
-                temp_h = std::min({(h_min * TRTOL), 2.0 * single_h.h, trans_sim.trans_config.h_MAX});
+                temp_h = std::min({h_min, 2.0 * single_h.h, trans_sim.trans_config.h_MAX});
                 return true;
             }
        }
@@ -253,7 +253,7 @@ single_timestep single_next_h(const Transient &trans, CKTcircuit &ckt, const Tra
 
         total_timepoint += 1;
 
-        LTE_check = single_LTE_check(LTE, single_h, temp_h, trans_sim);
+        LTE_check = single_LTE_check(LTE, single_h, temp_h, trans_sim, ckt);
 
     }while(LTE_check == false);
 
