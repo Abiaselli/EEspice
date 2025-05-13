@@ -28,6 +28,7 @@ struct CircuitParser
     // Simulation tasks
     bool is_transient = false;
     bool is_dc = false;
+    bool timestep_control = true;
     // CKT parameters
     // Transient simulation parameters
     double double_t_end; // This double_t_end can be passed to the CKTcircuit class
