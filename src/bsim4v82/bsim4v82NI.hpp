@@ -24,7 +24,10 @@ NIintegrate(const CKTcircuit &ckt, BSIM4V82 &inst, double *geq, double *ceq, dou
     const std::string methodmsg = "Unknown integration method";
 
     switch(ckt.CKTintegrateMethod) {
-
+    case BACKWARD_EULER:
+        inst.BSIM4states0[ccap] = ckt.CKTag[0] * inst.BSIM4states0[qcap]
+                + ckt.CKTag[1] * inst.BSIM4states1[qcap];
+        break;
     case TRAPEZOIDAL:
         switch(ckt.CKTorder) {
         case 1:
