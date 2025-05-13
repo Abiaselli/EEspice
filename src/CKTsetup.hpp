@@ -58,7 +58,6 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     ckt.CKTelements = parser.elements;
     ckt.external_nodes = getMaxNode(ckt.CKTelements);
     ckt.internal_nodes = getInternalMosfetNodes(ckt.CKTelements);
-    ckt.no_of_mosfets = parser.num_mosfets;
     // ckt.T_nodes = ckt.external_nodes + 3 * ckt.no_of_mosfets;
     ckt.T_nodes = ckt.external_nodes + ckt.internal_nodes;  // Total number of nodes excluding ground
     ckt.CKTtemp = 300.15;                                   // Initial temperature of the circuit

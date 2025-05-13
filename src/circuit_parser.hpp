@@ -29,7 +29,6 @@ struct CircuitParser
     bool is_transient = false;
     bool is_dc = false;
     // CKT parameters
-    int num_mosfets{};
     // Transient simulation parameters
     double double_t_end; // This double_t_end can be passed to the CKTcircuit class
     double double_init_h;
@@ -332,8 +331,6 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
         std::string M_node_vd_str, M_node_vg_str, M_node_vs_str, M_node_vb_str;
         std::string M_modelName, parameter;
-
-        parser.num_mosfets = parser.num_mosfets + 1;
 
         iss >> M_node_vd_str >> M_node_vg_str >> M_node_vs_str >> M_node_vb_str >> M_modelName;
 
