@@ -5,6 +5,7 @@
 
 namespace Math {
 
+// n!
 constexpr std::uint64_t factorial(unsigned n) {
     if (n > 20) throw std::invalid_argument("Input exceeds 20");
     return (n <= 1) ? 1 : n * factorial(n - 1);
@@ -19,7 +20,7 @@ constexpr std::uint64_t factorial(unsigned n) {
 ///
 /// \param qValues   vector of function values y(x_i)
 /// \param hValues   vector of successive spacings x_{i+1}-x_i
-/// \param order     the order n of the divided difference
+/// \param order     the order n of the divided difference (NOT CKTorder)
 /// \return          the divided difference y[x0,x1,...,x_order]
 double DividedDiff(const std::vector<double>& qValues,
                    const std::vector<double>& hValues,
