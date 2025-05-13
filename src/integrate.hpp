@@ -116,7 +116,8 @@ CapacitanceState get_cap_state(const CKTcircuit &ckt, const arma::vec &solution,
             }
         }
     }
-
+    
+    return CapState;
 }
 
 // nicomcof.c
