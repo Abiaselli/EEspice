@@ -214,24 +214,30 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
     while (!isconverge)
     {
-        if (NR_iteration_counter > ITL4)
+        if (NR_iteration_counter > ITL4 && mode == 1)
         {
             NR_ITE = NR_iteration_counter;
             total_NR_iteration += NR_iteration_counter;
             return solution;
         }
+        else if (NR_iteration_counter > 99 && mode == 0)
+        {
+            std::cerr << "Transient Simulation did not converge at the op analysis!" << std::endl;
+            exit(1);
+        }
+        else {
+            matrices = NonLinear(ckt, solution, init_matrices, modmap, h);
 
-        matrices = NonLinear(ckt, solution, init_matrices, modmap, h);
+            // Solve Ax = b
+            // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
+            solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
+            // solution = arma::solve(matrices.first, matrices.second);
+            NR_iteration_counter += 1;
+            NR_solutions.at(NR_iteration_counter) = solution;
 
-        // Solve Ax = b
-        // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
-        // solution = arma::solve(matrices.first, matrices.second);
-        NR_iteration_counter += 1;
-        NR_solutions.at(NR_iteration_counter) = solution;
-
-        isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
-        ckt.spiceCompatible.updateStateMachine(isconverge);
+            isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
+            ckt.spiceCompatible.updateStateMachine(isconverge);
+        }
     }
 
     NR_ITE = NR_iteration_counter;
