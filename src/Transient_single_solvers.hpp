@@ -200,7 +200,7 @@ single_timestep single_solution_solver(const double &h, const Transient &trans, 
 
 bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &single_h,
                         double &temp_h, const TransientSimulator &trans_sim, const CKTcircuit &ckt){
-    if(NR_ITE < ITL4){
+    if(converged){
 
        LTE = single_LTE_divided_diff(single_h, trans_sim.vec_trans, ckt);
 
