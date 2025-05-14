@@ -5,7 +5,9 @@
 
 // Global variables
 /* Upper transient iteration limit for iteration count in time-step control algorithm*/
-constexpr int ITL4 = 10;
+/* some convergence issues that get resolved by increasing max iter */
+constexpr int ITL4 = 100;
+bool converged = false;
 
 /* Scale factor for predicting*/
 constexpr double TRTOL = 7.0;
