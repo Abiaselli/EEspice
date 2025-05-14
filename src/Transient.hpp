@@ -32,6 +32,7 @@ Transient Varibale_TimeStep(CKTcircuit &ckt, TransientSimulator &trans_sim, cons
         // The first step of the transient simulation
         trans.h = trans_sim.trans_config.init_h; // Initial time step
         trans.time_trans = trans_sim.trans_config.t_start + trans.h;
+        NIcomCof(ckt, trans.h);
 
         trans.solution = NewtonRaphson_system(ckt, trans.h, 1, trans.time_trans, trans_sim.vec_trans.back().solution, modmap);
         // solution.print("The transient analysis of the circuit is: ");
@@ -148,6 +149,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_
     {
         op_solution_print.print("The OP analysis of the circuit is: ");
     }
+    updateDeviceState(ckt);
 
     ARMA_PRINT(solution, "The OP analysis (include internal nodes) of the circuit is: ");
 
