@@ -4031,8 +4031,8 @@ finished:
 
 
 line755:
-    // ag0 = ckt->CKTag[0];
-    ag0 = 0.0;
+    ag0 = ckt.CKTag[0];
+
     if (instance.BSIM4mode > 0)
     {   
         if (instance.BSIM4trnqsMod == 0)
