@@ -69,6 +69,116 @@ struct single_Truncation_error
 //     return LTE;
 // }
 
+// LTE calculation from ngspice
+single_Truncation_error single_LTE_ngspice(const single_timestep &single_h, const std::vector<Transient> &vec_trans, const CKTcircuit &ckt)
+{
+    const auto &prev          = vec_trans.back();
+    const std::size_t history_sz = vec_trans.size();
+    const unsigned order      = ckt.CKTorder;
+    const unsigned DIVorder   = order + 1;
+
+    // need DIVorder previous points in history
+    if (history_sz < DIVorder) {
+        throw std::invalid_argument(
+            "Not enough history: need at least " 
+            + std::to_string(DIVorder) + " previous steps");
+    }
+
+    const std::size_t N = prev.CapState.CapCurrent.size();
+    single_Truncation_error LTE;
+    LTE.LTE_bound.reserve(N);
+    LTE.h_bound.reserve(N);
+
+    // coefficients from SPICE
+    static constexpr std::array<double,6> gearCoeff = {
+        0.5, 0.22222222, 0.13636364, 0.096,
+        0.07299270, 0.05830904
+    };
+    static constexpr std::array<double,2> trapCoeff = {
+        0.5,       // BE (order=1)
+        0.0833333  // Trap (order=2)
+    };
+
+    double coeff;
+    switch (ckt.CKTintegrateMethod) {
+      case BACKWARD_EULER:
+        coeff = trapCoeff[0];
+        break;
+      case TRAPEZOIDAL:
+        if (order < 1 || order > trapCoeff.size())
+            throw std::out_of_range("Unsupported TRAP order " + std::to_string(order));
+        coeff = trapCoeff[order - 1];
+        break;
+      case GEAR:
+        if (order < 1 || order > gearCoeff.size())
+            throw std::out_of_range("Unsupported GEAR order " + std::to_string(order));
+        coeff = gearCoeff[order - 1];
+        break;
+      default:
+        throw std::invalid_argument("Unknown integration method");
+    }
+
+    // index of the oldest history point to use
+    const std::size_t start_idx = history_sz - DIVorder;
+
+    for (std::size_t i = 0; i < N; ++i) {
+        // 1) voltage tolerance
+        double volttol = ABSTOL
+                       + RELTOL * std::max(
+                            std::abs(single_h.CapState.CapCurrent[i]),
+                            std::abs(prev.CapState.CapCurrent[i]));
+
+        // 2) charge tolerance
+        double chargetol = std::max(
+            std::abs(single_h.CapState.CapCharge[i]),
+            std::abs(prev.CapState.CapCharge[i]));
+        chargetol = RELTOL *
+            std::max(chargetol, CHGTOL) / single_h.h;
+
+        // 3) combined tolerance bound
+        double tol = std::max(volttol, chargetol);
+        LTE.LTE_bound.push_back(tol);
+
+        // 4) collect charge history and time steps
+        std::vector<double> qvals(DIVorder + 1);
+        std::vector<double> deltas(DIVorder);
+        for (unsigned j = 0; j < DIVorder; ++j) {
+            qvals[j]  = vec_trans[start_idx + j].CapState.CapCharge[i];
+            deltas[j] = vec_trans[start_idx + j + 1].h;
+        }
+        qvals[DIVorder]        = single_h.CapState.CapCharge[i];
+        deltas[DIVorder - 1]   = single_h.h;
+
+        // 5) in-place divided differences to get (order+1)th diff
+        for (int level = DIVorder; level > 0; --level) {
+            for (int k = 0; k < level; ++k) {
+                qvals[k] = (qvals[k] - qvals[k + 1]) / deltas[k];
+            }
+            if (level > 1) {
+                for (int k = 0; k < level - 1; ++k) {
+                    deltas[k] = deltas[k + 1] + deltas[k];
+                }
+            }
+        }
+        double dd = qvals[0];
+
+        // 6) compute new h bound
+        double ratio = (TRTOL * tol)
+                     / std::max(ABSTOL, coeff * std::abs(dd));
+        double hbound;
+        if (order == 2) {
+            hbound = std::sqrt(ratio);
+        } else if (order > 2) {
+            hbound = std::exp(std::log(ratio) / order);
+        } else {
+            hbound = ratio;
+        }
+        LTE.h_bound.push_back(hbound);
+    }
+
+    return LTE;
+}
+
 // New divided differences method for the LTE calculation
 single_Truncation_error single_LTE_divided_diff(const single_timestep &single_h, const std::vector<Transient> &vec_trans, const CKTcircuit &ckt){
     const auto& prev        = vec_trans.back();
@@ -202,7 +312,7 @@ bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &singl
                         double &temp_h, const TransientSimulator &trans_sim, const CKTcircuit &ckt){
     if(converged){
 
-       LTE = single_LTE_divided_diff(single_h, trans_sim.vec_trans, ckt);
+       LTE = single_LTE_ngspice(single_h, trans_sim.vec_trans, ckt);
 
        if(LTE.h_bound.empty()){
            std::cerr << "Error in single_LTE_check function: h_bound is empty!" << std::endl;
