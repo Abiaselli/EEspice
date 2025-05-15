@@ -83,7 +83,8 @@ std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_
     for (const auto &diode : ckt.CKTelements.diodes){
         Diode_assigner(diode.nodePos, diode.nodeNeg, diode.Is, diode.VT, LHS, RHS, pre_NR_solution);
     }
-
+    // LHS.print("LHS =");
+    // RHS.print("RHS =");
     return {LHS, RHS};
 }
 
@@ -189,7 +190,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
     std::pair<arma::mat, arma::vec> init_matrices;
     std::pair<arma::mat, arma::vec> matrices;
 
-    std::vector<arma::vec> NR_solutions(20);
+    std::vector<arma::vec> NR_solutions(ITL4+1);
     NR_solutions[0] = pre_global_solution;
 
     init_matrices = Dynamic(ckt, h, pre_global_solution, mode, time_trans);
@@ -214,13 +215,15 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
     while (!isconverge)
     {
-        if (NR_iteration_counter > ITL4 && mode == 1)
-        {
+        if (NR_iteration_counter >= ITL4 && mode == 1)
+        {   
+            // Transient simulation convergence failed
+            converged = false;
             NR_ITE = NR_iteration_counter;
             total_NR_iteration += NR_iteration_counter;
             return solution;
         }
-        else if (NR_iteration_counter > 99 && mode == 0)
+        else if (NR_iteration_counter >= 100 && mode == 0)
         {
             std::cerr << "Transient Simulation did not converge at the op analysis!" << std::endl;
             exit(1);
@@ -240,6 +243,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
         }
     }
 
+    converged = true;
     NR_ITE = NR_iteration_counter;
     total_NR_iteration += NR_iteration_counter;
 
