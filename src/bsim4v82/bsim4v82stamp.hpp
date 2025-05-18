@@ -473,6 +473,11 @@ BSIM4load(const CKTcircuit &ckt, const BSIM4model &model, BSIM4V82 &instance, co
                 + instance.BSIM4gdtotd * delvds + instance.BSIM4gdtotg * delvgs
                 + instance.BSIM4gdtotb * delvbs;
 
+        // NOBYPASS
+         /* Following should be one IF statement, but some C compilers 
+                * can't handle that all at once, so we split it into several
+                * successive IF's */
+        // Add NOBYPASS here...
         von = instance.BSIM4von;
         if (instance.BSIM4states0[BSIM4vds] >= 0.0)
         {   vgs = DEVfetlim(vgs, instance.BSIM4states0[BSIM4vgs], von);
