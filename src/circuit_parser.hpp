@@ -19,80 +19,98 @@
 #include "global.hpp"
 #include "map.hpp"
 #include "model_parser.hpp"
+#include "DC_calcs.hpp"
 
 struct CircuitParser
 {
     std::string filename;
-    std::vector<CircuitElement> elements;
+    CircuitElements elements;
     // Simulation tasks
     bool is_transient = false;
     bool is_dc = false;
+    bool timestep_control = true;
     // CKT parameters
-    int num_mosfets{};
     // Transient simulation parameters
     double double_t_end; // This double_t_end can be passed to the CKTcircuit class
     double double_init_h;
     // DC simulation parameters
-    std::vector<DCSweepSpec> dcSweeps;
+    DCSweepSpec dcSweep_parser;
 
     CircuitParser(const std::string &filename) : filename(filename) {}
 
-    const std::vector<CircuitElement> &getCircuitElements() const
-    {
-        return elements;
-    }
-
 };
 
-int getMaxNode(const std::vector<CircuitElement> &elements)
+int getMaxNode(const CircuitElements &elements)
 {
     int maxNode = 0;
-    for (const auto &element : elements)
+
+    auto TwoMaxNode = [&maxNode](int nodePos, int nodeNeg){
+        maxNode = std::max(maxNode, nodePos);
+        maxNode = std::max(maxNode, nodeNeg);
+    };
+    auto FourMaxNode = [&maxNode](int node1, int node2, int node3, int node4){
+        maxNode = std::max({maxNode, node1, node2, node3, node4});
+    };
+
+    for(const auto &vol : elements.voltageSources)
     {
-        std::visit([&maxNode](auto &&arg)
-                    {
-                        if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS>)
-                        {
-                            maxNode = std::max({maxNode, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb});
-                        }
-                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
-                        {
-                            maxNode = std::max({maxNode, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb});
-                        }
-                        else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, VCCS>)
-                        {
-                            maxNode = std::max({maxNode, arg.node_x, arg.node_y, arg.node_cx, arg.node_cy});
-                        }
-                        else
-                        {
-                            maxNode = std::max(maxNode, arg.nodePos);
-                            maxNode = std::max(maxNode, arg.nodeNeg);
-                        } },
-                    element.element);
+        TwoMaxNode(vol.nodePos, vol.nodeNeg);
     }
+    for(const auto &cul : elements.currentSources)
+    {
+        TwoMaxNode(cul.nodePos, cul.nodeNeg);
+    }
+    for(const auto &res : elements.resistors)
+    {
+        TwoMaxNode(res.nodePos, res.nodeNeg);
+    }
+    for(const auto &cap : elements.capacitors)
+    {
+        TwoMaxNode(cap.nodePos, cap.nodeNeg);
+    }
+    for(const auto &pulse : elements.pulseVoltages)
+    {
+        TwoMaxNode(pulse.nodePos, pulse.nodeNeg);
+    }
+    for(const auto &diode : elements.diodes)
+    {
+        TwoMaxNode(diode.nodePos, diode.nodeNeg);
+    }
+    for(const auto &nmos : elements.nmos)
+    {
+        FourMaxNode(nmos.node_vd, nmos.node_vg, nmos.node_vs, nmos.node_vb);
+    }
+    for(const auto &pmos : elements.pmos)
+    {
+        FourMaxNode(pmos.node_vd, pmos.node_vg, pmos.node_vs, pmos.node_vb);
+    }
+    for(const auto &vccs : elements.vccs)
+    {
+        FourMaxNode(vccs.node_x, vccs.node_y, vccs.node_cx, vccs.node_cy);
+    }
+
     return maxNode;
 }
 
-int getInternalMosfetNodes(const std::vector<CircuitElement> &elements)
+int getInternalMosfetNodes(const CircuitElements &elements)
 {
     int internal_nodes = 0;
-    for (const auto &element : elements)
+
+    for (const auto &nmos : elements.nmos)
     {
-        std::visit([&internal_nodes](auto &&arg)
-                    {
-                        if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS> || 
-                                    std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
-                        {
-                           if(arg.modelType == MosfetModelType::LEVEL1){
-                                internal_nodes += 3;
-                           }
-                        // Add more cases for different model types if needed...
-                        //    else if(arg.modelType == MosfetModelType::BSIM4V82){
-                                
-                        //    }
-                        }},
-                    element.element);
+        if (nmos.modelType == MosfetModelType::LEVEL1)
+        {
+            internal_nodes += 3; // For LEVEL1 model
+        }
     }
+    for (const auto &pmos : elements.pmos)
+    {
+        if (pmos.modelType == MosfetModelType::LEVEL1)
+        {
+            internal_nodes += 3; // For LEVEL1 model
+        }
+    }
+    // Add more cases for different model types if needed...
     return internal_nodes;
 }
 
@@ -210,7 +228,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
             pv.pw = convertToValue(pw);
             pv.per = convertToValue(per);
 
-            parser.elements.push_back(CircuitElement{pv});
+            parser.elements.pulseVoltages.emplace_back(pv);
         }
         else
         {
@@ -222,43 +240,10 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
             vs.nodePos = convertToNode(v_nodePos_str, cktmap.map_nodes);
             vs.nodeNeg = convertToNode(v_nodeNeg_str, cktmap.map_nodes);
 
-            // Parse bracket [start:step:end]
-            if(v_type.front() == '[' && v_type.back() == ']')
-            {   
-                v_type.erase(0, 1);  // remove the first bracket [
-                v_type.pop_back();   // remove the last bracket ]
-                // Now split on ':'
-                std::vector<std::string> parts;
-                {
-                    std::stringstream ss(v_type);
-                    std::string piece;
-                    while (std::getline(ss, piece, ':')) {
-                        parts.push_back(piece);
-                    }
-                }
-                if (parts.size() == 3) {
-                    vs.hasBracket = true;
-                    vs.bracketStart = convertToValue(parts[0]);
-                    vs.bracketStep  = convertToValue(parts[1]);
-                    vs.bracketEnd   = convertToValue(parts[2]);
-                    
-                    // Also store a DCSweepSpec in parser's vector
-                    DCSweepSpec spec;
-                    spec.sourceName = id_str; // e.g. "Vg"
-                    spec.vstart = vs.bracketStart;
-                    spec.vend   =  vs.bracketEnd;
-                    spec.vstep  = vs.bracketStep;
-                    parser.dcSweeps.push_back(spec);
-                } else {
-                    std::cerr << "Error parsing bracket in voltage source: " << line << std::endl;
-                }
-
-            }
             // Normal DC voltage source
-            else{
-                vs.value = convertToValue(v_type);
-            }
-            parser.elements.push_back(CircuitElement{vs});
+            vs.value = convertToValue(v_type);
+
+            parser.elements.voltageSources.emplace_back(vs);
         }
     }
     else if (type[0] == 'R' || type[0] == 'r')
@@ -274,7 +259,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         r.nodeNeg = convertToNode(r.nodeNeg_str, cktmap.map_nodes);
         r.value = convertToValue(valueStr);
 
-        parser.elements.push_back(CircuitElement{r});
+        parser.elements.resistors.emplace_back(r);
     }
     else if (type[0] == 'C' || type[0] == 'c')
     {
@@ -288,7 +273,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         c.nodeNeg = convertToNode(c.nodeNeg_str, cktmap.map_nodes);
         c.value = convertToValue(valueStr);
 
-        parser.elements.push_back(CircuitElement{c});
+        parser.elements.capacitors.emplace_back(c);
     }
     else if (type[0] == 'I' || type[0] == 'i')
     {
@@ -300,43 +285,11 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
         cs.nodePos = convertToNode(cs.nodePos_str, cktmap.map_nodes);
         cs.nodeNeg = convertToNode(cs.nodeNeg_str, cktmap.map_nodes);
-        // Parse bracket [start:step:end]
-        if(valueStr.front() == '[' && valueStr.back() == ']')
-        {   
-            valueStr.erase(0, 1);  // remove the first bracket [
-            valueStr.pop_back();   // remove the last bracket ]
-            // Now split on ':'
-            std::vector<std::string> parts;
-            {
-                std::stringstream ss(valueStr);
-                std::string piece;
-                while (std::getline(ss, piece, ':')) {
-                    parts.push_back(piece);
-                }
-            }
-            if (parts.size() == 3) {
-                cs.hasBracket = true;
-                cs.bracketStart = convertToValue(parts[0]);
-                cs.bracketStep  = convertToValue(parts[1]);
-                cs.bracketEnd   = convertToValue(parts[2]);
-                
-                // Also store a DCSweepSpec in parser's vector
-                DCSweepSpec spec;
-                spec.sourceName = id_str; 
-                spec.vstart = cs.bracketStart;
-                spec.vend   = cs.bracketEnd;
-                spec.vstep  = cs.bracketStep;
-                parser.dcSweeps.push_back(spec);
-            } else {
-                std::cerr << "Error parsing bracket in current source: " << line << std::endl;
-            }
-
-        }
+        
         // Normal Current source
-        else{
-            cs.value = convertToValue(valueStr);
-        }
-        parser.elements.push_back(CircuitElement{cs});
+        cs.value = convertToValue(valueStr);
+        
+        parser.elements.currentSources.emplace_back(cs);
     }
     else if (type[0] == 'D' || type[0] == 'd')
     {
@@ -353,7 +306,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         iss >> valueStr;
         d.VT = convertToValue(valueStr);
 
-        parser.elements.push_back(CircuitElement{d});
+        parser.elements.diodes.emplace_back(d);
     }
     else if (type[0] == 'G' || type[0] == 'g')
     {
@@ -369,7 +322,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         g.node_cy = convertToNode(g.node_cy_str, cktmap.map_nodes);
         g.value = convertToValue(valueStr);
 
-        parser.elements.push_back(CircuitElement{g});
+        parser.elements.vccs.emplace_back(g);
     }
 
     else if (type[0] == 'M' || type[0] == 'm')
@@ -379,8 +332,6 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
         std::string M_node_vd_str, M_node_vg_str, M_node_vs_str, M_node_vb_str;
         std::string M_modelName, parameter;
-
-        parser.num_mosfets = parser.num_mosfets + 1;
 
         iss >> M_node_vd_str >> M_node_vg_str >> M_node_vs_str >> M_node_vb_str >> M_modelName;
 
@@ -430,7 +381,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 }
             }
 
-            parser.elements.push_back(CircuitElement{mn});
+            parser.elements.nmos.emplace_back(mn);
         }
         // Level 1 PMOS
         else if (iter_pmos != modmap.pmosModels.end())
@@ -473,7 +424,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 }
             }
 
-            parser.elements.push_back((CircuitElement{mp}));
+            parser.elements.pmos.emplace_back(mp);
         }
         // BSIM4v82
         else if (iter_bsim4 != modmap.bsim4Models.end())
@@ -518,7 +469,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 // Setup modelType
                 mn.modelType = MosfetModelType::BSIM4V82;
                 mn.bsim4v82Instance = bsim4::paserBSIM4instance(id_str, iter_bsim4->second, mn.node_vd, mn.node_vg, mn.node_vs, mn.node_vb, mn.W, mn.L);
-                parser.elements.push_back(CircuitElement{mn});
+                parser.elements.nmos.emplace_back(mn);
             }
             // Create a new PMOS instance
             else if (iter_bsim4->second->BSIM4type == bsim4::BSIM4_PMOS){
@@ -560,7 +511,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 // Paser modelType
                 mp.modelType = MosfetModelType::BSIM4V82;
                 mp.bsim4v82Instance = bsim4::paserBSIM4instance(id_str, iter_bsim4->second, mp.node_vd, mp.node_vg, mp.node_vs, mp.node_vb, mp.W, mp.L);
-                parser.elements.push_back((CircuitElement{mp}));
+                parser.elements.pmos.emplace_back(mp);
             }
             else{
                 std::cerr << "Error: Unknown BSIM4 model type for: " << M_modelName << std::endl;
@@ -593,7 +544,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         spec.vstart = convertToValue(vstart);
         spec.vend   = convertToValue(vend);
         spec.vstep  = convertToValue(vincr);
-        parser.dcSweeps.push_back(spec);
+        parser.dcSweep_parser = spec;
 
         parser.is_dc = true;
     }

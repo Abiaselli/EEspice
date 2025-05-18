@@ -1,8 +1,37 @@
 #pragma once
 #include <iostream>
 #include "DC_calcs.hpp"
+#include "circuit_parser.hpp"
 
 namespace dc{
+
+DCSimulator DCsetup(CircuitParser &parser, const CKTcircuit &ckt){
+    DCSimulator dcSim;
+
+    // Check if the DC simulation is non-linear
+    if(!ckt.CKTelements.nmos.empty() || !ckt.CKTelements.pmos.empty() || !ckt.CKTelements.diodes.empty()){
+        dcSim.non_linear = true;
+    }
+    else{
+        dcSim.non_linear = false;
+    }
+
+    // Setup DC sweeps
+    dcSim.dcsweep = std::move(parser.dcSweep_parser);
+
+    // setup DC voltage points
+    double vol = dcSim.dcsweep.vstart;
+    while(vol <= dcSim.dcsweep.vend){
+        dcSim.dcsweep.sweep_values.push_back(vol);
+        vol += dcSim.dcsweep.vstep;
+    }
+
+    if(dcSim.dcsweep.vend - dcSim.dcsweep.sweep_values.back() > LargeEpsilon){  //1e-6
+        dcSim.dcsweep.sweep_values.push_back(dcSim.dcsweep.vend);
+    }
+
+    return dcSim;
+}
 
 void DeviceEvaluation(DC &dc, CKTcircuit &ckt, const DCSimulator &dcSim){
     // Modify matrixes for DC sweep
@@ -12,31 +41,21 @@ void DeviceEvaluation(DC &dc, CKTcircuit &ckt, const DCSimulator &dcSim){
     dc.RHS = ckt.cktdematrix->get_init_RHS();
     dc.solution = arma::vec(ckt.cktdematrix->RHS.n_rows, arma::fill::none);
 
-    for(size_t i = 0; i < dcSim.sweeps.size(); ++i){
-        bool found = false;
-        // find the device by name:
-        for(const auto &element : ckt.CKTelements){
-            std::visit([&](auto &&arg){
-                if(arg.id_str == dcSim.sweeps[i].sourceName){
-                    found = true;
-                    if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, VoltageSource>){
-                        dc.RHS(ckt.T_nodes + arg.id - 1, 0) = dc.sweepValues[i]; // Index is starting from 0
-                        found = true;
-                    }
-                    else if constexpr(std::is_same_v<std::decay_t<decltype(arg)>, CurrentSource>){
-                       Is_assigner_reverse(arg.nodePos, arg.nodeNeg, arg.value, dc.RHS);
-                       Is_assigner(arg.nodePos, arg.nodeNeg, dc.sweepValues[i], dc.RHS);
-                       found = true;
-                    }
-                    else{
-                        std::cerr << "Error: DC sweep is not supported for this device: " << arg.id_str << std::endl;
-                        exit(1);
-                    }
-                }
-            }, element.element);
-            if (found) break;
+    for (const auto &vol : ckt.CKTelements.voltageSources){
+        if(vol.id_str == dcSim.dcsweep.sourceName){
+            dc.RHS(ckt.T_nodes + vol.id - 1, 0) = dc.sweepValue; // Index is starting from 0
+            return;
         }
     }
+    for (const auto &cs : ckt.CKTelements.currentSources){
+        if(cs.id_str == dcSim.dcsweep.sourceName){
+            Is_assigner_reverse(cs.nodePos, cs.nodeNeg, cs.value, dc.RHS);
+            Is_assigner(cs.nodePos, cs.nodeNeg, dc.sweepValue, dc.RHS);
+            return;
+        }
+    }
+    std::cerr << "Error: DC sweep is not supported for this device: " << dcSim.dcsweep.sourceName << std::endl;
+    exit(1);
 }
 
 arma::vec DC_analysis_once(CKTcircuit &ckt, const DCSimulator &dcSim, DC &dc, const Modelmap &modmap)
@@ -60,48 +79,21 @@ arma::vec DC_analysis_once(CKTcircuit &ckt, const DCSimulator &dcSim, DC &dc, co
 std::vector<DC> DC_ops(CKTcircuit &ckt, DCSimulator &dcSim, const Modelmap &modmap)
 {
     
-    if(dcSim.sweeps.size() == 1){
-        // single sweep loop (only one device)
-        const auto &sweepVals = dcSim.sweeps[0].sweep_values;
-        const auto &sweepName = dcSim.sweeps[0].sourceName;
-        for (double val : sweepVals) {
-            DC dc;
-            // store that single sweep value and name
-            dc.sweepValues.push_back(val);
-            dc.sweepNames.push_back(sweepName);
 
-            // Run one DC analysis
-            dc.solution = DC_analysis_once(ckt, dcSim, dc, modmap);
+    // single sweep loop (only one device)
+    const auto &sweepVals = dcSim.dcsweep.sweep_values;
+    const auto &sweepName = dcSim.dcsweep.sourceName;
+    for (double val : sweepVals) {
+        DC dc;
+        // store that single sweep value and name
+        dc.sweepValue = val;
+        dc.sweepName = sweepName;
 
-            // Push the result
-            dcSim.vec_dc.push_back(dc);
-        }
-    }
-    else if(dcSim.sweeps.size() == 2) {
-        // double sweep loop (two devices)
-        const auto &sweepA = dcSim.sweeps[0].sweep_values;
-        const auto &sweepB = dcSim.sweeps[1].sweep_values;
-        const auto &nameA      = dcSim.sweeps[0].sourceName;
-        const auto &nameB      = dcSim.sweeps[1].sourceName;
+        // Run one DC analysis
+        dc.solution = DC_analysis_once(ckt, dcSim, dc, modmap);
 
-        // Nested loops over both sweep arrays
-        for (double valA : sweepA) {
-            for (double valB : sweepB) {
-                DC dc;
-
-                dc.sweepValues = {valA, valB};
-                dc.sweepNames  = {nameA, nameB};
-
-                // Run one DC analysis
-                dc.solution = DC_analysis_once(ckt, dcSim, dc, modmap);
-
-                dcSim.vec_dc.push_back(dc);
-            }
-        }
-    }
-    else{
-        std::cerr << "Error: DC sweep is not supported for more than 2 devices" << std::endl;
-        exit(1);
+        // Push the result
+        dcSim.vec_dc.emplace_back(dc);
     }
 
     return  dcSim.vec_dc;

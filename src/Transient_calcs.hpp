@@ -45,7 +45,12 @@ struct TransientConfig {
     double h_MIN{};
     bool timestep_control;          // true for variable time step, false for fixed time step
     bool non_linear;                // true for non-linear solver, false for linear solver
-    std::vector<Capacitor> C_list;  // Initial list of capacitors
+};
+
+struct CapacitanceState
+{
+    std::vector<double> CapCharge;
+    std::vector<double> CapCurrent;
 };
 
 struct Transient
@@ -58,32 +63,8 @@ struct Transient
     arma::vec solution;
     arma::mat LHS;
     arma::vec RHS;
-    arma::vec C_current;
-    arma::vec C_voltage;
-    arma::vec C_charge;
-    arma::vec Capacitance;
+    CapacitanceState CapState; // Capacitance state (including cap, bsim4, etc.)
 
-    std::vector<Capacitor> C_list;
-
-    void C_list_update()
-    {
-        for (size_t i = 0; i < C_list.size(); i++)
-        {
-            C_list.at(i).current = C_current(i, 0);
-            C_list.at(i).voltage = C_voltage(i, 0);
-            C_list.at(i).charge = C_list.at(i).value * C_list.at(i).voltage;
-            C_list.at(i).value = Capacitance(i, 0);
-        }
-    }
-
-    void get_capacitance()
-    {
-        Capacitance = arma::zeros(C_list.size(), 1);
-        for (size_t i = 0; i < C_list.size(); i++)
-        {
-            Capacitance(i, 0) = C_list.at(i).value;
-        }
-    }
 };
 
 struct Truncation_error
@@ -122,35 +103,36 @@ TransientSimulator Transsetup(const CircuitParser &parser, const CKTcircuit &ckt
     TransientConfig config;
     config.t_end = parser.double_t_end;
 
-    if (ckt.pulse_num > 0 && (ckt.C_list.size() > 0))
+    // Only closed when the user turns off step control or there are no dynamic elements
+    if(parser.timestep_control == false || ckt.num_of_states == 0){
+        config.h_MAX = 1e-9;
+        config.init_h = config.h_MAX;
+        config.timestep_control = false; // Turn off the time step control
+    }
+    // Turn on the time step control
+    else if (ckt.pulse_num > 0)
     {
-        for (const auto &element : ckt.CKTelements)
+        for (const auto &pulse : ckt.CKTelements.pulseVoltages)
         {
-            std::visit([&](auto &&arg)
-                       {
-                           if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Pulsevoltage>)
-                           {
+            double step = std::min(pulse.tr, pulse.tf);
+            config.h_MAX = parser.double_init_h; // 5 is rmax in spice opus
+            // trans.h_MIN = std::max(1e-9 * parser.double_init_h, 1e-14);    // 1e-9 is rmin in spice opus
+            config.h_MIN = 1e-14;
 
-                               double step = std::min(arg.tr, arg.tf);
-                               config.h_MAX = parser.double_init_h; // 5 is rmax in spice opus
-                               // trans.h_MIN = std::max(1e-9 * parser.double_init_h, 1e-14);    // 1e-9 is rmin in spice opus
-                               config.h_MIN = 1e-14;
-
-                               if (arg.td == 0)
-                               {
-                                   config.init_h = parser.double_init_h / 100; // initial time step, fs = 0.25 from spice opus
-                               }
-                               else
-                               {
-                                   config.init_h = std::min(arg.td * 0.25, parser.double_init_h * 0.25);
-                               }
-                           } },
-                       element.element);
+            if (pulse.td == 0)
+            {
+                // config.init_h = parser.double_init_h / 100; // initial time step, fs = 0.25 from spice opus
+                config.init_h = std::min(parser.double_init_h, parser.double_t_end / 100) / 100; // delta=MIN(ckt->CKTfinalTime/100,ckt->CKTstep)/10; from ngspice
+            }
+            else
+            {
+                config.init_h = std::min(pulse.td * 0.25, parser.double_init_h * 0.25);
+            }
         }
 
         config.timestep_control = true;  // Turn on the time step control
     }
-    else if (ckt.no_of_mosfets > 0)
+    else
     {
         config.init_h = parser.double_init_h / 100; // initial time step
         config.h_MAX = parser.double_init_h;        // maximum time step
@@ -158,32 +140,17 @@ TransientSimulator Transsetup(const CircuitParser &parser, const CKTcircuit &ckt
         config.h_MIN = 1e-14;
         config.timestep_control = true;  // Turn on the time step control
     }
-    else
-    {
-        // trans.h_MAX = trans.t_end / 5000;
-        config.h_MAX = 1e-9;
-        config.init_h = config.h_MAX;
-        config.timestep_control = false; // Turn off the time step control
-    }
+
 
     // Check if the transient simulation is non-linear
-    for (const auto &element : ckt.CKTelements)
-    {
-        std::visit([&](auto &&arg)
-                   {
-                       if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS> || 
-                                     std::is_same_v<std::decay_t<decltype(arg)>, PMOS> || 
-                                     std::is_same_v<std::decay_t<decltype(arg)>, Diode>)
-                       {
-                           config.non_linear = true;
-                       } },
-                   element.element);
-
-        if(config.non_linear == true) break;
+    if(!ckt.CKTelements.nmos.empty() || !ckt.CKTelements.pmos.empty() || !ckt.CKTelements.diodes.empty()){
+        config.non_linear = true;
+    }
+    else{
+        config.non_linear = false;
     }
 
     // Setup the initial capacitance list
-    config.C_list = ckt.C_list;
     TransientSimulator trans_sim(config);
 
     return trans_sim;
@@ -200,35 +167,28 @@ std::deque<double> get_breakpoints(const CKTcircuit &ckt, const TransientSimulat
 
     std::deque<double> breakpoints;
 
-    if (ckt.pulse_num == 0)
+    if (ckt.CKTelements.pulseVoltages.empty())
     {
         return breakpoints;
     }
 
-    for (const auto &element : ckt.CKTelements)
-    {
-        std::visit([&](auto &&arg)
-                   {
-            if constexpr(std::is_same_v<std::decay_t<decltype(arg)>, Pulsevoltage>){
-                
-                for(double cycle_start = 0; cycle_start < trans_sim.trans_config.t_end; cycle_start += arg.per){
+    for (const auto &pulse : ckt.CKTelements.pulseVoltages){
+        for(double cycle_start = 0; cycle_start < trans_sim.trans_config.t_end; cycle_start += pulse.per){
 
-                    double cycle_times[] = {
-                        arg.td+cycle_start, 
-                        arg.td+arg.tr+cycle_start, 
-                        arg.td+arg.tr+arg.pw+cycle_start, 
-                        arg.td+arg.tr+arg.pw+arg.tf+cycle_start
-                    };
+            double cycle_times[] = {
+                pulse.td + cycle_start, 
+                pulse.td + pulse.tr + cycle_start, 
+                pulse.td + pulse.tr + pulse.pw + cycle_start, 
+                pulse.td + pulse.tr + pulse.pw + pulse.tf + cycle_start
+            };
 
-                    for(double t : cycle_times){
-                        if(t <= trans_sim.trans_config.t_end){
-                            breakpoints.push_back(t);
-                        }
-                    }
-                    
+            for(double t : cycle_times){
+                if(t <= trans_sim.trans_config.t_end){
+                    breakpoints.push_back(t);
                 }
-
-            } }, element.element);
+            }
+            
+        }
     }
 
     std::sort(breakpoints.begin(), breakpoints.end());
@@ -263,64 +223,64 @@ std::deque<double> get_breakpoints(const CKTcircuit &ckt, const TransientSimulat
 
 // Assigning the stamp matrices for dynamic and non-linear components and update the LHS and RHS matrices
 
-std::pair<arma::vec, arma::vec> get_currents_voltages(const std::vector<Capacitor> &pre_C_list, const double h, const arma::vec &solution, const arma::vec &pre_solution)
-{
+// std::pair<arma::vec, arma::vec> get_currents_voltages(const std::vector<Capacitor> &pre_C_list, const double h, const arma::vec &solution, const arma::vec &pre_solution)
+// {
 
-    // h/C * i = u(k+1) - u(k)
+//     // h/C * i = u(k+1) - u(k)
 
-    int G_rows = pre_C_list.size();
-    int G_cols = G_rows;
-    double vol{}, pre_vol{}, delta_vol{}; // Delta voltage across the capacitor u(k+1) - u(k)
+//     int G_rows = pre_C_list.size();
+//     int G_cols = G_rows;
+//     double vol{}, pre_vol{}, delta_vol{}; // Delta voltage across the capacitor u(k+1) - u(k)
 
-    arma::vec current_matrix = arma::zeros(G_rows, 1); // Currents matrix
-    arma::vec delta_v = arma::zeros(G_rows, 1);        // Delta voltage matrix
-    arma::vec G_vec(pre_C_list.size());                // Initialize arma::vec with the size of C_list
-    arma::vec volt = arma::zeros(G_rows, 1);
+//     arma::vec current_matrix = arma::zeros(G_rows, 1); // Currents matrix
+//     arma::vec delta_v = arma::zeros(G_rows, 1);        // Delta voltage matrix
+//     arma::vec G_vec(pre_C_list.size());                // Initialize arma::vec with the size of C_list
+//     arma::vec volt = arma::zeros(G_rows, 1);
 
-    for (size_t i = 0; i < pre_C_list.size(); ++i)
-    {
+//     for (size_t i = 0; i < pre_C_list.size(); ++i)
+//     {
 
-        G_vec(i) = h / pre_C_list.at(i).value;
+//         G_vec(i) = h / pre_C_list.at(i).value;
 
-        if (pre_C_list.at(i).nodePos == 0)
-        {
+//         if (pre_C_list.at(i).nodePos == 0)
+//         {
 
-            vol = solution(pre_C_list.at(i).nodeNeg - 1, 0);
-            pre_vol = pre_solution(pre_C_list.at(i).nodeNeg - 1, 0);
-            delta_vol = vol - pre_vol; // u(k+1) - u(k)
-        }
-        else if (pre_C_list.at(i).nodeNeg == 0)
-        {
+//             vol = solution(pre_C_list.at(i).nodeNeg - 1, 0);
+//             pre_vol = pre_solution(pre_C_list.at(i).nodeNeg - 1, 0);
+//             delta_vol = vol - pre_vol; // u(k+1) - u(k)
+//         }
+//         else if (pre_C_list.at(i).nodeNeg == 0)
+//         {
 
-            vol = solution(pre_C_list.at(i).nodePos - 1, 0);
-            pre_vol = pre_solution(pre_C_list.at(i).nodePos - 1, 0);
-            delta_vol = vol - pre_vol; // u(k+1) - u(k)
-        }
-        else
-        {
+//             vol = solution(pre_C_list.at(i).nodePos - 1, 0);
+//             pre_vol = pre_solution(pre_C_list.at(i).nodePos - 1, 0);
+//             delta_vol = vol - pre_vol; // u(k+1) - u(k)
+//         }
+//         else
+//         {
 
-            vol = solution(pre_C_list.at(i).nodePos - 1, 0) - solution(pre_C_list.at(i).nodeNeg - 1, 0);
-            pre_vol = pre_solution(pre_C_list.at(i).nodePos - 1, 0) - pre_solution(pre_C_list.at(i).nodeNeg - 1, 0);
-            delta_vol = vol - pre_vol; // u(k+1) - u(k)
-        }
+//             vol = solution(pre_C_list.at(i).nodePos - 1, 0) - solution(pre_C_list.at(i).nodeNeg - 1, 0);
+//             pre_vol = pre_solution(pre_C_list.at(i).nodePos - 1, 0) - pre_solution(pre_C_list.at(i).nodeNeg - 1, 0);
+//             delta_vol = vol - pre_vol; // u(k+1) - u(k)
+//         }
 
-        delta_v(i, 0) = delta_vol; // It may be negative!
-        volt(i, 0) = vol;
-        // std::cout << "c: " << pre_C_list.at(i).value << std::endl;
-        // std::cout << "C/h: " << pre_C_list.at(i).value/h << std::endl;
-        // std::cout << "delta_vol: " << delta_vol << std::endl;
-        // std::cout << "C/h * delta_vol" << pre_C_list.at(i).value/h * delta_vol << std::endl;
-    }
+//         delta_v(i, 0) = delta_vol; // It may be negative!
+//         volt(i, 0) = vol;
+//         // std::cout << "c: " << pre_C_list.at(i).value << std::endl;
+//         // std::cout << "C/h: " << pre_C_list.at(i).value/h << std::endl;
+//         // std::cout << "delta_vol: " << delta_vol << std::endl;
+//         // std::cout << "C/h * delta_vol" << pre_C_list.at(i).value/h * delta_vol << std::endl;
+//     }
 
-    arma::mat G_matrix = arma::diagmat(G_vec); // Diagonal matrix
+//     arma::mat G_matrix = arma::diagmat(G_vec); // Diagonal matrix
 
-    // G_matrix.print("G_matrix =");
-    // delta_v.print("delta_v =");
+//     // G_matrix.print("G_matrix =");
+//     // delta_v.print("delta_v =");
 
-    current_matrix = arma::solve(G_matrix, delta_v, arma::solve_opts::fast);
+//     current_matrix = arma::solve(G_matrix, delta_v, arma::solve_opts::fast);
 
-    return {current_matrix, volt};
-}
+//     return {current_matrix, volt};
+// }
 
 // Function to control debug mode
 double cond(double R)

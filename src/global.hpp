@@ -8,17 +8,7 @@
 #include "bsim4v82/bsim4v82.hpp"
 
 // Forward declarations
-struct VoltageSource;
-struct Pulsevoltage;
-struct Diode;
-struct VCCS;
-struct NMOS;
-struct PMOS;
-struct CurrentSource;
-struct Resistor;
-struct Capacitor;
-struct CircuitElement;
-struct DCSweepSpec;
+
 
 struct VoltageSource
 {   
@@ -143,19 +133,21 @@ struct Capacitor
 
 //////////////////////////////////////////////////////////////////////////////////
 
-struct CircuitElement
-{
-    std::variant<VoltageSource, CurrentSource, Resistor, Capacitor, Pulsevoltage, Diode, NMOS, PMOS, VCCS> element;
+// Store circuit elements in separate vectors by type
+struct CircuitElements
+{   
+    // std::variant<VoltageSource, CurrentSource, Resistor, Capacitor, Pulsevoltage, Diode, NMOS, PMOS, VCCS> element;
+    std::vector<VoltageSource> voltageSources;
+    std::vector<CurrentSource> currentSources;
+    std::vector<Resistor> resistors;
+    std::vector<Capacitor> capacitors;
+    std::vector<Pulsevoltage> pulseVoltages;
+    std::vector<Diode> diodes;
+    std::vector<NMOS> nmos;
+    std::vector<PMOS> pmos;
+    std::vector<VCCS> vccs;
 };
 
-struct DCSweepSpec {
-    // Using in the parser
-    std::string sourceName;
-    double vstart{};
-    double vend{};
-    double vstep{};
-    std::vector<double> sweep_values;   // All sweep values from vstart to vend
-};
 
 double convertToValue(const std::string &valueStr)
 {

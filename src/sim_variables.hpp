@@ -5,7 +5,9 @@
 
 // Global variables
 /* Upper transient iteration limit for iteration count in time-step control algorithm*/
-constexpr int ITL4 = 10;
+/* some convergence issues that get resolved by increasing max iter */
+constexpr int ITL4 = 100;
+bool converged = false;
 
 /* Scale factor for predicting*/
 constexpr double TRTOL = 7.0;
@@ -93,6 +95,10 @@ constexpr double CONSTvt0 = CONSTboltz * REFTEMP / CHARGE;
 constexpr double CONSTKoverQ = CONSTboltz / CHARGE;
 constexpr double CONSTe = CONSTnap;
 
+// Integration method
+constexpr int BACKWARD_EULER = 0;
+constexpr int TRAPEZOIDAL = 1;
+constexpr int GEAR = 2;
 
 
 

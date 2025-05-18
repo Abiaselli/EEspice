@@ -108,14 +108,11 @@ void save_csv_dc(const CKTcircuit &ckt, const std::vector<DC> &vec_dc, const Cir
         return;
     }
 
-    // We know each DC struct has DC::sweepValues (size = 1 or 2).
-    int numSweeps = static_cast<int>(vec_dc.front().sweepValues.size());
-
     // 2) Write the header
-    for (int i = 0; i < numSweeps; ++i) {
-        file << "Sweep(" << vec_dc.front().sweepNames[i] << ")";
-        file << ", ";
-    }
+    // Single sweep (as per the DC struct implementation)
+    file << "Sweep(" << vec_dc.front().sweepName << ")";
+    file << ", ";
+    
     for (int j = 1; j <= ckt.external_nodes; ++j)
     {
         file << "Voltage " << nodeIndexToName[j] << ", ";
@@ -129,11 +126,10 @@ void save_csv_dc(const CKTcircuit &ckt, const std::vector<DC> &vec_dc, const Cir
 
     // 3) Write the data rows
     for (const auto &dc : vec_dc) {
-        // a) Print each sweep value
-        for (int i = 0; i < numSweeps; ++i) {
-            file << dc.sweepValues[i];
-            file << ", ";
-        }
+        // a) Print the sweep value
+        file << dc.sweepValue;
+        file << ", ";
+        
         // b) Print node voltages
         for (size_t j = 0; j < ckt.external_nodes; ++j)
         {

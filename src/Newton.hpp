@@ -28,28 +28,21 @@ std::pair<arma::mat, arma::vec> Dynamic(const CKTcircuit &ckt, const double h, c
     arma::mat LHS = ckt.cktdematrix->get_init_LHS();
     arma::vec RHS = ckt.cktdematrix->get_init_RHS();
 
-    for (const auto &element : ckt.CKTelements)
+    for (const auto &cap : ckt.CKTelements.capacitors)
+    {   
+        // Linear Capacitor
+        C_assigner_BE(cap.nodePos, cap.nodeNeg, cap.value, h, LHS, RHS, pre_global_solution, mode);
+    }
+    for (const auto &pulse : ckt.CKTelements.pulseVoltages)
     {
-        std::visit([&](auto &&arg)
-                   {
-                       if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Capacitor>)
-                       {
-                           // Linear Capacitor
-                           C_assigner_BE(arg.nodePos, arg.nodeNeg, arg.value, h, LHS, RHS, pre_global_solution, mode);
-                        }
-                       else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Pulsevoltage>)
-                       {
-                            double val_pulse = V_pulse_value(arg.V1, arg.V2, time_trans, arg.td, arg.tr, arg.tf, arg.pw, arg.per);
-
-                            RHS.row(arg.RHS_locate - 1).col(0) += val_pulse;
-                        }},
-                    element.element);
+        double val_pulse = V_pulse_value(pulse.V1, pulse.V2, time_trans, pulse.td, pulse.tr, pulse.tf, pulse.pw, pulse.per);
+        RHS.row(pulse.RHS_locate - 1).col(0) += val_pulse;
     }
     return {LHS, RHS};
 }
 
 std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
-    const std::pair<arma::mat, arma::vec> &matrixes, const Modelmap &modmap)
+    const std::pair<arma::mat, arma::vec> &matrixes, const Modelmap &modmap, double h)
 {
 
     arma::mat LHS = matrixes.first;
@@ -57,49 +50,41 @@ std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_
     // LHS.print("in_LHS matrix =");
     // RHS.print("RHS matrix =");
 
-    for (auto &element : ckt.CKTelements)
-    {
-        std::visit([&](auto &&arg)
-                   {
-                       if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, NMOS>)
-                       {    
-                            if (arg.modelType == MosfetModelType::LEVEL1){
-                                const NMOSModel nmosModel = modmap.nmosModels.at(arg.modelName);
-                                NMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, nmosModel);
-                            }
-                            else if (arg.modelType == MosfetModelType::BSIM4V82){
-                                const bsim4::BSIM4model &b4model = *arg.bsim4v82Instance.BSIM4modPtr;
-                                bsim4::BSIM4V82 &b4instance = arg.bsim4v82Instance;
-                                bsim4::BSIM4load(b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, LHS, RHS);
-                            }
-                            else{
-                                std::cerr << "Error: NMOS model type is not supported!" << std::endl;
-                                exit(1);
-                            }
-                       }
-                       else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, Diode>)
-                       {
-                            Diode_assigner(arg.nodePos, arg.nodeNeg, arg.Is, arg.VT, LHS, RHS, pre_NR_solution);
-                       }
-                       else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, PMOS>)
-                       {    
-                            if (arg.modelType == MosfetModelType::LEVEL1){
-                                const PMOSModel pmosModel = modmap.pmosModels.at(arg.modelName);
-                                PMOS_assigner(arg.id, arg.node_vd, arg.node_vg, arg.node_vs, arg.node_vb, arg.W, arg.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, pmosModel);
-                            }
-                            else if (arg.modelType == MosfetModelType::BSIM4V82){
-                                const bsim4::BSIM4model &b4model = *arg.bsim4v82Instance.BSIM4modPtr;
-                                bsim4::BSIM4V82 &b4instance = arg.bsim4v82Instance;
-                                bsim4::BSIM4load(b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, LHS, RHS);
-                            }
-                            else{
-                                std::cerr << "Error: PMOS model type is not supported!" << std::endl;
-                                exit(1);
-                            }                          
-                       } },
-                   element.element);
+    for (auto &nmos : ckt.CKTelements.nmos){
+        if (nmos.modelType == MosfetModelType::LEVEL1){
+            const NMOSModel nmosModel = modmap.nmosModels.at(nmos.modelName);
+            NMOS_assigner(nmos.id, nmos.node_vd, nmos.node_vg, nmos.node_vs, nmos.node_vb, nmos.W, nmos.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, nmosModel);
+        }
+        else if (nmos.modelType == MosfetModelType::BSIM4V82){
+            const bsim4::BSIM4model &b4model = *nmos.bsim4v82Instance.BSIM4modPtr;
+            bsim4::BSIM4V82 &b4instance = nmos.bsim4v82Instance;
+            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, h, LHS, RHS);
+        }
+        else{
+            std::cerr << "Error: NMOS model type is not supported!" << std::endl;
+            exit(1);
+        }
     }
-
+    for (auto &pmos : ckt.CKTelements.pmos){
+        if (pmos.modelType == MosfetModelType::LEVEL1){
+            const PMOSModel pmosModel = modmap.pmosModels.at(pmos.modelName);
+            PMOS_assigner(pmos.id, pmos.node_vd, pmos.node_vg, pmos.node_vs, pmos.node_vb, pmos.W, pmos.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, pmosModel);
+        }
+        else if (pmos.modelType == MosfetModelType::BSIM4V82){
+            const bsim4::BSIM4model &b4model = *pmos.bsim4v82Instance.BSIM4modPtr;
+            bsim4::BSIM4V82 &b4instance = pmos.bsim4v82Instance;
+            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, h, LHS, RHS);
+        }
+        else{
+            std::cerr << "Error: PMOS model type is not supported!" << std::endl;
+            exit(1);
+        }
+    }
+    for (const auto &diode : ckt.CKTelements.diodes){
+        Diode_assigner(diode.nodePos, diode.nodeNeg, diode.Is, diode.VT, LHS, RHS, pre_NR_solution);
+    }
+    // LHS.print("LHS =");
+    // RHS.print("RHS =");
     return {LHS, RHS};
 }
 
@@ -197,7 +182,7 @@ bool isConverge(const std::vector<arma::vec> &NR_solutions, const CKTcircuit &ck
 // Transient Simulation
 // Newton Raphson system solver for non-linear and dynamic elements
 arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode, const double time_trans, 
-    std::vector<Capacitor> &C_list, const arma::vec &pre_global_solution, const Modelmap &modmap)
+    const arma::vec &pre_global_solution, const Modelmap &modmap)
 {
     int NR_iteration_counter = 0;
     bool isconverge = false;
@@ -205,14 +190,14 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
     std::pair<arma::mat, arma::vec> init_matrices;
     std::pair<arma::mat, arma::vec> matrices;
 
-    std::vector<arma::vec> NR_solutions(20);
+    std::vector<arma::vec> NR_solutions(ITL4+1);
     NR_solutions[0] = pre_global_solution;
 
     init_matrices = Dynamic(ckt, h, pre_global_solution, mode, time_trans);
 
     for (int i = 1; i < 3; i++)
     {
-        matrices = NonLinear(ckt, solution, init_matrices, modmap);
+        matrices = NonLinear(ckt, solution, init_matrices, modmap, h);
         // const arma::mat &LHS = matrices.first;
         // const arma::mat &RHS = matrices.second;
 
@@ -230,26 +215,35 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
     while (!isconverge)
     {
-        if (NR_iteration_counter > ITL4)
-        {
+        if (NR_iteration_counter >= ITL4 && mode == 1)
+        {   
+            // Transient simulation convergence failed
+            converged = false;
             NR_ITE = NR_iteration_counter;
             total_NR_iteration += NR_iteration_counter;
             return solution;
         }
+        else if (NR_iteration_counter >= 100 && mode == 0)
+        {
+            std::cerr << "Transient Simulation did not converge at the op analysis!" << std::endl;
+            exit(1);
+        }
+        else {
+            matrices = NonLinear(ckt, solution, init_matrices, modmap, h);
 
-        matrices = NonLinear(ckt, solution, init_matrices, modmap);
+            // Solve Ax = b
+            // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
+            solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
+            // solution = arma::solve(matrices.first, matrices.second);
+            NR_iteration_counter += 1;
+            NR_solutions.at(NR_iteration_counter) = solution;
 
-        // Solve Ax = b
-        // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
-        // solution = arma::solve(matrices.first, matrices.second);
-        NR_iteration_counter += 1;
-        NR_solutions.at(NR_iteration_counter) = solution;
-
-        isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
-        ckt.spiceCompatible.updateStateMachine(isconverge);
+            isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
+            ckt.spiceCompatible.updateStateMachine(isconverge);
+        }
     }
 
+    converged = true;
     NR_ITE = NR_iteration_counter;
     total_NR_iteration += NR_iteration_counter;
 
@@ -273,7 +267,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
 
     for (int i = 1; i < 3; i++)
     {
-        matrices = NonLinear(ckt, solution, init_matrices, modmap);
+        matrices = NonLinear(ckt, solution, init_matrices, modmap, 0.0);
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
@@ -295,7 +289,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
             exit(1);
         }
 
-        matrices = NonLinear(ckt, solution, init_matrices, modmap);
+        matrices = NonLinear(ckt, solution, init_matrices, modmap, 0.0);
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))

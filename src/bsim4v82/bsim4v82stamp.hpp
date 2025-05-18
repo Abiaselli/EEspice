@@ -25,6 +25,7 @@
 #include "SPICEcompatible.hpp"
 #include "devsup.hpp"
 #include "bsim4v82const.hpp"
+#include "bsim4v82NI.hpp"
 
 #include <cmath>
 #include <armadillo>
@@ -80,8 +81,8 @@ int BSIM4polyDepletion(
 
 
 int
-BSIM4load(const BSIM4model &model, BSIM4V82 &instance, const SPICECompatible &spice, const arma::vec &presolution,
-    const double CKTtemp, const double CKTgmin, arma::mat &LHS, arma::vec &RHS)
+BSIM4load(const CKTcircuit &ckt, const BSIM4model &model, BSIM4V82 &instance, const SPICECompatible &spice, const arma::vec &presolution,
+    const double CKTtemp, const double CKTgmin, const double h, arma::mat &LHS, arma::vec &RHS)
 {
     double ceqgstot, dgstot_dvd, dgstot_dvg, dgstot_dvs, dgstot_dvb;
     double ceqgdtot, dgdtot_dvd, dgdtot_dvg, dgdtot_dvs, dgdtot_dvb;
@@ -472,6 +473,11 @@ BSIM4load(const BSIM4model &model, BSIM4V82 &instance, const SPICECompatible &sp
                 + instance.BSIM4gdtotd * delvds + instance.BSIM4gdtotg * delvgs
                 + instance.BSIM4gdtotb * delvbs;
 
+        // NOBYPASS
+         /* Following should be one IF statement, but some C compilers 
+                * can't handle that all at once, so we split it into several
+                * successive IF's */
+        // Add NOBYPASS here...
         von = instance.BSIM4von;
         if (instance.BSIM4states0[BSIM4vds] >= 0.0)
         {   vgs = DEVfetlim(vgs, instance.BSIM4states0[BSIM4vgs], von);
@@ -3776,11 +3782,12 @@ BSIM4load(const BSIM4model &model, BSIM4V82 &instance, const SPICECompatible &sp
               if (CKTmode & MODEINITTRAN)
                   instance.BSIM4states1[BSIM4qcheq] =
                                    instance.BSIM4states0[BSIM4qcheq];
-        //   if (instance.BSIM4trnqsMod)
-        //       {   error = NIintegrate(ckt, &geq, &ceq, 0.0, instance.BSIM4qcheq);
-        //           if (error)
-        //               return(error);
-        //   }
+          if (instance.BSIM4trnqsMod)
+              {   error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qcheq, h);
+                
+                  if (error)
+                      return(error);
+          }
           }
 
 
@@ -4029,8 +4036,8 @@ finished:
 
 
 line755:
-    // ag0 = ckt->CKTag[0];
-    ag0 = 0.0;
+    ag0 = ckt.CKTag[0];
+
     if (instance.BSIM4mode > 0)
     {   
         if (instance.BSIM4trnqsMod == 0)
@@ -4422,7 +4429,7 @@ line755:
         if (CKTmode & MODEINITTRAN)
             instance.BSIM4states1[BSIM4qcdump] =
                             instance.BSIM4states0[BSIM4qcdump];
-        //   error = NIintegrate(ckt, &geq, &ceq, 0.0, instance.BSIM4qcdump);
+        error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qcdump, h);
         if (error)
             return(error);
     }
@@ -4472,29 +4479,29 @@ line755:
         }
     }
 
-    // error = NIintegrate(ckt, &geq, &ceq, 0.0, instance.BSIM4qb);
-    // if (error)
-    //     return(error);
-    // error = NIintegrate(ckt, &geq, &ceq, 0.0, instance.BSIM4qg);
-    // if (error)
-    //     return(error);
-    // error = NIintegrate(ckt, &geq, &ceq, 0.0, instance.BSIM4qd);
-    // if (error)
-    //     return(error);
+    error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qb, h);
+    if (error)
+        return(error);
+    error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qg, h);
+    if (error)
+        return(error);
+    error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qd, h);
+    if (error)
+        return(error);
 
-    // if (instance.BSIM4rgateMod == 3)
-    // {   error = NIintegrate(ckt, &geq, &ceq, 0.0, instance.BSIM4qgmid);
-    //     if (error) return(error);
-    // }
+    if (instance.BSIM4rgateMod == 3)
+    {   error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qgmid, h);
+        if (error) return(error);
+    }
 
-    // if (instance.BSIM4rbodyMod)
-    // {   error = NIintegrate(ckt, &geq, &ceq, 0.0, instance.BSIM4qbs);
-    //     if (error)
-    //         return(error);
-    //     error = NIintegrate(ckt, &geq, &ceq, 0.0, instance.BSIM4qbd);
-    //     if (error)
-    //         return(error);
-    // }
+    if (instance.BSIM4rbodyMod)
+    {   error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qbs, h);
+        if (error)
+            return(error);
+        error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qbd, h);
+        if (error)
+            return(error);
+    }
 
     goto line860;
 
