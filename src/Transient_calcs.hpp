@@ -121,7 +121,8 @@ TransientSimulator Transsetup(const CircuitParser &parser, const CKTcircuit &ckt
 
             if (pulse.td == 0)
             {
-                config.init_h = parser.double_init_h / 100; // initial time step, fs = 0.25 from spice opus
+                // config.init_h = parser.double_init_h / 100; // initial time step, fs = 0.25 from spice opus
+                config.init_h = std::min(parser.double_init_h, parser.double_t_end / 100) / 100; // delta=MIN(ckt->CKTfinalTime/100,ckt->CKTstep)/10; from ngspice
             }
             else
             {
