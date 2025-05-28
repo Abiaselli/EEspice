@@ -47,7 +47,7 @@ int total_NR_iteration = 0;
 
 // Constants in eespice
 constexpr double CONSTsqrt2 = 1.4142135623730950488016887242097;
-constexpr double CONSTpi = 3.1415926535897932384626433832795;
+constexpr double CONSTpi = 3.1415926535897932384626433832795;       //pi
 constexpr double CONSTnap = 2.7182818284590452353602874713527;
 constexpr double CONSTlog10e = 0.43429448190325182765112891891661;
 constexpr double CONSTlog2e = 1.4426950408889634073599246810019;

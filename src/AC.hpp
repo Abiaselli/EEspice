@@ -2,9 +2,10 @@
 #include <cmath>
 #include <iostream>
 #include "AC_calcs.hpp"
+#include "sim_variables.hpp"
 
-// This function is used to calculate the AC sweep values and ACfreqDelta
-void sweepCalculate(ACSweepSpec &sweepSpec){
+// This function is used to calculate the ACfreqDelta
+void ACfreqDeltaCalculate(ACSweepSpec &sweepSpec){
    
     if(sweepSpec.fstart <= 0){
         std::cerr << "ERROR: AC startfreq <= 0" << std::endl;
@@ -43,8 +44,27 @@ void sweepCalculate(ACSweepSpec &sweepSpec){
         }
         break;
     default:
-        std::cerr << "Invalid AC sweep interval type." << std::endl;
+        std::cerr << "Invalid AC sweep interval type in ACfreqDeltaCalculate." << std::endl;
         exit(1);
-        break;
     }
+}
+
+double freqTolCalculate(const ACSweepSpec &sweepSpec){
+    double freqTol = 0.0;
+    switch (sweepSpec.interval)
+    {
+        case ACSweepSpec::DEC:
+        case ACSweepSpec::OCT:
+            // For DEC and OCT, the frequency tolerance is a percentage of the frequency
+            freqTol = sweepSpec.ACfreqDelta * sweepSpec.fstop * RELTOL;
+            break;
+        case ACSweepSpec::LIN:
+            // For LIN,
+            freqTol = sweepSpec.ACfreqDelta * RELTOL;
+            break;
+        default:
+            std::cerr << "Invalid AC sweep interval type in freqTolCalculate." << std::endl;
+            exit(1);
+    }
+    return freqTol;
 }
