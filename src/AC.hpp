@@ -49,13 +49,15 @@ void ACfreqDeltaCalculate(ACSweepSpec &sweepSpec){
     }
 }
 
+// This function calculates the frequency tolerance based on the sweep specification
+// tolerence parameter for finding final frequency
 double freqTolCalculate(const ACSweepSpec &sweepSpec){
     double freqTol = 0.0;
     switch (sweepSpec.interval)
     {
         case ACSweepSpec::DEC:
         case ACSweepSpec::OCT:
-            // For DEC and OCT, the frequency tolerance is a percentage of the frequency
+            // For DEC and OCT
             freqTol = sweepSpec.ACfreqDelta * sweepSpec.fstop * RELTOL;
             break;
         case ACSweepSpec::LIN:
@@ -67,4 +69,41 @@ double freqTolCalculate(const ACSweepSpec &sweepSpec){
             exit(1);
     }
     return freqTol;
+}
+
+// This function generates the sweep values for the AC sweep
+std::vector<double> generateSweepValues(const ACSweepSpec &sweepSpec){
+    std::vector<double> sweep_values;
+    double freq = sweepSpec.fstart;
+    sweep_values.push_back(freq);
+    /* main loop through all scheduled frequencies */
+    while (freq <= sweepSpec.fstop + sweepSpec.freqTol) {
+        
+        switch (sweepSpec.interval)
+        {
+            case ACSweepSpec::DEC:
+            case ACSweepSpec::OCT:
+                // For DEC and OCT
+                freq *= sweepSpec.ACfreqDelta;
+                if(sweepSpec.ACfreqDelta == 1){
+                    // If ACfreqDelta is 1, we need to break to avoid infinite loop
+                    return sweep_values;
+                }
+                break;
+            case ACSweepSpec::LIN:
+                // For LIN,
+                freq += sweepSpec.ACfreqDelta;
+                if(sweepSpec.ACfreqDelta == 0){
+                    // If ACfreqDelta is 0, we need to break to avoid infinite loop
+                    return sweep_values;
+                }
+                break;
+            default:
+                std::cerr << "Invalid AC sweep interval type in freqUpdate." << std::endl;
+                exit(1);
+        }
+
+        sweep_values.push_back(freq);
+    }
+    return sweep_values;
 }
