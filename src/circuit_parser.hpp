@@ -20,6 +20,7 @@
 #include "map.hpp"
 #include "model_parser.hpp"
 #include "DC_calcs.hpp"
+#include "AC_calcs.hpp"
 
 struct CircuitParser
 {
@@ -28,6 +29,7 @@ struct CircuitParser
     // Simulation tasks
     bool is_transient = false;
     bool is_dc = false;
+    bool is_ac = false;
     bool timestep_control = true;
     // CKT parameters
     // Transient simulation parameters
@@ -35,6 +37,8 @@ struct CircuitParser
     double double_init_h;
     // DC simulation parameters
     DCSweepSpec dcSweep_parser;
+    // AC simulation parameters
+    ACSweepSpec acSweep_parser;
 
     CircuitParser(const std::string &filename) : filename(filename) {}
 
@@ -229,6 +233,24 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
             pv.per = convertToValue(per);
 
             parser.elements.pulseVoltages.emplace_back(pv);
+        }
+        else if(v_type == "ac" || v_type == "AC"){
+            // AC voltage source settings
+            VoltageSource vs;
+            vs.id_str = id_str;
+            vs.id = v_id;
+            vs.nodePos_str = v_nodePos_str;
+            vs.nodeNeg_str = v_nodeNeg_str;
+            vs.nodePos = convertToNode(v_nodePos_str, cktmap.map_nodes);
+            vs.nodeNeg = convertToNode(v_nodeNeg_str, cktmap.map_nodes);
+
+            // AC voltage source settings
+            std::string ac_amplitude, ac_phase;
+            iss >> ac_amplitude >> ac_phase;
+            vs.amplitude = convertToValue(ac_amplitude);
+            vs.phase = convertToValue(ac_phase);
+
+            parser.elements.voltageSources.emplace_back(vs);
         }
         else
         {
@@ -547,6 +569,35 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         parser.dcSweep_parser = spec;
 
         parser.is_dc = true;
+    }
+    else if (type == ".ac" || type == ".AC")
+    {
+        std::string string_interval, string_numpts, string_fstart, string_fstop;
+        iss >> string_interval >> string_numpts >> string_fstart >> string_fstop;
+
+        ACSweepSpec spec;
+        if (string_interval == "dec" || string_interval == "DEC")
+        {
+            spec.interval = ACSweepSpec::ACSweepType::DEC;
+        }
+        else if (string_interval == "oct" || string_interval == "OCT")
+        {
+            spec.interval = ACSweepSpec::ACSweepType::OCT;
+        }
+        else if (string_interval == "lin" || string_interval == "LIN")
+        {
+            spec.interval = ACSweepSpec::ACSweepType::LIN;
+        }
+        else
+        {
+            std::cerr << "Error: Unknown AC sweep interval: " << string_interval << std::endl;
+            exit(1);
+        }
+        spec.numpts = convertToValue(string_numpts);
+        spec.fstart = convertToValue(string_fstart);
+        spec.fstop  = convertToValue(string_fstop);
+        parser.acSweep_parser = spec;
+        parser.is_ac = true;
     }
     
     else
