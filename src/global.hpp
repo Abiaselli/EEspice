@@ -16,7 +16,9 @@ struct VoltageSource
     int id{};
     std::string nodePos_str, nodeNeg_str;
     int nodePos{}, nodeNeg{};
-    double value{};
+    double value{};             // The value of the voltage source, can be DC or transient
+    double amplitude{};         // For AC analysis, the amplitude of the voltage source
+    double phase{};             // For AC analysis, the phase of the voltage source
 
     // If bracket notation is used:
     bool hasBracket = false;
