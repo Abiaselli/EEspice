@@ -48,6 +48,7 @@ public:
     void setFlagsTranOP();
     void setFlagsTR();
     void setFlagsDC();
+    void setFlagsSmallSig();
     void setFlagsAC();
     void updateStateMachine(bool converged);
 
@@ -71,6 +72,9 @@ void SPICECompatible::setFlagsDC(){
     setMode((CKTmode & MODEUIC) | MODEDCTRANCURVE | MODEINITJCT);
 }
 // .ac
+void SPICECompatible::setFlagsSmallSig(){
+    setMode((CKTmode & MODEUIC) | MODEDCOP | MODEINITSMSIG);
+}
 void SPICECompatible::setFlagsAC(){
     setMode((CKTmode & MODEUIC) | MODEAC);
 }
