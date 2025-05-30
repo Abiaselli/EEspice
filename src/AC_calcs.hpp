@@ -9,7 +9,7 @@ struct ACSweepSpec{
     double fstop{};                     // stop frequency
     std::vector<double> sweep_values;   // All sweep values from fstart to fstop
 
-    double ACfreqDelta{};               //Multiplication factor for an AC analysis
+    double ACfreqDelta{};               // Multiplication factor for an AC analysis
     double freqTol{};                   // tolerence parameter for finding final frequency
 
     enum ACSweepType : int {
@@ -22,6 +22,9 @@ struct ACSweepSpec{
 struct AC{
     double freq{};                // Frequency of the AC point
     double omega{};               // Angular frequency (2 * pi * freq)
+    arma::cx_dmat LHS;
+    arma::cx_dvec RHS;            
+    arma::cx_dvec solution;        
 
 };
 

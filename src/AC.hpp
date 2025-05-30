@@ -3,14 +3,19 @@
 #include <iostream>
 #include "AC_calcs.hpp"
 #include "sim_variables.hpp"
+#include "CKT.hpp"
+#include "map.hpp"
+#include "circuit_parser.hpp"
 
 // This function is used to calculate the ACfreqDelta
-void ACfreqDeltaCalculate(ACSweepSpec &sweepSpec){
+double ACfreqDeltaCalculate(const ACSweepSpec &sweepSpec){
    
     if(sweepSpec.fstart <= 0){
         std::cerr << "ERROR: AC startfreq <= 0" << std::endl;
         exit(1);
     }
+
+    double ACfreqDelta = 0.0;
 
     switch (sweepSpec.interval)
     {
@@ -19,28 +24,28 @@ void ACfreqDeltaCalculate(ACSweepSpec &sweepSpec){
         if(sweepSpec.fstop / 10.0 < sweepSpec.fstart){
             /* start-stop frequencies less than a decade apart */
             if (sweepSpec.fstop == sweepSpec.fstart){
-                sweepSpec.ACfreqDelta = 1;
+                ACfreqDelta = 1;
             }
             else{
-                sweepSpec.ACfreqDelta = std::exp(std::log(10.0) / sweepSpec.numpts);
+                ACfreqDelta = std::exp(std::log(10.0) / sweepSpec.numpts);
             }
         }
         else{
             double num_steps = std::floor(std::fabs(std::log10(sweepSpec.fstop / sweepSpec.fstart)) * sweepSpec.numpts);
-            sweepSpec.ACfreqDelta = std::exp((std::log(sweepSpec.fstop / sweepSpec.fstart)) / num_steps);
+            ACfreqDelta = std::exp((std::log(sweepSpec.fstop / sweepSpec.fstart)) / num_steps);
         }
         break;
     case ACSweepSpec::OCT:
         // Calculate for OCT
-        sweepSpec.ACfreqDelta = std::exp(std::log(2.0) / sweepSpec.numpts);
+        ACfreqDelta = std::exp(std::log(2.0) / sweepSpec.numpts);
         break;
     case ACSweepSpec::LIN:
         // Calculate for LIN
         if (sweepSpec.numpts - 1 > 1){
-            sweepSpec.ACfreqDelta = (sweepSpec.fstop - sweepSpec.fstart) / (sweepSpec.numpts - 1);
+            ACfreqDelta = (sweepSpec.fstop - sweepSpec.fstart) / (sweepSpec.numpts - 1);
         }
         else{
-            sweepSpec.ACfreqDelta = 0;
+            ACfreqDelta = 0;
         }
         break;
     default:
@@ -106,4 +111,30 @@ std::vector<double> generateSweepValues(const ACSweepSpec &sweepSpec){
         sweep_values.push_back(freq);
     }
     return sweep_values;
+}
+
+ACsimulator ACsetup(CircuitParser &parser, const CKTcircuit &ckt){
+    ACsimulator acsim;
+    // Check if the AC sweep simulation is non-linear
+    if(!ckt.CKTelements.nmos.empty() || !ckt.CKTelements.pmos.empty() || !ckt.CKTelements.diodes.empty()){
+        acsim.non_linear = true;
+    }
+    else{
+        acsim.non_linear = false;
+    }
+    // Set the AC sweep parameters
+    acsim.acsweep = std::move(parser.acSweep_parser);
+    acsim.acsweep.ACfreqDelta = ACfreqDeltaCalculate(acsim.acsweep);
+    acsim.acsweep.freqTol = freqTolCalculate(acsim.acsweep);
+    acsim.acsweep.sweep_values = generateSweepValues(acsim.acsweep);
+    if(acsim.acsweep.sweep_values.empty()){
+        std::cerr << "Error: No valid AC sweep values generated." << std::endl;
+        exit(1);
+    }
+    return acsim;
+}
+
+std::vector<AC> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap &modmap){
+
+    
 }
