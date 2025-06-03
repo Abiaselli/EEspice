@@ -18,7 +18,7 @@ namespace bsim4{
 #define ccap qcap+1
 
 int
-NIintegrate(const CKTcircuit &ckt, BSIM4V82 &inst, double *geq, double *ceq, double cap, int qcap, double h)
+NIintegrate(const CKTcircuit &ckt, BSIM4V82 &inst, double *geq, double *ceq, double cap, int qcap)
 {
     const std::string ordmsg = "Illegal integration order";
     const std::string methodmsg = "Unknown integration method";

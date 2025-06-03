@@ -3783,7 +3783,7 @@ BSIM4load(const CKTcircuit &ckt, const BSIM4model &model, BSIM4V82 &instance, co
                   instance.BSIM4states1[BSIM4qcheq] =
                                    instance.BSIM4states0[BSIM4qcheq];
           if (instance.BSIM4trnqsMod)
-              {   error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qcheq, h);
+              {   error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qcheq);
                 
                   if (error)
                       return(error);
@@ -4429,7 +4429,7 @@ line755:
         if (CKTmode & MODEINITTRAN)
             instance.BSIM4states1[BSIM4qcdump] =
                             instance.BSIM4states0[BSIM4qcdump];
-        error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qcdump, h);
+        error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qcdump);
         if (error)
             return(error);
     }
@@ -4479,26 +4479,26 @@ line755:
         }
     }
 
-    error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qb, h);
+    error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qb);
     if (error)
         return(error);
-    error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qg, h);
+    error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qg);
     if (error)
         return(error);
-    error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qd, h);
+    error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qd);
     if (error)
         return(error);
 
     if (instance.BSIM4rgateMod == 3)
-    {   error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qgmid, h);
+    {   error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qgmid);
         if (error) return(error);
     }
 
     if (instance.BSIM4rbodyMod)
-    {   error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qbs, h);
+    {   error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qbs);
         if (error)
             return(error);
-        error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qbd, h);
+        error = NIintegrate(ckt, instance, &geq, &ceq, 0.0, BSIM4qbd);
         if (error)
             return(error);
     }
