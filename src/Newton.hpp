@@ -58,7 +58,7 @@ std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_
         else if (nmos.modelType == MosfetModelType::BSIM4V82){
             const bsim4::BSIM4model &b4model = *nmos.bsim4v82Instance.BSIM4modPtr;
             bsim4::BSIM4V82 &b4instance = nmos.bsim4v82Instance;
-            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, h, LHS, RHS);
+            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, LHS, RHS);
         }
         else{
             std::cerr << "Error: NMOS model type is not supported!" << std::endl;
@@ -73,7 +73,7 @@ std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_
         else if (pmos.modelType == MosfetModelType::BSIM4V82){
             const bsim4::BSIM4model &b4model = *pmos.bsim4v82Instance.BSIM4modPtr;
             bsim4::BSIM4V82 &b4instance = pmos.bsim4v82Instance;
-            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, h, LHS, RHS);
+            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, LHS, RHS);
         }
         else{
             std::cerr << "Error: PMOS model type is not supported!" << std::endl;

@@ -82,7 +82,7 @@ int BSIM4polyDepletion(
 
 int
 BSIM4load(const CKTcircuit &ckt, const BSIM4model &model, BSIM4V82 &instance, const SPICECompatible &spice, const arma::vec &presolution,
-    const double CKTtemp, const double CKTgmin, const double h, arma::mat &LHS, arma::vec &RHS)
+    const double CKTtemp, const double CKTgmin, arma::mat &LHS, arma::vec &RHS)
 {
     double ceqgstot, dgstot_dvd, dgstot_dvg, dgstot_dvs, dgstot_dvb;
     double ceqgdtot, dgdtot_dvd, dgdtot_dvg, dgdtot_dvs, dgdtot_dvb;
