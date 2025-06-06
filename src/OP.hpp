@@ -24,4 +24,6 @@ arma::vec OperatingPointAnalysis(CKTcircuit &ckt, const Modelmap &modmap, bool n
         // If the circuit is linear, use the direct solver
         return arma::solve(init_LHS, init_RHS);
     }
+
+    // Todo: Add gmin stepping and stepping sources...
 }

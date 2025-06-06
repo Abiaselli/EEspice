@@ -6,6 +6,8 @@
 #include "CKT.hpp"
 #include "map.hpp"
 #include "circuit_parser.hpp"
+#include "Newton.hpp"
+#include "OP.hpp"
 
 // This function is used to calculate the ACfreqDelta
 double ACfreqDeltaCalculate(const ACSweepSpec &sweepSpec){
@@ -131,10 +133,49 @@ ACsimulator ACsetup(CircuitParser &parser, const CKTcircuit &ckt){
         std::cerr << "Error: No valid AC sweep values generated." << std::endl;
         exit(1);
     }
+    // Reserve space for the AC results
+    acsim.vec_ac.reserve(acsim.acsweep.sweep_values.size());
     return acsim;
 }
 
-std::vector<AC> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap &modmap){
+// Update the parameters for non-linear devices and save in cktstate based on OP results
+void SaveOP(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
+    // Make sure the cktstate is updated outside
+    // Only BSIM4V82 is supported for now
+     for (auto &nmos : ckt.CKTelements.nmos){
+        if (nmos.modelType == MosfetModelType::BSIM4V82){
+            const bsim4::BSIM4model &b4model = *nmos.bsim4v82Instance.BSIM4modPtr;
+            bsim4::BSIM4V82 &b4instance = nmos.bsim4v82Instance;
+            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, ckt.cktdematrix->get_init_LHS(), ckt.cktdematrix->get_init_RHS());
+        }
+        else{
+            std::cerr << "Error: NMOS model type is not supported!" << std::endl;
+            exit(1);
+        }
+    }
+    for (auto &pmos : ckt.CKTelements.pmos){
+        if (pmos.modelType == MosfetModelType::BSIM4V82){
+            const bsim4::BSIM4model &b4model = *pmos.bsim4v82Instance.BSIM4modPtr;
+            bsim4::BSIM4V82 &b4instance = pmos.bsim4v82Instance;
+            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, ckt.cktdematrix->get_init_LHS(), ckt.cktdematrix->get_init_RHS());
+        }
+        else{
+            std::cerr << "Error: PMOS model type is not supported!" << std::endl;
+            exit(1);
+        }
+    }
+}
 
-    
+// AC simulation function
+std::vector<AC> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap &modmap){
+    // 1. OP analysis
+    ckt.spiceCompatible.setFlagsOP();
+    arma::vec op_solution = OperatingPointAnalysis(ckt, modmap, acSim.non_linear);
+
+    // 2. Update the small signal parameters for non-linear devices
+    //    For BSIM4, we update the charge and capacitance into cktstate
+    ckt.spiceCompatible.setFlagsSmallSig();
+    if(acSim.non_linear){
+        SaveOP(ckt, op_solution);
+    }
 }
