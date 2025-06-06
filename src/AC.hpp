@@ -148,20 +148,12 @@ void SaveOP(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
             bsim4::BSIM4V82 &b4instance = nmos.bsim4v82Instance;
             bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, ckt.cktdematrix->get_init_LHS(), ckt.cktdematrix->get_init_RHS());
         }
-        else{
-            std::cerr << "Error: NMOS model type is not supported!" << std::endl;
-            exit(1);
-        }
     }
     for (auto &pmos : ckt.CKTelements.pmos){
         if (pmos.modelType == MosfetModelType::BSIM4V82){
             const bsim4::BSIM4model &b4model = *pmos.bsim4v82Instance.BSIM4modPtr;
             bsim4::BSIM4V82 &b4instance = pmos.bsim4v82Instance;
             bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, ckt.cktdematrix->get_init_LHS(), ckt.cktdematrix->get_init_RHS());
-        }
-        else{
-            std::cerr << "Error: PMOS model type is not supported!" << std::endl;
-            exit(1);
         }
     }
 }
@@ -177,5 +169,14 @@ std::vector<AC> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap &modm
     ckt.spiceCompatible.setFlagsSmallSig();
     if(acSim.non_linear){
         SaveOP(ckt, op_solution);
+    }
+
+    // 3. AC analysis
+    for(const auto &freq : acSim.acsweep.sweep_values){
+        ckt.spiceCompatible.setFlagsAC();
+        AC ac;
+        ac.freq = freq;
+        ac.omega = 2 * M_PI * freq;
+        
     }
 }
