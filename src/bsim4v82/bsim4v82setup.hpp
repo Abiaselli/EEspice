@@ -29,6 +29,24 @@
 
 namespace bsim4{
 
+void NodeValidity(BSIM4V82 &inst){
+    // Check if the node numbers are valid
+    using enum BSIM4V82::NodeType;
+    inst.BSIM4nodeValid[D_NODE] = inst.BSIM4dNode >= 1;
+    inst.BSIM4nodeValid[G_NODE_EXT] = inst.BSIM4gNodeExt >= 1;
+    inst.BSIM4nodeValid[S_NODE] = inst.BSIM4sNode >= 1;
+    inst.BSIM4nodeValid[B_NODE] = inst.BSIM4bNode >= 1;
+    inst.BSIM4nodeValid[D_NODE_PRIME] = inst.BSIM4dNodePrime >= 1;
+    inst.BSIM4nodeValid[G_NODE_PRIME] = inst.BSIM4gNodePrime >= 1;
+    inst.BSIM4nodeValid[G_NODE_MID] = inst.BSIM4gNodeMid >= 1;
+    inst.BSIM4nodeValid[S_NODE_PRIME] = inst.BSIM4sNodePrime >= 1;
+    inst.BSIM4nodeValid[B_NODE_PRIME] = inst.BSIM4bNodePrime >= 1;
+    inst.BSIM4nodeValid[DB_NODE] = inst.BSIM4dbNode >= 1;
+    inst.BSIM4nodeValid[SB_NODE] = inst.BSIM4sbNode >= 1;
+    inst.BSIM4nodeValid[Q_NODE] = inst.BSIM4qNode >= 1;
+}
+
+
 void modelSetup(BSIM4model &model, double CKTnomTemp){
     /* process defaults of model parameters */
     if (!model.BSIM4typeGiven)
@@ -2573,4 +2591,4 @@ void instanceSetup(const BSIM4model &model, BSIM4V82 &inst){
 }
 
 
-}
+} // namespace bsim4v82

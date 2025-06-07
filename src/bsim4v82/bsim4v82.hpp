@@ -2175,6 +2175,13 @@ struct BSIM4V82{
     // int BSIM4states;     /* index into state table for this device */
     std::array<double, 29> BSIM4states0 = {0.0};
     std::array<double, 29> BSIM4states1 = {0.0};
+
+    // Node
+    enum NodeType{
+        D_NODE = 0, G_NODE_EXT, S_NODE, B_NODE, D_NODE_PRIME, G_NODE_PRIME, G_NODE_MID, S_NODE_PRIME,
+        B_NODE_PRIME, DB_NODE, SB_NODE, Q_NODE
+    };
+    std::array<bool, 12> BSIM4nodeValid;
     int BSIM4dNode = 0;
     int BSIM4gNodeExt = 0;
     int BSIM4sNode = 0;
