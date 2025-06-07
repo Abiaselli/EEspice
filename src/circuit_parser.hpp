@@ -249,6 +249,10 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
             iss >> ac_amplitude >> ac_phase;
             vs.amplitude = convertToValue(ac_amplitude);
             vs.phase = convertToValue(ac_phase);
+            // Set the AC real and imaginary components based on amplitude and phase
+            double radians = vs.phase * M_PI / 180.0;
+            vs.acReal = vs.amplitude * std::cos(radians);
+            vs.acImag = vs.amplitude * std::sin(radians);
 
             parser.elements.voltageSources.emplace_back(vs);
         }

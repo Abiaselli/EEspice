@@ -19,6 +19,8 @@ struct VoltageSource
     double value{};             // The value of the voltage source, can be DC or transient
     double amplitude{};         // For AC analysis, the amplitude of the voltage source
     double phase{};             // For AC analysis, the phase of the voltage source
+    double acReal{};            // AC real component
+    double acImag{};            // AC imaginary component
 
     // If bracket notation is used:
     bool hasBracket = false;
