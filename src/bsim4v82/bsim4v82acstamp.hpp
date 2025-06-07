@@ -27,6 +27,12 @@
 
 namespace bsim4{
 
+// For safe modification of MNA matrix
+/*  
+    These checks are critical to prevent out-of-bounds access, 
+    which could lead to runtime errors or undefined behavior, especially
+    since negative indices are invalid for Armadillo matrices.
+*/
 inline void acStamp(arma::cx_dmat& mat, int row, int col, double real_val, double imag_val,
                     const std::array<bool, 12> &BSIM4nodeValid, BSIM4V82::NodeType row_node, BSIM4V82::NodeType col_node){
     if (BSIM4nodeValid[row_node] && BSIM4nodeValid[col_node]) {
@@ -479,6 +485,24 @@ double ggidld, ggidlg, ggidlb, ggislg, ggislb, ggisls;
     */
     // m = instance.BSIM4m;
 
+    // MNA Matrix Stamping
+    // Real part, Different nodes are distinguished by uppercase and lowercase letters
+    double  BSIM4DPbpReal, BSIM4GPbpReal, BSIM4SPbpReal, BSIM4BPdpReal, BSIM4BPgpReal, BSIM4BPspReal, BSIM4BPbpReal, BSIM4DdReal, BSIM4GPgpReal, BSIM4SsReal, 
+        BSIM4DPdpReal, BSIM4SPspReal, BSIM4DdpReal, BSIM4GPdpReal, BSIM4GPspReal, BSIM4SspReal, BSIM4DPspReal, BSIM4DPdReal, BSIM4DPgpReal, BSIM4SPgpReal,
+        BSIM4SPsReal, BSIM4SPdpReal, BSIM4QqReal, BSIM4QbpReal, BSIM4QdpReal, BSIM4QspReal, BSIM4QgpReal, BSIM4DPqReal, BSIM4SPqReal, BSIM4GPqReal,
+        BSIM4GEgeReal, BSIM4GEgpReal, BSIM4GPgeReal, BSIM4GEdpReal, BSIM4GEspReal, BSIM4GEbpReal, BSIM4GMdpReal, BSIM4GMgpReal, BSIM4GMgmReal, BSIM4GMgeReal,
+        BSIM4GMspReal, BSIM4GMbpReal, BSIM4DPgmReal, BSIM4GPgmReal, BSIM4GEgmReal, BSIM4SPgmReal, BSIM4BPgmReal, BSIM4DPdbReal, BSIM4SPsbReal, BSIM4DBdpReal, 
+        BSIM4DBdbReal, BSIM4DBbpReal, BSIM4DBbReal, BSIM4BPdbReal, BSIM4BPbReal, BSIM4BPsbReal, BSIM4SBspReal, BSIM4SBbpReal, BSIM4SBbReal, BSIM4SBsbReal, 
+        BSIM4BdbReal, BSIM4BbpReal, BSIM4BsbReal, BSIM4BbReal, BSIM4DgpReal, BSIM4DspReal, BSIM4DbpReal, BSIM4SdpReal, BSIM4SgpReal, BSIM4SbpReal;
+    // Imaginary part
+    double  BSIM4DPbpImag, BSIM4GPbpImag, BSIM4SPbpImag, BSIM4BPdpImag, BSIM4BPgpImag, BSIM4BPspImag, BSIM4BPbpImag, BSIM4DdImag, BSIM4GPgpImag, BSIM4SsImag, 
+        BSIM4DPdpImag, BSIM4SPspImag, BSIM4DdpImag, BSIM4GPdpImag, BSIM4GPspImag, BSIM4SspImag, BSIM4DPspImag, BSIM4DPdImag, BSIM4DPgpImag, BSIM4SPgpImag,
+        BSIM4SPsImag, BSIM4SPdpImag, BSIM4QqImag, BSIM4QbpImag, BSIM4QdpImag, BSIM4QspImag, BSIM4QgpImag, BSIM4DPqImag, BSIM4SPqImag, BSIM4GPqImag,
+        BSIM4GEgeImag, BSIM4GEgpImag, BSIM4GPgeImag, BSIM4GEdpImag, BSIM4GEspImag, BSIM4GEbpImag, BSIM4GMdpImag, BSIM4GMgpImag, BSIM4GMgmImag, BSIM4GMgeImag,
+        BSIM4GMspImag, BSIM4GMbpImag, BSIM4DPgmImag, BSIM4GPgmImag, BSIM4GEgmImag, BSIM4SPgmImag, BSIM4BPgmImag, BSIM4DPdbImag, BSIM4SPsbImag, BSIM4DBdpImag, 
+        BSIM4DBdbImag, BSIM4DBbpImag, BSIM4DBbImag, BSIM4BPdbImag, BSIM4BPbImag, BSIM4BPsbImag, BSIM4SBspImag, BSIM4SBbpImag, BSIM4SBbImag, BSIM4SBsbImag, 
+        BSIM4BdbImag, BSIM4BbpImag, BSIM4BsbImag, BSIM4BbImag, BSIM4DgpImag, BSIM4DspImag, BSIM4DbpImag, BSIM4SdpImag, BSIM4SgpImag, BSIM4SbpImag;
+
     if (!model.BSIM4rdsMod)
     {   gdpr = instance.BSIM4drainConductance;
         gspr = instance.BSIM4sourceConductance;
@@ -495,210 +519,123 @@ double ggidld, ggidlg, ggidlb, ggislg, ggislb, ggisls;
 
     geltd = instance.BSIM4grgeltd;
 
-    // if (instance.BSIM4rgateMod == 1)
-    // {   *(instance.BSIM4GEgePtr) +=  geltd;
-    //     *(instance.BSIM4GPgePtr) -=  geltd;
-    //     *(instance.BSIM4GEgpPtr) -=  geltd;
+    if (instance.BSIM4rgateMod == 1)
+    {   (BSIM4GEgeReal) +=  geltd;
+        (BSIM4GPgeReal) -=  geltd;
+        (BSIM4GEgpReal) -=  geltd;
 
-    //     *(instance.BSIM4GPgpPtr +1) +=  xcggbr;
-    //     *(instance.BSIM4GPgpPtr) +=  (geltd + xcggbi + gIgtotg);
-    //     *(instance.BSIM4GPdpPtr +1) +=  xcgdbr;
-    //     *(instance.BSIM4GPdpPtr) +=  (xcgdbi + gIgtotd);
-    //     *(instance.BSIM4GPspPtr +1) +=  xcgsbr;
-    //     *(instance.BSIM4GPspPtr) +=  (xcgsbi + gIgtots);
-    //     *(instance.BSIM4GPbpPtr +1) +=  xcgbbr;
-    //     *(instance.BSIM4GPbpPtr) +=  (xcgbbi + gIgtotb);
-    // } /* WDLiu: gcrg already subtracted from all gcrgg below */
-    // else if (instance.BSIM4rgateMod == 2)
-    // {   *(instance.BSIM4GEgePtr) +=  gcrg;
-    //     *(instance.BSIM4GEgpPtr) +=  gcrgg;
-    //     *(instance.BSIM4GEdpPtr) +=  gcrgd;
-    //     *(instance.BSIM4GEspPtr) +=  gcrgs;
-    //     *(instance.BSIM4GEbpPtr) +=  gcrgb;
+        (BSIM4GPgpImag) +=  xcggbr;    // BSIM4GPgpPtr + 1
+        (BSIM4GPgpReal) +=  (geltd + xcggbi + gIgtotg);
+        (BSIM4GPdpImag) +=  xcgdbr;    // BSIM4GPdpPtr + 1
+        (BSIM4GPdpReal) +=  (xcgdbi + gIgtotd);
+        (BSIM4GPspImag) +=  xcgsbr;    // BSIM4GPspPtr + 1
+        (BSIM4GPspReal) +=  (xcgsbi + gIgtots);
+        (BSIM4GPbpImag) +=  xcgbbr;    // BSIM4GPbpPtr + 1
+        (BSIM4GPbpReal) +=  (xcgbbi + gIgtotb);
+    } /* WDLiu: gcrg already subtracted from all gcrgg below */
+    else if (instance.BSIM4rgateMod == 2)
+    {   (BSIM4GEgeReal) +=  gcrg;
+        (BSIM4GEgpReal) +=  gcrgg;
+        (BSIM4GEdpReal) +=  gcrgd;
+        (BSIM4GEspReal) +=  gcrgs;
+        (BSIM4GEbpReal) +=  gcrgb;
 
-    //     *(instance.BSIM4GPgePtr) -=  gcrg;
-    //     *(instance.BSIM4GPgpPtr +1) +=  xcggbr;
-    //     *(instance.BSIM4GPgpPtr) -=  (gcrgg - xcggbi - gIgtotg);
-    //     *(instance.BSIM4GPdpPtr +1) +=  xcgdbr;
-    //     *(instance.BSIM4GPdpPtr) -=  (gcrgd - xcgdbi - gIgtotd);
-    //     *(instance.BSIM4GPspPtr +1) +=  xcgsbr;
-    //     *(instance.BSIM4GPspPtr) -=  (gcrgs - xcgsbi - gIgtots);
-    //     *(instance.BSIM4GPbpPtr +1) +=  xcgbbr;
-    //     *(instance.BSIM4GPbpPtr) -=  (gcrgb - xcgbbi - gIgtotb);
-    // }
-    // else if (instance.BSIM4rgateMod == 3)
-    // {   *(instance.BSIM4GEgePtr) +=  geltd;
-    //     *(instance.BSIM4GEgmPtr) -=  geltd;
-    //     *(instance.BSIM4GMgePtr) -=  geltd;
-    //     *(instance.BSIM4GMgmPtr) +=  (geltd + gcrg);
-    //     *(instance.BSIM4GMgmPtr +1) +=  xcgmgmb;
+        (BSIM4GPgeReal) -=  gcrg;
+        (BSIM4GPgpImag) +=  xcggbr;    // BSIM4GPgpPtr + 1
+        (BSIM4GPgpReal) -=  (gcrgg - xcggbi - gIgtotg);
+        (BSIM4GPdpImag) +=  xcgdbr;    // BSIM4GPdpPtr + 1
+        (BSIM4GPdpReal) -=  (gcrgd - xcgdbi - gIgtotd);
+        (BSIM4GPspImag) +=  xcgsbr;    // BSIM4GPspPtr + 1
+        (BSIM4GPspReal) -=  (gcrgs - xcgsbi - gIgtots);
+        (BSIM4GPbpImag) +=  xcgbbr;    // BSIM4GPbpPtr + 1
+        (BSIM4GPbpReal) -=  (gcrgb - xcgbbi - gIgtotb);
+    }
+    else if (instance.BSIM4rgateMod == 3)
+    {   (BSIM4GEgeReal) +=  geltd;
+        (BSIM4GEgmReal) -=  geltd;
+        (BSIM4GMgeReal) -=  geltd;
+        (BSIM4GMgmReal) +=  (geltd + gcrg);
+        (BSIM4GMgmImag) +=  xcgmgmb;   // BSIM4GMgmPtr + 1
 
-    //     *(instance.BSIM4GMdpPtr) +=  gcrgd;
-    //     *(instance.BSIM4GMdpPtr +1) +=  xcgmdb;
-    //     *(instance.BSIM4GMgpPtr) +=  gcrgg;
-    //     *(instance.BSIM4GMspPtr) +=  gcrgs;
-    //     *(instance.BSIM4GMspPtr +1) +=  xcgmsb;
-    //     *(instance.BSIM4GMbpPtr) +=  gcrgb;
-    //     *(instance.BSIM4GMbpPtr +1) +=  xcgmbb;
+        (BSIM4GMdpReal) +=  gcrgd;
+        (BSIM4GMdpImag) +=  xcgmdb;    // BSIM4GMdpPtr + 1
+        (BSIM4GMgpReal) +=  gcrgg;
+        (BSIM4GMspReal) +=  gcrgs;
+        (BSIM4GMspImag) +=  xcgmsb;    // BSIM4GMspPtr + 1
+        (BSIM4GMbpReal) +=  gcrgb;
+        (BSIM4GMbpImag) +=  xcgmbb;    // BSIM4GMbpPtr + 1
 
-    //     *(instance.BSIM4DPgmPtr +1) +=  xcdgmb;
-    //     *(instance.BSIM4GPgmPtr) -=  gcrg;
-    //     *(instance.BSIM4SPgmPtr +1) +=  xcsgmb;
-    //     *(instance.BSIM4BPgmPtr +1) +=  xcbgmb;
+        (BSIM4DPgmImag) +=  xcdgmb;    // BSIM4DPgmPtr + 1
+        (BSIM4GPgmReal) -=  gcrg;
+        (BSIM4SPgmImag) +=  xcsgmb;    // BSIM4SPgmPtr + 1
+        (BSIM4BPgmImag) +=  xcbgmb;    // BSIM4BPgmPtr + 1
 
-    //     *(instance.BSIM4GPgpPtr) -=  (gcrgg - xcggbi - gIgtotg);
-    //     *(instance.BSIM4GPgpPtr +1) +=  xcggbr;
-    //     *(instance.BSIM4GPdpPtr) -=  (gcrgd - xcgdbi - gIgtotd);
-    //     *(instance.BSIM4GPdpPtr +1) +=  xcgdbr;
-    //     *(instance.BSIM4GPspPtr) -=  (gcrgs - xcgsbi - gIgtots);
-    //     *(instance.BSIM4GPspPtr +1) +=  xcgsbr;
-    //     *(instance.BSIM4GPbpPtr) -=  (gcrgb - xcgbbi - gIgtotb);
-    //     *(instance.BSIM4GPbpPtr +1) +=  xcgbbr;
-    // }
-    // else
-    // {   
-        // BSIM4GPgpPtr
-        if(!(gNodePrime < 0)){
-            arma::cx_double &BSIM4GPgpPtr = LHS(gNodePrime, gNodePrime);
-            BSIM4GPgpPtr.imag(BSIM4GPgpPtr.imag() + xcggbr); // BSIM4GPgpPtr +1
-            BSIM4GPgpPtr.real(BSIM4GPgpPtr.real() + (xcggbi + gIgtotg)); // BSIM4GPgpPtr
-        }
-        // BSIM4GPdpPtr
-        if(!(dNodePrime < 0) && !(gNodePrime < 0)){
-            arma::cx_double &BSIM4GPdpPtr = LHS(gNodePrime, dNodePrime);
-            BSIM4GPdpPtr.imag(BSIM4GPdpPtr.imag() + xcgdbr); // BSIM4GPdpPtr +1
-            BSIM4GPdpPtr.real(BSIM4GPdpPtr.real() + (xcgdbi + gIgtotd)); // BSIM4GPdpPtr
-        }
-        // BSIM4GPspPtr
-        if(!(sNodePrime < 0) && !(gNodePrime < 0)){
-            arma::cx_double &BSIM4GPspPtr =  LHS(gNodePrime, sNodePrime);
-            BSIM4GPspPtr.imag(BSIM4GPspPtr.imag() + xcgsbr); // BSIM4GPspPtr +1
-            BSIM4GPspPtr.real(BSIM4GPspPtr.real() + (xcgsbi + gIgtots)); // BSIM4GPspPtr
-        }
-        // BSIM4GPbpPtr
-        if(!(bNodePrime < 0) && !(gNodePrime < 0)){
-            arma::cx_double &BSIM4GPbpPtr = LHS(gNodePrime, bNodePrime);
-            BSIM4GPbpPtr.imag(BSIM4GPbpPtr.imag() + xcgbbr); // BSIM4GPbpPtr +1
-            BSIM4GPbpPtr.real(BSIM4GPbpPtr.real() + (xcgbbi + gIgtotb)); // BSIM4GPbpPtr
-        }
-
-            
-    // }
-
-    // if (model.BSIM4rdsMod)
-    // {   (*(instance.BSIM4DgpPtr) +=  gdtotg);
-    //     (*(instance.BSIM4DspPtr) +=  gdtots);
-    //     (*(instance.BSIM4DbpPtr) +=  gdtotb);
-    //     (*(instance.BSIM4SdpPtr) +=  gstotd);
-    //     (*(instance.BSIM4SgpPtr) +=  gstotg);
-    //     (*(instance.BSIM4SbpPtr) +=  gstotb);
-    // }
-
-    
-    if(!(dNodePrime < 0)){
-        // BSIM4DPdpPtr
-        arma::cx_double &BSIM4DPdpPtr = LHS(dNodePrime, dNodePrime);
-        BSIM4DPdpPtr.imag(BSIM4DPdpPtr.imag() + xcddbr + gdsi + RevSumi); // BSIM4DPdpPtr +1
-        BSIM4DPdpPtr.real(BSIM4DPdpPtr.real() + (gdpr + xcddbi + gdsr + instance.BSIM4gbd 
-                            - gdtotd + RevSumr + gbdpdp - gIdtotd)); // BSIM4DPdpPtr
-                
-        if(!(dNode < 0)){
-            // BSIM4DPdPtr
-            arma::cx_double &BSIM4DPdPtr =  LHS(dNodePrime, dNode);
-            BSIM4DPdPtr.real(BSIM4DPdPtr.real() - (gdpr + gdtot)); 
-            // BSIM4DdpPtr
-            arma::cx_double &BSIM4DdpPtr = LHS(dNode, dNodePrime);
-            BSIM4DdpPtr.real(BSIM4DdpPtr.real() - (gdpr - gdtotd)); 
-            // BSIM4DdPtr
-            arma::cx_double &BSIM4DdPtr = LHS(dNode, dNode);
-            BSIM4DdPtr.real(BSIM4DdPtr.real() + (gdpr + gdtot));
-        }
-
-        // BSIM4DPgpPtr
-        if(!(gNodePrime < 0)){
-            arma::cx_double &BSIM4DPgpPtr = LHS(dNodePrime, gNodePrime);
-            BSIM4DPgpPtr.imag(BSIM4DPgpPtr.imag() + (xcdgbr + Gmi)); // BSIM4DPgpPtr +1
-            BSIM4DPgpPtr.real(BSIM4DPgpPtr.real() + (Gmr + xcdgbi - gdtotg + gbdpg - gIdtotg)); // BSIM4DPgpPtr
-        }
-
-        if(!(sNodePrime < 0)){
-            // BSIM4DPspPtr
-            arma::cx_double &BSIM4DPspPtr = LHS(dNodePrime, sNodePrime);
-            BSIM4DPspPtr.imag(BSIM4DPspPtr.imag() + (xcdsbr - gdsi - FwdSumi)); // BSIM4DPspPtr +1
-            BSIM4DPspPtr.real(BSIM4DPspPtr.real() - (gdsr - xcdsbi + FwdSumr + gdtots - gbdpsp + gIdtots)); // BSIM4DPspPtr
-            // BSIM4SPdpPtr
-            arma::cx_double &BSIM4SPdpPtr = LHS(sNodePrime, dNodePrime);
-            BSIM4SPdpPtr.imag(BSIM4SPdpPtr.imag() + (xcsdbr - gdsi - RevSumi)); // BSIM4SPdpPtr +1
-            BSIM4SPdpPtr.real(BSIM4SPdpPtr.real() - (gdsr - xcsdbi + gstotd + RevSumr - gbspdp + gIstotd)); // BSIM4SPdpPtr
-        }
-
-        if(!(bNodePrime < 0)){
-            // BSIM4DPbpPtr
-            arma::cx_double &BSIM4DPbpPtr = LHS(dNodePrime, bNodePrime);
-            BSIM4DPbpPtr.imag(BSIM4DPbpPtr.imag() + (xcdbbr + Gmbsi)); // BSIM4DPbpPtr +1
-            BSIM4DPbpPtr.real(BSIM4DPbpPtr.real() - (gjbd + gdtotb - xcdbbi - Gmbsr - gbdpb + gIdtotb)); // BSIM4DPbpPtr
-            // BSIM4BPdpPtr
-            arma::cx_double &BSIM4BPdpPtr = LHS(bNodePrime, dNodePrime);
-            BSIM4BPdpPtr.imag(BSIM4BPdpPtr.imag() + xcbdb); // BSIM4BPdpPtr +1
-            BSIM4BPdpPtr.real(BSIM4BPdpPtr.real() - (gjbd - gbbdp + gIbtotd)); // BSIM4BPdpPtr
-        }
+        (BSIM4GPgpReal) -=  (gcrgg - xcggbi - gIgtotg);
+        (BSIM4GPgpImag) +=  xcggbr;    // BSIM4GPgpPtr + 1
+        (BSIM4GPdpReal) -=  (gcrgd - xcgdbi - gIgtotd);
+        (BSIM4GPdpImag) +=  xcgdbr;    // BSIM4GPdpPtr + 1
+        (BSIM4GPspReal) -=  (gcrgs - xcgsbi - gIgtots);
+        (BSIM4GPspImag) +=  xcgsbr;    // BSIM4GPspPtr + 1
+        (BSIM4GPbpReal) -=  (gcrgb - xcgbbi - gIgtotb);
+        (BSIM4GPbpImag) +=  xcgbbr;    // BSIM4GPbpPtr + 1
+    }
+    else
+    {   (BSIM4GPgpImag) +=  xcggbr;    // BSIM4GPgpPtr + 1
+        (BSIM4GPgpReal) +=  (xcggbi + gIgtotg);
+        (BSIM4GPdpImag) +=  xcgdbr;    // BSIM4GPdpPtr + 1
+        (BSIM4GPdpReal) +=  (xcgdbi + gIgtotd);
+        (BSIM4GPspImag) +=  xcgsbr;    // BSIM4GPspPtr + 1
+        (BSIM4GPspReal) +=  (xcgsbi + gIgtots);
+        (BSIM4GPbpImag) +=  xcgbbr;    // BSIM4GPbpPtr + 1
+        (BSIM4GPbpReal) +=  (xcgbbi + gIgtotb);
     }
 
-    if(!(sNodePrime < 0)){
-        // BSIM4SPspPtr
-        arma::cx_double &BSIM4SPspPtr = LHS(sNodePrime, sNodePrime);
-        BSIM4SPspPtr.imag(BSIM4SPspPtr.imag() + xcssbr + gdsi + FwdSumi); // BSIM4SPspPtr +1
-        BSIM4SPspPtr.real(BSIM4SPspPtr.real() + (gspr + xcssbi + gdsr + instance.BSIM4gbs
-                            - gstots + FwdSumr + gbspsp - gIstots)); // BSIM4SPspPtr
-
-        if(!(gNodePrime < 0)){
-            // BSIM4SPgpPtr
-            arma::cx_double &BSIM4SPgpPtr =  LHS(sNodePrime, gNodePrime);
-            BSIM4SPgpPtr.imag(BSIM4SPgpPtr.imag() + (xcsgbr - Gmi)); // BSIM4SPgpPtr +1
-            BSIM4SPgpPtr.real(BSIM4SPgpPtr.real() - (Gmr - xcsgbi + gstotg - gbspg + gIstotg)); // BSIM4SPgpPtr
-        }
-
-        if(!(sNode < 0)){
-            // BSIM4SPsPtr
-            arma::cx_double &BSIM4SPsPtr =  LHS(sNodePrime, sNode);
-            BSIM4SPsPtr.real(BSIM4SPsPtr.real() - (gspr + gstot)); 
-            // BSIM4SspPtr
-            arma::cx_double &BSIM4SspPtr =  LHS(sNode, sNodePrime);
-            BSIM4SspPtr.real(BSIM4SspPtr.real() - (gspr - gstots)); 
-        }
-
-        if(!(bNodePrime < 0)){
-            // BSIM4SPbpPtr
-            arma::cx_double &BSIM4SPbpPtr = LHS(sNodePrime, bNodePrime);
-            BSIM4SPbpPtr.imag(BSIM4SPbpPtr.imag() + (xcsbbr - Gmbsi)); // BSIM4SPbpPtr +1
-            BSIM4SPbpPtr.real(BSIM4SPbpPtr.real() - (gjbs + gstotb - xcsbbi + Gmbsr - gbspb + gIstotb)); // BSIM4SPbpPtr
-            // BSIM4BPspPtr
-            arma::cx_double &BSIM4BPspPtr = LHS(bNodePrime, sNodePrime);
-            BSIM4BPspPtr.imag(BSIM4BPspPtr.imag() + xcbsb); // BSIM4BPspPtr +1
-            BSIM4BPspPtr.real(BSIM4BPspPtr.real() - (gjbs - gbbsp + gIbtots)); // BSIM4BPspPtr
-        }
+    if (model.BSIM4rdsMod)
+    {   ((BSIM4DgpReal) +=  gdtotg);
+        ((BSIM4DspReal) +=  gdtots);
+        ((BSIM4DbpReal) +=  gdtotb);
+        ((BSIM4SdpReal) +=  gstotd);
+        ((BSIM4SgpReal) +=  gstotg);
+        ((BSIM4SbpReal) +=  gstotb);
     }
 
-    if(!(sNode < 0)){
-        // BSIM4SsPtr
-        arma::cx_double &BSIM4SsPtr = LHS(sNode, sNode);
-        BSIM4SsPtr.real(BSIM4SsPtr.real() + (gspr + gstot));
-    }
+    (BSIM4DPdpImag) +=  (xcddbr + gdsi + RevSumi);     // BSIM4DPdpPtr + 1
+    (BSIM4DPdpReal) +=  (gdpr + xcddbi + gdsr + instance.BSIM4gbd 
+                            - gdtotd + RevSumr + gbdpdp - gIdtotd);
+    (BSIM4DPdReal) -=  (gdpr + gdtot);
+    (BSIM4DPgpImag) +=  (xcdgbr + Gmi);    // BSIM4DPgpPtr + 1
+    (BSIM4DPgpReal) +=  (Gmr + xcdgbi - gdtotg + gbdpg - gIdtotg);
+    (BSIM4DPspImag) +=  (xcdsbr - gdsi - FwdSumi);   // BSIM4DPspPtr + 1
+    (BSIM4DPspReal) -=  (gdsr - xcdsbi + FwdSumr + gdtots - gbdpsp + gIdtots);
+    (BSIM4DPbpImag) +=  (xcdbbr + Gmbsi);      // BSIM4DPbpPtr + 1
+    (BSIM4DPbpReal) -=  (gjbd + gdtotb - xcdbbi - Gmbsr - gbdpb + gIdtotb);
 
-    if(!(bNodePrime < 0)){
-        // BSIM4BPbpPtr
-        arma::cx_double &BSIM4BPbpPtr =  LHS(bNodePrime, bNodePrime);
-        BSIM4BPbpPtr.imag(BSIM4BPbpPtr.imag() + xcbbb); // BSIM4BPbpPtr +1
-        BSIM4BPbpPtr.real(BSIM4BPbpPtr.real() + (gjbd + gjbs - instance.BSIM4gbbs - gIbtotb)); // BSIM4BPbpPtr
+    (BSIM4DdpReal) -=  (gdpr - gdtotd);
+    (BSIM4DdReal) +=  (gdpr + gdtot);
 
-        if(!(gNodePrime < 0)){
-            //BSIM4BPgpPtr
-            arma::cx_double &BSIM4BPgpPtr =  LHS(bNodePrime, gNodePrime);
-            BSIM4BPgpPtr.imag(BSIM4BPgpPtr.imag() + xcbgb); // BSIM4BPgpPtr +1
-            BSIM4BPgpPtr.real(BSIM4BPgpPtr.real() - (instance.BSIM4gbgs + gIbtotg)); // BSIM4BPgpPtr
-        }
-    }
+    (BSIM4SPdpImag) +=  (xcsdbr - gdsi - RevSumi);   // BSIM4SPdpPtr + 1
+    (BSIM4SPdpReal) -=  (gdsr - xcsdbi + gstotd + RevSumr - gbspdp + gIstotd);
+    (BSIM4SPgpImag) +=  (xcsgbr - Gmi);    // BSIM4SPgpPtr + 1
+    (BSIM4SPgpReal) -=  (Gmr - xcsgbi + gstotg - gbspg + gIstotg);
+    (BSIM4SPspImag) +=  (xcssbr + gdsi + FwdSumi);     // BSIM4SPspPtr + 1
+    (BSIM4SPspReal) +=  (gspr + xcssbi + gdsr + instance.BSIM4gbs
+                            - gstots + FwdSumr + gbspsp - gIstots);
+    (BSIM4SPsReal) -=  (gspr + gstot);
+    (BSIM4SPbpImag) +=  (xcsbbr - Gmbsi);   // BSIM4SPbpPtr + 1
+    (BSIM4SPbpReal) -=  (gjbs + gstotb - xcsbbi + Gmbsr - gbspb + gIstotb);
 
+    (BSIM4SspReal) -=  (gspr - gstots);
+    (BSIM4SsReal) +=  (gspr + gstot);
+
+    (BSIM4BPdpImag) +=  xcbdb;     // BSIM4BPdpPtr + 1
+    (BSIM4BPdpReal) -=  (gjbd - gbbdp + gIbtotd);
+    (BSIM4BPgpImag) +=  xcbgb;     // BSIM4BPgpPtr + 1
+    (BSIM4BPgpReal) -=  (instance.BSIM4gbgs + gIbtotg);
+    (BSIM4BPspImag) +=  xcbsb;     // BSIM4BPspPtr + 1
+    (BSIM4BPspReal) -=  (gjbs - gbbsp + gIbtots);
+    (BSIM4BPbpImag) +=  xcbbb;     // BSIM4BPbpPtr + 1
+    (BSIM4BPbpReal) +=  (gjbd + gjbs - instance.BSIM4gbbs
+                            - gIbtotb);
     ggidld = instance.BSIM4ggidld;
     ggidlg = instance.BSIM4ggidlg;
     ggidlb = instance.BSIM4ggidlb;
@@ -707,109 +644,59 @@ double ggidld, ggidlg, ggidlb, ggislg, ggislb, ggisls;
     ggislb = instance.BSIM4ggislb;
 
     /* stamp gidl */
-    // BSIM4DPdpPtr
-    if(!(dNodePrime < 0)){
-        LHS(dNodePrime, dNodePrime).real(LHS(dNodePrime, dNodePrime).real() + ggidld);
-    }
-    // BSIM4DPgpPtr
-    if(!(dNodePrime < 0) && !(gNodePrime < 0)){
-        LHS(dNodePrime, gNodePrime).real(LHS(dNodePrime, gNodePrime).real() + ggidlg);
-    }
-    // BSIM4DPspPtr
-    if(!(dNodePrime < 0) && !(sNodePrime < 0)){
-        LHS(dNodePrime, sNodePrime).real(LHS(dNodePrime, sNodePrime).real() - ((ggidlg + ggidld) + ggidlb));
-    }
-    // BSIM4DPbpPtr
-    if(!(dNodePrime < 0) && !(bNodePrime < 0)){
-        LHS(dNodePrime, bNodePrime).real(LHS(dNodePrime, bNodePrime).real() + ggidlb);
-    }
-    // BSIM4BPdpPtr
-    if(!(bNodePrime < 0) && !(dNodePrime < 0)){
-        LHS(bNodePrime, dNodePrime).real(LHS(bNodePrime, dNodePrime).real() - ggidld);
-    }
-    // BSIM4BPgpPtr
-    if(!(bNodePrime < 0) && !(gNodePrime < 0)){
-        LHS(bNodePrime, gNodePrime).real(LHS(bNodePrime, gNodePrime).real() - ggidlg);
-    }
-    // BSIM4BPspPtr
-    if(!(bNodePrime < 0) && !(sNodePrime < 0)){
-        LHS(bNodePrime, sNodePrime).real(LHS(bNodePrime, sNodePrime).real() + (ggidlg + ggidld) + ggidlb);
-    }
-    // BSIM4BPbpPtr
-    if(!(bNodePrime < 0)){
-        LHS(bNodePrime, bNodePrime).real(LHS(bNodePrime, bNodePrime).real() - ggidlb);
-    }
-    
+    (BSIM4DPdpReal) +=  ggidld;
+    (BSIM4DPgpReal) +=  ggidlg;
+    (BSIM4DPspReal) -=  ((ggidlg + ggidld) + ggidlb);
+    (BSIM4DPbpReal) +=  ggidlb;
+    (BSIM4BPdpReal) -=  ggidld;
+    (BSIM4BPgpReal) -=  ggidlg;
+    (BSIM4BPspReal) +=  ((ggidlg + ggidld) + ggidlb);
+    (BSIM4BPbpReal) -=  ggidlb;
     /* stamp gisl */
-    // BSIM4SPdpPtr
-    if(!(sNodePrime < 0) && !(dNodePrime < 0)){
-        LHS(sNodePrime, dNodePrime).real(LHS(sNodePrime, dNodePrime).real() - ((ggisls + ggislg) + ggislb));
-    }
-    // BSIM4SPgpPtr
-    if(!(sNodePrime < 0) && !(gNodePrime < 0)){
-        LHS(sNodePrime, gNodePrime).real(LHS(sNodePrime, gNodePrime).real() + ggislg);
-    }
-    // BSIM4SPspPtr
-    if(!(sNodePrime < 0)){
-        LHS(sNodePrime, sNodePrime).real(LHS(sNodePrime, sNodePrime).real() + ggisls);
-    }
-    // BSIM4SPbpPtr
-    if(!(sNodePrime < 0) && !(bNodePrime < 0)){
-        LHS(sNodePrime, bNodePrime).real(LHS(sNodePrime, bNodePrime).real() + ggislb);
-    }
-    // BSIM4BPdpPtr
-    if(!(bNodePrime < 0) && !(dNodePrime < 0)){
-        LHS(bNodePrime, dNodePrime).real(LHS(bNodePrime, dNodePrime).real() + ((ggislg + ggisls) + ggislb));
-    }
-    // BSIM4BPgpPtr
-    if(!(bNodePrime < 0) && !(gNodePrime < 0)){
-        LHS(bNodePrime, gNodePrime).real(LHS(bNodePrime, gNodePrime).real() - ggislg);
-    }
-    // BSIM4BPspPtr
-    if(!(bNodePrime < 0) && !(sNodePrime < 0)){
-        LHS(bNodePrime, sNodePrime).real(LHS(bNodePrime, sNodePrime).real() - ggisls);
-    }
-    // BSIM4BPbpPtr
-    if(!(bNodePrime < 0)){
-        LHS(bNodePrime, bNodePrime).real(LHS(bNodePrime, bNodePrime).real() - ggislb);
-    }
+    (BSIM4SPdpReal) -=  ((ggisls + ggislg) + ggislb);
+    (BSIM4SPgpReal) +=  ggislg;
+    (BSIM4SPspReal) +=  ggisls;
+    (BSIM4SPbpReal) +=  ggislb;
+    (BSIM4BPdpReal) +=  ((ggislg + ggisls) + ggislb);
+    (BSIM4BPgpReal) -=  ggislg;
+    (BSIM4BPspReal) -=  ggisls;
+    (BSIM4BPbpReal) -=  ggislb;
 
-    // if (instance.BSIM4rbodyMod)
-    // {   (*(instance.BSIM4DPdbPtr +1) +=  xcdbdb);
-    //     (*(instance.BSIM4DPdbPtr) -=  instance.BSIM4gbd);
-    //     (*(instance.BSIM4SPsbPtr +1) +=  xcsbsb);
-    //     (*(instance.BSIM4SPsbPtr) -=  instance.BSIM4gbs);
+    if (instance.BSIM4rbodyMod)
+    {   (BSIM4DPdbImag) +=  xcdbdb;      // BSIM4DPdbPtr + 1
+        (BSIM4DPdbReal) -=  instance.BSIM4gbd;
+        (BSIM4SPsbImag) +=  xcsbsb;      // BSIM4SPsbPtr + 1
+        (BSIM4SPsbReal) -=  instance.BSIM4gbs;
 
-    //     (*(instance.BSIM4DBdpPtr +1) +=  xcdbdb);
-    //     (*(instance.BSIM4DBdpPtr) -=  instance.BSIM4gbd);
-    //     (*(instance.BSIM4DBdbPtr +1) -=  xcdbdb);
-    //     (*(instance.BSIM4DBdbPtr) +=  (instance.BSIM4gbd + instance.BSIM4grbpd 
-    //                             + instance.BSIM4grbdb));
-    //     (*(instance.BSIM4DBbpPtr) -=  instance.BSIM4grbpd);
-    //     (*(instance.BSIM4DBbPtr) -=  instance.BSIM4grbdb);
+        (BSIM4DBdpImag) +=  xcdbdb;      // BSIM4DBdpPtr + 1
+        (BSIM4DBdpReal) -=  instance.BSIM4gbd;
+        (BSIM4DBdbImag) -=  xcdbdb;      // BSIM4DBdbPtr + 1
+        (BSIM4DBdbReal) +=  (instance.BSIM4gbd + instance.BSIM4grbpd 
+                                + instance.BSIM4grbdb);
+        (BSIM4DBbpReal) -=  instance.BSIM4grbpd;
+        (BSIM4DBbReal) -=  instance.BSIM4grbdb;
 
-    //     (*(instance.BSIM4BPdbPtr) -=  instance.BSIM4grbpd);
-    //     (*(instance.BSIM4BPbPtr) -=  instance.BSIM4grbpb);
-    //     (*(instance.BSIM4BPsbPtr) -=  instance.BSIM4grbps);
-    //     (*(instance.BSIM4BPbpPtr) +=  (instance.BSIM4grbpd + instance.BSIM4grbps 
-    //                             + instance.BSIM4grbpb));
-    //     /* WDLiu: (-instance.BSIM4gbbs) already added to BPbpPtr */
+        (BSIM4BPdbReal) -=  instance.BSIM4grbpd;
+        (BSIM4BPbReal) -=  instance.BSIM4grbpb;
+        (BSIM4BPsbReal) -=  instance.BSIM4grbps;
+        (BSIM4BPbpReal) +=  (instance.BSIM4grbpd + instance.BSIM4grbps 
+                                + instance.BSIM4grbpb);
+        /* WDLiu: (-instance.BSIM4gbbs) already added to BPbpPtr */
 
-    //     (*(instance.BSIM4SBspPtr +1) +=  xcsbsb);
-    //     (*(instance.BSIM4SBspPtr) -=  instance.BSIM4gbs);
-    //     (*(instance.BSIM4SBbpPtr) -=  instance.BSIM4grbps);
-    //     (*(instance.BSIM4SBbPtr) -=  instance.BSIM4grbsb);
-    //     (*(instance.BSIM4SBsbPtr +1) -=  xcsbsb);
-    //     (*(instance.BSIM4SBsbPtr) +=  (instance.BSIM4gbs
-    //                             + instance.BSIM4grbps + instance.BSIM4grbsb));
+        (BSIM4SBspImag) +=  xcsbsb;      // BSIM4SBspPtr + 1
+        (BSIM4SBspReal) -=  instance.BSIM4gbs;
+        (BSIM4SBbpReal) -=  instance.BSIM4grbps;
+        (BSIM4SBbReal) -=  instance.BSIM4grbsb;
+        (BSIM4SBsbImag) -=  xcsbsb;      // BSIM4SBsbPtr + 1
+        (BSIM4SBsbReal) +=  (instance.BSIM4gbs
+                                + instance.BSIM4grbps + instance.BSIM4grbsb);
 
-    //     (*(instance.BSIM4BdbPtr) -=  instance.BSIM4grbdb);
-    //     (*(instance.BSIM4BbpPtr) -=  instance.BSIM4grbpb);
-    //     (*(instance.BSIM4BsbPtr) -=  instance.BSIM4grbsb);
-    //     (*(instance.BSIM4BbPtr) +=  (instance.BSIM4grbsb + instance.BSIM4grbdb
-    //                         + instance.BSIM4grbpb));
-    // }
-
+        (BSIM4BdbReal) -=  instance.BSIM4grbdb;
+        (BSIM4BbpReal) -=  instance.BSIM4grbpb;
+        (BSIM4BsbReal) -=  instance.BSIM4grbsb;
+        (BSIM4BbReal) +=  (instance.BSIM4grbsb + instance.BSIM4grbdb
+                            + instance.BSIM4grbpb);
+    }
 
     /*
     * WDLiu: The internal charge node generated for transient NQS is not needed for
@@ -817,18 +704,194 @@ double ggidld, ggidlg, ggidlb, ggislg, ggislb, ggisls;
     *        otherwise a singular AC NQS matrix may occur if the transient NQS is on.
     *        The charge node is isolated from the instance.
     */
-    // if (instance.BSIM4trnqsMod)
-    // {   (*(instance.BSIM4QqPtr) +=  1.0);
-    //     (*(instance.BSIM4QgpPtr) += 0.0);
-    //     (*(instance.BSIM4QdpPtr) += 0.0);
-    //     (*(instance.BSIM4QspPtr) += 0.0);
-    //     (*(instance.BSIM4QbpPtr) += 0.0);
+    if (instance.BSIM4trnqsMod)
+    {   ((BSIM4QqReal) +=  1.0);
+        ((BSIM4QgpReal) += 0.0);
+        ((BSIM4QdpReal) += 0.0);
+        ((BSIM4QspReal) += 0.0);
+        ((BSIM4QbpReal) += 0.0);
 
-    //     (*(instance.BSIM4DPqPtr) += 0.0);
-    //     (*(instance.BSIM4SPqPtr) += 0.0);
-    //     (*(instance.BSIM4GPqPtr) += 0.0);
-    // }
+        ((BSIM4DPqReal) += 0.0);
+        ((BSIM4SPqReal) += 0.0);
+        ((BSIM4GPqReal) += 0.0);
+    }
+
+    // Now stamping the real and imaginary parts to the MNA matrix
+    const std::array<bool,12> &nodeValid = instance.BSIM4nodeValid;
+
+    // BSIM4DPbpPtr
+    acStamp(LHS, dNodePrime, bNodePrime, 
+        BSIM4DPbpReal, BSIM4DPbpImag, nodeValid, 
+        BSIM4V82::D_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
+    // BSIM4GPbpPtr
+    acStamp(LHS, gNodePrime, bNodePrime, 
+        BSIM4GPbpReal, BSIM4GPbpImag, nodeValid, 
+        BSIM4V82::G_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
+    // BSIM4SPbpPtr
+    acStamp(LHS, sNodePrime, bNodePrime, 
+        BSIM4SPbpReal, BSIM4SPbpImag, nodeValid, 
+        BSIM4V82::S_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
+
+
+    // BSIM4BPdpPtr
+    acStamp(LHS, dNodePrime, bNodePrime, 
+        BSIM4BPdpReal, BSIM4BPdpImag, nodeValid, 
+        BSIM4V82::D_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
+    // BSIM4BPgpPtr
+    acStamp(LHS, bNodePrime, gNodePrime, 
+        BSIM4BPgpReal, BSIM4BPgpImag, nodeValid, 
+        BSIM4V82::B_NODE_PRIME, BSIM4V82::G_NODE_PRIME);
+    // BSIM4BPspPtr
+    acStamp(LHS, bNodePrime, sNodePrime, 
+        BSIM4BPspReal, BSIM4BPspImag, nodeValid, 
+        BSIM4V82::B_NODE_PRIME, BSIM4V82::S_NODE_PRIME);
+    // BSIM4BPbpPtr
+    acStamp(LHS, bNodePrime, bNodePrime, 
+        BSIM4BPbpReal, BSIM4BPbpImag, nodeValid, 
+        BSIM4V82::B_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
+
+
+    // BSIM4DdPtr
+    acStamp(LHS, dNode, dNode, 
+        BSIM4DdReal, BSIM4DdImag, nodeValid, 
+        BSIM4V82::D_NODE, BSIM4V82::D_NODE);
+    // BSIM4GPgpPtr
+    acStamp(LHS, gNodePrime, gNodePrime, 
+        BSIM4GPgpReal, BSIM4GPgpImag, nodeValid, 
+        BSIM4V82::G_NODE_PRIME, BSIM4V82::G_NODE_PRIME);
+    // BSIM4SsPtr
+    acStamp(LHS, sNode, sNode, 
+        BSIM4SsReal, BSIM4SsImag, nodeValid, 
+        BSIM4V82::S_NODE, BSIM4V82::S_NODE);
+    // BSIM4DPdpPtr
+    acStamp(LHS, dNodePrime, dNodePrime, 
+        BSIM4DPdpReal, BSIM4DPdpImag, nodeValid, 
+        BSIM4V82::D_NODE_PRIME, BSIM4V82::D_NODE_PRIME);
+    // BSIM4SPspPtr
+    acStamp(LHS, sNodePrime, sNodePrime, 
+        BSIM4SPspReal, BSIM4SPspImag, nodeValid, 
+        BSIM4V82::S_NODE_PRIME, BSIM4V82::S_NODE_PRIME);
+    // BSIM4DdpPtr
+    acStamp(LHS, dNode, dNodePrime, 
+        BSIM4DdpReal, BSIM4DdpImag, nodeValid, 
+        BSIM4V82::D_NODE, BSIM4V82::D_NODE_PRIME);
+    // BSIM4GPdpPtr
+    acStamp(LHS, gNodePrime, dNodePrime, 
+        BSIM4GPdpReal, BSIM4GPdpImag, nodeValid, 
+        BSIM4V82::G_NODE_PRIME, BSIM4V82::D_NODE_PRIME);
+    // BSIM4GPspPtr
+    acStamp(LHS, gNodePrime, sNodePrime, 
+        BSIM4GPspReal, BSIM4GPspImag, nodeValid, 
+        BSIM4V82::G_NODE_PRIME, BSIM4V82::S_NODE_PRIME);
+    // BSIM4SspPtr
+    acStamp(LHS, sNode, sNodePrime, 
+        BSIM4SspReal, BSIM4SspImag, nodeValid, 
+        BSIM4V82::S_NODE, BSIM4V82::S_NODE_PRIME);
+    // BSIM4DPspPtr
+    acStamp(LHS, dNodePrime, sNodePrime, 
+        BSIM4DPspReal, BSIM4DPspImag, nodeValid, 
+        BSIM4V82::D_NODE_PRIME, BSIM4V82::S_NODE_PRIME);
+    // BSIM4DPdPtr
+    acStamp(LHS, dNodePrime, dNode, 
+        BSIM4DPdReal, BSIM4DPdImag, nodeValid, 
+        BSIM4V82::D_NODE_PRIME, BSIM4V82::D_NODE);
+    // BSIM4DPgpPtr
+    acStamp(LHS, dNodePrime, gNodePrime, 
+        BSIM4DPgpReal, BSIM4DPgpImag, nodeValid, 
+        BSIM4V82::D_NODE_PRIME, BSIM4V82::G_NODE_PRIME);
+    // BSIM4SPgpPtr
+    acStamp(LHS, sNodePrime, gNodePrime, 
+        BSIM4SPgpReal, BSIM4SPgpImag, nodeValid, 
+        BSIM4V82::S_NODE_PRIME, BSIM4V82::G_NODE_PRIME);
+    // BSIM4SPsPtr
+    acStamp(LHS, sNodePrime, sNode, 
+        BSIM4SPsReal, BSIM4SPsImag, nodeValid, 
+        BSIM4V82::S_NODE_PRIME, BSIM4V82::S_NODE);
+    // BSIM4SPdpPtr
+    acStamp(LHS, sNodePrime, dNodePrime, 
+        BSIM4SPdpReal, BSIM4SPdpImag, nodeValid, 
+        BSIM4V82::S_NODE_PRIME, BSIM4V82::D_NODE_PRIME);
+
+
+    // BSIM4QqPtr
+    acStamp(LHS, qNode, qNode, 
+        BSIM4QqReal, BSIM4QqImag, nodeValid, 
+        BSIM4V82::Q_NODE, BSIM4V82::Q_NODE);
+    // BSIM4QbpPtr
+    acStamp(LHS, qNode, bNodePrime, 
+        BSIM4QbpReal, BSIM4QbpImag, nodeValid, 
+        BSIM4V82::Q_NODE, BSIM4V82::B_NODE_PRIME);
+    // BSIM4QdpPtr
+    acStamp(LHS, qNode, dNodePrime, 
+        BSIM4QdpReal, BSIM4QdpImag, nodeValid, 
+        BSIM4V82::Q_NODE, BSIM4V82::D_NODE_PRIME);
+    // BSIM4QspPtr
+    acStamp(LHS, qNode, sNodePrime, 
+        BSIM4QspReal, BSIM4QspImag, nodeValid, 
+        BSIM4V82::Q_NODE, BSIM4V82::S_NODE_PRIME);
+    // BSIM4QgpPtr
+    acStamp(LHS, qNode, gNodePrime, 
+        BSIM4QgpReal, BSIM4QgpImag, nodeValid, 
+        BSIM4V82::Q_NODE, BSIM4V82::G_NODE_PRIME);
+    // BSIM4DPqPtr
+    acStamp(LHS, dNodePrime, qNode, 
+        BSIM4DPqReal, BSIM4DPqImag, nodeValid, 
+        BSIM4V82::D_NODE_PRIME, BSIM4V82::Q_NODE);
+    // BSIM4SPqPtr
+    acStamp(LHS, sNodePrime, qNode, 
+        BSIM4SPqReal, BSIM4SPqImag, nodeValid, 
+        BSIM4V82::S_NODE_PRIME, BSIM4V82::Q_NODE);
+    // BSIM4GPqPtr
+    acStamp(LHS, gNodePrime, qNode, 
+        BSIM4GPqReal, BSIM4GPqImag, nodeValid, 
+        BSIM4V82::G_NODE_PRIME, BSIM4V82::Q_NODE);
+        
+    // if (inst.BSIM4rgateMod != 0)
+        // BSIM4GEgePtr
+        // BSIM4GEgpPtr
+        // BSIM4GPgePtr
+        // BSIM4GEdpPtr
+        // BSIM4GEspPtr
+        // BSIM4GEbpPtr
+        // BSIM4GMdpPtr
+        // BSIM4GMgpPtr
+        // BSIM4GMgmPtr
+        // BSIM4GMgePtr
+        // BSIM4GMspPtr
+        // BSIM4GMbpPtr
+        // BSIM4DPgmPtr
+        // BSIM4GPgmPtr
+        // BSIM4GEgmPtr
+        // BSIM4SPgmPtr
+        // BSIM4BPgmPtr
     
+    // if ((inst.BSIM4rbodyMod ==1) || (inst.BSIM4rbodyMod ==2))
+        // BSIM4DPdbPtr
+        // BSIM4SPsbPtr
+        // BSIM4DBdpPtr
+        // BSIM4DBdbPtr
+        // BSIM4DBbpPtr
+        // BSIM4DBbPtr
+        // BSIM4BPdbPtr
+        // BSIM4BPbPtr
+        // BSIM4BPsbPtr
+        // BSIM4SBspPtr
+        // BSIM4SBbpPtr
+        // BSIM4SBbPtr
+        // BSIM4SBsbPtr
+        // BSIM4BdbPtr
+        // BSIM4BbpPtr
+        // BSIM4BsbPtr
+        // BSIM4BbPtr
+    
+    // if (model.BSIM4rdsMod)
+        // BSIM4DgpPtr
+        // BSIM4DspPtr
+        // BSIM4DbpPtr
+        // BSIM4SdpPtr
+        // BSIM4SgpPtr
+        // BSIM4SbpPtr
+
     return 0;
 }
 
