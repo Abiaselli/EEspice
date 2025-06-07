@@ -27,11 +27,18 @@
 
 namespace bsim4{
 
+inline void acStamp(arma::cx_dmat& mat, int row, int col, double real_val, double imag_val,
+                    const std::array<bool, 12> &BSIM4nodeValid, BSIM4V82::NodeType row_node, BSIM4V82::NodeType col_node){
+    if (BSIM4nodeValid[row_node] && BSIM4nodeValid[col_node]) {
+        mat(row, col).real(mat(row, col).real() + real_val);
+        mat(row, col).imag(mat(row, col).imag() + imag_val);
+    }
+}
+
 int
 BSIM4acLoad(const CKTcircuit &ckt, const BSIM4model &model, BSIM4V82 &instance, const SPICECompatible &spice, double omega,
             arma::cx_dmat &LHS, arma::cx_dmat &RHS)
 {
-
 double gjbd, gjbs, geltd, gcrg, gcrgg, gcrgd, gcrgs, gcrgb;
 double xcbgb, xcbdb, xcbsb, xcbbb;
 double xcggbr, xcgdbr, xcgsbr, xcgbbr, xcggbi, xcgdbi, xcgsbi, xcgbbi;
