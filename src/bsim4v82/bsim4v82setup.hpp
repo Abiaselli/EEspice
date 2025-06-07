@@ -2493,7 +2493,8 @@ void instanceSetup(const BSIM4model &model, BSIM4V82 &inst){
     else
         {inst.BSIM4qNode = 0;}
 
-
+    // Set the node validity
+    NodeValidity(inst);
 
     /* set Sparse Matrix Pointers
     * macro to make elements with built-in out-of-memory test */
