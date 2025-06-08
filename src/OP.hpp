@@ -27,3 +27,11 @@ arma::vec OperatingPointAnalysis(CKTcircuit &ckt, const Modelmap &modmap, bool n
 
     // Todo: Add gmin stepping and stepping sources...
 }
+
+void printOperatingPoint(const arma::vec &op_solution, const CKTcircuit &ckt){
+    // Print the operating point solution
+    arma::vec node_volt_print = op_solution.submat(0, 0, ckt.external_nodes - 1, 0);
+    arma::vec current_print = op_solution.submat(op_solution.n_rows - ckt.no_of_V_sources, 0, op_solution.n_rows - 1, 0);
+    arma::vec op_solution_print = arma::join_vert(node_volt_print, current_print);
+    op_solution_print.print("Operating Point Solution: ");
+}
