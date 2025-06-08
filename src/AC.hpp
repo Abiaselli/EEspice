@@ -57,6 +57,7 @@ double ACfreqDeltaCalculate(const ACSweepSpec &sweepSpec){
         std::cerr << "Invalid AC sweep interval type in ACfreqDeltaCalculate." << std::endl;
         exit(1);
     }
+    return ACfreqDelta;
 }
 
 // This function calculates the frequency tolerance based on the sweep specification
@@ -146,18 +147,20 @@ ACsimulator ACsetup(CircuitParser &parser, const CKTcircuit &ckt){
 void SaveOP(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
     // Make sure the cktstate is updated outside
     // Only BSIM4V82 is supported for now
-     for (auto &nmos : ckt.CKTelements.nmos){
+    arma::mat init_LHS = ckt.cktdematrix->get_init_LHS();
+    arma::vec init_RHS = ckt.cktdematrix->get_init_RHS();
+    for (auto &nmos : ckt.CKTelements.nmos){
         if (nmos.modelType == MosfetModelType::BSIM4V82){
             const bsim4::BSIM4model &b4model = *nmos.bsim4v82Instance.BSIM4modPtr;
             bsim4::BSIM4V82 &b4instance = nmos.bsim4v82Instance;
-            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, ckt.cktdematrix->get_init_LHS(), ckt.cktdematrix->get_init_RHS());
+            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, init_LHS, init_RHS);
         }
     }
     for (auto &pmos : ckt.CKTelements.pmos){
         if (pmos.modelType == MosfetModelType::BSIM4V82){
             const bsim4::BSIM4model &b4model = *pmos.bsim4v82Instance.BSIM4modPtr;
             bsim4::BSIM4V82 &b4instance = pmos.bsim4v82Instance;
-            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, ckt.cktdematrix->get_init_LHS(), ckt.cktdematrix->get_init_RHS());
+            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, init_LHS, init_RHS);
         }
     }
 }
@@ -198,6 +201,7 @@ std::vector<AC> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap &modm
     // 1. OP analysis
     ckt.spiceCompatible.setFlagsOP();
     arma::vec op_solution = OperatingPointAnalysis(ckt, modmap, acSim.non_linear);
+    printOperatingPoint(op_solution, ckt);
 
     // 2. Update the small signal parameters for non-linear devices
     //    For BSIM4, we update the charge and capacitance into cktstate
@@ -214,8 +218,8 @@ std::vector<AC> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap &modm
         ac.omega = 2 * M_PI * freq;
 
         // Update the LHS and RHS matrices
-        ac.LHS = ckt.cktdematrix->get_init_LHS();
-        ac.RHS = ckt.cktdematrix->get_init_RHS();
+        ac.LHS = ckt.cktdematrix->get_init_cxLHS();
+        ac.RHS = ckt.cktdematrix->get_init_cxRHS();
         DynamicNonLinear(ac.LHS, ac.RHS, ckt, ac.omega);
         ac.LHS.print("AC LHS matrix =");
         ac.RHS.print("AC RHS vector =");
@@ -227,6 +231,8 @@ std::vector<AC> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap &modm
         acSim.vec_ac.push_back(ac);
         
     }
+    // 4. Return the AC results
+    return acSim.vec_ac;
 }
 
 }// namespace AC
