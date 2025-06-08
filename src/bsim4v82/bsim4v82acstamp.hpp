@@ -42,7 +42,7 @@ inline void acStamp(arma::cx_dmat& mat, int row, int col, double real_val, doubl
 }
 
 int
-BSIM4acLoad(const CKTcircuit &ckt, const BSIM4model &model, BSIM4V82 &instance, const SPICECompatible &spice, double omega,
+BSIM4acLoad(const CKTcircuit &ckt, const BSIM4model &model, const BSIM4V82 &instance, const SPICECompatible &spice, double omega,
             arma::cx_dmat &LHS, arma::cx_dmat &RHS)
 {
 double gjbd, gjbs, geltd, gcrg, gcrgg, gcrgd, gcrgs, gcrgb;
