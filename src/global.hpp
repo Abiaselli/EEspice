@@ -179,7 +179,12 @@ double convertToValue(const std::string &valueStr)
         char unit = valueStr[unitPos]; // Get the unit character
         switch (unit)
         {
-
+        case 'T':
+            return value * 1.0e12; // Tera
+        case 'G':
+            return value * 1.0e9; // Giga
+        case 'M':
+            return value * 1.0e6; // Mega
         case 'k':
             return value * 1000.0; // Kilo
         case 'm':
