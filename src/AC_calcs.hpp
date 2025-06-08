@@ -31,7 +31,5 @@ struct AC{
 struct ACsimulator {
     ACSweepSpec acsweep;                 // sweep device data
     std::vector<AC> vec_ac;              // All AC results
-    arma::cx_dmat initial_LHS;           // Initial LHS matrix for AC analysis
-    arma::cx_dvec initial_RHS;           // Initial RHS vector for AC analysis
     bool non_linear = false;             // Non-linear flag
 };
