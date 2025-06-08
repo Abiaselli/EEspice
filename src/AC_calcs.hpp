@@ -2,6 +2,8 @@
 #include <vector>
 #include <armadillo>
 
+namespace AC {
+
 struct ACSweepSpec{
     int interval{};                     // decade (DEC), octave (OCT) or linearly (LIN)
     double numpts{};                    // the number of frequency points used per interval
@@ -33,3 +35,5 @@ struct ACsimulator {
     std::vector<AC> vec_ac;              // All AC results
     bool non_linear = false;             // Non-linear flag
 };
+
+} // namespace AC

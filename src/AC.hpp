@@ -9,6 +9,8 @@
 #include "Newton.hpp"
 #include "OP.hpp"
 
+namespace AC{
+
 // This function is used to calculate the ACfreqDelta
 double ACfreqDeltaCalculate(const ACSweepSpec &sweepSpec){
    
@@ -181,3 +183,5 @@ std::vector<AC> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap &modm
         
     }
 }
+
+}// namespace AC
