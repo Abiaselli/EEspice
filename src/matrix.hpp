@@ -26,10 +26,13 @@ struct DenseMatrix
     {
         init_LHS = LHS;
         init_RHS = RHS;
-        init_cxLHS = LHS_cx;
-        init_cxRHS = RHS_cx;
         n_rows = LHS.n_rows;
         n_cols = LHS.n_cols;
+    }
+    void set_init_cxmatrix()
+    {
+        init_cxLHS = LHS_cx;
+        init_cxRHS = RHS_cx;
     }
     arma::mat get_init_LHS() const
     {

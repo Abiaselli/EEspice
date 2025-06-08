@@ -135,11 +135,6 @@ ACsimulator ACsetup(CircuitParser &parser, const CKTcircuit &ckt){
     }
     // Reserve space for the AC results
     acsim.vec_ac.reserve(acsim.acsweep.sweep_values.size());
-    // Set the initial LHS and RHS matrices for AC analysis
-    arma::mat real_LHS = ckt.cktdematrix->get_init_LHS();
-    arma::vec real_RHS = ckt.cktdematrix->get_init_RHS();
-    acsim.initial_LHS.set_real(real_LHS);
-    acsim.initial_RHS = arma::cx_vec(size(real_RHS), arma::fill::zeros);
 
     return acsim;
 }

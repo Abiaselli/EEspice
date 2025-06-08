@@ -47,6 +47,10 @@ int main(int argc, const char **argv)
         std::vector<DC> vec_dc_result = dc::DC_ops(ckt, dcSim, modmap);
         save_csv_dc(ckt, vec_dc_result, ckt.map);
     }
+    if(parser.is_ac){
+        CKTloadAC(ckt);
+        ckt.cktdematrix->set_init_cxmatrix(); // Set the initial complex LHS and RHS matrices for AC analysis
+    }
    
 
     /*-----------------------------------------------------------------------------------------------------------*/

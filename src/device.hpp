@@ -5,6 +5,7 @@
 #include <vector>
 #include <variant>
 #include <armadillo>
+#include <cmath>
 
 #include "sim_variables.hpp"
 #include "global.hpp"
@@ -97,6 +98,18 @@ void Vs_assigner(int node_x, int node_y, double V_value, arma::mat &LHS, arma::v
     // double V_locate1 = RHS.n_rows;
 
     // return V_locate1;
+}
+// AC voltage source stamp assigner
+void Vs_ACassigner(int node_x, int node_y, double acReal, double acImag, arma::cx_dmat &LHS, arma::cx_dvec &RHS){
+    arma::mat real_LHS = arma::real(LHS);
+    arma::vec real_RHS = arma::real(RHS);
+    arma::mat imag_LHS = arma::imag(LHS);
+    arma::vec imag_RHS = arma::imag(RHS);
+
+    Vs_assigner(node_x, node_y, acReal, real_LHS, real_RHS);
+    Vs_assigner(node_x, node_y, acImag, imag_LHS, imag_RHS);
+    LHS = arma::cx_dmat(real_LHS, imag_LHS);
+    RHS = arma::cx_dvec(real_RHS, imag_RHS);
 }
 
 // create a current matrix stamp

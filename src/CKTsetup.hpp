@@ -78,6 +78,8 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     ckt.cktdematrix->Maxj = ckt.cktdematrix->Maxi;
     ckt.cktdematrix->LHS = arma::zeros(ckt.cktdematrix->Maxi, ckt.cktdematrix->Maxj);    // LHS matrix
     ckt.cktdematrix->RHS = arma::zeros(ckt.cktdematrix->Maxi, 1);                        // RHS matrix
+    ckt.cktdematrix->LHS_cx = arma::cx_mat(ckt.cktdematrix->Maxi, ckt.cktdematrix->Maxj, arma::fill::zeros); // Complex LHS matrix for AC analysis
+    ckt.cktdematrix->RHS_cx = arma::cx_mat(ckt.cktdematrix->Maxi, 1, arma::fill::zeros);                     // Complex RHS matrix for AC analysis
 }
 
 void CKTload(CKTcircuit &ckt)
@@ -115,7 +117,21 @@ void CKTload(CKTcircuit &ckt)
     {
         VCCS_assigner(vccs.node_x, vccs.node_y, vccs.node_cx, vccs.node_cy, vccs.value, ckt.cktdematrix->LHS);
     }
-    
+}
+void CKTloadAC(CKTcircuit &ckt){
+    // ASSIGNING THE STAMPS TO THE LHS AND RHS MATRICES FOR AC ANALYSIS
+    for (const auto &vol : ckt.CKTelements.voltageSources)
+    {
+        Vs_ACassigner(vol.nodePos, vol.nodeNeg, vol.acReal, vol.acImag, ckt.cktdematrix->LHS_cx, ckt.cktdematrix->RHS_cx);
+    }
+    for (auto &res : ckt.CKTelements.resistors)
+    {
+        if (res.value < 1.0e-3)
+        {
+            res.value = 1.0e-3;
+        }
+        R_assigner(res.nodePos, res.nodeNeg, 1.0 / res.value, ckt.cktdematrix->LHS);
+    }
 }
 
 void updateDeviceState(CKTcircuit &ckt){
