@@ -38,7 +38,7 @@ struct CircuitParser
     // DC simulation parameters
     DCSweepSpec dcSweep_parser;
     // AC simulation parameters
-    ACSweepSpec acSweep_parser;
+    AC::ACSweepSpec acSweep_parser;
 
     CircuitParser(const std::string &filename) : filename(filename) {}
 
@@ -579,18 +579,18 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         std::string string_interval, string_numpts, string_fstart, string_fstop;
         iss >> string_interval >> string_numpts >> string_fstart >> string_fstop;
 
-        ACSweepSpec spec;
+        AC::ACSweepSpec spec;
         if (string_interval == "dec" || string_interval == "DEC")
         {
-            spec.interval = ACSweepSpec::ACSweepType::DEC;
+            spec.interval = AC::ACSweepSpec::ACSweepType::DEC;
         }
         else if (string_interval == "oct" || string_interval == "OCT")
         {
-            spec.interval = ACSweepSpec::ACSweepType::OCT;
+            spec.interval = AC::ACSweepSpec::ACSweepType::OCT;
         }
         else if (string_interval == "lin" || string_interval == "LIN")
         {
-            spec.interval = ACSweepSpec::ACSweepType::LIN;
+            spec.interval = AC::ACSweepSpec::ACSweepType::LIN;
         }
         else
         {

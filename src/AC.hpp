@@ -8,6 +8,7 @@
 #include "circuit_parser.hpp"
 #include "Newton.hpp"
 #include "OP.hpp"
+#include "bsim4v82/bsim4v82acstamp.hpp"
 
 namespace AC{
 
@@ -161,6 +162,37 @@ void SaveOP(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
     }
 }
 
+void DynamicNonLinear(arma::cx_dmat &LHS, arma::cx_dvec &RHS, const CKTcircuit &ckt, double omega){
+    for (auto &nmos : ckt.CKTelements.nmos){
+        if (nmos.modelType == MosfetModelType::LEVEL1){
+
+        }
+        else if (nmos.modelType == MosfetModelType::BSIM4V82){
+            const bsim4::BSIM4model &b4model = *nmos.bsim4v82Instance.BSIM4modPtr;
+            const bsim4::BSIM4V82 &b4instance = nmos.bsim4v82Instance;
+            bsim4::BSIM4acLoad(ckt, b4model, b4instance, ckt.spiceCompatible, omega, LHS, RHS);
+        }
+        else{
+            std::cerr << "Error: NMOS model type is not supported!" << std::endl;
+            exit(1);
+        }
+    }
+    for (auto &pmos : ckt.CKTelements.pmos){
+        if (pmos.modelType == MosfetModelType::LEVEL1){
+
+        }
+        else if (pmos.modelType == MosfetModelType::BSIM4V82){
+            const bsim4::BSIM4model &b4model = *pmos.bsim4v82Instance.BSIM4modPtr;
+            const bsim4::BSIM4V82 &b4instance = pmos.bsim4v82Instance;
+            bsim4::BSIM4acLoad(ckt, b4model, b4instance, ckt.spiceCompatible, omega, LHS, RHS);
+        }
+        else{
+            std::cerr << "Error: PMOS model type is not supported!" << std::endl;
+            exit(1);
+        }
+    }
+}
+
 // AC simulation function
 std::vector<AC> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap &modmap){
     // 1. OP analysis
@@ -180,6 +212,19 @@ std::vector<AC> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap &modm
         AC ac;
         ac.freq = freq;
         ac.omega = 2 * M_PI * freq;
+
+        // Update the LHS and RHS matrices
+        ac.LHS = ckt.cktdematrix->get_init_LHS();
+        ac.RHS = ckt.cktdematrix->get_init_RHS();
+        DynamicNonLinear(ac.LHS, ac.RHS, ckt, ac.omega);
+        ac.LHS.print("AC LHS matrix =");
+        ac.RHS.print("AC RHS vector =");
+
+        // solve the MNA matrix
+        ac.solution = arma::solve(ac.LHS, ac.RHS);
+
+        // Store the AC result
+        acSim.vec_ac.push_back(ac);
         
     }
 }
