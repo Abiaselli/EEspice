@@ -5,6 +5,7 @@
 #include "model_setup.hpp"
 #include "Transient.hpp"
 #include "DC.hpp"
+#include "AC.hpp"
 #include "saveCSV.hpp"
 
 // Main function for the circuit simulation
@@ -25,7 +26,7 @@ int main(int argc, const char **argv)
 
     Modelmap modmap;
 
-    CircuitParser parser("Netlist/Ring.cir");
+    CircuitParser parser("Netlist/ac_bsim.cir");
     parser_netlist(parser, ckt.map, modmap);
 
     // Model setup using the temperature
@@ -50,6 +51,8 @@ int main(int argc, const char **argv)
     if(parser.is_ac){
         CKTloadAC(ckt);
         ckt.cktdematrix->set_init_cxmatrix(); // Set the initial complex LHS and RHS matrices for AC analysis
+        AC::ACsimulator acSim = AC::ACsetup(parser, ckt);
+        std::vector<AC::AC> vec_ac_result = AC::AC_ops(ckt, acSim, modmap);
     }
    
 
