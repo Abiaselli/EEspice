@@ -29,7 +29,7 @@ struct CKTcircuit
 
     double CKTtemp{};                               // Actual temperature of CKT, initialzed to 300.15 K 
     const double CKTnomTemp = 300.15;               // Reference temperature 300.15 K
-    double CKTgmin = 1.0e-20;                       // Gmin value
+    double CKTgmin = 1.0e-12;                       // Gmin value
     int CKTintegrateMethod{};                       // Integration method (0 for Backward Euler, 1 for Trapezoidal, 2 for Gear)
     int CKTorder{};                                 // Order of the integration method (1 for first order, 2 for second order)
     std::array<double, 7> CKTag;                    // Coefficients for the integration method, 1/h and -1/h for BE
