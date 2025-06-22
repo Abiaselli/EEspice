@@ -107,7 +107,10 @@ void Vs_ACassigner(int node_x, int node_y, double acReal, double acImag, arma::c
     arma::vec imag_RHS = arma::imag(RHS);
 
     Vs_assigner(node_x, node_y, acReal, real_LHS, real_RHS);
-    Vs_assigner(node_x, node_y, acImag, imag_LHS, imag_RHS);
+    int size = imag_LHS.n_cols;
+    imag_LHS.resize(size + 1, size + 1);            // In Armadillo ≥ 10.5, constructors default to zero‐initialization
+    imag_RHS.resize(imag_RHS.n_elem + 1);
+    imag_RHS(imag_RHS.n_elem - 1) = acImag;
     LHS = arma::cx_dmat(real_LHS, imag_LHS);
     RHS = arma::cx_dvec(real_RHS, imag_RHS);
 }
