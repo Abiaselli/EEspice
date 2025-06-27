@@ -83,8 +83,6 @@ std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_
     for (const auto &diode : ckt.CKTelements.diodes){
         Diode_assigner(diode.nodePos, diode.nodeNeg, diode.Is, diode.VT, LHS, RHS, pre_NR_solution);
     }
-    // LHS.print("LHS =");
-    // RHS.print("RHS =");
     return {LHS, RHS};
 }
 

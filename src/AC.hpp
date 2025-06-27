@@ -221,8 +221,6 @@ std::vector<AC> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap &modm
         ac.LHS = ckt.cktdematrix->get_init_cxLHS();
         ac.RHS = ckt.cktdematrix->get_init_cxRHS();
         DynamicNonLinear(ac.LHS, ac.RHS, ckt, ac.omega);
-        ac.LHS.print("AC LHS matrix =");
-        ac.RHS.print("AC RHS vector =");
 
         // solve the MNA matrix
         ac.solution = arma::solve(ac.LHS, ac.RHS);
