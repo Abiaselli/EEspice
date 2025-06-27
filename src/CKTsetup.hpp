@@ -130,7 +130,9 @@ void CKTloadAC(CKTcircuit &ckt){
         {
             res.value = 1.0e-3;
         }
-        R_assigner(res.nodePos, res.nodeNeg, 1.0 / res.value, ckt.cktdematrix->LHS);
+        arma::mat LHS_real = arma::real(ckt.cktdematrix->LHS_cx);
+        R_assigner(res.nodePos, res.nodeNeg, 1.0 / res.value, LHS_real);
+        ckt.cktdematrix->LHS_cx.set_real(LHS_real);
     }
 }
 
