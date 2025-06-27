@@ -487,21 +487,21 @@ double ggidld, ggidlg, ggidlb, ggislg, ggislb, ggisls;
 
     // MNA Matrix Stamping
     // Real part, Different nodes are distinguished by uppercase and lowercase letters
-    double  BSIM4DPbpReal, BSIM4GPbpReal, BSIM4SPbpReal, BSIM4BPdpReal, BSIM4BPgpReal, BSIM4BPspReal, BSIM4BPbpReal, BSIM4DdReal, BSIM4GPgpReal, BSIM4SsReal, 
-        BSIM4DPdpReal, BSIM4SPspReal, BSIM4DdpReal, BSIM4GPdpReal, BSIM4GPspReal, BSIM4SspReal, BSIM4DPspReal, BSIM4DPdReal, BSIM4DPgpReal, BSIM4SPgpReal,
-        BSIM4SPsReal, BSIM4SPdpReal, BSIM4QqReal, BSIM4QbpReal, BSIM4QdpReal, BSIM4QspReal, BSIM4QgpReal, BSIM4DPqReal, BSIM4SPqReal, BSIM4GPqReal,
-        BSIM4GEgeReal, BSIM4GEgpReal, BSIM4GPgeReal, BSIM4GEdpReal, BSIM4GEspReal, BSIM4GEbpReal, BSIM4GMdpReal, BSIM4GMgpReal, BSIM4GMgmReal, BSIM4GMgeReal,
-        BSIM4GMspReal, BSIM4GMbpReal, BSIM4DPgmReal, BSIM4GPgmReal, BSIM4GEgmReal, BSIM4SPgmReal, BSIM4BPgmReal, BSIM4DPdbReal, BSIM4SPsbReal, BSIM4DBdpReal, 
-        BSIM4DBdbReal, BSIM4DBbpReal, BSIM4DBbReal, BSIM4BPdbReal, BSIM4BPbReal, BSIM4BPsbReal, BSIM4SBspReal, BSIM4SBbpReal, BSIM4SBbReal, BSIM4SBsbReal, 
-        BSIM4BdbReal, BSIM4BbpReal, BSIM4BsbReal, BSIM4BbReal, BSIM4DgpReal, BSIM4DspReal, BSIM4DbpReal, BSIM4SdpReal, BSIM4SgpReal, BSIM4SbpReal;
+    double  BSIM4DPbpReal{}, BSIM4GPbpReal{}, BSIM4SPbpReal{}, BSIM4BPdpReal{}, BSIM4BPgpReal{}, BSIM4BPspReal{}, BSIM4BPbpReal{}, BSIM4DdReal{}, BSIM4GPgpReal{}, BSIM4SsReal{},
+        BSIM4DPdpReal{}, BSIM4SPspReal{}, BSIM4DdpReal{}, BSIM4GPdpReal{}, BSIM4GPspReal{}, BSIM4SspReal{}, BSIM4DPspReal{}, BSIM4DPdReal{}, BSIM4DPgpReal{}, BSIM4SPgpReal{},
+        BSIM4SPsReal{}, BSIM4SPdpReal{}, BSIM4QqReal{}, BSIM4QbpReal{}, BSIM4QdpReal{}, BSIM4QspReal{}, BSIM4QgpReal{}, BSIM4DPqReal{}, BSIM4SPqReal{}, BSIM4GPqReal{},
+        BSIM4GEgeReal{}, BSIM4GEgpReal{}, BSIM4GPgeReal{}, BSIM4GEdpReal{}, BSIM4GEspReal{}, BSIM4GEbpReal{}, BSIM4GMdpReal{}, BSIM4GMgpReal{}, BSIM4GMgmReal{}, BSIM4GMgeReal{},
+        BSIM4GMspReal{}, BSIM4GMbpReal{}, BSIM4DPgmReal{}, BSIM4GPgmReal{}, BSIM4GEgmReal{}, BSIM4SPgmReal{}, BSIM4BPgmReal{}, BSIM4DPdbReal{}, BSIM4SPsbReal{}, BSIM4DBdpReal{},
+        BSIM4DBdbReal{}, BSIM4DBbpReal{}, BSIM4DBbReal{}, BSIM4BPdbReal{}, BSIM4BPbReal{}, BSIM4BPsbReal{}, BSIM4SBspReal{}, BSIM4SBbpReal{}, BSIM4SBbReal{}, BSIM4SBsbReal{},
+        BSIM4BdbReal{}, BSIM4BbpReal{}, BSIM4BsbReal{}, BSIM4BbReal{}, BSIM4DgpReal{}, BSIM4DspReal{}, BSIM4DbpReal{}, BSIM4SdpReal{}, BSIM4SgpReal{}, BSIM4SbpReal{};
     // Imaginary part
-    double  BSIM4DPbpImag, BSIM4GPbpImag, BSIM4SPbpImag, BSIM4BPdpImag, BSIM4BPgpImag, BSIM4BPspImag, BSIM4BPbpImag, BSIM4DdImag, BSIM4GPgpImag, BSIM4SsImag, 
-        BSIM4DPdpImag, BSIM4SPspImag, BSIM4DdpImag, BSIM4GPdpImag, BSIM4GPspImag, BSIM4SspImag, BSIM4DPspImag, BSIM4DPdImag, BSIM4DPgpImag, BSIM4SPgpImag,
-        BSIM4SPsImag, BSIM4SPdpImag, BSIM4QqImag, BSIM4QbpImag, BSIM4QdpImag, BSIM4QspImag, BSIM4QgpImag, BSIM4DPqImag, BSIM4SPqImag, BSIM4GPqImag,
-        BSIM4GEgeImag, BSIM4GEgpImag, BSIM4GPgeImag, BSIM4GEdpImag, BSIM4GEspImag, BSIM4GEbpImag, BSIM4GMdpImag, BSIM4GMgpImag, BSIM4GMgmImag, BSIM4GMgeImag,
-        BSIM4GMspImag, BSIM4GMbpImag, BSIM4DPgmImag, BSIM4GPgmImag, BSIM4GEgmImag, BSIM4SPgmImag, BSIM4BPgmImag, BSIM4DPdbImag, BSIM4SPsbImag, BSIM4DBdpImag, 
-        BSIM4DBdbImag, BSIM4DBbpImag, BSIM4DBbImag, BSIM4BPdbImag, BSIM4BPbImag, BSIM4BPsbImag, BSIM4SBspImag, BSIM4SBbpImag, BSIM4SBbImag, BSIM4SBsbImag, 
-        BSIM4BdbImag, BSIM4BbpImag, BSIM4BsbImag, BSIM4BbImag, BSIM4DgpImag, BSIM4DspImag, BSIM4DbpImag, BSIM4SdpImag, BSIM4SgpImag, BSIM4SbpImag;
+    double  BSIM4DPbpImag{}, BSIM4GPbpImag{}, BSIM4SPbpImag{}, BSIM4BPdpImag{}, BSIM4BPgpImag{}, BSIM4BPspImag{}, BSIM4BPbpImag{}, BSIM4DdImag{}, BSIM4GPgpImag{}, BSIM4SsImag{},
+        BSIM4DPdpImag{}, BSIM4SPspImag{}, BSIM4DdpImag{}, BSIM4GPdpImag{}, BSIM4GPspImag{}, BSIM4SspImag{}, BSIM4DPspImag{}, BSIM4DPdImag{}, BSIM4DPgpImag{}, BSIM4SPgpImag{},
+        BSIM4SPsImag{}, BSIM4SPdpImag{}, BSIM4QqImag{}, BSIM4QbpImag{}, BSIM4QdpImag{}, BSIM4QspImag{}, BSIM4QgpImag{}, BSIM4DPqImag{}, BSIM4SPqImag{}, BSIM4GPqImag{},
+        BSIM4GEgeImag{}, BSIM4GEgpImag{}, BSIM4GPgeImag{}, BSIM4GEdpImag{}, BSIM4GEspImag{}, BSIM4GEbpImag{}, BSIM4GMdpImag{}, BSIM4GMgpImag{}, BSIM4GMgmImag{}, BSIM4GMgeImag{},
+        BSIM4GMspImag{}, BSIM4GMbpImag{}, BSIM4DPgmImag{}, BSIM4GPgmImag{}, BSIM4GEgmImag{}, BSIM4SPgmImag{}, BSIM4BPgmImag{}, BSIM4DPdbImag{}, BSIM4SPsbImag{}, BSIM4DBdpImag{},
+        BSIM4DBdbImag{}, BSIM4DBbpImag{}, BSIM4DBbImag{}, BSIM4BPdbImag{}, BSIM4BPbImag{}, BSIM4BPsbImag{}, BSIM4SBspImag{}, BSIM4SBbpImag{}, BSIM4SBbImag{}, BSIM4SBsbImag{},
+        BSIM4BdbImag{}, BSIM4BbpImag{}, BSIM4BsbImag{}, BSIM4BbImag{}, BSIM4DgpImag{}, BSIM4DspImag{}, BSIM4DbpImag{}, BSIM4SdpImag{}, BSIM4SgpImag{}, BSIM4SbpImag{};
 
     if (!model.BSIM4rdsMod)
     {   gdpr = instance.BSIM4drainConductance;
