@@ -256,12 +256,13 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
                 std::string dc_val_str, ac_keyword, ac_amp_str, ac_phase_str;
 
-                // Case 1: V... DC <dc_val> AC ...
+                // Case 1: V... DC <dc_val> AC ... or V... DC <dc_val> 
                 if (first_param == "dc" || first_param == "DC")
                 {
                     iss >> dc_val_str;
                     vs.value = convertToValue(dc_val_str);
 
+                    // Check for an optional AC part
                     if (iss >> ac_keyword && (ac_keyword == "ac" || ac_keyword == "AC"))
                     {
                         iss >> ac_amp_str;
@@ -270,11 +271,6 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                         {
                             vs.phase = convertToValue(ac_phase_str);
                         }
-                    }
-                    else
-                    {
-                        std::cerr << "Error parsing voltage source " << id_str << ": 'DC' must be followed by an 'AC' specification." << std::endl;
-                        exit(1);
                     }
                 }
                 // Case 2: V... AC <amp> [<phase>]
