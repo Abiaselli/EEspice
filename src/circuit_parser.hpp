@@ -197,79 +197,114 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         parseModel(iss, line, modmap);
     }
     else if (type[0] == 'V' || type[0] == 'v')
-    {   
+    {
         id_str = type;
         int v_id = convertToDevice(id_str, cktmap.map_voltages);
+        iss >> v_nodePos_str >> v_nodeNeg_str;
 
-        iss >> v_nodePos_str >> v_nodeNeg_str >> v_type;
-        if (v_type == "pulse" || v_type == "PULSE")
-        { // Pulse voltage settings
-            Pulsevoltage pv;
-            std::string pulseParamsString;
-            std::getline(iss, pulseParamsString);
-            // Remove the parentheses
-            pulseParamsString.erase(std::remove(pulseParamsString.begin(), pulseParamsString.end(), '('), pulseParamsString.end());
-            pulseParamsString.erase(std::remove(pulseParamsString.begin(), pulseParamsString.end(), ')'), pulseParamsString.end());
+        // Read the first parameter after the nodes to determine the source type
+        std::string first_param;
+        if (iss >> first_param)
+        {
+            if (first_param == "pulse" || first_param == "PULSE")
+            { // It's a pulse source.
+                Pulsevoltage pv;
+                std::string pulseParamsString;
+                std::getline(iss, pulseParamsString);
+                // Remove the parentheses
+                pulseParamsString.erase(std::remove(pulseParamsString.begin(), pulseParamsString.end(), '('), pulseParamsString.end());
+                pulseParamsString.erase(std::remove(pulseParamsString.begin(), pulseParamsString.end(), ')'), pulseParamsString.end());
 
-            // Split the pulseParamsString into individual parameters
-            std::istringstream pulseParamsStream(pulseParamsString);
-            std::string v1, v2, td, tr, tf, pw, per;
+                // Split the pulseParamsString into individual parameters
+                std::istringstream pulseParamsStream(pulseParamsString);
+                std::string v1, v2, td, tr, tf, pw, per;
 
-            pv.id_str = id_str;
-            pv.id = v_id;
-            pv.nodePos_str = v_nodePos_str;
-            pv.nodeNeg_str = v_nodeNeg_str;
-            pv.nodePos = convertToNode(v_nodePos_str, cktmap.map_nodes);
-            pv.nodeNeg = convertToNode(v_nodeNeg_str, cktmap.map_nodes);
+                pv.id_str = id_str;
+                pv.id = v_id;
+                pv.nodePos_str = v_nodePos_str;
+                pv.nodeNeg_str = v_nodeNeg_str;
+                pv.nodePos = convertToNode(v_nodePos_str, cktmap.map_nodes);
+                pv.nodeNeg = convertToNode(v_nodeNeg_str, cktmap.map_nodes);
 
-            pulseParamsStream >> v1 >> v2 >> td >> tr >> tf >> pw >> per;
+                pulseParamsStream >> v1 >> v2 >> td >> tr >> tf >> pw >> per;
 
-            pv.V1 = convertToValue(v1);
-            pv.V2 = convertToValue(v2);
-            pv.td = convertToValue(td);
-            pv.tr = convertToValue(tr);
-            pv.tf = convertToValue(tf);
-            pv.pw = convertToValue(pw);
-            pv.per = convertToValue(per);
+                pv.V1 = convertToValue(v1);
+                pv.V2 = convertToValue(v2);
+                pv.td = convertToValue(td);
+                pv.tr = convertToValue(tr);
+                pv.tf = convertToValue(tf);
+                pv.pw = convertToValue(pw);
+                pv.per = convertToValue(per);
 
-            parser.elements.pulseVoltages.emplace_back(pv);
-        }
-        else if(v_type == "ac" || v_type == "AC"){
-            // AC voltage source settings
-            VoltageSource vs;
-            vs.id_str = id_str;
-            vs.id = v_id;
-            vs.nodePos_str = v_nodePos_str;
-            vs.nodeNeg_str = v_nodeNeg_str;
-            vs.nodePos = convertToNode(v_nodePos_str, cktmap.map_nodes);
-            vs.nodeNeg = convertToNode(v_nodeNeg_str, cktmap.map_nodes);
+                parser.elements.pulseVoltages.emplace_back(pv);
+            }
+            else
+            {
+                // It's a DC and/or AC source.
+                VoltageSource vs;
+                vs.id_str = id_str;
+                vs.id = v_id;
+                vs.nodePos_str = v_nodePos_str;
+                vs.nodeNeg_str = v_nodeNeg_str;
+                vs.nodePos = convertToNode(v_nodePos_str, cktmap.map_nodes);
+                vs.nodeNeg = convertToNode(v_nodeNeg_str, cktmap.map_nodes);
 
-            // AC voltage source settings
-            std::string ac_amplitude, ac_phase;
-            iss >> ac_amplitude >> ac_phase;
-            vs.amplitude = convertToValue(ac_amplitude);
-            vs.phase = convertToValue(ac_phase);
-            // Set the AC real and imaginary components based on amplitude and phase
-            double radians = vs.phase * M_PI / 180.0;
-            vs.acReal = vs.amplitude * std::cos(radians);
-            vs.acImag = vs.amplitude * std::sin(radians);
+                // Set defaults
+                vs.value = 0.0;
+                vs.amplitude = 0.0;
+                vs.phase = 0.0;
 
-            parser.elements.voltageSources.emplace_back(vs);
+                std::string dc_val_str, ac_keyword, ac_amp_str, ac_phase_str;
+
+                // Case 1: V... DC <dc_val> AC ...
+                if (first_param == "dc" || first_param == "DC")
+                {
+                    iss >> dc_val_str;
+                    vs.value = convertToValue(dc_val_str);
+
+                    if (iss >> ac_keyword && (ac_keyword == "ac" || ac_keyword == "AC"))
+                    {
+                        iss >> ac_amp_str;
+                        vs.amplitude = convertToValue(ac_amp_str);
+                        if (iss >> ac_phase_str)
+                        {
+                            vs.phase = convertToValue(ac_phase_str);
+                        }
+                    }
+                    else
+                    {
+                        std::cerr << "Error parsing voltage source " << id_str << ": 'DC' must be followed by an 'AC' specification." << std::endl;
+                        exit(1);
+                    }
+                }
+                // Case 2: V... AC <amp> [<phase>]
+                else if (first_param == "ac" || first_param == "AC")
+                {
+                    iss >> ac_amp_str;
+                    vs.amplitude = convertToValue(ac_amp_str);
+                    if (iss >> ac_phase_str)
+                    {
+                        vs.phase = convertToValue(ac_phase_str);
+                    }
+                }
+                // Case 3: V... <dc_val>
+                else
+                {
+                    vs.value = convertToValue(first_param);
+                }
+
+                // Set the AC real and imaginary components based on amplitude and phase
+                double radians = vs.phase * M_PI / 180.0;
+                vs.acReal = vs.amplitude * std::cos(radians);
+                vs.acImag = vs.amplitude * std::sin(radians);
+
+                parser.elements.voltageSources.emplace_back(vs);
+            }
         }
         else
         {
-            VoltageSource vs;
-            vs.id_str = id_str;
-            vs.id = v_id;
-            vs.nodePos_str = v_nodePos_str;
-            vs.nodeNeg_str = v_nodeNeg_str;
-            vs.nodePos = convertToNode(v_nodePos_str, cktmap.map_nodes);
-            vs.nodeNeg = convertToNode(v_nodeNeg_str, cktmap.map_nodes);
-
-            // Normal DC voltage source
-            vs.value = convertToValue(v_type);
-
-            parser.elements.voltageSources.emplace_back(vs);
+            std::cerr << "Error: Incomplete voltage source definition for " << id_str << std::endl;
+            exit(1);
         }
     }
     else if (type[0] == 'R' || type[0] == 'r')
