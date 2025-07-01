@@ -119,42 +119,58 @@ int getInternalMosfetNodes(const CircuitElements &elements)
 }
 
 // Parse [start:step:end] or (value1 value2 value3 ...) for batch simulation
-std::vector<double> batchVector(std::string valueStr, const std::string &line){
+std::vector<double> batchVector(std::string valueStr, const std::string &line) {
     std::vector<double> vec;
 
-    // Parse bracket [start:step:end]
-    if(valueStr.front() == '[' && valueStr.back() == ']')
-    {   
-        valueStr.erase(0, 1);  // remove the first bracket [
-        valueStr.pop_back();   // remove the last bracket ]
-        // Now split on ':'
+    // Parse bracket [start:step:end] or [start:step:end]u
+    if (valueStr.front() == '[')
+    {
+        size_t closingBracketPos = valueStr.find(']');
+        if (closingBracketPos == std::string::npos) {
+            std::cerr << "Error: Missing closing bracket ']' in batchVector: " << line << std::endl;
+            return vec;
+        }
+
+        double unitMultiplier = 1.0;
+        // Check for a unit after the closing bracket
+        if (closingBracketPos < valueStr.length() - 1) {
+            std::string unitPart = valueStr.substr(closingBracketPos + 1);
+            // Reuse convertToValue to get the multiplier, e.g., "1u" -> 1.0e-6
+            unitMultiplier = convertToValue("1" + unitPart);
+        }
+
+        // Extract the content inside the brackets
+        std::string innerContent = valueStr.substr(1, closingBracketPos - 1);
+
         std::vector<std::string> parts;
         {
-            std::stringstream ss(valueStr);
+            std::stringstream ss(innerContent);
             std::string piece;
             while (std::getline(ss, piece, ':')) {
                 parts.push_back(piece);
             }
         }
+
         if (parts.size() == 3) {
-            double bracketStart = convertToValue(parts[0]);
-            double bracketStep  = convertToValue(parts[1]);
-            double bracketEnd   = convertToValue(parts[2]);
+            // Convert parts to value, apply the global multiplier
+            double bracketStart = convertToValue(parts[0]) * unitMultiplier;
+            double bracketStep  = convertToValue(parts[1]) * unitMultiplier;
+            double bracketEnd   = convertToValue(parts[2]) * unitMultiplier;
+
             while(bracketStart <= bracketEnd){
                 vec.push_back(bracketStart);
                 bracketStart += bracketStep;
             }
-            if(bracketEnd - vec.back() > LargeEpsilon){
+            // Add the end point if it wasn't reached due to floating point inaccuracies
+            if(vec.empty() || (bracketEnd - vec.back() > LargeEpsilon)){
                 vec.push_back(bracketEnd);
             }
-            
         } else {
-            std::cerr << "Error parsing bracket in batchVector: " << line << std::endl;
+            std::cerr << "Error parsing bracket contents in batchVector: " << line << std::endl;
         }
-
     }
-    // Parse bracket (value1 value2 value3 ...)
-    else if(valueStr.front() == '(' && valueStr.back() == ')')
+    // Parse parenthetical list (value1 value2 value3 ...)
+    else if (valueStr.front() == '(' && valueStr.back() == ')')
     {
         valueStr.erase(0, 1);  // remove the first bracket (
         valueStr.pop_back();   // remove the last bracket )
@@ -164,15 +180,18 @@ std::vector<double> batchVector(std::string valueStr, const std::string &line){
             std::stringstream ss(valueStr);
             std::string piece;
             while (std::getline(ss, piece, ' ')) {
-                parts.push_back(piece);
+                // Ignore empty strings that can result from multiple spaces
+                if (!piece.empty()) {
+                   parts.push_back(piece);
+                }
             }
         }
         for(auto &part : parts){
             vec.push_back(convertToValue(part));
         }
     }
-    else{
-       std::cerr << "Error parsing bracket in batchVector: " << line << std::endl;
+    else {
+       std::cerr << "Error: Invalid format for batch specification: " << line << std::endl;
     }
     return vec;
 }
