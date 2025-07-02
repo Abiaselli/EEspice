@@ -5,7 +5,7 @@
 
 namespace dc{
 
-DCSimulator DCsetup(CircuitParser &parser, const CKTcircuit &ckt){
+DCSimulator DCsetup(const CircuitParser &parser, const CKTcircuit &ckt){
     DCSimulator dcSim;
 
     // Check if the DC simulation is non-linear
@@ -17,7 +17,8 @@ DCSimulator DCsetup(CircuitParser &parser, const CKTcircuit &ckt){
     }
 
     // Setup DC sweeps
-    dcSim.dcsweep = std::move(parser.dcSweep_parser);
+    // dcSim.dcsweep = std::move(parser.dcSweep_parser);
+    dcSim.dcsweep = parser.dcSweep_parser;
 
     // setup DC voltage points
     double vol = dcSim.dcsweep.vstart;

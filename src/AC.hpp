@@ -119,7 +119,7 @@ std::vector<double> generateSweepValues(const ACSweepSpec &sweepSpec){
     return sweep_values;
 }
 
-ACsimulator ACsetup(CircuitParser &parser, const CKTcircuit &ckt){
+ACsimulator ACsetup(const CircuitParser &parser, const CKTcircuit &ckt){
     ACsimulator acsim;
     // Check if the AC sweep simulation is non-linear
     if(!ckt.CKTelements.nmos.empty() || !ckt.CKTelements.pmos.empty() || !ckt.CKTelements.diodes.empty()){
@@ -129,7 +129,8 @@ ACsimulator ACsetup(CircuitParser &parser, const CKTcircuit &ckt){
         acsim.non_linear = false;
     }
     // Set the AC sweep parameters
-    acsim.acsweep = std::move(parser.acSweep_parser);
+    // acsim.acsweep = std::move(parser.acSweep_parser);
+    acsim.acsweep = parser.acSweep_parser;
     acsim.acsweep.ACfreqDelta = ACfreqDeltaCalculate(acsim.acsweep);
     acsim.acsweep.freqTol = freqTolCalculate(acsim.acsweep);
     acsim.acsweep.sweep_values = generateSweepValues(acsim.acsweep);
