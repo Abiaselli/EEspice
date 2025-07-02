@@ -8,7 +8,8 @@ FOLDERS="src"
   echo "### FILE TREE ###"
   # tree $FOLDERS
   for folder in $FOLDERS; do
-    tree -L 1 "$folder"
+    # tree -L 1 "$folder"
+    tree "$folder"
   done
 
   # Generate file contents (code files only)
