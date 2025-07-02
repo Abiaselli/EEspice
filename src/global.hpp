@@ -22,11 +22,7 @@ struct VoltageSource
     double acReal{};            // AC real component
     double acImag{};            // AC imaginary component
 
-    // If bracket notation is used:
-    bool hasBracket = false;
-    double bracketStart{};
-    double bracketStep{};
-    double bracketEnd{};
+    std::vector<double> batchValues; // For batch simulation, e.g., [start:step:end] or (value1 value2 value3 ...)
 };
 
 struct Pulsevoltage
@@ -55,6 +51,8 @@ struct Diode
     int nodePos{}, nodeNeg{};
     double Is{};
     double VT{};
+    std::vector<double> batchIs;
+    std::vector<double> batchVT;
 };
 
 struct VCCS
@@ -64,6 +62,7 @@ struct VCCS
     std::string node_x_str, node_y_str, node_cx_str, node_cy_str;
     int node_x{}, node_y{}, node_cx{}, node_cy{};
     double value{};
+    std::vector<double> batchValues;
 };
 
 enum class MosfetModelType {
@@ -82,6 +81,8 @@ struct NMOS
     MosfetModelType modelType;
     bsim4::BSIM4V82 bsim4v82Instance;
     // NMOS(const std::string& name) : id_str(name), bsim4v82Instance(name) {}
+    std::vector<double> batchW; // For batch simulation
+    std::vector<double> batchL;
 };
 
 struct PMOS
@@ -95,30 +96,28 @@ struct PMOS
     MosfetModelType modelType;
     bsim4::BSIM4V82 bsim4v82Instance;
     // PMOS(const std::string& name) : id_str(name), bsim4v82Instance(name) {}
+    std::vector<double> batchW; // For batch simulation
+    std::vector<double> batchL;
 };
 
 struct CurrentSource
 {   
     std::string id_str;
-    int id;
+    int id{};
     std::string nodePos_str, nodeNeg_str;
-    int nodePos, nodeNeg;
-    double value;
-
-    // If bracket notation is used:
-    bool hasBracket = false;
-    double bracketStart{};
-    double bracketStep{};
-    double bracketEnd{};
+    int nodePos{}, nodeNeg{};
+    double value{};
+    std::vector<double> batchValues; // For batch simulation, e.g., [start:step:end] or (value1 value2 value3 ...)
 };
 
 struct Resistor
 {   
     std::string id_str;
-    int id;
+    int id{};
     std::string nodePos_str, nodeNeg_str;
-    int nodePos, nodeNeg;
-    double value;
+    int nodePos{}, nodeNeg{};
+    double value{};
+    std::vector<double> batchValues;
 };
 
 struct Capacitor
@@ -129,6 +128,7 @@ struct Capacitor
     std::string nodePos_str, nodeNeg_str;
     int nodePos{}, nodeNeg{};
     double value{};
+    std::vector<double> batchValues;
 
     double current{};
     double voltage{};
