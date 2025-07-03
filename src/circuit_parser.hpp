@@ -27,6 +27,7 @@ struct CircuitParser
     std::string filename;
     CircuitElements elements;
     // Simulation tasks
+    bool is_batch = false; // If true, the circuit is a batch simulation
     bool is_transient = false;
     bool is_dc = false;
     bool is_ac = false;
@@ -302,6 +303,12 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                         vs.phase = convertToValue(ac_phase_str);
                     }
                 }
+                else if (first_param.front() == '[' || first_param.front() == '(')
+                {
+                    // Batch simulation case
+                    parser.is_batch = true;
+                    vs.batchValues = batchVector(first_param, line);
+                }
                 // Case 3: V... <dc_val>
                 else
                 {
@@ -333,7 +340,17 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
         r.nodePos = convertToNode(r.nodePos_str, cktmap.map_nodes);
         r.nodeNeg = convertToNode(r.nodeNeg_str, cktmap.map_nodes);
-        r.value = convertToValue(valueStr);
+        if (valueStr.front() == '[' || valueStr.front() == '(')
+        {
+            // Batch simulation case
+            parser.is_batch = true;
+            r.batchValues = batchVector(valueStr, line);
+        }
+        else
+        {
+            // Single value resistor
+            r.value = convertToValue(valueStr);
+        }
 
         parser.elements.resistors.emplace_back(r);
     }
@@ -347,8 +364,17 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
         c.nodePos = convertToNode(c.nodePos_str, cktmap.map_nodes);
         c.nodeNeg = convertToNode(c.nodeNeg_str, cktmap.map_nodes);
-        c.value = convertToValue(valueStr);
-
+        if (valueStr.front() == '[' || valueStr.front() == '(')
+        {
+            // Batch simulation case
+            parser.is_batch = true;
+            c.batchValues = batchVector(valueStr, line);
+        }
+        else
+        {
+            // Single value capacitor
+            c.value = convertToValue(valueStr);
+        }
         parser.elements.capacitors.emplace_back(c);
     }
     else if (type[0] == 'I' || type[0] == 'i')
@@ -363,7 +389,16 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         cs.nodeNeg = convertToNode(cs.nodeNeg_str, cktmap.map_nodes);
         
         // Normal Current source
-        cs.value = convertToValue(valueStr);
+        if (valueStr.front() != '[' && valueStr.front() != '(')
+        {
+            // Batch simulation case
+            parser.is_batch = true;
+            cs.batchValues = batchVector(valueStr, line);
+        }
+        else
+        {
+            cs.value = convertToValue(valueStr);
+        }
         
         parser.elements.currentSources.emplace_back(cs);
     }
@@ -377,10 +412,30 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
         d.nodePos = convertToNode(d.nodePos_str, cktmap.map_nodes);
         d.nodeNeg = convertToNode(d.nodeNeg_str, cktmap.map_nodes);
-        d.Is = convertToValue(valueStr);
+        if (valueStr.front() == '[' || valueStr.front() == '(')
+        {
+            // Batch simulation case
+            parser.is_batch = true;
+            d.batchIs = batchVector(valueStr, line);
+        }
+        else
+        {
+            // Single value diode
+            d.Is = convertToValue(valueStr);
+        }
 
         iss >> valueStr;
-        d.VT = convertToValue(valueStr);
+        if (valueStr.front() == '[' || valueStr.front() == '(')
+        {
+            // Batch simulation case
+            parser.is_batch = true;
+            d.batchVT = batchVector(valueStr, line);
+        }
+        else
+        {
+            // Single value diode
+            d.VT = convertToValue(valueStr);
+        }
 
         parser.elements.diodes.emplace_back(d);
     }
@@ -396,7 +451,17 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         g.node_y = convertToNode(g.node_y_str, cktmap.map_nodes);
         g.node_cx = convertToNode(g.node_cx_str, cktmap.map_nodes);
         g.node_cy = convertToNode(g.node_cy_str, cktmap.map_nodes);
-        g.value = convertToValue(valueStr);
+        if (valueStr.front() == '[' || valueStr.front() == '(')
+        {
+            // Batch simulation case
+            parser.is_batch = true;
+            g.batchValues = batchVector(valueStr, line);
+        }
+        else
+        {
+            // Single value VCCS
+            g.value = convertToValue(valueStr);
+        }
 
         parser.elements.vccs.emplace_back(g);
     }
@@ -447,12 +512,32 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                     if (key == "W" || key == "w")
                     {
                         valueStr = value;
-                        mn.W = convertToValue(valueStr);
+                        if (valueStr.front() == '[' || valueStr.front() == '(')
+                        {
+                            // Batch simulation case
+                            parser.is_batch = true;
+                            mn.batchW = batchVector(valueStr, line);
+                        }
+                        else
+                        {
+                            // Single value W
+                            mn.W = convertToValue(valueStr);
+                        }                       
                     }
                     else if (key == "L" || key == "l")
                     {
                         valueStr = value;
-                        mn.L = convertToValue(valueStr);
+                        if (valueStr.front() == '[' || valueStr.front() == '(')
+                        {
+                            // Batch simulation case
+                            parser.is_batch = true;
+                            mn.batchL = batchVector(valueStr, line);
+                        }
+                        else
+                        {
+                            // Single value L
+                            mn.L = convertToValue(valueStr);
+                        }
                     }
                 }
             }
@@ -490,12 +575,32 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                     if (key == "W" || key == "w")
                     {
                         valueStr = value;
-                        mp.W = convertToValue(valueStr);
+                        if (valueStr.front() == '[' || valueStr.front() == '(')
+                        {
+                            // Batch simulation case
+                            parser.is_batch = true;
+                            mp.batchW = batchVector(valueStr, line);
+                        }
+                        else
+                        {
+                            // Single value W
+                            mp.W = convertToValue(valueStr);
+                        }
                     }
                     else if (key == "L" || key == "l")
                     {
                         valueStr = value;
-                        mp.L = convertToValue(valueStr);
+                        if (valueStr.front() == '[' || valueStr.front() == '(')
+                        {
+                            // Batch simulation case
+                            parser.is_batch = true;
+                            mp.batchL = batchVector(valueStr, line);
+                        }
+                        else
+                        {
+                            // Single value L
+                            mp.L = convertToValue(valueStr);
+                        }
                     }
                 }
             }
@@ -533,12 +638,32 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                         if (key == "W" || key == "w")
                         {
                             valueStr = value;
-                            mn.W = convertToValue(valueStr);
+                            if (valueStr.front() == '[' || valueStr.front() == '(')
+                            {
+                                // Batch simulation case
+                                parser.is_batch = true;
+                                mn.batchW = batchVector(valueStr, line);
+                            }
+                            else
+                            {
+                                // Single value W
+                                mn.W = convertToValue(valueStr);
+                            }
                         }
                         else if (key == "L" || key == "l")
                         {
                             valueStr = value;
-                            mn.L = convertToValue(valueStr);
+                            if (valueStr.front() == '[' || valueStr.front() == '(')
+                            {
+                                // Batch simulation case
+                                parser.is_batch = true;
+                                mn.batchL = batchVector(valueStr, line);
+                            }
+                            else
+                            {
+                                // Single value L
+                                mn.L = convertToValue(valueStr);
+                            }                          
                         }
                     }
                 }
@@ -575,12 +700,32 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                         if (key == "W" || key == "w")
                         {
                             valueStr = value;
-                            mp.W = convertToValue(valueStr);
+                            if (valueStr.front() == '[' || valueStr.front() == '(')
+                            {
+                                // Batch simulation case
+                                parser.is_batch = true;
+                                mp.batchW = batchVector(valueStr, line);
+                            }
+                            else
+                            {
+                                // Single value W
+                                mp.W = convertToValue(valueStr);
+                            }                          
                         }
                         else if (key == "L" || key == "l")
                         {
                             valueStr = value;
-                            mp.L = convertToValue(valueStr);
+                            if (valueStr.front() == '[' || valueStr.front() == '(')
+                            {
+                                // Batch simulation case
+                                parser.is_batch = true;
+                                mp.batchL = batchVector(valueStr, line);
+                            }
+                            else
+                            {
+                                // Single value L
+                                mp.L = convertToValue(valueStr);
+                            }
                         }
                     }
                 }
