@@ -20,20 +20,20 @@ int main(int argc, const char **argv)
     // pool.wait();
 
     auto t1 = std::chrono::high_resolution_clock::now(); // Start time
-
-    CKTcircuit ckt;
-    auto denseMatrixPtr = std::make_shared<DenseMatrix>();  // Create the DenseMatrix as a shared pointer.
-
+    // Parse netlist file
     Modelmap modmap;
-
+    Circuitmap cktmap;
     CircuitParser parser("Netlist/ac_bsim.cir");
-    parser_netlist(parser, ckt.map, modmap);
+    parser_netlist(parser, cktmap, modmap);
 
     // Model setup using the temperature
     modelSetup(modmap, nomTemp);
 
+    // CKT circuit setup
+    CKTcircuit ckt;
+    ckt.map = cktmap; // Assign the circuit map to the CKTcircuit
+    auto denseMatrixPtr = std::make_shared<DenseMatrix>();  // Create the DenseMatrix as a shared pointer.
     CKTsetup(ckt, parser, denseMatrixPtr, modmap); // Pass the parser to the ckt and the initialise LHS and RHS matrices
-
     CKTload(ckt);
     ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
 
