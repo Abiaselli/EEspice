@@ -9,16 +9,17 @@
 #include "bsim4v82/bsim4v82setup.hpp"
 #include "bsim4v82/bsim4v82temp.hpp"
 #include "bsim4v82/bsim4v82stamp.hpp"
+#include "bsim4v82/bsim4v82paser.hpp"
 
 
 void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
-    // Setup the instance parameters
+    // Create and Setup the instance parameters
     // Setup the mosfet instance parameters
-    // Don't need to set the model pointer again, it's already set in the parser
-    // arg.bsim4v82Instance.BSIM4modPtr = bsim_iter->second;
 
     for (auto &nmos : ckt.CKTelements.nmos){
         if(nmos.modelType == MosfetModelType::BSIM4V82){
+            const auto &iter_bsim4 = modmap.bsim4Models.find(nmos.modelName);
+            nmos.bsim4v82Instance = bsim4::paserBSIM4instance(nmos.id_str, iter_bsim4->second, nmos.node_vd, nmos.node_vg, nmos.node_vs, nmos.node_vb, nmos.W, nmos.L);
             bsim4::instanceSetup(*nmos.bsim4v82Instance.BSIM4modPtr, nmos.bsim4v82Instance);
             bsim4::instanceTemp(nmos.bsim4v82Instance,*nmos.bsim4v82Instance.BSIM4modPtr);
             if (nmos.bsim4v82Instance.BSIM4trnqsMod){
@@ -35,6 +36,8 @@ void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
     }
     for (auto &pmos : ckt.CKTelements.pmos){
         if(pmos.modelType == MosfetModelType::BSIM4V82){
+            const auto &iter_bsim4 = modmap.bsim4Models.find(pmos.modelName);
+            pmos.bsim4v82Instance = bsim4::paserBSIM4instance(pmos.id_str, iter_bsim4->second, pmos.node_vd, pmos.node_vg, pmos.node_vs, pmos.node_vb, pmos.W, pmos.L);
             bsim4::instanceSetup(*pmos.bsim4v82Instance.BSIM4modPtr, pmos.bsim4v82Instance);
             bsim4::instanceTemp(pmos.bsim4v82Instance,*pmos.bsim4v82Instance.BSIM4modPtr);
             if (pmos.bsim4v82Instance.BSIM4trnqsMod){

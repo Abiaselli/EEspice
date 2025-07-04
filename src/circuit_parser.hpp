@@ -669,7 +669,8 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 }
                 // Setup modelType
                 mn.modelType = MosfetModelType::BSIM4V82;
-                mn.bsim4v82Instance = bsim4::paserBSIM4instance(id_str, iter_bsim4->second, mn.node_vd, mn.node_vg, mn.node_vs, mn.node_vb, mn.W, mn.L);
+                // Move to CKTinstanceSetup!!!
+                // mn.bsim4v82Instance = bsim4::paserBSIM4instance(id_str, iter_bsim4->second, mn.node_vd, mn.node_vg, mn.node_vs, mn.node_vb, mn.W, mn.L);
                 parser.elements.nmos.emplace_back(mn);
             }
             // Create a new PMOS instance
@@ -731,7 +732,8 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 }
                 // Paser modelType
                 mp.modelType = MosfetModelType::BSIM4V82;
-                mp.bsim4v82Instance = bsim4::paserBSIM4instance(id_str, iter_bsim4->second, mp.node_vd, mp.node_vg, mp.node_vs, mp.node_vb, mp.W, mp.L);
+                // Move to CKTinstanceSetup!!!
+                // mp.bsim4v82Instance = bsim4::paserBSIM4instance(id_str, iter_bsim4->second, mp.node_vd, mp.node_vg, mp.node_vs, mp.node_vb, mp.W, mp.L);
                 parser.elements.pmos.emplace_back(mp);
             }
             else{
