@@ -14,8 +14,6 @@
 #include <iomanip>
 #include <typeinfo>
 #include "sim_variables.hpp"
-#include "BS_thread_pool/BS_thread_pool.hpp"
-#include "BS_thread_pool/BS_thread_pool_utils.hpp"
 #include "circuit_parser.hpp"
 #include "XB_timer.hpp"
 
