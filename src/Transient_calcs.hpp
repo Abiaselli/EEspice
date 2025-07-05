@@ -294,11 +294,6 @@ void history_trans_update(Transient &trans, TransientSimulator &trans_sim)
     trans_sim.vec_trans.push_back(std::move(trans));
 }
 
-void dummy_task()
-{
-    // std::cout << "dummy task" << std::endl;
-    std::this_thread::sleep_for(std::chrono::microseconds(100));
-}
 
 double average_vec(std::vector<double> &v)
 {
