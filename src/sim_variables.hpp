@@ -1,7 +1,6 @@
 #pragma once
 #include <chrono>
 #include <vector>
-#include "BS_thread_pool/BS_thread_pool.hpp"
 
 // Global variables
 /* Upper transient iteration limit for iteration count in time-step control algorithm*/
@@ -35,7 +34,6 @@ constexpr double h_op = 1.0e-25; // Initial timestep in OP
 constexpr double LargeEpsilon = 1.0e-6;
 constexpr double SmallEpsilon = 1.0e-12;
 
-BS::thread_pool pool(3);
 
 // To control debug mode
 bool debugMode = false;
