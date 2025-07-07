@@ -84,6 +84,27 @@ std::vector<BatchParam> find_batch_params(const CircuitElements& elements) {
     return params;
 }
 
+// Compute the Cartesian-product size up front
+std::size_t estimate_num_configs(const std::vector<BatchParam>& params)
+{
+    using limit = std::numeric_limits<std::size_t>;
+    std::size_t product = 1;
+
+    for (const BatchParam& p : params) {
+        std::size_t n = p.values.size();          // how many values for this param?
+        if (n == 0) continue;                     // empty vector ⇒ no influence
+
+        // --- overflow guard -------------------------------------------------
+        if (n > limit::max() / product) {         // would overflow size_t?
+            throw std::overflow_error(
+                "Sweep is too large to materialise (would overflow size_t)");
+        }
+        // --------------------------------------------------------------------
+        product *= n;
+    }
+    return product;                               // 0 → no parameters
+}
+
 // Recursive helper function to generate all combinations of parameter values.
 void generate_configs_recursive(
     const std::vector<BatchParam>& all_params,
@@ -111,6 +132,8 @@ void generate_configs_recursive(
 std::vector<CircuitConfig> generate_all_configs(const std::vector<BatchParam>& batch_params) {
     std::vector<CircuitConfig> all_configs;
     if (!batch_params.empty()) {
+        const std::size_t n_cfg = estimate_num_configs(batch_params);
+        all_configs.reserve(n_cfg);  // Reserve space for all configurations
         generate_configs_recursive(batch_params, all_configs, {}, 0);
     }
     return all_configs;
