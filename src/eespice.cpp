@@ -34,6 +34,7 @@ int main(int argc, const char **argv)
         std::cout << "Starting batch simulation..." << std::endl;
         auto batch_results = batch::run_batch_simulation(cktmap, parser, modmap);
         std::cout << "Batch simulation finished. Saving " << batch_results.size() << " results." << std::endl;
+        batch::save_csv_batch(batch_results);
     }
     else{
         // CKT circuit setup
@@ -47,13 +48,13 @@ int main(int argc, const char **argv)
         if(parser.is_transient){
             TransientSimulator trans_sim = Transsetup(parser, ckt);
             std::vector<Transient> vec_trans_result = Transient_ops(ckt, trans_sim, modmap);
-            save_csv(ckt, vec_trans_result, ckt.map);
+            save_csv("tran_solution.csv", ckt, vec_trans_result, ckt.map);
 
         }
         if(parser.is_dc){
             DCSimulator dcSim = dc::DCsetup(parser, ckt);
             std::vector<DC> vec_dc_result = dc::DC_ops(ckt, dcSim, modmap);
-            save_csv_dc(ckt, vec_dc_result, ckt.map);
+            save_csv_dc("dc_solution.csv", ckt, vec_dc_result, ckt.map);
         }
         if(parser.is_ac){
             CKTloadAC(ckt);
