@@ -23,6 +23,7 @@ using CircuitConfig = std::map<std::string, double>;
 // Holds the results for a single simulation run from the batch
 struct BatchRunResult {
     CircuitConfig config;
+    CKTcircuit ckt; // Store the circuit state after simulation
     std::variant<std::vector<DC>, std::vector<Transient>, std::vector<AC::AC>> results;
     std::string simulation_type;
 };
@@ -92,7 +93,7 @@ BatchRunResult simulation_worker(
         // Fallback or error for no simulation type specified
         run_result.simulation_type = "none";
     }
-
+    run_result.ckt = std::move(ckt_template); // Store the circuit state in the result
     return run_result;
 }
 
