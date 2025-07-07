@@ -28,7 +28,7 @@ struct CKTcircuit
     bool ckt_loaded{};                              // To check if the circuit is loaded or not
 
     double CKTtemp{};                               // Actual temperature of CKT, initialzed to 300.15 K 
-    const double CKTnomTemp = 300.15;               // Reference temperature 300.15 K
+    double CKTnomTemp = 300.15;               // Reference temperature 300.15 K
     double CKTgmin = 1.0e-12;                       // Gmin value
     int CKTintegrateMethod{};                       // Integration method (0 for Backward Euler, 1 for Trapezoidal, 2 for Gear)
     int CKTorder{};                                 // Order of the integration method (1 for first order, 2 for second order)

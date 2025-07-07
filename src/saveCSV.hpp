@@ -4,15 +4,21 @@
 #include <string>
 #include <vector>
 #include <variant>
+#include <string>
+#include <filesystem>
+#include <algorithm>
+#include <sstream>
 
 #include "device.hpp"
 #include "matrix.hpp"
 #include "CKT.hpp"
 #include "Transient.hpp"
+#include "DC.hpp"
+#include "batch.hpp"
 
-void save_csv(const CKTcircuit &ckt, const std::vector<Transient> &vec_trans, const Circuitmap &map)
+void save_csv(const std::string &filename, const CKTcircuit &ckt, const std::vector<Transient> &vec_trans, const Circuitmap &map)
 {
-    std::ofstream file("tran_solution.csv");
+    std::ofstream file(filename);
 
     // All std::map elements are <std::string, int>
 
@@ -75,8 +81,8 @@ void save_csv(const CKTcircuit &ckt, const std::vector<Transient> &vec_trans, co
     file.close();
 }
 
-void save_csv_dc(const CKTcircuit &ckt, const std::vector<DC> &vec_dc, const Circuitmap &map){
-    std::ofstream file("dc_solution.csv");
+void save_csv_dc(const std::string &filename, const CKTcircuit &ckt, const std::vector<DC> &vec_dc, const Circuitmap &map){
+    std::ofstream file(filename);
 
     // 1) Build a helper vector for nodeIndex -> nodeName
     //    We'll index from 1..ckt.external_nodes
@@ -146,3 +152,36 @@ void save_csv_dc(const CKTcircuit &ckt, const std::vector<DC> &vec_dc, const Cir
 
     file.close();
 }
+
+namespace batch{
+void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
+    const std::string output_dir = "batch_results";
+    std::filesystem::create_directory(output_dir);
+
+    for (const auto& run_result : batch_results) {
+        // Create a unique filename for this run
+        std::string filename_suffix;
+        for (const auto& [param, value] : run_result.config) {
+            // Sanitize param name for filename
+            std::string sanitized_param = param;
+            std::replace(sanitized_param.begin(), sanitized_param.end(), '.', '_');
+            
+            std::ostringstream val_stream;
+            val_stream << std::scientific << std::setprecision(4) << value;
+
+            filename_suffix += "_" + sanitized_param + "_" + val_stream.str();
+        }
+        auto &ckt = run_result.ckt; // Get the circuit state from the run result
+        if (run_result.simulation_type == "dc") {
+            std::string filename = output_dir + "/dc_solution" + filename_suffix + ".csv";
+            const auto& vec_dc_result = std::get<std::vector<DC>>(run_result.results);
+            save_csv_dc(filename, ckt, vec_dc_result, ckt.map);
+        } else if (run_result.simulation_type == "tran") {
+            std::string filename = output_dir + "/tran_solution" + filename_suffix + ".csv";
+            const auto& vec_trans_result = std::get<std::vector<Transient>>(run_result.results);
+            save_csv(filename, ckt, vec_trans_result, ckt.map);
+        } // TODO: Add AC results saving
+    }
+}
+
+}// namespace batch
