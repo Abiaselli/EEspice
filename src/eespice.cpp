@@ -12,6 +12,11 @@
 // Main function for the circuit simulation
 int main(int argc, const char **argv)
 {
+    // Check if a netlist file is provided as command line argument
+    if (argc < 2) {
+        std::cerr << "Usage: ./eespice <netlist_file>" << std::endl;
+        return 1;
+    }
 
     setDebugMode(false); // Set the debug mode to false or true
 
@@ -24,7 +29,7 @@ int main(int argc, const char **argv)
     // Parse netlist file
     Modelmap modmap;
     Circuitmap cktmap;
-    CircuitParser parser("Netlist/batch.cir");
+    CircuitParser parser(argv[1]);
     parser_netlist(parser, cktmap, modmap);
 
     // Model setup using the temperature
