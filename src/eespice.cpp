@@ -17,15 +17,8 @@ int main(int argc, const char **argv)
         std::cerr << "Usage: ./eespice <netlist_file>" << std::endl;
         return 1;
     }
-
     setDebugMode(false); // Set the debug mode to false or true
 
-    // for(int i = 0; i < 3; i++){
-    //     pool.detach_task(dummy_task);
-    // }
-    // pool.wait();
-
-    auto t1 = std::chrono::high_resolution_clock::now(); // Start time
     // Parse netlist file
     Modelmap modmap;
     Circuitmap cktmap;
