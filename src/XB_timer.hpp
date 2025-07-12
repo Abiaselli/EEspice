@@ -8,41 +8,48 @@ struct SimulationTime;
 struct XB_Timer
 {
 public:
-    // Returns the current time in milliseconds
-    double current_ms() const
-    {
-        return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start_time).count();
-    }
-    // Starts the timer
+    // Starts or restarts the timer.
     void start()
     {
         start_time = std::chrono::steady_clock::now();
+        is_running = true;
     }
-    // Stops the timer and calculates the elapsed time
+
+    // Stops the timer, calculates the last elapsed duration, and adds it to the total.
     void stop()
     {
-        elapsed_time = std::chrono::steady_clock::now() - start_time;
+        if (is_running)
+        {
+            last_elapsed_time = std::chrono::steady_clock::now() - start_time;
+            total_duration += last_elapsed_time;
+            is_running = false;
+        }
     }
-    // Returns the elapsed time in milliseconds
-    double ms() const
+
+    // Returns the duration of the last interval (from start() to stop()) in milliseconds.
+    double last_elapsed_ms() const
     {
-        return std::chrono::duration<double, std::milli>(elapsed_time).count();
+        return std::chrono::duration<double, std::milli>(last_elapsed_time).count();
     }
-    // Adds the elapsed time to the total time
-    void total()
-    {
-        total_time += ms();
-    }
-    // Returns the total time in milliseconds
+
+    // Returns the total accumulated time in milliseconds.
     double total_ms() const
     {
-        return total_time;
+        return std::chrono::duration<double, std::milli>(total_duration).count();
+    }
+
+    // Resets the total accumulated time to zero.
+    void reset()
+    {
+        total_duration = std::chrono::duration<double>::zero();
+        last_elapsed_time = std::chrono::duration<double>::zero();
     }
 
 private:
-    std::chrono::time_point<std::chrono::steady_clock> start_time = std::chrono::steady_clock::now();
-    std::chrono::duration<double> elapsed_time = std::chrono::duration<double>::zero();
-    double total_time{};
+    std::chrono::time_point<std::chrono::steady_clock> start_time;
+    std::chrono::duration<double> last_elapsed_time{};
+    std::chrono::duration<double> total_duration{};
+    bool is_running = false;
 };
 
 struct SimulationTime{
