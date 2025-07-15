@@ -402,6 +402,32 @@ void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, a
     }
 }
 
+void VCVS_assigner(int node_x, int node_y, int node_cx, int node_cy, double E, arma::mat &LHS, arma::vec &RHS){
+    if (node_x == 0 && node_y == 0){
+        std::cerr << "Error: VCVS cannot have both nodes as ground" << std::endl;
+        exit(1);
+    }
+    LHS = LHS.resize(LHS.n_rows + 1, LHS.n_cols + 1); // Resize LHS matrix to accommodate the new row and column
+    RHS = RHS.resize(RHS.n_elem + 1); // Resize RHS vector to accommodate the new value
+    int row = LHS.n_rows - 1; // New row index for the VCVS
+    int col = LHS.n_cols - 1; // New column index for the VCVS
+
+    if (node_x > 0){
+        LHS(row, node_x - 1) += 1;  // Last row, column for node_x
+        LHS(node_x - 1, col) += 1;  // Last column, row for node_x
+    }
+    if (node_y > 0){
+        LHS(row, node_y - 1) += -1; // Last row, column for node_y
+        LHS(node_y - 1, col) += -1; // Last column, row for node_y
+    }
+    if (node_cx > 0){
+        LHS(row, node_cx - 1) += -E; // Last row, column for node_cx
+    }
+    if (node_cy > 0){
+        LHS(row, node_cy - 1) += E;  // Last row, column for node_cy
+    }
+}
+
 double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node_vb, double W, double L,
                      const arma::vec &solution, int T_nodes, arma::mat &LHS, arma::vec &RHS, const NMOSModel &nmosModel)
 {   
