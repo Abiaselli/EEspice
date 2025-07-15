@@ -65,6 +65,15 @@ struct VCCS
     std::vector<double> batchValues;
 };
 
+struct VCVS{
+    std::string id_str;
+    int id{};
+    std::string node_x_str, node_y_str, node_cx_str, node_cy_str;
+    int node_x{}, node_y{}, node_cx{}, node_cy{};
+    double value{};
+    std::vector<double> batchValues;
+};
+
 enum class MosfetModelType {
     LEVEL1,
     BSIM4V82

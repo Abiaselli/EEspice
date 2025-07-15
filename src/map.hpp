@@ -15,6 +15,7 @@ struct Circuitmap{
     std::map<std::string, int> map_currents;
     std::map<std::string, int> map_diodes;
     std::map<std::string, int> map_vccs;
+    std::map<std::string, int> map_vcvs;
     std::map<std::string, int> map_mosfets;
 
 };

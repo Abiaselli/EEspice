@@ -465,6 +465,31 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
         parser.elements.vccs.emplace_back(g);
     }
+    else if (type[0] == 'E' || type[0] == 'e'){
+        VCVS e;
+        e.id_str = type;
+        e.id = convertToDevice(e.id_str, cktmap.map_vccs);
+
+        iss >> e.node_x_str >> e.node_y_str >> e.node_cx_str >> e.node_cy_str >> valueStr;
+
+        e.node_x = convertToNode(e.node_x_str, cktmap.map_nodes);
+        e.node_y = convertToNode(e.node_y_str, cktmap.map_nodes);
+        e.node_cx = convertToNode(e.node_cx_str, cktmap.map_nodes);
+        e.node_cy = convertToNode(e.node_cy_str, cktmap.map_nodes);
+        if (valueStr.front() == '[' || valueStr.front() == '(')
+        {
+            // Batch simulation case
+            parser.is_batch = true;
+            e.batchValues = batchVector(valueStr, line);
+        }
+        else
+        {
+            // Single value VCCS
+            e.value = convertToValue(valueStr);
+        }
+
+        parser.elements.vccs.emplace_back(e);
+    }
 
     else if (type[0] == 'M' || type[0] == 'm')
     {
