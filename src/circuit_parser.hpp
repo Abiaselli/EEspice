@@ -388,8 +388,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         cs.nodePos = convertToNode(cs.nodePos_str, cktmap.map_nodes);
         cs.nodeNeg = convertToNode(cs.nodeNeg_str, cktmap.map_nodes);
         
-        // Normal Current source
-        if (valueStr.front() != '[' && valueStr.front() != '(')
+        if (valueStr.front() == '[' || valueStr.front() == '(')
         {
             // Batch simulation case
             parser.is_batch = true;
@@ -397,6 +396,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         }
         else
         {
+            // Normal Current source
             cs.value = convertToValue(valueStr);
         }
         
