@@ -468,7 +468,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
     else if (type[0] == 'E' || type[0] == 'e'){
         VCVS e;
         e.id_str = type;
-        e.id = convertToDevice(e.id_str, cktmap.map_vccs);
+        e.id = convertToDevice(e.id_str, cktmap.map_vcvs);
 
         iss >> e.node_x_str >> e.node_y_str >> e.node_cx_str >> e.node_cy_str >> valueStr;
 
