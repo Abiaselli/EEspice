@@ -16,20 +16,6 @@
 #include "DC.hpp"
 #include "batch.hpp"
 
-void save_csv(const std::string &filename, const CKTcircuit &ckt, const std::vector<Transient> &vec_trans, const Circuitmap &map)
-{
-    std::ofstream file(filename);
-    if (!file.is_open())
-    {
-        std::cerr << "Error: Could not open file " << filename << " for writing." << std::endl;
-        return;
-    }
-
-    // Call the overloaded function that takes std::ofstream directly
-    save_csv(file, ckt, vec_trans, map);
-
-    file.close();
-}
 // Overloaded function to pass std::ofstream directly
 void save_csv(std::ofstream &file, const CKTcircuit &ckt, const std::vector<Transient> &vec_trans, const Circuitmap &map)
 {
@@ -47,15 +33,15 @@ void save_csv(std::ofstream &file, const CKTcircuit &ckt, const std::vector<Tran
         }
     }
 
-    std::vector<std::string> volIndexToName(ckt.no_of_V_sources + 1);
-    for (const auto &pair : map.map_voltages)
-    {
-        int volIndex = pair.second;   // e.g. 1,2,3 ...
-        if (volIndex >= 1 && volIndex <= ckt.no_of_V_sources)
-        {
-            volIndexToName[volIndex] = pair.first;
-        }
-    }
+    // std::vector<std::string> volIndexToName(ckt.no_of_V_sources + 1);
+    // for (const auto &pair : map.map_voltages)
+    // {
+    //     int volIndex = pair.second;   // e.g. 1,2,3 ...
+    //     if (volIndex >= 1 && volIndex <= ckt.no_of_V_sources)
+    //     {
+    //         volIndexToName[volIndex] = pair.first;
+    //     }
+    // }
 
     // 2) Write the header
     file << "Time, Time Step";
@@ -65,9 +51,9 @@ void save_csv(std::ofstream &file, const CKTcircuit &ckt, const std::vector<Tran
         file << ", Voltage " << nodeIndexToName[j];
     }
 
-    for (int j = 1; j <= ckt.no_of_V_sources; ++j)
-    {
-        file << ", Current " << volIndexToName[j];
+    // Iterate through the current map to write headers
+    for (const auto& [name, index] : map.map_branch_currents) {
+        file << ", I(" + name + ")"; // name is I(V1), etc.
     }
 
     file << std::endl;
@@ -80,19 +66,18 @@ void save_csv(std::ofstream &file, const CKTcircuit &ckt, const std::vector<Tran
 
         for (size_t j = 0; j < ckt.external_nodes; ++j)
         {
-            file << ", " << vec_trans.at(i).solution(j, 0); // Voltages
+            file << ", " << vec_trans.at(i).solution(j); // Voltages
         }
 
-        for (size_t z = ckt.no_of_V_sources; z > 0; --z)
-        {
-            file << ", " << vec_trans.at(i).solution(ckt.cktdematrix->n_rows - z, 0); // Currents
+        // Iterate through the map to get current values by their tracked index
+        for (const auto& [name, index] : map.map_branch_currents) {
+            file << ", " << vec_trans.at(i).solution(index);
         }
-        // file << ", " << vec_trans.at(i).C_current(0,0);
         file << std::endl;
     }
 }
-
-void save_csv_dc(const std::string &filename, const CKTcircuit &ckt, const std::vector<DC> &vec_dc, const Circuitmap &map){
+void save_csv(const std::string &filename, const CKTcircuit &ckt, const std::vector<Transient> &vec_trans, const Circuitmap &map)
+{
     std::ofstream file(filename);
     if (!file.is_open())
     {
@@ -101,10 +86,11 @@ void save_csv_dc(const std::string &filename, const CKTcircuit &ckt, const std::
     }
 
     // Call the overloaded function that takes std::ofstream directly
-    save_csv_dc(file, ckt, vec_dc, map);
+    save_csv(file, ckt, vec_trans, map);
 
     file.close();
 }
+
 // Overloaded function to pass std::ofstream directly
 void save_csv_dc(std::ofstream &file, const CKTcircuit &ckt, const std::vector<DC> &vec_dc, const Circuitmap &map){
     // 1) Build a helper vector for nodeIndex -> nodeName
@@ -116,16 +102,6 @@ void save_csv_dc(std::ofstream &file, const CKTcircuit &ckt, const std::vector<D
         if (nodeIndex >= 1 && nodeIndex <= ckt.external_nodes)
         {
             nodeIndexToName[nodeIndex] = pair.first;
-        }
-    }
-
-    std::vector<std::string> volIndexToName(ckt.no_of_V_sources + 1);
-    for (const auto &pair : map.map_voltages)
-    {
-        int volIndex = pair.second;   // e.g. 1,2,3 ...
-        if (volIndex >= 1 && volIndex <= ckt.no_of_V_sources)
-        {
-            volIndexToName[volIndex] = pair.first;
         }
     }
 
@@ -146,9 +122,10 @@ void save_csv_dc(std::ofstream &file, const CKTcircuit &ckt, const std::vector<D
     {
         file << "Voltage " << nodeIndexToName[j] << ", ";
     }
-    for (int j = 1; j <= ckt.no_of_V_sources; ++j)
-    {
-        file << "Current " << volIndexToName[j] << ", ";
+    
+    // Iterate through the current map to write headers
+    for (const auto& [name, index] : map.map_branch_currents) {
+        file << "I(" + name + ")" << ", "; // name is I(V1), etc.
     }
 
     file << std::endl;
@@ -162,16 +139,29 @@ void save_csv_dc(std::ofstream &file, const CKTcircuit &ckt, const std::vector<D
         // b) Print node voltages
         for (size_t j = 0; j < ckt.external_nodes; ++j)
         {
-            file << dc.solution(j, 0) << ", "; // Voltages
+            file << dc.solution(j) << ", "; // Voltages
         }
         // c) Print current sources
-        for (size_t z = ckt.no_of_V_sources; z > 0; --z)
-        {
-            file << dc.solution(ckt.cktdematrix->n_rows - z, 0)  << ", "; // Currents
+        // Iterate through the map to get current values by their tracked index
+        for (const auto& [name, index] : map.map_branch_currents) {
+            file << dc.solution(index) << ", ";
         }
 
         file << std::endl;
     }
+}
+void save_csv_dc(const std::string &filename, const CKTcircuit &ckt, const std::vector<DC> &vec_dc, const Circuitmap &map){
+    std::ofstream file(filename);
+    if (!file.is_open())
+    {
+        std::cerr << "Error: Could not open file " << filename << " for writing." << std::endl;
+        return;
+    }
+
+    // Call the overloaded function that takes std::ofstream directly
+    save_csv_dc(file, ckt, vec_dc, map);
+
+    file.close();
 }
 
 namespace batch{
