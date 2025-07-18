@@ -8,6 +8,7 @@
 
 struct Circuitmap{
     std::map<std::string, int> map_nodes;
+    std::map<std::string, int> map_branch_currents; // Branch current (device name, index in the solution vector)
 
     std::map<std::string, int> map_voltages;
     std::map<std::string, int> map_resistors;
