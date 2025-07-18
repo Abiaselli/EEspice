@@ -159,6 +159,7 @@ struct CircuitElements
     std::vector<NMOS> nmos;
     std::vector<PMOS> pmos;
     std::vector<VCCS> vccs;
+    std::vector<VCVS> vcvs;
 };
 
 

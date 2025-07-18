@@ -484,11 +484,11 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         }
         else
         {
-            // Single value VCCS
+            // Single value VCVS
             e.value = convertToValue(valueStr);
         }
 
-        parser.elements.vccs.emplace_back(e);
+        parser.elements.vcvs.emplace_back(e);
     }
 
     else if (type[0] == 'M' || type[0] == 'm')
