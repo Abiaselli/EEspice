@@ -122,6 +122,9 @@ void CKTload(CKTcircuit &ckt)
     {
         VCCS_assigner(vccs.node_x, vccs.node_y, vccs.node_cx, vccs.node_cy, vccs.value, ckt.cktdematrix->LHS);
     }
+    for (auto &vcvs : ckt.CKTelements.vcvs){
+        VCVS_assigner(vcvs.node_x, vcvs.node_y, vcvs.node_cx, vcvs.node_cy, vcvs.value, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
+    }
 }
 void CKTloadAC(CKTcircuit &ckt){
     // ASSIGNING THE STAMPS TO THE LHS AND RHS MATRICES FOR AC ANALYSIS
