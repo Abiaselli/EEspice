@@ -16,62 +16,45 @@
 #include "DC.hpp"
 #include "batch.hpp"
 
+// We'll index from 1..ckt.external_nodes
+std::vector<std::string> buildNodeIndexToNameMap(const CKTcircuit& ckt, const Circuitmap& map) {
+    std::vector<std::string> nodeIndexToName(ckt.external_nodes + 1); 
+    for (const auto& [name, index] : map.map_nodes) {
+        if (index >= 1 && index <= ckt.external_nodes) {
+            nodeIndexToName[index] = name;
+        }
+    }
+    return nodeIndexToName;
+}
+
 // Overloaded function to pass std::ofstream directly
 void save_csv(std::ofstream &file, const CKTcircuit &ckt, const std::vector<Transient> &vec_trans, const Circuitmap &map)
 {
     // All std::map elements are <std::string, int>
 
     // 1) Build a helper vector for nodeIndex -> nodeName
-    //    We'll index from 1..ckt.external_nodes
-    std::vector<std::string> nodeIndexToName(ckt.external_nodes + 1);
-    for (const auto &pair : map.map_nodes)
-    {
-        int nodeIndex = pair.second;   // e.g. 1,2,3 ...
-        if (nodeIndex >= 1 && nodeIndex <= ckt.external_nodes)
-        {
-            nodeIndexToName[nodeIndex] = pair.first;
-        }
-    }
-
-    // std::vector<std::string> volIndexToName(ckt.no_of_V_sources + 1);
-    // for (const auto &pair : map.map_voltages)
-    // {
-    //     int volIndex = pair.second;   // e.g. 1,2,3 ...
-    //     if (volIndex >= 1 && volIndex <= ckt.no_of_V_sources)
-    //     {
-    //         volIndexToName[volIndex] = pair.first;
-    //     }
-    // }
+    //    This vector is created to ensure the nodes are arranged in order from 1 to n.
+    std::vector<std::string> nodeIndexToName = buildNodeIndexToNameMap(ckt, map);
 
     // 2) Write the header
-    file << "Time, Time Step";
-    // Output node voltages in ascending node index
-    for (int j = 1; j <= ckt.external_nodes; ++j)
-    {
-        file << ", Voltage " << nodeIndexToName[j];
+    file << "Time,Time Step";
+    for (int j = 1; j <= ckt.external_nodes; ++j) {
+        file << ",Voltage " << nodeIndexToName[j];
     }
-
-    // Iterate through the current map to write headers
     for (const auto& [name, index] : map.map_branch_currents) {
-        file << ", I(" + name + ")"; // name is I(V1), etc.
+        file << ",I(" << name << ")";
     }
-
     file << std::endl;
 
     // 3) Write the data rows
-    for (size_t i = 0; i < vec_trans.size(); ++i)
-    {
-        file << std::scientific << std::setprecision(20);                // Set precision to 20 decimal places
-        file << vec_trans.at(i).time_trans << ", " << vec_trans.at(i).h; // Time and Timestep
-
-        for (size_t j = 0; j < ckt.external_nodes; ++j)
-        {
-            file << ", " << vec_trans.at(i).solution(j); // Voltages
+    for (const auto& trans_result : vec_trans) {
+        file << std::scientific << std::setprecision(20);
+        file << trans_result.time_trans << "," << trans_result.h;
+        for (size_t j = 0; j < ckt.external_nodes; ++j) {
+            file << "," << trans_result.solution(j);
         }
-
-        // Iterate through the map to get current values by their tracked index
         for (const auto& [name, index] : map.map_branch_currents) {
-            file << ", " << vec_trans.at(i).solution(index);
+            file << "," << trans_result.solution(index);
         }
         file << std::endl;
     }
@@ -93,18 +76,6 @@ void save_csv(const std::string &filename, const CKTcircuit &ckt, const std::vec
 
 // Overloaded function to pass std::ofstream directly
 void save_csv_dc(std::ofstream &file, const CKTcircuit &ckt, const std::vector<DC> &vec_dc, const Circuitmap &map){
-    // 1) Build a helper vector for nodeIndex -> nodeName
-    //    We'll index from 1..ckt.external_nodes
-    std::vector<std::string> nodeIndexToName(ckt.external_nodes + 1);
-    for (const auto &pair : map.map_nodes)
-    {
-        int nodeIndex = pair.second;   // e.g. 1,2,3 ...
-        if (nodeIndex >= 1 && nodeIndex <= ckt.external_nodes)
-        {
-            nodeIndexToName[nodeIndex] = pair.first;
-        }
-    }
-
     // Sanity check: must have at least one DC solution:
     if (vec_dc.empty())
     {
@@ -113,40 +84,30 @@ void save_csv_dc(std::ofstream &file, const CKTcircuit &ckt, const std::vector<D
         return;
     }
 
+    // 1) Build a helper vector for nodeIndex -> nodeName
+    //    This vector is created to ensure the nodes are arranged in order from 1 to n.
+    std::vector<std::string> nodeIndexToName = buildNodeIndexToNameMap(ckt, map);
+
     // 2) Write the header
     // Single sweep (as per the DC struct implementation)
     file << "Sweep(" << vec_dc.front().sweepName << ")";
-    file << ", ";
-    
-    for (int j = 1; j <= ckt.external_nodes; ++j)
-    {
-        file << "Voltage " << nodeIndexToName[j] << ", ";
+    for (int j = 1; j <= ckt.external_nodes; ++j) {
+        file << ",Voltage " << nodeIndexToName[j];
     }
-    
-    // Iterate through the current map to write headers
     for (const auto& [name, index] : map.map_branch_currents) {
-        file << "I(" + name + ")" << ", "; // name is I(V1), etc.
+        file << ",I(" << name << ")";
     }
-
     file << std::endl;
 
     // 3) Write the data rows
-    for (const auto &dc : vec_dc) {
-        // a) Print the sweep value
-        file << dc.sweepValue;
-        file << ", ";
-        
-        // b) Print node voltages
-        for (size_t j = 0; j < ckt.external_nodes; ++j)
-        {
-            file << dc.solution(j) << ", "; // Voltages
+   for (const auto& dc_result : vec_dc) {
+        file << dc_result.sweepValue;
+        for (size_t j = 0; j < ckt.external_nodes; ++j) {
+            file << "," << dc_result.solution(j);
         }
-        // c) Print current sources
-        // Iterate through the map to get current values by their tracked index
         for (const auto& [name, index] : map.map_branch_currents) {
-            file << dc.solution(index) << ", ";
+            file << "," << dc_result.solution(index);
         }
-
         file << std::endl;
     }
 }
