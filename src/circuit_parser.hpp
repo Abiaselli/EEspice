@@ -10,6 +10,8 @@
 #include <tuple>
 #include <cmath>
 #include <map>
+#include <filesystem>
+#include <unordered_set>
 
 #include <algorithm>
 #include <deque>
@@ -197,6 +199,44 @@ std::vector<double> batchVector(std::string valueStr, const std::string &line) {
     return vec;
 }
 
+// Helper function to trim whitespace
+std::string trim(const std::string& str) {
+    size_t first = str.find_first_not_of(" \t\r\n");
+    if (first == std::string::npos) return "";
+    size_t last = str.find_last_not_of(" \t\r\n");
+    return str.substr(first, (last - first + 1));
+}
+
+// Helper function to extract filename from .INCLUDE directive
+std::string extractIncludeFilename(const std::string& line) {
+    std::istringstream iss(line);
+    std::string directive;
+    iss >> directive; // Skip .INCLUDE
+    
+    std::string remaining;
+    std::getline(iss, remaining);
+    remaining = trim(remaining);
+    
+    // Handle quoted filenames
+    if (!remaining.empty() && remaining.front() == '\'') {
+        size_t closingQuote = remaining.find('\'', 1);
+        if (closingQuote != std::string::npos) {
+            return remaining.substr(1, closingQuote - 1);
+        }
+    }
+    
+    // Otherwise, take the first token
+    std::istringstream tokenStream(remaining);
+    std::string filename;
+    tokenStream >> filename;
+    return filename;
+}
+
+// Forward declaration for recursive parsing
+void parseNetlistFile(const std::string& filename, CircuitParser& parser, 
+                     Circuitmap& cktmap, Modelmap& modmap, 
+                     std::unordered_set<std::string>& includeStack,
+                     bool isMainFile = false);
 
 void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktmap, Modelmap &modmap)
 {
@@ -834,32 +874,152 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
     }
 }
 
-void parser_netlist(CircuitParser &parser, Circuitmap &cktmap, Modelmap &modmap)
-{
+// Modified parser_netlist function - now just calls the recursive parser
+void parser_netlist(CircuitParser &parser, Circuitmap &cktmap, Modelmap &modmap) {
+    std::unordered_set<std::string> includeStack;
+    
+    // Get canonical path of the main file
+    std::filesystem::path mainPath(parser.filename);
+    try {
+        mainPath = std::filesystem::canonical(mainPath);
+    } catch (const std::filesystem::filesystem_error&) {
+        mainPath = std::filesystem::absolute(mainPath);
+    }
+    
+    parseNetlistFile(mainPath.string(), parser, cktmap, modmap, includeStack, true);
+}
 
-    std::ifstream file(parser.filename);
-    if (!file.is_open())
-    {
-        std::cerr << "Error opening file: " << parser.filename << std::endl;
+// New recursive file parser that handles .INCLUDE and continuation lines
+void parseNetlistFile(const std::string& filename, CircuitParser& parser, 
+                     Circuitmap& cktmap, Modelmap& modmap, 
+                     std::unordered_set<std::string>& includeStack,
+                     bool isMainFile) {
+    
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file: " << filename << std::endl;
         exit(1);
-        return;
     }
-
+    
+    // Add current file to include stack to detect circular includes
+    includeStack.insert(filename);
+    
     std::string line;
-    std::getline(file, line); // Read and discard the first line
-
-    while (std::getline(file, line))
-    {
-        size_t commentPos = line.find('*');
-
-        if (commentPos != std::string::npos)
-        {
-            line = line.substr(0, commentPos); // Remove comment
+    bool isFirstLine = true;
+    
+    while (std::getline(file, line)) {
+        // Skip the title line (first line) only for the main file
+        if (isFirstLine && isMainFile) {
+            isFirstLine = false;
+            continue;
         }
-
-        if (!line.empty())
-        {
-            parseLine(line, parser,cktmap, modmap);
+        isFirstLine = false;
+        
+        // Remove comments
+        size_t commentPos = line.find('*');
+        if (commentPos != std::string::npos) {
+            line = line.substr(0, commentPos);
+        }
+        
+        // Trim and skip empty lines
+        line = trim(line);
+        if (line.empty()) {
+            continue;
+        }
+        
+        // Check first token to determine line type
+        std::istringstream iss(line);
+        std::string firstToken;
+        iss >> firstToken;
+        
+        if (!firstToken.empty()) {
+            std::string lowerToken = firstToken;
+            std::transform(lowerToken.begin(), lowerToken.end(), lowerToken.begin(), ::tolower);
+            
+            // Handle .INCLUDE directive
+            if (lowerToken == ".include") {
+                std::string includeFile = extractIncludeFilename(line);
+                
+                if (includeFile.empty()) {
+                    std::cerr << "Error: .INCLUDE directive missing filename" << std::endl;
+                    exit(1);
+                }
+                
+                // Resolve relative paths
+                std::filesystem::path includePath(includeFile);
+                if (!includePath.is_absolute()) {
+                    std::filesystem::path currentDir = std::filesystem::path(filename).parent_path();
+                    includePath = currentDir / includePath;
+                }
+                
+                // Canonicalize the path
+                try {
+                    includePath = std::filesystem::canonical(includePath);
+                } catch (const std::filesystem::filesystem_error&) {
+                    includePath = std::filesystem::absolute(includePath);
+                }
+                
+                std::string canonicalPath = includePath.string();
+                
+                // Check for circular includes
+                if (includeStack.find(canonicalPath) != includeStack.end()) {
+                    std::cerr << "Error: Circular include detected for file: " << canonicalPath << std::endl;
+                    std::cerr << "Include chain: ";
+                    for (const auto& f : includeStack) {
+                        std::cerr << f << " -> ";
+                    }
+                    std::cerr << canonicalPath << std::endl;
+                    exit(1);
+                }
+                
+                // Recursively parse the included file
+                parseNetlistFile(canonicalPath, parser, cktmap, modmap, includeStack, false);
+                continue; // Skip further processing of this line
+            }
+            
+            // TODO: When .title and .lib are implemented, add them here:
+            // else if (lowerToken == ".title" || lowerToken == ".lib") {
+            //     // These directives don't support continuation lines
+            //     parseLine(line, parser, cktmap, modmap);
+            //     continue;
+            // }
+            
+            // For all other lines, check for continuation lines
+            std::string completeLine = line;
+            
+            // Process continuation lines
+            std::streampos lastPos = file.tellg();
+            std::string nextLine;
+            
+            while (std::getline(file, nextLine)) {
+                // Remove comments from continuation line
+                size_t contCommentPos = nextLine.find('*');
+                if (contCommentPos != std::string::npos) {
+                    nextLine = nextLine.substr(0, contCommentPos);
+                }
+                
+                // Check if this is a continuation line
+                size_t firstNonSpace = nextLine.find_first_not_of(" \t");
+                if (firstNonSpace != std::string::npos && nextLine[firstNonSpace] == '+') {
+                    // Extract content after + and first whitespace
+                    size_t contentStart = nextLine.find_first_not_of(" \t", firstNonSpace + 1);
+                    if (contentStart != std::string::npos) {
+                        completeLine += " " + nextLine.substr(contentStart);
+                    }
+                    lastPos = file.tellg(); // Update position
+                } else {
+                    // Not a continuation line, rewind
+                    file.seekg(lastPos);
+                    break;
+                }
+            }
+            
+            // Parse the complete line
+            parseLine(completeLine, parser, cktmap, modmap);
         }
     }
+    
+    // Remove current file from include stack
+    includeStack.erase(filename);
+    file.close();
 }
