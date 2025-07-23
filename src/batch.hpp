@@ -24,7 +24,7 @@ using CircuitConfig = std::map<std::string, double>;
 struct BatchRunResult {
     CircuitConfig config;
     CKTcircuit ckt; // Store the circuit state after simulation
-    std::variant<std::vector<DC>, std::vector<Transient>, std::vector<AC::AC>> results;
+    std::variant<std::vector<dc::DCResult>, std::vector<Transient>, std::vector<AC::AC>> results;
     std::string simulation_type;
 };
 
@@ -81,7 +81,7 @@ BatchRunResult simulation_worker(
         run_result.results = Transient_ops(ckt_template, trans_sim, local_modmap);
     } else if (parser.is_dc) {
         run_result.simulation_type = "dc";
-        DCSimulator dcSim = dc::DCsetup(parser, ckt_template);
+        dc::DCSimulator dcSim = dc::DCsetup(parser, ckt_template);
         run_result.results = dc::DC_ops(ckt_template, dcSim, local_modmap);
     } else if (parser.is_ac) {
         run_result.simulation_type = "ac";

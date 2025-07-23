@@ -34,24 +34,24 @@ DCSimulator DCsetup(const CircuitParser &parser, const CKTcircuit &ckt){
     return dcSim;
 }
 
-void DeviceEvaluation(DC &dc, CKTcircuit &ckt, const DCSimulator &dcSim){
+void DeviceEvaluation(DCResult &dc, CKTcircuit &ckt, const DCSimulator &dcSim, DCMat &dcMat){
     // Modify matrixes for DC sweep
     // If the source's nodes and are not changed, we can use the same LHS
     // We only need to modify the RHS
-    dc.LHS = ckt.cktdematrix->get_init_LHS();
-    dc.RHS = ckt.cktdematrix->get_init_RHS();
+    dcMat.LHS = ckt.cktdematrix->get_init_LHS();
+    dcMat.RHS = ckt.cktdematrix->get_init_RHS();
     dc.solution = arma::vec(ckt.cktdematrix->RHS.n_rows, arma::fill::none);
 
     for (const auto &vol : ckt.CKTelements.voltageSources){
         if(vol.id_str == dcSim.dcsweep.sourceName){
-            dc.RHS(ckt.T_nodes + vol.id - 1, 0) = dc.sweepValue; // Index is starting from 0
+            dcMat.RHS(ckt.T_nodes + vol.id - 1, 0) = dc.sweepValue; // Index is starting from 0
             return;
         }
     }
     for (const auto &cs : ckt.CKTelements.currentSources){
         if(cs.id_str == dcSim.dcsweep.sourceName){
-            Is_assigner_reverse(cs.nodePos, cs.nodeNeg, cs.value, dc.RHS);
-            Is_assigner(cs.nodePos, cs.nodeNeg, dc.sweepValue, dc.RHS);
+            Is_assigner_reverse(cs.nodePos, cs.nodeNeg, cs.value, dcMat.RHS);
+            Is_assigner(cs.nodePos, cs.nodeNeg, dc.sweepValue, dcMat.RHS);
             return;
         }
     }
@@ -59,39 +59,41 @@ void DeviceEvaluation(DC &dc, CKTcircuit &ckt, const DCSimulator &dcSim){
     exit(1);
 }
 
-arma::vec DC_analysis_once(CKTcircuit &ckt, const DCSimulator &dcSim, DC &dc, const Modelmap &modmap)
+arma::vec DC_analysis_once(CKTcircuit &ckt, const DCSimulator &dcSim, DCResult &dc, DCMat &dcMat, const Modelmap &modmap)
 {
     // Initialize the DC analysis
     ckt.spiceCompatible.setFlagsDC();
-    DeviceEvaluation(dc, ckt, dcSim);
+    DeviceEvaluation(dc, ckt, dcSim, dcMat);
     arma::vec solution(ckt.cktdematrix->RHS.n_rows, arma::fill::zeros);
     // Solve the system
     if(dcSim.non_linear)
     {
-        solution = NewtonRaphson_system(ckt, dc.LHS, dc.RHS, modmap);
+        solution = NewtonRaphson_system(ckt, dcMat.LHS, dcMat.RHS, modmap);
     }
     else
     {
-        solution = arma::solve(dc.LHS, dc.RHS);
+        solution = arma::solve(dcMat.LHS, dcMat.RHS);
     }
     return solution;
 }
 
-std::vector<DC> DC_ops(CKTcircuit &ckt, DCSimulator &dcSim, const Modelmap &modmap)
+std::vector<DCResult> DC_ops(CKTcircuit &ckt, DCSimulator &dcSim, const Modelmap &modmap)
 {
     // single sweep loop (only one device)
     const auto &sweepVals = dcSim.dcsweep.sweep_values;
     const auto &sweepName = dcSim.dcsweep.sourceName;
     dcSim.vec_dc.reserve(sweepVals.size());
-    
+
+    DCMat dcMat;
+
     for (double val : sweepVals) {
-        DC dc;
+        DCResult dc;
         // store that single sweep value and name
         dc.sweepValue = val;
         dc.sweepName = sweepName;
 
         // Run one DC analysis
-        dc.solution = DC_analysis_once(ckt, dcSim, dc, modmap);
+        dc.solution = DC_analysis_once(ckt, dcSim, dc, dcMat, modmap);
 
         // Push the result
         dcSim.vec_dc.emplace_back(dc);

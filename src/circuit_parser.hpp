@@ -39,7 +39,7 @@ struct CircuitParser
     double double_t_end; // This double_t_end can be passed to the CKTcircuit class
     double double_init_h;
     // DC simulation parameters
-    DCSweepSpec dcSweep_parser;
+    dc::DCSweepSpec dcSweep_parser;
     // AC simulation parameters
     AC::ACSweepSpec acSweep_parser;
 
@@ -827,7 +827,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         std::string srcnam, vstart, vend, vincr;
         iss >> srcnam >> vstart >> vend >> vincr;
 
-        DCSweepSpec spec;
+        dc::DCSweepSpec spec;
         spec.sourceName = srcnam;
         spec.vstart = convertToValue(vstart);
         spec.vend   = convertToValue(vend);

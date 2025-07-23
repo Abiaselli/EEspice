@@ -75,7 +75,7 @@ void save_csv(const std::string &filename, const CKTcircuit &ckt, const std::vec
 }
 
 // Overloaded function to pass std::ofstream directly
-void save_csv_dc(std::ofstream &file, const CKTcircuit &ckt, const std::vector<DC> &vec_dc, const Circuitmap &map){
+void save_csv_dc(std::ofstream &file, const CKTcircuit &ckt, const std::vector<dc::DCResult> &vec_dc, const Circuitmap &map){
     // Sanity check: must have at least one DC solution:
     if (vec_dc.empty())
     {
@@ -111,7 +111,7 @@ void save_csv_dc(std::ofstream &file, const CKTcircuit &ckt, const std::vector<D
         file << std::endl;
     }
 }
-void save_csv_dc(const std::string &filename, const CKTcircuit &ckt, const std::vector<DC> &vec_dc, const Circuitmap &map){
+void save_csv_dc(const std::string &filename, const CKTcircuit &ckt, const std::vector<dc::DCResult> &vec_dc, const Circuitmap &map){
     std::ofstream file(filename);
     if (!file.is_open())
     {
@@ -151,7 +151,7 @@ void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
             file << std::endl;
             
             // Call the overloaded save_csv_dc function that takes std::ofstream
-            const auto& vec_dc_result = std::get<std::vector<DC>>(run_result.results);
+            const auto& vec_dc_result = std::get<std::vector<dc::DCResult>>(run_result.results);
             save_csv_dc(file, ckt, vec_dc_result, ckt.map);
             file.close();
             dc_counter++;

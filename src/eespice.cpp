@@ -50,8 +50,8 @@ int main(int argc, const char **argv)
 
         }
         if(parser.is_dc){
-            DCSimulator dcSim = dc::DCsetup(parser, ckt);
-            std::vector<DC> vec_dc_result = dc::DC_ops(ckt, dcSim, modmap);
+            dc::DCSimulator dcSim = dc::DCsetup(parser, ckt);
+            std::vector<dc::DCResult> vec_dc_result = dc::DC_ops(ckt, dcSim, modmap);
             save_csv_dc("dc_solution.csv", ckt, vec_dc_result, ckt.map);
         }
         if(parser.is_ac){
