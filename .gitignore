@@ -9,5 +9,6 @@ temp
 .cursorignore
 test.cpp
 CLAUDE.md
+massif.out.*
 
 
