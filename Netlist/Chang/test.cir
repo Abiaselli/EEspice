@@ -1,0 +1,18 @@
+.title Basic amp
+.model nmos nmos (level=14 version=4.8.2)
+.model pmos pmos (level=14 version=4.8.2)
+M3 d1 d1 vdd vdd pmos W=[1:1:2]u L=0.18u
+M4 d2 d1 vdd vdd pmos W=[1:1:2]u L=0.18u
+M1 d1 in1 midp 0 nmos W=[1:1:2]u L=0.18u
+M2 d2 in2 midp 0 nmos W=[1:1:2]u L=0.18u
+M5 midp bias 0 0 nmos W=[1:0.5:2]u L=0.18u
+M6 vdd d2 out 0 nmos W=[1:1:2]u L=0.18u
+M7 out bias 0 0 nmos W=[1:1:2]u L=0.18u
+
+vbias bias 0 DC 0.9
+vdd vdd 0 1.8
+Vcm cm 0 DC 0.9
+Eidp cm in1 diffin 0 1
+Eidn cm in2 diffin 0 -1
+Vid diffin 0 DC 0 AC 1
+.dc Vcm 0 1.8 0.001
