@@ -79,11 +79,11 @@ arma::vec DC_analysis_once(CKTcircuit &ckt, const DCSimulator &dcSim, DC &dc, co
 
 std::vector<DC> DC_ops(CKTcircuit &ckt, DCSimulator &dcSim, const Modelmap &modmap)
 {
-    
-
     // single sweep loop (only one device)
     const auto &sweepVals = dcSim.dcsweep.sweep_values;
     const auto &sweepName = dcSim.dcsweep.sourceName;
+    dcSim.vec_dc.reserve(sweepVals.size());
+    
     for (double val : sweepVals) {
         DC dc;
         // store that single sweep value and name
