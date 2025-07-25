@@ -126,6 +126,21 @@ void save_csv_dc(const std::string &filename, const CKTcircuit &ckt, const std::
 }
 
 namespace batch{
+// Helper function to write error information to CSV file
+void write_error_csv(std::ofstream &file, const BatchRunResult &run_result, const std::string &analysis_type, int counter) {
+    file << "# Circuit Configuration for " << analysis_type << " Analysis " << counter << std::endl;
+    file << "# Parameters:" << std::endl;
+    for (const auto& [param, value] : run_result.config) {
+        file << "# " << param << " = " << std::scientific << std::setprecision(6) << value << std::endl;
+    }
+    file << "# SIMULATION FAILED" << std::endl;
+    file << "# Error Type: " << run_result.error_type << std::endl;
+    file << "# Error Message: " << run_result.error_message << std::endl;
+    file << "# End of Configuration" << std::endl;
+    file << std::endl;
+    file << "# No simulation data available due to failure" << std::endl;
+}
+
 void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
     const std::string output_dir = "batch_results";
     std::filesystem::create_directory(output_dir);
@@ -133,56 +148,33 @@ void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
     int dc_counter = 1;
     int tran_counter = 1;
     int ac_counter = 1;
-    int failed_counter = 1;
     
     int successful_count = 0;
     int failed_count = 0;
 
     for (const auto& run_result : batch_results) {
-        if (!run_result.success) {
-            // Handle failed simulation
-            std::string filename = output_dir + "/failed_" + std::to_string(failed_counter) + ".csv";
-            std::ofstream file(filename);
-            
-            // Write error information header
-            file << "# SIMULATION FAILED" << std::endl;
-            file << "# Simulation Type: " << run_result.simulation_type << std::endl;
-            file << "# Error Type: " << run_result.error_type << std::endl;
-            file << "# Error Message: " << run_result.error_message << std::endl;
-            file << "# Circuit Configuration:" << std::endl;
-            for (const auto& [param, value] : run_result.config) {
-                file << "# " << param << " = " << std::scientific << std::setprecision(6) << value << std::endl;
-            }
-            file << "# End of Error Report" << std::endl;
-            file << std::endl;
-            file << "# No simulation data available due to failure" << std::endl;
-            
-            file.close();
-            failed_counter++;
-            failed_count++;
-            continue;
-        }
-        
-        // Handle successful simulation
-        auto &ckt = run_result.ckt; // Get the circuit state from the run result
-        successful_count++;
-        
         if (run_result.simulation_type == "dc") {
             std::string filename = output_dir + "/dc" + std::to_string(dc_counter) + ".csv";
             std::ofstream file(filename);
             
-            // Write circuit information header
-            file << "# Circuit Configuration for DC Analysis " << dc_counter << std::endl;
-            file << "# Parameters:" << std::endl;
-            for (const auto& [param, value] : run_result.config) {
-                file << "# " << param << " = " << std::scientific << std::setprecision(6) << value << std::endl;
+            if (!run_result.success) {
+                write_error_csv(file, run_result, "DC", dc_counter);
+                failed_count++;
+            } else {
+                // Write circuit information header
+                file << "# Circuit Configuration for DC Analysis " << dc_counter << std::endl;
+                file << "# Parameters:" << std::endl;
+                for (const auto& [param, value] : run_result.config) {
+                    file << "# " << param << " = " << std::scientific << std::setprecision(6) << value << std::endl;
+                }
+                file << "# End of Configuration" << std::endl;
+                file << std::endl;
+                
+                // Call the overloaded save_csv_dc function that takes std::ofstream
+                const auto& vec_dc_result = std::get<std::vector<dc::DCResult>>(run_result.results);
+                save_csv_dc(file, run_result.ckt, vec_dc_result, run_result.ckt.map);
+                successful_count++;
             }
-            file << "# End of Configuration" << std::endl;
-            file << std::endl;
-            
-            // Call the overloaded save_csv_dc function that takes std::ofstream
-            const auto& vec_dc_result = std::get<std::vector<dc::DCResult>>(run_result.results);
-            save_csv_dc(file, ckt, vec_dc_result, ckt.map);
             file.close();
             dc_counter++;
             
@@ -190,18 +182,24 @@ void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
             std::string filename = output_dir + "/tran" + std::to_string(tran_counter) + ".csv";
             std::ofstream file(filename);
             
-            // Write circuit information header
-            file << "# Circuit Configuration for Transient Analysis " << tran_counter << std::endl;
-            file << "# Parameters:" << std::endl;
-            for (const auto& [param, value] : run_result.config) {
-                file << "# " << param << " = " << std::scientific << std::setprecision(6) << value << std::endl;
+            if (!run_result.success) {
+                write_error_csv(file, run_result, "Transient", tran_counter);
+                failed_count++;
+            } else {
+                // Write circuit information header
+                file << "# Circuit Configuration for Transient Analysis " << tran_counter << std::endl;
+                file << "# Parameters:" << std::endl;
+                for (const auto& [param, value] : run_result.config) {
+                    file << "# " << param << " = " << std::scientific << std::setprecision(6) << value << std::endl;
+                }
+                file << "# End of Configuration" << std::endl;
+                file << std::endl;
+                
+                // Call the overloaded save_csv function that takes std::ofstream
+                const auto& vec_trans_result = std::get<std::vector<Transient>>(run_result.results);
+                save_csv(file, run_result.ckt, vec_trans_result, run_result.ckt.map);
+                successful_count++;
             }
-            file << "# End of Configuration" << std::endl;
-            file << std::endl;
-            
-            // Call the overloaded save_csv function that takes std::ofstream
-            const auto& vec_trans_result = std::get<std::vector<Transient>>(run_result.results);
-            save_csv(file, ckt, vec_trans_result, ckt.map);
             file.close();
             tran_counter++;
             
@@ -209,18 +207,24 @@ void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
             std::string filename = output_dir + "/ac" + std::to_string(ac_counter) + ".csv";
             std::ofstream file(filename);
             
-            // Write circuit information header
-            file << "# Circuit Configuration for AC Analysis " << ac_counter << std::endl;
-            file << "# Parameters:" << std::endl;
-            for (const auto& [param, value] : run_result.config) {
-                file << "# " << param << " = " << std::scientific << std::setprecision(6) << value << std::endl;
+            if (!run_result.success) {
+                write_error_csv(file, run_result, "AC", ac_counter);
+                failed_count++;
+            } else {
+                // Write circuit information header
+                file << "# Circuit Configuration for AC Analysis " << ac_counter << std::endl;
+                file << "# Parameters:" << std::endl;
+                for (const auto& [param, value] : run_result.config) {
+                    file << "# " << param << " = " << std::scientific << std::setprecision(6) << value << std::endl;
+                }
+                file << "# End of Configuration" << std::endl;
+                file << std::endl;
+                
+                // TODO: Add AC results saving function call here
+                // const auto& vec_ac_result = std::get<std::vector<AC::AC>>(run_result.results);
+                // save_csv_ac(file, run_result.ckt, vec_ac_result, run_result.ckt.map);
+                successful_count++;
             }
-            file << "# End of Configuration" << std::endl;
-            file << std::endl;
-            
-            // TODO: Add AC results saving function call here
-            // const auto& vec_ac_result = std::get<std::vector<AC::AC>>(run_result.results);
-            // save_csv_ac(file, ckt, vec_ac_result, ckt.map);
             file.close();
             ac_counter++;
         }
@@ -231,9 +235,6 @@ void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
     std::cout << "Total simulations: " << batch_results.size() << std::endl;
     std::cout << "Successful: " << successful_count << std::endl;
     std::cout << "Failed: " << failed_count << std::endl;
-    if (failed_count > 0) {
-        std::cout << "Failed simulation details saved to failed_*.csv files" << std::endl;
-    }
 }
 
 }// namespace batch
