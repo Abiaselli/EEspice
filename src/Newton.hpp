@@ -256,7 +256,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
     std::pair<arma::mat, arma::vec> init_matrices = {init_LHS, init_RHS};
     std::pair<arma::mat, arma::vec> matrices;
 
-    std::vector<arma::vec> NR_solutions(100);
+    std::vector<arma::vec> NR_solutions(ITL4+1);
     NR_solutions[0] = solution;
 
     // DC Analysis does not have dynamic elements (capacitors, inductors)!
@@ -279,7 +279,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
 
     while (!isconverge)
     {
-        if (NR_iteration_counter > 99)
+        if (NR_iteration_counter >= 100)
         {
             std::cerr << "DC Analysis did not converge!" << std::endl;
             exit(1);
