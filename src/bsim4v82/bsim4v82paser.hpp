@@ -3813,7 +3813,10 @@ std::shared_ptr<BSIM4model> paserBSIM4Model(const std::string& modelType, const 
                 std::cerr << "Warning: Failed to parse BSIM4 parameter " << key << " = " << valStr
                           << ": " << e.what() << std::endl;
             }
-        } 
+        }
+        else if (key == "level"){
+            // Don't need to set level for BSIM4, as it is always 14
+        }
         else {
             std::cerr << "Warning: Unknown BSIM4 parameter: " << key << std::endl;
         }
