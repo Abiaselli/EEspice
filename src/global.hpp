@@ -5,6 +5,7 @@
 #include <variant>
 #include <map>
 #include "sim_variables.hpp"
+#include "simulation_exceptions.hpp"
 #include "bsim4v82/bsim4v82.hpp"
 
 // Forward declarations
@@ -208,8 +209,7 @@ double convertToValue(const std::string &valueStr)
         case 'f':
             return value * 1.0e-15; // Femto
         default:
-            std::cerr << "Error: Unknown unit: " << unit << std::endl;
-            exit(1);
+            throw ParsingException("Error: Unknown unit: " + std::string(1, unit), "UNKNOWN_UNIT");
         }
     }
 
@@ -233,8 +233,7 @@ int convertToNode(const std::string &nodeStr, std::map<std::string, int> &map_no
 int convertToDevice(const std::string &deviceStr, std::map<std::string, int> &map_device){
     auto it = map_device.find(deviceStr);
     if (it != map_device.end()) {
-       std::cerr << "Error: Device " << deviceStr << " already exists!" << std::endl;
-       exit(1);
+       throw SetupException("Error: Device " + deviceStr + " already exists!", "DUPLICATE_DEVICE");
     }
     int new_device = map_device.size() + 1;
     map_device.emplace(deviceStr, new_device);

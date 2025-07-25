@@ -2,6 +2,7 @@
 #include <iostream>
 #include "DC_calcs.hpp"
 #include "circuit_parser.hpp"
+#include "simulation_exceptions.hpp"
 
 namespace dc{
 
@@ -55,8 +56,7 @@ void DeviceEvaluation(DCResult &dc, CKTcircuit &ckt, const DCSimulator &dcSim, D
             return;
         }
     }
-    std::cerr << "Error: DC sweep is not supported for this device: " << dcSim.dcsweep.sourceName << std::endl;
-    exit(1);
+    throw SetupException("Error: DC sweep is not supported for this device: " + dcSim.dcsweep.sourceName, "UNSUPPORTED_DC_SWEEP_DEVICE");
 }
 
 arma::vec DC_analysis_once(CKTcircuit &ckt, const DCSimulator &dcSim, DCResult &dc, DCMat &dcMat, const Modelmap &modmap)

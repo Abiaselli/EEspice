@@ -16,6 +16,7 @@
 #include "sim_variables.hpp"
 #include "circuit_parser.hpp"
 #include "XB_timer.hpp"
+#include "simulation_exceptions.hpp"
 
 #include "CKT.hpp"
 #include "device.hpp"
@@ -59,8 +60,7 @@ std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_
             bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, LHS, RHS);
         }
         else{
-            std::cerr << "Error: NMOS model type is not supported!" << std::endl;
-            exit(1);
+            throw DeviceException("Error: NMOS model type is not supported!", "UNSUPPORTED_NMOS_MODEL");
         }
     }
     for (auto &pmos : ckt.CKTelements.pmos){
@@ -74,8 +74,7 @@ std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_
             bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, LHS, RHS);
         }
         else{
-            std::cerr << "Error: PMOS model type is not supported!" << std::endl;
-            exit(1);
+            throw DeviceException("Error: PMOS model type is not supported!", "UNSUPPORTED_PMOS_MODEL");
         }
     }
     for (const auto &diode : ckt.CKTelements.diodes){
@@ -93,8 +92,7 @@ bool isConverge(const std::vector<arma::vec> &NR_solutions, const CKTcircuit &ck
 
     if (pre_solution.n_rows != current_solution.n_rows || pre_solution.n_rows != next_solution.n_rows || current_solution.n_rows != next_solution.n_rows)
     {
-        std::cerr << "The size of pre_solution, current_solution, next_solution is not the same in isConverge function." << std::endl;
-        exit(1);
+        throw MatrixException("The size of pre_solution, current_solution, next_solution is not the same in isConverge function.", "SOLUTION_SIZE_MISMATCH");
     }
 
     arma::vec pre_voltages = pre_solution.submat(0, 0, ckt.T_nodes - 1, 0);
@@ -221,8 +219,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
         }
         else if (NR_iteration_counter >= 100 && mode == 0)
         {
-            std::cerr << "Transient Simulation did not converge at the op analysis!" << std::endl;
-            exit(1);
+            throw ConvergenceException("Transient Simulation did not converge at the op analysis!", "TRANSIENT_OP_CONVERGENCE");
         }
         else {
             matrices = NonLinear(ckt, solution, init_matrices, modmap, h);
@@ -281,8 +278,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
     {
         if (NR_iteration_counter >= 100)
         {
-            std::cerr << "DC Analysis did not converge!" << std::endl;
-            exit(1);
+            throw ConvergenceException("DC Analysis did not converge!", "DC_CONVERGENCE");
         }
 
         matrices = NonLinear(ckt, solution, init_matrices, modmap, 0.0);

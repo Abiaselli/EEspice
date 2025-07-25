@@ -23,6 +23,7 @@
 #include "model_parser.hpp"
 #include "DC_calcs.hpp"
 #include "AC_calcs.hpp"
+#include "simulation_exceptions.hpp"
 
 struct CircuitParser
 {
@@ -365,8 +366,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         }
         else
         {
-            std::cerr << "Error: Incomplete voltage source definition for " << id_str << std::endl;
-            exit(1);
+            throw ParsingException("Error: Incomplete voltage source definition for " + id_str, "INCOMPLETE_VOLTAGE_SOURCE");
         }
     }
     else if (type[0] == 'R' || type[0] == 'r')
@@ -802,14 +802,12 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 parser.elements.pmos.emplace_back(mp);
             }
             else{
-                std::cerr << "Error: Unknown BSIM4 model type for: " << M_modelName << std::endl;
-                exit(1);
+                throw ParsingException("Error: Unknown BSIM4 model type for: " + M_modelName, "UNKNOWN_BSIM4_MODEL");
             }
         }
         else
         {
-            std::cerr << "Error: Unknown MOSFET model: " << M_modelName << std::endl;
-            exit(1);
+            throw ParsingException("Error: Unknown MOSFET model: " + M_modelName, "UNKNOWN_MOSFET_MODEL");
         }
     }
     else if (type == ".tran" || type == ".TRAN")
@@ -856,8 +854,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         }
         else
         {
-            std::cerr << "Error: Unknown AC sweep interval: " << string_interval << std::endl;
-            exit(1);
+            throw ParsingException("Error: Unknown AC sweep interval: " + string_interval, "UNKNOWN_AC_SWEEP_INTERVAL");
         }
         spec.numpts = convertToValue(string_numpts);
         spec.fstart = convertToValue(string_fstart);
@@ -869,8 +866,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
     else
     {
 
-        std::cerr << "Error: Unknown element type: " << type << std::endl;
-        exit(1);
+        throw ParsingException("Error: Unknown element type: " + type, "UNKNOWN_ELEMENT_TYPE");
     }
 }
 
@@ -897,8 +893,7 @@ void parseNetlistFile(const std::string& filename, CircuitParser& parser,
     
     std::ifstream file(filename);
     if (!file.is_open()) {
-        std::cerr << "Error opening file: " << filename << std::endl;
-        exit(1);
+        throw ParsingException("Error opening file: " + filename, "FILE_OPEN_ERROR");
     }
     
     // Add current file to include stack to detect circular includes
@@ -941,8 +936,7 @@ void parseNetlistFile(const std::string& filename, CircuitParser& parser,
                 std::string includeFile = extractIncludeFilename(line);
                 
                 if (includeFile.empty()) {
-                    std::cerr << "Error: .INCLUDE directive missing filename" << std::endl;
-                    exit(1);
+                    throw ParsingException("Error: .INCLUDE directive missing filename", "MISSING_INCLUDE_FILENAME");
                 }
                 
                 // Resolve relative paths
@@ -968,8 +962,7 @@ void parseNetlistFile(const std::string& filename, CircuitParser& parser,
                     for (const auto& f : includeStack) {
                         std::cerr << f << " -> ";
                     }
-                    std::cerr << canonicalPath << std::endl;
-                    exit(1);
+                    throw ParsingException("Circular include detected or file not found: " + canonicalPath, "CIRCULAR_INCLUDE_OR_FILE_NOT_FOUND");
                 }
                 
                 // Recursively parse the included file

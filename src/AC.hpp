@@ -8,6 +8,7 @@
 #include "circuit_parser.hpp"
 #include "Newton.hpp"
 #include "OP.hpp"
+#include "simulation_exceptions.hpp"
 #include "bsim4v82/bsim4v82acstamp.hpp"
 
 namespace AC{
@@ -16,8 +17,7 @@ namespace AC{
 double ACfreqDeltaCalculate(const ACSweepSpec &sweepSpec){
    
     if(sweepSpec.fstart <= 0){
-        std::cerr << "ERROR: AC startfreq <= 0" << std::endl;
-        exit(1);
+        throw SetupException("ERROR: AC startfreq <= 0", "INVALID_AC_START_FREQUENCY");
     }
 
     double ACfreqDelta = 0.0;
@@ -54,8 +54,7 @@ double ACfreqDeltaCalculate(const ACSweepSpec &sweepSpec){
         }
         break;
     default:
-        std::cerr << "Invalid AC sweep interval type in ACfreqDeltaCalculate." << std::endl;
-        exit(1);
+        throw SetupException("Invalid AC sweep interval type in ACfreqDeltaCalculate.", "INVALID_AC_SWEEP_TYPE");
     }
     return ACfreqDelta;
 }

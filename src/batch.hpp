@@ -5,6 +5,7 @@
 #include "Transient.hpp"
 #include "DC.hpp"
 #include "AC.hpp"
+#include "simulation_exceptions.hpp"
 #include "BS_thread_pool/BS_thread_pool.hpp"
 
 BS::synced_stream sync_out;
@@ -26,6 +27,11 @@ struct BatchRunResult {
     CKTcircuit ckt; // Store the circuit state after simulation
     std::variant<std::vector<dc::DCResult>, std::vector<Transient>, std::vector<AC::AC>> results;
     std::string simulation_type;
+    
+    // Error tracking fields
+    bool success = false;
+    std::string error_type = "";
+    std::string error_message = "";
 };
 
 // This is the worker function that will be executed by each thread in the pool.
@@ -36,64 +42,80 @@ BatchRunResult simulation_worker(
     const Modelmap& modmap,
     CircuitConfig config) 
 {   
-    // ======================== FIX STARTS HERE ========================
-    // Create a deep copy of the Modelmap for thread-local use.
-    Modelmap local_modmap;
-
-    // Deep copy BSIM4 models by creating new model objects.
-    for (const auto& [name, model_ptr] : modmap.bsim4Models) {
-        local_modmap.bsim4Models[name] = std::make_shared<bsim4::BSIM4model>(*model_ptr);
-    }
-
-    // Shallow copy is sufficient for other models as they are not modified in-place.
-    local_modmap.nmosModels = modmap.nmosModels;
-    local_modmap.pmosModels = modmap.pmosModels;
-    // ========================= FIX ENDS HERE =========================
-
-    // 1. Apply the specific parameter configuration for this simulation run
-    apply_circuit_config(parser.elements, config);
-
-    // 2. Setup the matrix with the new configuration
-    CKTcircuit ckt_template;
-    ckt_template.map = cktmap; // Assign the circuit map to the CKTcircuit
-    auto denseMatrixPtr = std::make_shared<DenseMatrix>();
-    CKTsetup(ckt_template, parser, denseMatrixPtr, local_modmap);
-    CKTload(ckt_template);
-    ckt_template.cktdematrix->set_initmatrix();
-
     BatchRunResult run_result;
     run_result.config = config;
+    run_result.success = false; // Default to failed
+    
+    try {
+        // ======================== FIX STARTS HERE ========================
+        // Create a deep copy of the Modelmap for thread-local use.
+        Modelmap local_modmap;
 
-    for (const auto& nmos : ckt_template.CKTelements.nmos) {
-    //     std::cout << "NMOS ID: " << nmos.id_str << ", W: " << nmos.W << ", L: " << nmos.L << std::endl;
-    //     if (nmos.modelType == MosfetModelType::BSIM4V82){
-    //         std::cout << "Instance ID: " << nmos.bsim4v82Instance.BSIM4name << std::endl;
-    //         std::cout << "Model Name: " << nmos.bsim4v82Instance.BSIM4modPtr->BSIM4modName << std::endl;
-    //         std::cout << "width: " << nmos.bsim4v82Instance.BSIM4w << ", length: " << nmos.bsim4v82Instance.BSIM4l << std::endl;
-    //     }
-    //     std::cout << "---------------------------------------------------" << std::endl;
-    }
+        // Deep copy BSIM4 models by creating new model objects.
+        for (const auto& [name, model_ptr] : modmap.bsim4Models) {
+            local_modmap.bsim4Models[name] = std::make_shared<bsim4::BSIM4model>(*model_ptr);
+        }
 
-    // 3. Run the appropriate analysis based on the netlist commands
-    if (parser.is_transient) {
-        run_result.simulation_type = "tran";
-        TransientSimulator trans_sim = Transsetup(parser, ckt_template);
-        run_result.results = Transient_ops(ckt_template, trans_sim, local_modmap);
-    } else if (parser.is_dc) {
-        run_result.simulation_type = "dc";
-        dc::DCSimulator dcSim = dc::DCsetup(parser, ckt_template);
-        run_result.results = dc::DC_ops(ckt_template, dcSim, local_modmap);
-    } else if (parser.is_ac) {
-        run_result.simulation_type = "ac";
-        CKTloadAC(ckt_template);
-        ckt_template.cktdematrix->set_init_cxmatrix();
-        AC::ACsimulator acSim = AC::ACsetup(parser, ckt_template);
-        run_result.results = AC::AC_ops(ckt_template, acSim, local_modmap);
-    } else {
-        // Fallback or error for no simulation type specified
-        run_result.simulation_type = "none";
+        // Shallow copy is sufficient for other models as they are not modified in-place.
+        local_modmap.nmosModels = modmap.nmosModels;
+        local_modmap.pmosModels = modmap.pmosModels;
+        // ========================= FIX ENDS HERE =========================
+
+        // 1. Apply the specific parameter configuration for this simulation run
+        apply_circuit_config(parser.elements, config);
+
+        // 2. Setup the matrix with the new configuration
+        CKTcircuit ckt_template;
+        ckt_template.map = cktmap; // Assign the circuit map to the CKTcircuit
+        auto denseMatrixPtr = std::make_shared<DenseMatrix>();
+        CKTsetup(ckt_template, parser, denseMatrixPtr, local_modmap);
+        CKTload(ckt_template);
+        ckt_template.cktdematrix->set_initmatrix();
+
+        for (const auto& nmos : ckt_template.CKTelements.nmos) {
+        //     std::cout << "NMOS ID: " << nmos.id_str << ", W: " << nmos.W << ", L: " << nmos.L << std::endl;
+        //     if (nmos.modelType == MosfetModelType::BSIM4V82){
+        //         std::cout << "Instance ID: " << nmos.bsim4v82Instance.BSIM4name << std::endl;
+        //         std::cout << "Model Name: " << nmos.bsim4v82Instance.BSIM4modPtr->BSIM4modName << std::endl;
+        //         std::cout << "width: " << nmos.bsim4v82Instance.BSIM4w << ", length: " << nmos.bsim4v82Instance.BSIM4l << std::endl;
+        //     }
+        //     std::cout << "---------------------------------------------------" << std::endl;
+        }
+
+        // 3. Run the appropriate analysis based on the netlist commands
+        if (parser.is_transient) {
+            run_result.simulation_type = "tran";
+            TransientSimulator trans_sim = Transsetup(parser, ckt_template);
+            run_result.results = Transient_ops(ckt_template, trans_sim, local_modmap);
+        } else if (parser.is_dc) {
+            run_result.simulation_type = "dc";
+            dc::DCSimulator dcSim = dc::DCsetup(parser, ckt_template);
+            run_result.results = dc::DC_ops(ckt_template, dcSim, local_modmap);
+        } else if (parser.is_ac) {
+            run_result.simulation_type = "ac";
+            CKTloadAC(ckt_template);
+            ckt_template.cktdematrix->set_init_cxmatrix();
+            AC::ACsimulator acSim = AC::ACsetup(parser, ckt_template);
+            run_result.results = AC::AC_ops(ckt_template, acSim, local_modmap);
+        } else {
+            // Fallback or error for no simulation type specified
+            run_result.simulation_type = "none";
+        }
+        
+        run_result.ckt = std::move(ckt_template); // Store the circuit state in the result
+        run_result.success = true; // Mark as successful
+        
+    } catch (const SimulationException& e) {
+        run_result.error_message = e.what();
+        run_result.error_type = e.get_error_type();
+        // Fail fast - return immediately to free resources for other tasks
+        return run_result;
+    } catch (const std::exception& e) {
+        run_result.error_message = std::string("Unexpected error: ") + e.what();
+        run_result.error_type = "UNKNOWN_ERROR";
+        return run_result;
     }
-    run_result.ckt = std::move(ckt_template); // Store the circuit state in the result
+    
     return run_result;
 }
 

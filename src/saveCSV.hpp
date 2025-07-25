@@ -133,9 +133,39 @@ void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
     int dc_counter = 1;
     int tran_counter = 1;
     int ac_counter = 1;
+    int failed_counter = 1;
+    
+    int successful_count = 0;
+    int failed_count = 0;
 
     for (const auto& run_result : batch_results) {
+        if (!run_result.success) {
+            // Handle failed simulation
+            std::string filename = output_dir + "/failed_" + std::to_string(failed_counter) + ".csv";
+            std::ofstream file(filename);
+            
+            // Write error information header
+            file << "# SIMULATION FAILED" << std::endl;
+            file << "# Simulation Type: " << run_result.simulation_type << std::endl;
+            file << "# Error Type: " << run_result.error_type << std::endl;
+            file << "# Error Message: " << run_result.error_message << std::endl;
+            file << "# Circuit Configuration:" << std::endl;
+            for (const auto& [param, value] : run_result.config) {
+                file << "# " << param << " = " << std::scientific << std::setprecision(6) << value << std::endl;
+            }
+            file << "# End of Error Report" << std::endl;
+            file << std::endl;
+            file << "# No simulation data available due to failure" << std::endl;
+            
+            file.close();
+            failed_counter++;
+            failed_count++;
+            continue;
+        }
+        
+        // Handle successful simulation
         auto &ckt = run_result.ckt; // Get the circuit state from the run result
+        successful_count++;
         
         if (run_result.simulation_type == "dc") {
             std::string filename = output_dir + "/dc" + std::to_string(dc_counter) + ".csv";
@@ -194,6 +224,15 @@ void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
             file.close();
             ac_counter++;
         }
+    }
+    
+    // Print batch simulation summary
+    std::cout << std::endl << "Batch Simulation Summary:" << std::endl;
+    std::cout << "Total simulations: " << batch_results.size() << std::endl;
+    std::cout << "Successful: " << successful_count << std::endl;
+    std::cout << "Failed: " << failed_count << std::endl;
+    if (failed_count > 0) {
+        std::cout << "Failed simulation details saved to failed_*.csv files" << std::endl;
     }
 }
 

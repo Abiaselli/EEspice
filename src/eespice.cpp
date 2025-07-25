@@ -8,6 +8,7 @@
 #include "AC.hpp"
 #include "saveCSV.hpp"
 #include "batch.hpp"
+#include "simulation_exceptions.hpp"
 
 // Main function for the circuit simulation
 int main(int argc, const char **argv)
@@ -35,30 +36,38 @@ int main(int argc, const char **argv)
         batch::save_csv_batch(batch_results);
     }
     else{
-        // CKT circuit setup
-        CKTcircuit ckt;
-        ckt.map = cktmap; // Assign the circuit map to the CKTcircuit
-        auto denseMatrixPtr = std::make_shared<DenseMatrix>();  // Create the DenseMatrix as a shared pointer.
-        CKTsetup(ckt, parser, denseMatrixPtr, modmap); // Pass the parser to the ckt and the initialise LHS and RHS matrices
-        CKTload(ckt);
-        ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
+        try {
+            // CKT circuit setup
+            CKTcircuit ckt;
+            ckt.map = cktmap; // Assign the circuit map to the CKTcircuit
+            auto denseMatrixPtr = std::make_shared<DenseMatrix>();  // Create the DenseMatrix as a shared pointer.
+            CKTsetup(ckt, parser, denseMatrixPtr, modmap); // Pass the parser to the ckt and the initialise LHS and RHS matrices
+            CKTload(ckt);
+            ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
 
-        if(parser.is_transient){
-            TransientSimulator trans_sim = Transsetup(parser, ckt);
-            std::vector<Transient> vec_trans_result = Transient_ops(ckt, trans_sim, modmap);
-            save_csv("tran_solution.csv", ckt, vec_trans_result, ckt.map);
+            if(parser.is_transient){
+                TransientSimulator trans_sim = Transsetup(parser, ckt);
+                std::vector<Transient> vec_trans_result = Transient_ops(ckt, trans_sim, modmap);
+                save_csv("tran_solution.csv", ckt, vec_trans_result, ckt.map);
 
-        }
-        if(parser.is_dc){
-            dc::DCSimulator dcSim = dc::DCsetup(parser, ckt);
-            std::vector<dc::DCResult> vec_dc_result = dc::DC_ops(ckt, dcSim, modmap);
-            save_csv_dc("dc_solution.csv", ckt, vec_dc_result, ckt.map);
-        }
-        if(parser.is_ac){
-            CKTloadAC(ckt);
-            ckt.cktdematrix->set_init_cxmatrix(); // Set the initial complex LHS and RHS matrices for AC analysis
-            AC::ACsimulator acSim = AC::ACsetup(parser, ckt);
-            std::vector<AC::AC> vec_ac_result = AC::AC_ops(ckt, acSim, modmap);
+            }
+            if(parser.is_dc){
+                dc::DCSimulator dcSim = dc::DCsetup(parser, ckt);
+                std::vector<dc::DCResult> vec_dc_result = dc::DC_ops(ckt, dcSim, modmap);
+                save_csv_dc("dc_solution.csv", ckt, vec_dc_result, ckt.map);
+            }
+            if(parser.is_ac){
+                CKTloadAC(ckt);
+                ckt.cktdematrix->set_init_cxmatrix(); // Set the initial complex LHS and RHS matrices for AC analysis
+                AC::ACsimulator acSim = AC::ACsetup(parser, ckt);
+                std::vector<AC::AC> vec_ac_result = AC::AC_ops(ckt, acSim, modmap);
+            }
+        } catch (const SimulationException& e) {
+            std::cerr << "Simulation failed: " << e.what() << std::endl;
+            return 1; // Exit gracefully instead of exit(1)
+        } catch (const std::exception& e) {
+            std::cerr << "Unexpected error: " << e.what() << std::endl;
+            return 1;
         }
     }
 
