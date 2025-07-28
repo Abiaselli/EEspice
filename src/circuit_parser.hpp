@@ -931,6 +931,12 @@ void parseNetlistFile(const std::string& filename, CircuitParser& parser,
             std::string lowerToken = firstToken;
             std::transform(lowerToken.begin(), lowerToken.end(), lowerToken.begin(), ::tolower);
             
+            // Handle .END directive
+            if (lowerToken == ".end") {
+                // .END terminates netlist parsing
+                break;
+            }
+            
             // Handle .INCLUDE directive
             if (lowerToken == ".include") {
                 std::string includeFile = extractIncludeFilename(line);
