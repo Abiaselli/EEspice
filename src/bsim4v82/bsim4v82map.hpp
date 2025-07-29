@@ -11,7 +11,7 @@ namespace bsim4{
 const std::unordered_map<std::string, int> bsim4ParamMap = {
 {"l", BSIM4_L}, // Length
 {"w", BSIM4_W}, // Width
-{"m", BSIM4_M}, // Separate Parallel multiplier
+// {"m", BSIM4_M}, // Separate Parallel multiplier
 {"nf", BSIM4_NF}, // Number of fingers
 {"sa", BSIM4_SA}, // distance between  OD edge to poly of one side 
 {"sb", BSIM4_SB}, // distance between  OD edge to poly of the other side
@@ -93,7 +93,7 @@ const std::unordered_map<std::string, int> bsim4ParamMap = {
 {"qinv", BSIM4_QINV}, // Qinversion
 {"qdef", BSIM4_QDEF}, // Qdef
 {"gcrg", BSIM4_GCRG}, // Gcrg
-{"gtau", BSIM4_GTAU}, // Gtau
+{"gtau", BSIM4_GTAU} // Gtau
 // {"vgsteff", BSIM4_VGSTEFF}, // Vgsteff
 // {"vdseff", BSIM4_VDSEFF}, // Vdseff
 // {"cgso", BSIM4_CGSO}, // Cgso
@@ -532,7 +532,7 @@ const std::unordered_map<std::string, int> bsim4ModelParamMap = {
 {"ldrout", BSIM4_MOD_LDROUT}, // Length dependence of drout
 {"ldsub", BSIM4_MOD_LDSUB}, // Length dependence of dsub
 {"lvth0", BSIM4_MOD_LVTH0}, // Length dependence of vth0
-IOPR("lvtho", BSIM4_MOD_LVTH0, IF_REAL,"Length dependence of vtho"),
+{"lvtho", BSIM4_MOD_LVTH0}, // Length dependence of vtho
 {"lua", BSIM4_MOD_LUA}, // Length dependence of ua
 {"lua1", BSIM4_MOD_LUA1}, // Length dependence of ua1
 {"lub", BSIM4_MOD_LUB}, // Length dependence of ub
@@ -694,7 +694,7 @@ IOPR("lvtho", BSIM4_MOD_LVTH0, IF_REAL,"Length dependence of vtho"),
 {"wdrout", BSIM4_MOD_WDROUT}, // Width dependence of drout
 {"wdsub", BSIM4_MOD_WDSUB}, // Width dependence of dsub
 {"wvth0", BSIM4_MOD_WVTH0}, // Width dependence of vth0
-IOPR("wvtho", BSIM4_MOD_WVTH0, IF_REAL,"Width dependence of vtho"),
+{"wvtho", BSIM4_MOD_WVTH0}, // Width dependence of vtho
 {"wua", BSIM4_MOD_WUA}, // Width dependence of ua
 {"wua1", BSIM4_MOD_WUA1}, // Width dependence of ua1
 {"wub", BSIM4_MOD_WUB}, // Width dependence of ub
@@ -855,7 +855,7 @@ IOPR("wvtho", BSIM4_MOD_WVTH0, IF_REAL,"Width dependence of vtho"),
 {"pdrout", BSIM4_MOD_PDROUT}, // Cross-term dependence of drout
 {"pdsub", BSIM4_MOD_PDSUB}, // Cross-term dependence of dsub
 {"pvth0", BSIM4_MOD_PVTH0}, // Cross-term dependence of vth0
-IOPR("pvtho", BSIM4_MOD_PVTH0, IF_REAL,"Cross-term dependence of vtho"),
+{"pvtho", BSIM4_MOD_PVTH0}, // Cross-term dependence of vtho
 {"pua", BSIM4_MOD_PUA}, // Cross-term dependence of ua
 {"pua1", BSIM4_MOD_PUA1}, // Cross-term dependence of ua1
 {"pub", BSIM4_MOD_PUB}, // Cross-term dependence of ub
@@ -1038,7 +1038,7 @@ IOPR("pvtho", BSIM4_MOD_PVTH0, IF_REAL,"Cross-term dependence of vtho"),
 // {"vbdr_max", BSIM4_MOD_VBDR_MAX}, // maximum voltage B-D branch
 
 {"nmos", BSIM4_MOD_NMOS}, // Flag to indicate NMOS
-{"pmos", BSIM4_MOD_PMOS}, // Flag to indicate PMOS
+{"pmos", BSIM4_MOD_PMOS} // Flag to indicate PMOS
 };
 
 } // namespace bsim4
