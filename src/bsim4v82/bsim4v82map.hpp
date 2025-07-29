@@ -9,8 +9,98 @@ namespace bsim4{
 
 // Parameter map for BSIM4
 const std::unordered_map<std::string, int> bsim4ParamMap = {
-{"w", BSIM4_W},
-{"l", BSIM4_L},
+{"l", BSIM4_L}, // Length
+{"w", BSIM4_W}, // Width
+{"m", BSIM4_M}, // Separate Parallel multiplier
+{"nf", BSIM4_NF}, // Number of fingers
+{"sa", BSIM4_SA}, // distance between  OD edge to poly of one side 
+{"sb", BSIM4_SB}, // distance between  OD edge to poly of the other side
+{"sd", BSIM4_SD}, // distance between neighbour fingers
+{"sca", BSIM4_SCA}, // Integral of the first distribution function for scattered well dopant
+{"scb", BSIM4_SCB}, // Integral of the second distribution function for scattered well dopant
+{"scc", BSIM4_SCC}, // Integral of the third distribution function for scattered well dopant
+{"sc", BSIM4_SC}, // Distance to a single well edge 
+{"min", BSIM4_MIN}, // Minimize either D or S
+{"ad", BSIM4_AD}, // Drain area
+{"as", BSIM4_AS}, // Source area
+{"pd", BSIM4_PD}, // Drain perimeter
+{"ps", BSIM4_PS}, // Source perimeter
+{"nrd", BSIM4_NRD}, // Number of squares in drain
+{"nrs", BSIM4_NRS}, // Number of squares in source
+{"off", BSIM4_OFF}, // Device is initially off
+{"rbdb", BSIM4_RBDB}, // Body resistance
+{"rbsb", BSIM4_RBSB}, // Body resistance
+{"rbpb", BSIM4_RBPB}, // Body resistance
+{"rbps", BSIM4_RBPS}, // Body resistance
+{"rbpd", BSIM4_RBPD}, // Body resistance
+{"delvto", BSIM4_DELVTO}, // Zero bias threshold voltage variation
+{"delvt0", BSIM4_DELVTO}, // Zero bias threshold voltage variation
+// {"mulu0", BSIM4_MULU0}, // Low field mobility multiplier
+{"xgw", BSIM4_XGW}, // Distance from gate contact center to device edge
+{"ngcon", BSIM4_NGCON}, // Number of gate contacts
+// {"wnflag", BSIM4_WNFLAG}, // W/NF device flag for bin selection
+
+{"trnqsmod", BSIM4_TRNQSMOD}, // Transient NQS model selector
+{"acnqsmod", BSIM4_ACNQSMOD}, // AC NQS model selector
+{"rbodymod", BSIM4_RBODYMOD}, // Distributed body R model selector
+{"rgatemod", BSIM4_RGATEMOD}, // Gate resistance model selector
+{"geomod", BSIM4_GEOMOD}, // Geometry dependent parasitics model selector
+{"rgeomod", BSIM4_RGEOMOD}, // S/D resistance and contact model selector
+{"ic", BSIM4_IC}, // Vector of DS,GS,BS initial voltages
+{"gmbs", BSIM4_GMBS}, // Gmb
+{"gm", BSIM4_GM}, // Gm
+{"gds", BSIM4_GDS}, // Gds
+{"vdsat", BSIM4_VDSAT}, // Vdsat
+{"vth", BSIM4_VON}, // Vth
+{"id", BSIM4_CD}, // Ids
+{"ibd", BSIM4_CBD}, // Ibd
+{"ibs", BSIM4_CBS}, // Ibs
+{"gbd", BSIM4_GBD}, // gbd
+{"gbs", BSIM4_GBS}, // gbs
+{"isub", BSIM4_CSUB}, // Isub
+{"igidl", BSIM4_IGIDL}, // Igidl
+{"igisl", BSIM4_IGISL}, // Igisl
+{"igs", BSIM4_IGS}, // Igs
+{"igd", BSIM4_IGD}, // Igd
+{"igb", BSIM4_IGB}, // Igb
+{"igcs", BSIM4_IGCS}, // Igcs
+{"igcd", BSIM4_IGCD}, // Igcd
+{"vbs", BSIM4_VBS}, // Vbs
+{"vgs", BSIM4_VGS}, // Vgs
+{"vds", BSIM4_VDS}, // Vds
+{"cgg", BSIM4_CGGB}, // Cggb
+{"cgs", BSIM4_CGSB}, // Cgsb
+{"cgd", BSIM4_CGDB}, // Cgdb
+{"cbg", BSIM4_CBGB}, // Cbgb
+{"cbd", BSIM4_CBDB}, // Cbdb
+{"cbs", BSIM4_CBSB}, // Cbsb
+{"cdg", BSIM4_CDGB}, // Cdgb
+{"cdd", BSIM4_CDDB}, // Cddb
+{"cds", BSIM4_CDSB}, // Cdsb
+{"csg", BSIM4_CSGB}, // Csgb
+{"csd", BSIM4_CSDB}, // Csdb
+{"css", BSIM4_CSSB}, // Cssb
+{"cgb", BSIM4_CGBB}, // Cgbb
+{"cdb", BSIM4_CDBB}, // Cdbb
+{"csb", BSIM4_CSBB}, // Csbb
+{"cbb", BSIM4_CBBB}, // Cbbb
+{"capbd", BSIM4_CAPBD}, // Capbd
+{"capbs", BSIM4_CAPBS}, // Capbs
+{"qg", BSIM4_QG}, // Qgate
+{"qb", BSIM4_QB}, // Qbulk
+{"qd", BSIM4_QD}, // Qdrain
+{"qs", BSIM4_QS}, // Qsource
+{"qinv", BSIM4_QINV}, // Qinversion
+{"qdef", BSIM4_QDEF}, // Qdef
+{"gcrg", BSIM4_GCRG}, // Gcrg
+{"gtau", BSIM4_GTAU}, // Gtau
+// {"vgsteff", BSIM4_VGSTEFF}, // Vgsteff
+// {"vdseff", BSIM4_VDSEFF}, // Vdseff
+// {"cgso", BSIM4_CGSO}, // Cgso
+// {"cgdo", BSIM4_CGDO}, // Cgdo
+// {"cgbo", BSIM4_CGBO}, // Cgbo
+// {"weff", BSIM4_WEFF}, // Weff
+// {"leff", BSIM4_LEFF}, // Leff
 };
 
 // Model parameter map for BSIM4
@@ -26,7 +116,7 @@ const std::unordered_map<std::string, int> bsim4ModelParamMap = {
 {"rgatemod", BSIM4_MOD_RGATEMOD}, // Gate R model selector
 {"permod", BSIM4_MOD_PERMOD}, // Pd and Ps model selector
 {"geomod", BSIM4_MOD_GEOMOD}, // Geometry dependent parasitics model selector
-{"rgeomod", BSIM4_MOD_RGEOMOD}, // S/D resistance and contact model selector
+{"rgeomod", BSIM4_MOD_GEOMOD}, // S/D resistance and contact model selector (BSIM4_MOD_RGEOMOD)
 {"fnoimod", BSIM4_MOD_FNOIMOD}, // Flicker noise model selector
 {"tnoimod", BSIM4_MOD_TNOIMOD}, // Thermal noise model selector
 {"mtrlmod", BSIM4_MOD_MTRLMOD}, // parameter for non-silicon substrate or metal gate selector
@@ -935,17 +1025,17 @@ IOPR("pvtho", BSIM4_MOD_PVTH0, IF_REAL,"Cross-term dependence of vtho"),
 {"af", BSIM4_MOD_AF}, // Flicker noise exponent
 {"kf", BSIM4_MOD_KF}, // Flicker noise coefficient
 
-{"vgs_max", BSIM4_MOD_VGS_MAX}, // maximum voltage G-S branch
-{"vgd_max", BSIM4_MOD_VGD_MAX}, // maximum voltage G-D branch
-{"vgb_max", BSIM4_MOD_VGB_MAX}, // maximum voltage G-B branch
-{"vds_max", BSIM4_MOD_VDS_MAX}, // maximum voltage D-S branch
-{"vbs_max", BSIM4_MOD_VBS_MAX}, // maximum voltage B-S branch
-{"vbd_max", BSIM4_MOD_VBD_MAX}, // maximum voltage B-D branch
-{"vgsr_max", BSIM4_MOD_VGSR_MAX}, // maximum voltage G-S branch
-{"vgdr_max", BSIM4_MOD_VGDR_MAX}, // maximum voltage G-D branch
-{"vgbr_max", BSIM4_MOD_VGBR_MAX}, // maximum voltage G-B branch
-{"vbsr_max", BSIM4_MOD_VBSR_MAX}, // maximum voltage B-S branch
-{"vbdr_max", BSIM4_MOD_VBDR_MAX}, // maximum voltage B-D branch
+// {"vgs_max", BSIM4_MOD_VGS_MAX}, // maximum voltage G-S branch
+// {"vgd_max", BSIM4_MOD_VGD_MAX}, // maximum voltage G-D branch
+// {"vgb_max", BSIM4_MOD_VGB_MAX}, // maximum voltage G-B branch
+// {"vds_max", BSIM4_MOD_VDS_MAX}, // maximum voltage D-S branch
+// {"vbs_max", BSIM4_MOD_VBS_MAX}, // maximum voltage B-S branch
+// {"vbd_max", BSIM4_MOD_VBD_MAX}, // maximum voltage B-D branch
+// {"vgsr_max", BSIM4_MOD_VGSR_MAX}, // maximum voltage G-S branch
+// {"vgdr_max", BSIM4_MOD_VGDR_MAX}, // maximum voltage G-D branch
+// {"vgbr_max", BSIM4_MOD_VGBR_MAX}, // maximum voltage G-B branch
+// {"vbsr_max", BSIM4_MOD_VBSR_MAX}, // maximum voltage B-S branch
+// {"vbdr_max", BSIM4_MOD_VBDR_MAX}, // maximum voltage B-D branch
 
 {"nmos", BSIM4_MOD_NMOS}, // Flag to indicate NMOS
 {"pmos", BSIM4_MOD_PMOS}, // Flag to indicate PMOS
