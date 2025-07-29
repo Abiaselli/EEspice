@@ -34,6 +34,7 @@ struct CircuitParser
     bool is_transient = false;
     bool is_dc = false;
     bool is_ac = false;
+    bool is_op = false;
     bool timestep_control = true;
     // CKT parameters
     // Transient simulation parameters
@@ -809,6 +810,10 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         {
             throw ParsingException("Error: Unknown MOSFET model: " + M_modelName, "UNKNOWN_MOSFET_MODEL");
         }
+    }
+    else if (type == ".op" || type == ".OP")
+    {
+        parser.is_op = true;
     }
     else if (type == ".tran" || type == ".TRAN")
     {
