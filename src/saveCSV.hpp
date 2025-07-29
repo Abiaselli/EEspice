@@ -15,6 +15,7 @@
 #include "Transient.hpp"
 #include "DC.hpp"
 #include "batch.hpp"
+#include "OP_calcs.hpp"
 
 // We'll index from 1..ckt.external_nodes
 std::vector<std::string> buildNodeIndexToNameMap(const CKTcircuit& ckt, const Circuitmap& map) {
@@ -125,6 +126,69 @@ void save_csv_dc(const std::string &filename, const CKTcircuit &ckt, const std::
     file.close();
 }
 
+// Overloaded function to pass std::ofstream directly
+void save_txt_op(std::ofstream &file, const std::vector<MosfetOpData> &mosfet_data){
+    // 1. Write to file with the specified formatting
+    file << "Semiconductor Device Operating Points:\n";
+    file << "                      --- BSIM4 MOSFETS ---\n";
+    if (mosfet_data.empty()) {
+        file << "No BSIM4 devices found in the circuit.\n";
+        return;
+    }
+
+    const size_t devices_per_chunk = 5; // Max devices to print per block
+
+    for (size_t i = 0; i < mosfet_data.size(); i += devices_per_chunk) {
+        size_t end = std::min(i + devices_per_chunk, mosfet_data.size());
+
+        // Helper lambda to print a row of data for the current chunk
+        auto print_row = [&](const std::string& label, auto value_extractor) {
+            file << std::left << std::setw(8) << label;
+            for (size_t j = i; j < end; ++j) {
+                file << std::right << std::setw(11) << value_extractor(mosfet_data[j]);
+            }
+            file << "\n";
+        };
+
+        // Print string properties
+        print_row("Name:",  [](const auto& d) { return d.name; });
+        print_row("Model:", [](const auto& d) { return d.model; });
+
+        // Set formatting for all numeric values
+        file << std::scientific << std::setprecision(2);
+        
+        // Print numeric properties
+        print_row("Id:",    [](const auto& d) { return d.id; });
+        print_row("Vgs:",   [](const auto& d) { return d.vgs; });
+        print_row("Vds:",   [](const auto& d) { return d.vds; });
+        print_row("Vbs:",   [](const auto& d) { return d.vbs; });
+        print_row("Vth:",   [](const auto& d) { return d.vth; });
+        print_row("Vdsat:", [](const auto& d) { return d.vdsat; });
+        print_row("Gm:",    [](const auto& d) { return d.gm; });
+        print_row("Gds:",   [](const auto& d) { return d.gds; });
+        print_row("Gmb",    [](const auto& d) { return d.gmb; }); // Note: Gmb label from example
+        print_row("Cbd:",   [](const auto& d) { return d.cbd; });
+        print_row("Cbs:",   [](const auto& d) { return d.cbs; });
+        
+        // Reset formatting and add a newline if there are more chunks to print
+        file << std::defaultfloat; 
+        if (end < mosfet_data.size()) {
+            file << "\n";
+        }
+    }
+}
+
+void save_txt_op(const std::string &filename, const std::vector<MosfetOpData> &mosfet_data){
+    std::ofstream file(filename);
+    if (!file.is_open())
+    {
+        std::cerr << "Error: Could not open file " << filename << " for writing." << std::endl;
+        return;
+    }
+    save_txt_op(file, mosfet_data);
+    file.close();
+}
+
 namespace batch{
 // Helper function to write error information to CSV file
 void write_error_csv(std::ofstream &file, const BatchRunResult &run_result, const std::string &analysis_type, int counter) {
@@ -153,7 +217,10 @@ void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
     int failed_count = 0;
 
     for (const auto& run_result : batch_results) {
-        if (run_result.simulation_type == "dc") {
+        if (run_result.simulation_type == "op"){
+
+        }
+        else if (run_result.simulation_type == "dc") {
             std::string filename = output_dir + "/dc" + std::to_string(dc_counter) + ".csv";
             std::ofstream file(filename);
             
