@@ -3803,8 +3803,8 @@ std::shared_ptr<BSIM4model> paserBSIM4Model(const std::string& modelType, const 
 
     // Parse parameters from kvMap
     for (const auto& [key, valStr] : kvMap) {
-        auto iter = bsim4ParamMap.find(key);
-        if (iter != bsim4ParamMap.end()){
+        auto iter = bsim4ModelParamMap.find(key);
+        if (iter != bsim4ModelParamMap.end()){
             int paramIndex = iter->second;
             try {
                 VariantValue value(valStr);
