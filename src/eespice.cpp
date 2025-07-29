@@ -50,8 +50,8 @@ int main(int argc, const char **argv)
                 if(!ckt.CKTelements.nmos.empty() || !ckt.CKTelements.pmos.empty() || !ckt.CKTelements.diodes.empty()){
                     non_linear = true;
                 }
-                arma::vec op_solution = OperatingPointAnalysis(ckt, modmap, non_linear);
-                printOperatingPoint(op_solution, ckt);
+                OPResult op_result = OP_ops(ckt, modmap, non_linear);
+                printOperatingPoint(op_result.solution, ckt);
             }
             if(parser.is_transient){
                 TransientSimulator trans_sim = Transsetup(parser, ckt);
