@@ -45,6 +45,14 @@ int main(int argc, const char **argv)
             CKTload(ckt);
             ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
 
+            if(parser.is_op){
+                bool non_linear = false;
+                if(!ckt.CKTelements.nmos.empty() || !ckt.CKTelements.pmos.empty() || !ckt.CKTelements.diodes.empty()){
+                    non_linear = true;
+                }
+                arma::vec op_solution = OperatingPointAnalysis(ckt, modmap, non_linear);
+                printOperatingPoint(op_solution, ckt);
+            }
             if(parser.is_transient){
                 TransientSimulator trans_sim = Transsetup(parser, ckt);
                 std::vector<Transient> vec_trans_result = Transient_ops(ckt, trans_sim, modmap);
