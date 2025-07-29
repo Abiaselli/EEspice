@@ -3,7 +3,7 @@
 #include "VariantValue.hpp"
 
 namespace bsim4{
-VariantValue BSIM4ask(const BSIM4model &model, const BSIM4V82 &inst, int which)
+VariantValue BSIM4ask(const BSIM4V82 &inst, int which)
 {
 // BSIM4instance *here = (BSIM4instance*)inst;
 
