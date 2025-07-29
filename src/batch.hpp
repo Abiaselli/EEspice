@@ -25,7 +25,7 @@ using CircuitConfig = std::map<std::string, double>;
 struct BatchRunResult {
     CircuitConfig config;
     CKTcircuit ckt; // Store the circuit state after simulation
-    std::variant<std::vector<dc::DCResult>, std::vector<Transient>, std::vector<AC::AC>> results;
+    std::variant<std::vector<dc::DCResult>, std::vector<Transient>, std::vector<AC::AC>, arma::vec> results;
     std::string simulation_type;
     
     // Error tracking fields
@@ -72,18 +72,17 @@ BatchRunResult simulation_worker(
         CKTload(ckt_template);
         ckt_template.cktdematrix->set_initmatrix();
 
-        for (const auto& nmos : ckt_template.CKTelements.nmos) {
-        //     std::cout << "NMOS ID: " << nmos.id_str << ", W: " << nmos.W << ", L: " << nmos.L << std::endl;
-        //     if (nmos.modelType == MosfetModelType::BSIM4V82){
-        //         std::cout << "Instance ID: " << nmos.bsim4v82Instance.BSIM4name << std::endl;
-        //         std::cout << "Model Name: " << nmos.bsim4v82Instance.BSIM4modPtr->BSIM4modName << std::endl;
-        //         std::cout << "width: " << nmos.bsim4v82Instance.BSIM4w << ", length: " << nmos.bsim4v82Instance.BSIM4l << std::endl;
-        //     }
-        //     std::cout << "---------------------------------------------------" << std::endl;
-        }
 
         // 3. Run the appropriate analysis based on the netlist commands
-        if (parser.is_transient) {
+        if (parser.is_op) {
+            run_result.simulation_type = "op";
+            bool non_linear = false;
+            if(!ckt_template.CKTelements.nmos.empty() || !ckt_template.CKTelements.pmos.empty() || !ckt_template.CKTelements.diodes.empty()){
+                non_linear = true;
+            }
+            run_result.results = OperatingPointAnalysis(ckt_template, local_modmap, non_linear);
+        }
+        else if (parser.is_transient) {
             run_result.simulation_type = "tran";
             TransientSimulator trans_sim = Transsetup(parser, ckt_template);
             run_result.results = Transient_ops(ckt_template, trans_sim, local_modmap);
