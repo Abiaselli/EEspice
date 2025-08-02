@@ -11,6 +11,14 @@
 #include "bsim4v82/bsim4v82stamp.hpp"
 #include "bsim4v82/bsim4v82paser.hpp"
 
+bool CKTisNonLinear(const CircuitElements &elements)
+{
+    bool non_linear = false;
+    if(!elements.nmos.empty() || !elements.pmos.empty() || !elements.diodes.empty()){
+        non_linear = true;
+    }
+    return non_linear;
+}
 
 void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
     // Create and Setup the instance parameters
