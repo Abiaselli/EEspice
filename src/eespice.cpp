@@ -46,10 +46,7 @@ int main(int argc, const char **argv)
             ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
 
             if(parser.is_op){
-                bool non_linear = false;
-                if(!ckt.CKTelements.nmos.empty() || !ckt.CKTelements.pmos.empty() || !ckt.CKTelements.diodes.empty()){
-                    non_linear = true;
-                }
+                bool non_linear = CKTisNonLinear(ckt.CKTelements);
                 OPResult op_result = OP_ops(ckt, modmap, non_linear);
                 printOperatingPoint(op_result.solution, ckt);
                 save_txt_op("op_solution.txt", op_result.mosfet_data);
