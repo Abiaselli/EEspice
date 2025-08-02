@@ -19,6 +19,7 @@
 #include "device.hpp"
 #include "matrix.hpp"
 #include "CKT.hpp"
+#include "CKTsetup.hpp"
 #include "global.hpp"
 #include "Newton.hpp"
 

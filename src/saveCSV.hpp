@@ -212,15 +212,49 @@ void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
     int dc_counter = 1;
     int tran_counter = 1;
     int ac_counter = 1;
+    int op_counter = 1;
     
     int successful_count = 0;
     int failed_count = 0;
 
     for (const auto& run_result : batch_results) {
         if (run_result.simulation_type == "op"){
-
-        }
-        else if (run_result.simulation_type == "dc") {
+            std::string filename = output_dir + "/op" + std::to_string(op_counter) + ".txt";
+            std::ofstream file(filename);
+            
+            if (!run_result.success) {
+                // Write error information for OP analysis
+                file << "# Circuit Configuration for OP Analysis " << op_counter << std::endl;
+                file << "# Parameters:" << std::endl;
+                for (const auto& [param, value] : run_result.config) {
+                    file << "# " << param << " = " << std::scientific << std::setprecision(6) << value << std::endl;
+                }
+                file << "# SIMULATION FAILED" << std::endl;
+                file << "# Error Type: " << run_result.error_type << std::endl;
+                file << "# Error Message: " << run_result.error_message << std::endl;
+                file << "# End of Configuration" << std::endl;
+                file << std::endl;
+                file << "# No simulation data available due to failure" << std::endl;
+                failed_count++;
+            } else {
+                // Write circuit information header
+                file << "# Circuit Configuration for OP Analysis " << op_counter << std::endl;
+                file << "# Parameters:" << std::endl;
+                for (const auto& [param, value] : run_result.config) {
+                    file << "# " << param << " = " << std::scientific << std::setprecision(6) << value << std::endl;
+                }
+                file << "# End of Configuration" << std::endl;
+                file << std::endl;
+                
+                // Extract OPResult and call save_txt_op with mosfet_data
+                const auto& op_result = std::get<OPResult>(run_result.results);
+                save_txt_op(file, op_result.mosfet_data);
+                successful_count++;
+            }
+            file.close();
+            op_counter++;
+            
+        } else if (run_result.simulation_type == "dc") {
             std::string filename = output_dir + "/dc" + std::to_string(dc_counter) + ".csv";
             std::ofstream file(filename);
             

@@ -25,7 +25,7 @@ using CircuitConfig = std::map<std::string, double>;
 struct BatchRunResult {
     CircuitConfig config;
     CKTcircuit ckt; // Store the circuit state after simulation
-    std::variant<std::vector<dc::DCResult>, std::vector<Transient>, std::vector<AC::AC>, arma::vec> results;
+    std::variant<std::vector<dc::DCResult>, std::vector<Transient>, std::vector<AC::AC>, OPResult> results;
     std::string simulation_type;
     
     // Error tracking fields
@@ -76,11 +76,8 @@ BatchRunResult simulation_worker(
         // 3. Run the appropriate analysis based on the netlist commands
         if (parser.is_op) {
             run_result.simulation_type = "op";
-            bool non_linear = false;
-            if(!ckt_template.CKTelements.nmos.empty() || !ckt_template.CKTelements.pmos.empty() || !ckt_template.CKTelements.diodes.empty()){
-                non_linear = true;
-            }
-            run_result.results = OperatingPointAnalysis(ckt_template, local_modmap, non_linear);
+            bool non_linear = CKTisNonLinear(ckt_template.CKTelements);
+            run_result.results = OP_ops(ckt_template, local_modmap, non_linear);
         }
         else if (parser.is_transient) {
             run_result.simulation_type = "tran";
