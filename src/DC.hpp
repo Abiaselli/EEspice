@@ -10,12 +10,7 @@ DCSimulator DCsetup(const CircuitParser &parser, const CKTcircuit &ckt){
     DCSimulator dcSim;
 
     // Check if the DC simulation is non-linear
-    if(!ckt.CKTelements.nmos.empty() || !ckt.CKTelements.pmos.empty() || !ckt.CKTelements.diodes.empty()){
-        dcSim.non_linear = true;
-    }
-    else{
-        dcSim.non_linear = false;
-    }
+    dcSim.non_linear = CKTisNonLinear(ckt.CKTelements);
 
     // Setup DC sweeps
     // dcSim.dcsweep = std::move(parser.dcSweep_parser);

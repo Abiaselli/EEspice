@@ -121,12 +121,7 @@ std::vector<double> generateSweepValues(const ACSweepSpec &sweepSpec){
 ACsimulator ACsetup(const CircuitParser &parser, const CKTcircuit &ckt){
     ACsimulator acsim;
     // Check if the AC sweep simulation is non-linear
-    if(!ckt.CKTelements.nmos.empty() || !ckt.CKTelements.pmos.empty() || !ckt.CKTelements.diodes.empty()){
-        acsim.non_linear = true;
-    }
-    else{
-        acsim.non_linear = false;
-    }
+    acsim.non_linear = CKTisNonLinear(ckt.CKTelements);
     // Set the AC sweep parameters
     // acsim.acsweep = std::move(parser.acSweep_parser);
     acsim.acsweep = parser.acSweep_parser;

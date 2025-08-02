@@ -143,12 +143,7 @@ TransientSimulator Transsetup(const CircuitParser &parser, const CKTcircuit &ckt
 
 
     // Check if the transient simulation is non-linear
-    if(!ckt.CKTelements.nmos.empty() || !ckt.CKTelements.pmos.empty() || !ckt.CKTelements.diodes.empty()){
-        config.non_linear = true;
-    }
-    else{
-        config.non_linear = false;
-    }
+    config.non_linear = CKTisNonLinear(ckt.CKTelements);
 
     // Setup the initial capacitance list
     TransientSimulator trans_sim(config);
