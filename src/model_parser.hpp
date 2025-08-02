@@ -61,8 +61,7 @@ void parseModel(std::istringstream &iss, const std::string &line, Modelmap &modm
     size_t openParen = typeAndParams.find('(');
     size_t closeParen = typeAndParams.find(')');
     if (openParen == std::string::npos || closeParen == std::string::npos || closeParen < openParen) {
-        std::cerr << "Error: Invalid .model line (missing parentheses): " << line << std::endl;
-        exit(1);
+        throw ParsingException("Invalid .model line (missing parentheses): " + line, "parseModel");
     }
 
     std::string modelType = typeAndParams.substr(0, openParen);
@@ -116,8 +115,7 @@ void parseModel(std::istringstream &iss, const std::string &line, Modelmap &modm
             modmap.bsim4Models[modelName] = bsim4Model;
         }
         else {
-            std::cerr << "Error: Unsupported NMOS level: " << level << " in line: " << line << std::endl;
-            exit(1);
+            throw ParsingException("Unsupported NMOS level: " + std::to_string(level) + " in line: " + line, "parseModel");
         }
 
        
@@ -157,13 +155,11 @@ void parseModel(std::istringstream &iss, const std::string &line, Modelmap &modm
             modmap.bsim4Models[modelName] = bsim4Model;
         }
         else {
-            std::cerr << "Error: Unsupported PMOS level: " << level << " in line: " << line << std::endl;
-            exit(1);
+            throw ParsingException("Unsupported PMOS level: " + std::to_string(level) + " in line: " + line, "parseModel");
         }
         
     }
     else {
-        std::cerr << "Error: Unknown model type: " << modelType << " in line: " << line << std::endl;
-        exit(1);
+        throw ParsingException("Unknown model type: " + modelType + " in line: " + line, "parseModel");
     }
 }

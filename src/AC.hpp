@@ -75,8 +75,7 @@ double freqTolCalculate(const ACSweepSpec &sweepSpec){
             freqTol = sweepSpec.ACfreqDelta * RELTOL;
             break;
         default:
-            std::cerr << "Invalid AC sweep interval type in freqTolCalculate." << std::endl;
-            exit(1);
+            throw SetupException("Invalid AC sweep interval type.", "freqTolCalculate");
     }
     return freqTol;
 }
@@ -109,8 +108,7 @@ std::vector<double> generateSweepValues(const ACSweepSpec &sweepSpec){
                 }
                 break;
             default:
-                std::cerr << "Invalid AC sweep interval type in freqUpdate." << std::endl;
-                exit(1);
+                throw SetupException("Invalid AC sweep interval type.", "generateSweepValues");
         }
 
         sweep_values.push_back(freq);
@@ -129,8 +127,7 @@ ACsimulator ACsetup(const CircuitParser &parser, const CKTcircuit &ckt){
     acsim.acsweep.freqTol = freqTolCalculate(acsim.acsweep);
     acsim.acsweep.sweep_values = generateSweepValues(acsim.acsweep);
     if(acsim.acsweep.sweep_values.empty()){
-        std::cerr << "Error: No valid AC sweep values generated." << std::endl;
-        exit(1);
+        throw SetupException("No valid AC sweep values generated.", "ACsetup");
     }
     // Reserve space for the AC results
     acsim.vec_ac.reserve(acsim.acsweep.sweep_values.size());
@@ -171,8 +168,7 @@ void DynamicNonLinear(arma::cx_dmat &LHS, arma::cx_dvec &RHS, const CKTcircuit &
             bsim4::BSIM4acLoad(ckt, b4model, b4instance, ckt.spiceCompatible, omega, LHS, RHS);
         }
         else{
-            std::cerr << "Error: NMOS model type is not supported!" << std::endl;
-            exit(1);
+            throw SetupException("NMOS model type is not supported.", "AC::DynamicNonLinear");
         }
     }
     for (auto &pmos : ckt.CKTelements.pmos){
@@ -185,8 +181,7 @@ void DynamicNonLinear(arma::cx_dmat &LHS, arma::cx_dvec &RHS, const CKTcircuit &
             bsim4::BSIM4acLoad(ckt, b4model, b4instance, ckt.spiceCompatible, omega, LHS, RHS);
         }
         else{
-            std::cerr << "Error: PMOS model type is not supported!" << std::endl;
-            exit(1);
+            throw SetupException("PMOS model type is not supported.", "AC::DynamicNonLinear");
         }
     }
 }

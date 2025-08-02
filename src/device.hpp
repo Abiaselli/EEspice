@@ -287,14 +287,12 @@ double V_pulse_value(double V1, double V2, double t1, double td, double tr, doub
     t1 = fmod(t1, tper);
     if (tper < tr + tpw + tf)
     {
-        std::cerr << "Period is incorrect" << std::endl;
-        exit(1);
+        throw DeviceException("Period is incorrect", "V_pulse_value");
     }
 
     if (t1 < 0)
     {
-        std::cerr << "Simulation time in pulse voltage it wrong" << std::endl;
-        exit(1);
+        throw DeviceException("Simulation time in pulse voltage is wrong", "V_pulse_value");
     }
     else if (t1 >= 0 && t1 < td)
     {
@@ -318,8 +316,7 @@ double V_pulse_value(double V1, double V2, double t1, double td, double tr, doub
     }
     else
     {
-        std::cerr << "Pulse voltage Error" << std::endl;
-        exit(1);
+        throw DeviceException("Pulse voltage Error", "V_pulse_value");
     }
     return v;
 }
@@ -404,8 +401,7 @@ void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, a
 
 void VCVS_assigner(int node_x, int node_y, int node_cx, int node_cy, double E, arma::mat &LHS, arma::vec &RHS){
     if (node_x == 0 && node_y == 0){
-        std::cerr << "Error: VCVS cannot have both nodes as ground" << std::endl;
-        exit(1);
+        throw DeviceException("Error: VCVS cannot have both nodes as ground", "VCVS_assigner");
     }
     LHS = LHS.resize(LHS.n_rows + 1, LHS.n_cols + 1); // Resize LHS matrix to accommodate the new row and column
     RHS = RHS.resize(RHS.n_elem + 1); // Resize RHS vector to accommodate the new value

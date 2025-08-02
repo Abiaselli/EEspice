@@ -60,18 +60,14 @@ CapacitanceState get_cap_state(const CKTcircuit &ckt, const arma::vec &solution,
                         break;
                     
                     default:
-                        std::cerr << "Illegal integration order" << std::endl;
-                        exit(1);
-                        break;
+                        throw SimulationException("Illegal integration order", "get_cap_state");
                 }
                 break;
             case GEAR:
-                std::cerr << "GEAR method not implemented yet." << std::endl;
-                exit(1);
+                throw SimulationException("GEAR method not implemented yet.", "get_cap_state");
                 break;
             default:
-                std::cerr << "Unknown integration method" << std::endl;
-                exit(1);
+                throw SimulationException("Unknown integration method", "get_cap_state");
                 break;
         }
         CapCharge.push_back(std::abs(charge));
@@ -174,14 +170,12 @@ NIcomCof(CKTcircuit &ckt, double h)
                     break;
 
                 default:
-                    std::cerr << "Error: Trapezoidal method only supports order 1 or 2." << std::endl;
-                    exit(1);
+                    throw SimulationException("Trapezoidal method only supports order 1 or 2.", "NIcomCof");
             }
             break;
 
         case GEAR:
-            std::cerr << "Error: GEAR method not implemented yet." << std::endl;
-            exit(1);
+            throw SimulationException("GEAR method not implemented yet.", "NIcomCof");
             break;
 
     }

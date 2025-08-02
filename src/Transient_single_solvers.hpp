@@ -294,15 +294,11 @@ single_timestep single_solution_solver(const double &h, const Transient &trans, 
             single_h.CapState = get_cap_state(ckt, single_h.solution, single_h.h, trans_sim.vec_trans);
         }
     }
-    else if(trans_sim.trans_config.non_linear == false){
+    else{
         std::pair<arma::mat, arma::vec> matrices;
         matrices = Dynamic(ckt, h, trans_sim.vec_trans.back().solution, trans.mode, single_h.t);
         single_h.solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
         single_h.CapState = get_cap_state(ckt, single_h.solution, single_h.h, trans_sim.vec_trans);
-    }
-    else{
-        std::cerr << "Error in single_solution_solver function: trans_sim.trans_config.non_linear" << std::endl;
-        exit(1);
     }
 
     return single_h;
@@ -315,8 +311,7 @@ bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &singl
        LTE = single_LTE_ngspice(single_h, trans_sim.vec_trans, ckt);
 
        if(LTE.h_bound.empty()){
-           std::cerr << "Error in single_LTE_check function: h_bound is empty!" << std::endl;
-           exit(1);
+           throw SimulationException("Error in single_LTE_check function: h_bound is empty!", "SINGLE_LTE_CHECK");
        }
        else[[likely]]{
             auto iter_h_min = std::ranges::min_element(LTE.h_bound);
@@ -342,8 +337,7 @@ bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &singl
             return false;
         }
         else{
-            std::cerr << "The time step is too small (Reach minimum!)" << std::endl;
-            exit(1);
+            throw SimulationException("The time step is too small (Reach minimum!)", "SINGLE_LTE_CHECK");
         }
     }
 }
