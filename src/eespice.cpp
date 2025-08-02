@@ -18,25 +18,26 @@ int main(int argc, const char **argv)
         std::cerr << "Usage: ./eespice <netlist_file>" << std::endl;
         return 1;
     }
-    setDebugMode(false); // Set the debug mode to false or true
 
-    // Parse netlist file
-    Modelmap modmap;
-    Circuitmap cktmap;
-    CircuitParser parser(argv[1]);
-    parser_netlist(parser, cktmap, modmap);
+    try {
+        setDebugMode(false); // Set the debug mode to false or true
 
-    // Model setup using the temperature
-    modelSetup(modmap, nomTemp);
+        // Parse netlist file
+        Modelmap modmap;
+        Circuitmap cktmap;
+        CircuitParser parser(argv[1]);
+        parser_netlist(parser, cktmap, modmap);
 
-    if(parser.is_batch){
-        std::cout << "Starting batch simulation..." << std::endl;
-        auto batch_results = batch::run_batch_simulation(cktmap, parser, modmap);
-        std::cout << "Batch simulation finished. Saving " << batch_results.size() << " results." << std::endl;
-        batch::save_csv_batch(batch_results);
-    }
-    else{
-        try {
+        // Model setup using the temperature
+        modelSetup(modmap, nomTemp);
+
+        if(parser.is_batch){
+            std::cout << "Starting batch simulation..." << std::endl;
+            auto batch_results = batch::run_batch_simulation(cktmap, parser, modmap);
+            std::cout << "Batch simulation finished. Saving " << batch_results.size() << " results." << std::endl;
+            batch::save_csv_batch(batch_results);
+        }
+        else{           
             // CKT circuit setup
             CKTcircuit ckt;
             ckt.map = cktmap; // Assign the circuit map to the CKTcircuit
@@ -50,43 +51,41 @@ int main(int argc, const char **argv)
                 OPResult op_result = OP_ops(ckt, modmap, non_linear);
                 printOperatingPoint(op_result.solution, ckt);
                 save_txt_op("op_solution.txt", op_result.mosfet_data);
+                std::cout << "Operating point simulation completed." << std::endl;
+                std::cout << "Data saved to op_solution.txt" << std::endl;
             }
             if(parser.is_transient){
                 TransientSimulator trans_sim = Transsetup(parser, ckt);
                 std::vector<Transient> vec_trans_result = Transient_ops(ckt, trans_sim, modmap);
                 save_csv("tran_solution.csv", ckt, vec_trans_result, ckt.map);
+                std::cout << "Transient simulation completed." << std::endl;
+                std::cout << "Data saved to tran_solution.csv" << std::endl;
 
             }
             if(parser.is_dc){
                 dc::DCSimulator dcSim = dc::DCsetup(parser, ckt);
                 std::vector<dc::DCResult> vec_dc_result = dc::DC_ops(ckt, dcSim, modmap);
                 save_csv_dc("dc_solution.csv", ckt, vec_dc_result, ckt.map);
+                std::cout << "DC simulation completed." << std::endl;
+                std::cout << "Data saved to dc_solution.csv" << std::endl;
             }
             if(parser.is_ac){
                 CKTloadAC(ckt);
                 ckt.cktdematrix->set_init_cxmatrix(); // Set the initial complex LHS and RHS matrices for AC analysis
                 AC::ACsimulator acSim = AC::ACsetup(parser, ckt);
                 std::vector<AC::AC> vec_ac_result = AC::AC_ops(ckt, acSim, modmap);
+                std::cout << "AC simulation completed." << std::endl;
             }
-        } catch (const SimulationException& e) {
-            std::cerr << "Simulation failed: " << e.what() << std::endl;
-            return 1; // Exit gracefully instead of exit(1)
-        } catch (const std::exception& e) {
-            std::cerr << "Unexpected error: " << e.what() << std::endl;
-            return 1;
         }
+
+    }catch (const SimulationException& e) {
+        std::cerr << "Simulation failed: " << e.what() << std::endl;
+        return 1; // Exit gracefully instead of exit(1)
+    } catch (const std::exception& e) {
+        std::cerr << "Unexpected error: " << e.what() << std::endl;
+        return 1;
     }
 
-    /*-----------------------------------------------------------------------------------------------------------*/
-    // SAVING THE SOLUTION AND TIME MATRICES INTO CSV FILES
-
-    // std::chrono::duration<double, std::milli> time_span = (t3 - t1);
-    // std::chrono::duration<double, std::milli> analysis_time = (tstop_trans - t1);
-    // std::cout << "Total analysis time:" << (analysis_time).count()  << "ms\n";
-    // std::cout << "Total time:" << time_span.count() << "ms\n";
-    // std::cout << "Total NR iteration:" << total_NR_iteration << std::endl;
-    // std::cout << "Total timepoint:" << total_timepoint << std::endl;
 
     return 0;
-    /*-----------------------------------------------------------------------------------------------------------*/
 }
