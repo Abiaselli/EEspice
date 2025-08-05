@@ -11,7 +11,7 @@
 #include "simulation_exceptions.hpp"
 #include "bsim4v82/bsim4v82acstamp.hpp"
 
-namespace AC{
+namespace ac{
 
 // This function is used to calculate the ACfreqDelta
 double ACfreqDeltaCalculate(const ACSweepSpec &sweepSpec){
@@ -187,7 +187,7 @@ void DynamicNonLinear(arma::cx_dmat &LHS, arma::cx_dvec &RHS, const CKTcircuit &
 }
 
 // AC simulation function
-std::vector<AC> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap &modmap){
+std::vector<ACResult> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap &modmap){
     // 1. OP analysis
     ckt.spiceCompatible.setFlagsOP();
     arma::vec op_solution = OperatingPointAnalysis(ckt, modmap, acSim.non_linear);
@@ -201,19 +201,23 @@ std::vector<AC> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap &modm
     }
 
     // 3. AC analysis
+    // Initial complex matrices for whole AC simulation
+    ACMat acMat;
+
+    // AC simulation loop
     for(const auto &freq : acSim.acsweep.sweep_values){
         ckt.spiceCompatible.setFlagsAC();
-        AC ac;
+        ACResult ac;
         ac.freq = freq;
         ac.omega = 2 * M_PI * freq;
 
         // Update the LHS and RHS matrices
-        ac.LHS = ckt.cktdematrix->get_init_cxLHS();
-        ac.RHS = ckt.cktdematrix->get_init_cxRHS();
-        DynamicNonLinear(ac.LHS, ac.RHS, ckt, ac.omega);
+        acMat.LHS = ckt.cktdematrix->get_init_cxLHS();
+        acMat.RHS = ckt.cktdematrix->get_init_cxRHS();
+        DynamicNonLinear(acMat.LHS, acMat.RHS, ckt, ac.omega);
 
         // solve the MNA matrix
-        ac.solution = arma::solve(ac.LHS, ac.RHS);
+        ac.solution = arma::solve(acMat.LHS, acMat.RHS);
 
         // Store the AC result
         acSim.vec_ac.push_back(ac);
@@ -223,4 +227,4 @@ std::vector<AC> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap &modm
     return acSim.vec_ac;
 }
 
-}// namespace AC
+}// namespace ac

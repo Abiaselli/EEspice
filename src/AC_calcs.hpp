@@ -2,7 +2,7 @@
 #include <vector>
 #include <armadillo>
 
-namespace AC {
+namespace ac {
 
 struct ACSweepSpec{
     int interval{};                     // decade (DEC), octave (OCT) or linearly (LIN)
@@ -21,19 +21,22 @@ struct ACSweepSpec{
     };
 };
 
-struct AC{
-    double freq{};                // Frequency of the AC point
-    double omega{};               // Angular frequency (2 * pi * freq)
+struct ACMat{
     arma::cx_dmat LHS;
-    arma::cx_dvec RHS;            
+    arma::cx_dvec RHS;  
+};
+
+struct ACResult{
+    double freq{};                // Frequency of the AC point
+    double omega{};               // Angular frequency (2 * pi * freq)          
     arma::cx_dvec solution;        
 
 };
 
 struct ACsimulator {
     ACSweepSpec acsweep;                 // sweep device data
-    std::vector<AC> vec_ac;              // All AC results
+    std::vector<ACResult> vec_ac;        // All AC results
     bool non_linear = false;             // Non-linear flag
 };
 
-} // namespace AC
+} // namespace ac

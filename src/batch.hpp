@@ -25,7 +25,7 @@ using CircuitConfig = std::map<std::string, double>;
 struct BatchRunResult {
     CircuitConfig config;
     CKTcircuit ckt; // Store the circuit state after simulation
-    std::variant<std::vector<dc::DCResult>, std::vector<Transient>, std::vector<AC::AC>, OPResult> results;
+    std::variant<std::vector<dc::DCResult>, std::vector<Transient>, std::vector<ac::ACResult>, OPResult> results;
     std::string simulation_type;
     
     // Error tracking fields
@@ -91,8 +91,8 @@ BatchRunResult simulation_worker(
             run_result.simulation_type = "ac";
             CKTloadAC(ckt_template);
             ckt_template.cktdematrix->set_init_cxmatrix();
-            AC::ACsimulator acSim = AC::ACsetup(parser, ckt_template);
-            run_result.results = AC::AC_ops(ckt_template, acSim, local_modmap);
+            ac::ACsimulator acSim = ac::ACsetup(parser, ckt_template);
+            run_result.results = ac::AC_ops(ckt_template, acSim, local_modmap);
         } else {
             // Fallback or error for no simulation type specified
             run_result.simulation_type = "none";

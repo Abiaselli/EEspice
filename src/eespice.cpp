@@ -72,8 +72,8 @@ int main(int argc, const char **argv)
             if(parser.is_ac){
                 CKTloadAC(ckt);
                 ckt.cktdematrix->set_init_cxmatrix(); // Set the initial complex LHS and RHS matrices for AC analysis
-                AC::ACsimulator acSim = AC::ACsetup(parser, ckt);
-                std::vector<AC::AC> vec_ac_result = AC::AC_ops(ckt, acSim, modmap);
+                ac::ACsimulator acSim = ac::ACsetup(parser, ckt);
+                std::vector<ac::ACResult> vec_ac_result = ac::AC_ops(ckt, acSim, modmap);
                 std::cout << "AC simulation completed." << std::endl;
             }
         }
