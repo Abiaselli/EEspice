@@ -127,8 +127,12 @@ void save_csv_dc(const std::string &filename, const CKTcircuit &ckt, const std::
 }
 
 // Overloaded function to pass std::ofstream directly
-void save_txt_op(std::ofstream &file, const std::vector<MosfetOpData> &mosfet_data){
-    // 1. Write to file with the specified formatting
+void save_txt_op(std::ofstream &file, const OPResult &op_result, const Circuitmap &map){
+
+    const auto mosfet_data = op_result.mosfet_data;
+    const auto solution = op_result.solution;
+
+    // Write to file with the specified formatting
     file << "Semiconductor Device Operating Points:\n";
     file << "                      --- BSIM4 MOSFETS ---\n";
     if (mosfet_data.empty()) {
@@ -176,16 +180,29 @@ void save_txt_op(std::ofstream &file, const std::vector<MosfetOpData> &mosfet_da
             file << "\n";
         }
     }
+
+    file << std::endl;
+
+    // Print the operating point solution to file
+    // Temporarily redirect std::cout to the file stream
+    auto cout_buffer = std::cout.rdbuf();
+    std::cout.rdbuf(file.rdbuf());
+    
+    printOperatingPointWithNames(solution, map);
+    
+    // Restore std::cout to its original buffer
+    std::cout.rdbuf(cout_buffer);
+    file << "\n";
 }
 
-void save_txt_op(const std::string &filename, const std::vector<MosfetOpData> &mosfet_data){
+void save_txt_op(const std::string &filename, const OPResult &op_result, const Circuitmap &map){
     std::ofstream file(filename);
     if (!file.is_open())
     {
         std::cerr << "Error: Could not open file " << filename << " for writing." << std::endl;
         return;
     }
-    save_txt_op(file, mosfet_data);
+    save_txt_op(file, op_result, map);
     file.close();
 }
 
@@ -248,7 +265,7 @@ void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
                 
                 // Extract OPResult and call save_txt_op with mosfet_data
                 const auto& op_result = std::get<OPResult>(run_result.results);
-                save_txt_op(file, op_result.mosfet_data);
+                save_txt_op(file, op_result, run_result.ckt.map);
                 successful_count++;
             }
             file.close();
