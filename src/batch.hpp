@@ -133,7 +133,11 @@ std::vector<BatchRunResult> run_batch_simulation(
     auto configs = generate_all_configs(batch_params);
     std::cout << "Generated " << configs.size() << " circuit configurations for batch simulation." << std::endl;
 
-    // 3. Set up the thread pool and submit each configuration as a separate task
+    // 3. Redirect cout to a failbit state
+    auto old_state = std::cout.rdstate();
+    std::cout.setstate(std::ios::failbit);
+
+    // 4. Set up the thread pool and submit each configuration as a separate task
     BS::thread_pool pool;
     BS::multi_future<BatchRunResult> futures;
     futures.reserve(configs.size()); // Reserve space for the results
@@ -158,7 +162,10 @@ std::vector<BatchRunResult> run_batch_simulation(
     //     );
     // }
 
-    // 4. Wait for all simulations to complete and return the collected results
+    // 5. Restore cout state
+    std::cout.clear(old_state);
+
+    // 6. Wait for all simulations to complete and return the collected results
     std::cout << "All batch simulation tasks submitted. Waiting for completion..." << std::endl;
     return futures.get();
 }
