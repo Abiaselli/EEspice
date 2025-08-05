@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <iomanip>
 #include <armadillo>
 #include "Newton.hpp"
 #include "CKT.hpp"
@@ -79,6 +80,35 @@ void printOperatingPoint(const arma::vec &op_solution, const CKTcircuit &ckt){
     arma::vec current_print = op_solution.submat(op_solution.n_rows - ckt.no_of_V_sources, 0, op_solution.n_rows - 1, 0);
     arma::vec op_solution_print = arma::join_vert(node_volt_print, current_print);
     op_solution_print.print("Operating Point Solution: ");
+}
+
+void printOperatingPointWithNames(const arma::vec &op_solution, const Circuitmap &map){
+    std::cout << "Operating Bias Point Solution:" << std::endl;
+    
+    // Find maximum label width for alignment
+    size_t max_width = 0;
+    for (const auto& node : map.map_nodes) {
+        size_t label_width = 3 + node.first.length(); // "V(" + node_name + ")"
+        max_width = std::max(max_width, label_width);
+    }
+    for (const auto& current : map.map_branch_currents) {
+        size_t label_width = 3 + current.first.length(); // "I(" + source_name + ")"
+        max_width = std::max(max_width, label_width);
+    }
+    
+    // Print node voltages
+    for (const auto& node : map.map_nodes) {
+        std::string label = "V(" + node.first + ")";
+        double voltage = op_solution[node.second - 1]; // node_id - 1 for matrix index
+        std::cout << std::left << std::setw(max_width) << label << " " << voltage << std::endl;
+    }
+    
+    // Print branch currents
+    for (const auto& current : map.map_branch_currents) {
+        std::string label = "I(" + current.first + ")";
+        double current_val = op_solution[current.second]; // matrix index directly
+        std::cout << std::left << std::setw(max_width) << label << " " << current_val << std::endl;
+    }
 }
 
 // Only for .op command
