@@ -38,6 +38,9 @@ constexpr double SmallEpsilon = 1.0e-12;
 // To control debug mode
 bool debugMode = false;
 
+// Batch mode
+bool batchMode = false;
+
 // Statistics of the transient simulation
 int NR_ITE = 0;
 int total_timepoint = 0;

@@ -191,7 +191,9 @@ std::vector<ACResult> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap
     // 1. OP analysis
     ckt.spiceCompatible.setFlagsOP();
     arma::vec op_solution = OperatingPointAnalysis(ckt, modmap, acSim.non_linear);
-    printOperatingPoint(op_solution, ckt);
+    if (!batchMode){
+        printOperatingPoint(op_solution, ckt);
+    }
 
     // 2. Update the small signal parameters for non-linear devices
     //    For BSIM4, we update the charge and capacitance into cktstate

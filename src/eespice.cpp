@@ -33,6 +33,7 @@ int main(int argc, const char **argv)
 
         if(parser.is_batch){
             std::cout << "Starting batch simulation..." << std::endl;
+            batchMode = true; // Set the global batch mode to true
             auto batch_results = batch::run_batch_simulation(cktmap, parser, modmap);
             std::cout << "Batch simulation finished. Saving " << batch_results.size() << " results." << std::endl;
             batch::save_csv_batch(batch_results);
