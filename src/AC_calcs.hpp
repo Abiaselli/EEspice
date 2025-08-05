@@ -30,7 +30,13 @@ struct ACResult{
     double freq{};                // Frequency of the AC point
     double omega{};               // Angular frequency (2 * pi * freq)          
     arma::cx_dvec solution;        
+};
 
+// A new struct to store the results in polar form (Magnitude and Phase)
+struct ACResultPolar {
+    double freq{};
+    arma::vec magnitudes;
+    arma::vec phases_rad; // Phase in radians
 };
 
 struct ACsimulator {

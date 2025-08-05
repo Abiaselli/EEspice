@@ -227,4 +227,18 @@ std::vector<ACResult> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap
     return acSim.vec_ac;
 }
 
+std::vector<ACResultPolar> convertToPolar(const std::vector<ACResult> &vec_ac){
+    std::vector<ACResultPolar> polarResults;
+    polarResults.reserve(vec_ac.size());
+
+    // Loop through the results for each frequency
+    for (const auto &ac : vec_ac) {
+        polarResults.emplace_back( ac.freq, 
+                                    arma::abs(ac.solution),  // Magnitude
+                                    arma::arg(ac.solution)   // Phase in radians
+        );
+    }
+    return polarResults;
+}
+
 }// namespace ac
