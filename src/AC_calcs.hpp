@@ -39,10 +39,16 @@ struct ACResultPolar {
     arma::vec phases_rad; // Phase in radians
 };
 
+enum class ACResultType{
+    MagPhase, // Magnitude and Phase
+    RealImag // Real and Imaginary parts
+};
+
 struct ACsimulator {
     ACSweepSpec acsweep;                 // sweep device data
     std::vector<ACResult> vec_ac;        // All AC results
     bool non_linear = false;             // Non-linear flag
+    ACResultType type = ACResultType::MagPhase;
 };
 
 } // namespace ac

@@ -206,6 +206,91 @@ void save_txt_op(const std::string &filename, const OPResult &op_result, const C
     file.close();
 }
 
+void save_csv_ac(std::ofstream &file, const CKTcircuit &ckt, const std::vector<ac::ACResult> &vec_ac, const Circuitmap &map, const ac::ACResultType type){
+    // Sanity check: must have at least one AC solution:
+    if (vec_ac.empty())
+    {
+        std::cerr << "Warning: vec_ac is empty, no AC solutions to write.\n";
+        file.close();
+        return;
+    }
+
+    // 1) Build a helper vector for nodeIndex -> nodeName
+    //    This vector is created to ensure the nodes are arranged in order from 1 to n.
+    std::vector<std::string> nodeIndexToName = buildNodeIndexToNameMap(ckt, map);
+
+    // 2) Write the header
+    file << "frequency";
+    
+    // Add voltage node headers
+    for (int j = 1; j <= ckt.external_nodes; ++j) {
+        if (type == ac::ACResultType::RealImag) {
+            file << ",v(" << nodeIndexToName[j] << ") (real),v(" << nodeIndexToName[j] << ") (img)";
+        } else { // MagPhase
+            file << ",v(" << nodeIndexToName[j] << ") (mag),v(" << nodeIndexToName[j] << ") (phase)";
+        }
+    }
+    
+    // Add branch current headers
+    for (const auto& [name, index] : map.map_branch_currents) {
+        if (type == ac::ACResultType::RealImag) {
+            file << ",i(" << name << ") (real),i(" << name << ") (img)";
+        } else { // MagPhase
+            file << ",i(" << name << ") (mag),i(" << name << ") (phase)";
+        }
+    }
+    file << std::endl;
+
+    // 3) Write the data rows
+    if (type == ac::ACResultType::RealImag) {
+        // Use complex solution directly
+        for (const auto& ac_result : vec_ac) {
+            file << std::scientific << std::setprecision(20);
+            file << ac_result.freq;
+            
+            // Write node voltages (real and imaginary parts)
+            for (size_t j = 0; j < ckt.external_nodes; ++j) {
+                file << "," << std::real(ac_result.solution(j)) << "," << std::imag(ac_result.solution(j));
+            }
+            
+            // Write branch currents (real and imaginary parts)
+            for (const auto& [name, index] : map.map_branch_currents) {
+                file << "," << std::real(ac_result.solution(index)) << "," << std::imag(ac_result.solution(index));
+            }
+            file << std::endl;
+        }
+    } else { // MagPhase
+        // Convert to polar form first
+        std::vector<ac::ACResultPolar> polarResults = ac::convertToPolar(vec_ac);
+        
+        for (const auto& polar_result : polarResults) {
+            file << std::scientific << std::setprecision(20);
+            file << polar_result.freq;
+            
+            // Write node voltages (magnitude and phase)
+            for (size_t j = 0; j < ckt.external_nodes; ++j) {
+                file << "," << polar_result.magnitudes(j) << "," << polar_result.phases_rad(j);
+            }
+            
+            // Write branch currents (magnitude and phase)
+            for (const auto& [name, index] : map.map_branch_currents) {
+                file << "," << polar_result.magnitudes(index) << "," << polar_result.phases_rad(index);
+            }
+            file << std::endl;
+        }
+    }
+}
+void save_csv_ac(const std::string &filename, const CKTcircuit &ckt, const std::vector<ac::ACResult> &vec_ac, const Circuitmap &map, const ac::ACResultType type){
+    std::ofstream file(filename);
+    if (!file.is_open())
+    {
+        std::cerr << "Error: Could not open file " << filename << " for writing." << std::endl;
+        return;
+    }
+    save_csv_ac(file, ckt, vec_ac, map, type);
+    file.close();
+}
+
 namespace batch{
 // Helper function to write error information to CSV file
 void write_error_csv(std::ofstream &file, const BatchRunResult &run_result, const std::string &analysis_type, int counter) {
@@ -338,9 +423,9 @@ void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
                 file << "# End of Configuration" << std::endl;
                 file << std::endl;
                 
-                // TODO: Add AC results saving function call here
-                // const auto& vec_ac_result = std::get<std::vector<AC::AC>>(run_result.results);
-                // save_csv_ac(file, run_result.ckt, vec_ac_result, run_result.ckt.map);
+                // Call the overloaded save_csv_ac function that takes std::ofstream
+                const auto& vec_ac_result = std::get<std::vector<ac::ACResult>>(run_result.results);
+                save_csv_ac(file, run_result.ckt, vec_ac_result, run_result.ckt.map, ac::ACResultType::MagPhase);
                 successful_count++;
             }
             file.close();
