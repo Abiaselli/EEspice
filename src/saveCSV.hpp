@@ -68,11 +68,10 @@ void save_csv(const std::string &filename, const CKTcircuit &ckt, const std::vec
         std::cerr << "Error: Could not open file " << filename << " for writing." << std::endl;
         return;
     }
-
     // Call the overloaded function that takes std::ofstream directly
     save_csv(file, ckt, vec_trans, map);
-
     file.close();
+    std::cout << "Data saved to " << filename << std::endl;
 }
 
 // Overloaded function to pass std::ofstream directly
@@ -119,11 +118,10 @@ void save_csv_dc(const std::string &filename, const CKTcircuit &ckt, const std::
         std::cerr << "Error: Could not open file " << filename << " for writing." << std::endl;
         return;
     }
-
     // Call the overloaded function that takes std::ofstream directly
     save_csv_dc(file, ckt, vec_dc, map);
-
     file.close();
+    std::cout << "Data saved to " << filename << std::endl;
 }
 
 // Overloaded function to pass std::ofstream directly
@@ -204,6 +202,7 @@ void save_txt_op(const std::string &filename, const OPResult &op_result, const C
     }
     save_txt_op(file, op_result, map);
     file.close();
+    std::cout << "Data saved to " << filename << std::endl;
 }
 
 void save_csv_ac(std::ofstream &file, const CKTcircuit &ckt, const std::vector<ac::ACResult> &vec_ac, const Circuitmap &map, const ac::ACResultType type){
@@ -289,6 +288,7 @@ void save_csv_ac(const std::string &filename, const CKTcircuit &ckt, const std::
     }
     save_csv_ac(file, ckt, vec_ac, map, type);
     file.close();
+    std::cout << "Data saved to " << filename << std::endl;
 }
 
 namespace batch{
