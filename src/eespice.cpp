@@ -71,6 +71,7 @@ int main(int argc, const char **argv)
                 std::cout << "Data saved to dc_solution.csv" << std::endl;
             }
             if(parser.is_ac){
+                if(!CKTcheckAC(ckt.CKTelements)){throw SimulationException("Error: No AC sources found!", "CKTcheckAC");}
                 CKTloadAC(ckt);
                 ckt.cktdematrix->set_init_cxmatrix(); // Set the initial complex LHS and RHS matrices for AC analysis
                 ac::ACsimulator acSim = ac::ACsetup(parser, ckt);

@@ -20,6 +20,18 @@ bool CKTisNonLinear(const CircuitElements &elements)
     return non_linear;
 }
 
+// Check if the circuit has any AC sources
+bool CKTcheckAC(const CircuitElements &elements){
+    bool ACsource = false;
+    for (const auto &src : elements.voltageSources) {
+        if (src.amplitude >= 0) {
+            ACsource = true;
+            break;
+        }
+    }
+    return ACsource;
+}
+
 void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
     // Create and Setup the instance parameters
     // Setup the mosfet instance parameters
@@ -150,6 +162,8 @@ void CKTloadAC(CKTcircuit &ckt){
         R_assigner(res.nodePos, res.nodeNeg, 1.0 / res.value, LHS_real);
         ckt.cktdematrix->LHS_cx.set_real(LHS_real);
     }
+    // All sources with no acparameter specified are disabled!!!
+    // i.e., voltage sources are shorted and current sources removed from the circuit
 }
 
 void updateDeviceState(CKTcircuit &ckt){
