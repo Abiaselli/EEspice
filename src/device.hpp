@@ -201,6 +201,14 @@ void C_assigner_BE(int node_x, int node_y, double C, double h, arma::mat &LHS, a
     // Matrix stamp for a capacitor on RHS
     Is_assigner(node_x, node_y, -(x * vol), RHS);
 }
+// Capacitor stamp assigner AC
+void C_ACassigner(int node_x, int node_y, double C, double omega, arma::cx_dmat &LHS){
+    double val = omega * C;
+    arma::mat LHS_imag = arma::imag(LHS);
+
+    R_assigner(node_x, node_y, val, LHS_imag);
+    LHS.set_imag(LHS_imag);
+}
 
 // Correct Diode stamp assigner (Original Diode_assigner is wrong with the node voltage assignment)
 double Diode_assigner(int node_x, int node_y, double Is, double VT, arma::mat &LHS, arma::vec &RHS,

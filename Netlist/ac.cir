@@ -1,0 +1,8 @@
+Demo of a simple AC circuit
+
+v1 1 0 dc 0 ac 1
+r1 1 2 30
+c1 2 0 100u
+.ac dec 100 1 100
+
+.end

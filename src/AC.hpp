@@ -160,7 +160,7 @@ void SaveOP(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
 void DynamicNonLinear(arma::cx_dmat &LHS, arma::cx_dvec &RHS, const CKTcircuit &ckt, double omega){
     for (auto &nmos : ckt.CKTelements.nmos){
         if (nmos.modelType == MosfetModelType::LEVEL1){
-
+            throw SetupException("NMOS model type LEVEL1 is not supported in AC analysis.", "AC::DynamicNonLinear");
         }
         else if (nmos.modelType == MosfetModelType::BSIM4V82){
             const bsim4::BSIM4model &b4model = *nmos.bsim4v82Instance.BSIM4modPtr;
@@ -173,7 +173,7 @@ void DynamicNonLinear(arma::cx_dmat &LHS, arma::cx_dvec &RHS, const CKTcircuit &
     }
     for (auto &pmos : ckt.CKTelements.pmos){
         if (pmos.modelType == MosfetModelType::LEVEL1){
-
+            throw SetupException("PMOS model type LEVEL1 is not supported in AC analysis.", "AC::DynamicNonLinear");
         }
         else if (pmos.modelType == MosfetModelType::BSIM4V82){
             const bsim4::BSIM4model &b4model = *pmos.bsim4v82Instance.BSIM4modPtr;
@@ -183,6 +183,9 @@ void DynamicNonLinear(arma::cx_dmat &LHS, arma::cx_dvec &RHS, const CKTcircuit &
         else{
             throw SetupException("PMOS model type is not supported.", "AC::DynamicNonLinear");
         }
+    }
+    for (auto &cap : ckt.CKTelements.capacitors){
+        C_ACassigner(cap.nodePos, cap.nodeNeg, cap.value, omega, LHS);
     }
 }
 
