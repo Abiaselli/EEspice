@@ -195,7 +195,7 @@ std::vector<ACResult> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap
     ckt.spiceCompatible.setFlagsOP();
     arma::vec op_solution = OperatingPointAnalysis(ckt, modmap, acSim.non_linear);
     if (!batchMode){
-        printOperatingPoint(op_solution, ckt);
+        printOperatingPointWithNames(op_solution, ckt.map);
     }
 
     // 2. Update the small signal parameters for non-linear devices

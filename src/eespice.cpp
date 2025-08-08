@@ -50,7 +50,7 @@ int main(int argc, const char **argv)
             if(parser.is_op){
                 bool non_linear = CKTisNonLinear(ckt.CKTelements);
                 OPResult op_result = OP_ops(ckt, modmap, non_linear);
-                printOperatingPoint(op_result.solution, ckt);
+                printOperatingPointWithNames(op_result.solution, ckt.map);
                 save_txt_op("op_solution.txt", op_result, ckt.map);
                 std::cout << "Operating point simulation completed." << std::endl;
             }
