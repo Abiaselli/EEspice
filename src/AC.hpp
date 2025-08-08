@@ -17,7 +17,7 @@ namespace ac{
 double ACfreqDeltaCalculate(const ACSweepSpec &sweepSpec){
    
     if(sweepSpec.fstart <= 0){
-        throw SetupException("ERROR: AC startfreq <= 0", "INVALID_AC_START_FREQUENCY");
+        throw SetupException("ERROR: AC startfreq <= 0", "ACfreqDeltaCalculate");
     }
 
     double ACfreqDelta = 0.0;
@@ -54,7 +54,7 @@ double ACfreqDeltaCalculate(const ACSweepSpec &sweepSpec){
         }
         break;
     default:
-        throw SetupException("Invalid AC sweep interval type in ACfreqDeltaCalculate.", "INVALID_AC_SWEEP_TYPE");
+        throw SetupException("Invalid AC sweep interval type in ACfreqDeltaCalculate.", "ACfreqDeltaCalculate");
     }
     return ACfreqDelta;
 }
