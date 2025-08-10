@@ -144,13 +144,22 @@ void CKTload(CKTcircuit &ckt)
     }
     for (auto &vcvs : ckt.CKTelements.vcvs){
         VCVS_assigner(vcvs.node_x, vcvs.node_y, vcvs.node_cx, vcvs.node_cy, vcvs.value, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
+        ckt.map.map_branch_currents.insert({vcvs.id_str, ckt.cktdematrix->RHS.n_rows - 1}); // Store the branch current index in the map
     }
 }
 void CKTloadAC(CKTcircuit &ckt){
+    // For safety, clear the branch current map before load any linear devices
+    ckt.map.map_branch_currents.clear(); 
     // ASSIGNING THE STAMPS TO THE LHS AND RHS MATRICES FOR AC ANALYSIS
+    // Only the components that change the size of MNA have their own ACassigner function.
     for (const auto &vol : ckt.CKTelements.voltageSources)
     {
         Vs_ACassigner(vol.nodePos, vol.nodeNeg, vol.acReal, vol.acImag, ckt.cktdematrix->LHS_cx, ckt.cktdematrix->RHS_cx);
+        ckt.map.map_branch_currents.insert({vol.id_str, ckt.cktdematrix->RHS_cx.n_rows - 1});
+    }
+    for (const auto &cur : ckt.CKTelements.currentSources)
+    {
+       // TODO: AC current source
     }
     for (auto &res : ckt.CKTelements.resistors)
     {
@@ -164,6 +173,22 @@ void CKTloadAC(CKTcircuit &ckt){
     }
     // All sources with no acparameter specified are disabled!!!
     // i.e., voltage sources are shorted and current sources removed from the circuit
+    constexpr double Shorted = 0.0;
+    for (auto &pulse : ckt.CKTelements.pulseVoltages){
+        Vs_ACassigner(pulse.nodePos, pulse.nodeNeg, Shorted, Shorted, ckt.cktdematrix->LHS_cx, ckt.cktdematrix->RHS_cx);
+        pulse.RHS_locate = ckt.cktdematrix->RHS_cx.n_rows;
+        ckt.map.map_branch_currents.insert({pulse.id_str, ckt.cktdematrix->RHS_cx.n_rows - 1});
+    }
+    for (auto &vccs : ckt.CKTelements.vccs)
+    {
+        arma::mat LHS_real = arma::real(ckt.cktdematrix->LHS_cx);
+        VCCS_assigner(vccs.node_x, vccs.node_y, vccs.node_cx, vccs.node_cy, vccs.value, LHS_real);  // Doesn't change the size of MNA
+        ckt.cktdematrix->LHS_cx.set_real(LHS_real);
+    }
+    for (auto &vcvs : ckt.CKTelements.vcvs){
+        VCVS_ACassigner(vcvs.node_x, vcvs.node_y, vcvs.node_cx, vcvs.node_cy, vcvs.value, ckt.cktdematrix->LHS_cx, ckt.cktdematrix->RHS_cx);
+        ckt.map.map_branch_currents.insert({vcvs.id_str, ckt.cktdematrix->RHS_cx.n_rows - 1});
+    }
 }
 
 void updateDeviceState(CKTcircuit &ckt){

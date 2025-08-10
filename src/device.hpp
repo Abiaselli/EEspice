@@ -431,6 +431,20 @@ void VCVS_assigner(int node_x, int node_y, int node_cx, int node_cy, double E, a
         LHS(row, node_cy - 1) += E;  // Last row, column for node_cy
     }
 }
+void VCVS_ACassigner(int node_x, int node_y, int node_cx, int node_cy, double E, arma::cx_dmat &LHS, arma::cx_dvec &RHS){
+    arma::mat real_LHS = arma::real(LHS);
+    arma::vec real_RHS = arma::real(RHS);
+    arma::mat imag_LHS = arma::imag(LHS);
+    arma::vec imag_RHS = arma::imag(RHS);
+    // Assign the real parts
+    VCVS_assigner(node_x, node_y, node_cx, node_cy, E, real_LHS, real_RHS);
+    // Assign the imaginary parts
+    imag_LHS.resize(arma::size(real_LHS));
+    imag_RHS.resize(real_RHS.n_elem);
+    // Output the complex matrices
+    LHS = arma::cx_dmat(real_LHS, imag_LHS);
+    RHS = arma::cx_dvec(real_RHS, imag_RHS);
+}
 
 double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node_vb, double W, double L,
                      const arma::vec &solution, int T_nodes, arma::mat &LHS, arma::vec &RHS, const NMOSModel &nmosModel)
