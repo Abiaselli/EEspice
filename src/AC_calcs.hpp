@@ -36,7 +36,8 @@ struct ACResult{
 struct ACResultPolar {
     double freq{};
     arma::vec magnitudes;
-    arma::vec phases_rad; // Phase in radians
+    // arma::vec phases_rad; // Phase in radians
+    arma::vec phases_deg; // Phase in degrees
 };
 
 enum class ACResultType{

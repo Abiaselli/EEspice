@@ -268,12 +268,12 @@ void save_csv_ac(std::ofstream &file, const CKTcircuit &ckt, const std::vector<a
             
             // Write node voltages (magnitude and phase)
             for (size_t j = 0; j < ckt.external_nodes; ++j) {
-                file << "," << polar_result.magnitudes(j) << "," << polar_result.phases_rad(j);
+                file << "," << polar_result.magnitudes(j) << "," << polar_result.phases_deg(j);
             }
             
             // Write branch currents (magnitude and phase)
             for (const auto& [name, index] : map.map_branch_currents) {
-                file << "," << polar_result.magnitudes(index) << "," << polar_result.phases_rad(index);
+                file << "," << polar_result.magnitudes(index) << "," << polar_result.phases_deg(index);
             }
             file << std::endl;
         }
