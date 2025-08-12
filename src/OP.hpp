@@ -12,9 +12,6 @@
 
 // Function to perform operating point analysis
 arma::vec OperatingPointAnalysis(CKTcircuit &ckt, const Modelmap &modmap, bool non_linear){
-    // Set the flags for SPICE compatibility
-    ckt.spiceCompatible.setFlagsOP();
-
     // Get the initial LHS and RHS matrices
     arma::mat init_LHS = ckt.cktdematrix->get_init_LHS();
     arma::vec init_RHS = ckt.cktdematrix->get_init_RHS();
@@ -130,6 +127,9 @@ void printOperatingPointWithNames(const arma::vec &op_solution, const Circuitmap
 // Only for .op command
 OPResult OP_ops(CKTcircuit &ckt, const Modelmap &modmap, bool non_linear) {
     OPResult result;
+
+    // Set the flags for SPICE compatibility
+    ckt.spiceCompatible.setFlagsOP();
 
     // Run the operating point analysis
     result.solution = OperatingPointAnalysis(ckt, modmap, non_linear);
