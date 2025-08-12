@@ -4,6 +4,7 @@
 #include "Transient_multi_solvers.hpp"
 #include "Transient_single_solvers.hpp"
 #include "CKTsetup.hpp"
+#include "OP.hpp"
 
 Transient Fixed_TimeStep(CKTcircuit &ckt, TransientSimulator &trans_sim, const Modelmap &modmap){
     Transient trans;
@@ -124,31 +125,29 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_
     trans_op.mode = 0;                          // 0 to do OP analysis, 1 to do transient simulation
 
     // OP analysis used as initial condition for next evaluation
-    arma::vec solution = arma::zeros(ckt.cktdematrix->RHS.n_rows, ckt.cktdematrix->RHS.n_cols);
     ckt.spiceCompatible.setFlagsTranOP();
     // Benchmarking for OP analysis
     auto tstart_op = std::chrono::high_resolution_clock::now();
 
-    solution = NewtonRaphson_system(ckt, 0, 0, 0, solution, modmap);
+    trans_op.solution = OperatingPointAnalysis(ckt, modmap, trans_sim.trans_config.non_linear);
+    trans_op.next_h = trans_sim.trans_config.init_h;
 
     if (trans_sim.trans_config.timestep_control)
     {   
         // Get the capacitance state for the OP analysis if the time step control is on
-        trans_op.CapState = get_cap_state(ckt, solution, trans_op.h, trans_sim.vec_trans);
+        trans_op.CapState = get_cap_state(ckt, trans_op.solution, trans_op.h, trans_sim.vec_trans);
     }
     auto tstop_op = std::chrono::high_resolution_clock::now();
 
-    trans_op.solution = solution;
-    trans_op.next_h = trans_sim.trans_config.init_h;
-    history_trans_update(trans_op, trans_sim);
 
     if (debugMode == false && batchMode == false)
-    {
+    {   
         printOperatingPointWithNames(trans_op.solution, ckt.map);
     }
-    updateDeviceState(ckt);
+    ARMA_PRINT(trans_op.solution, "The OP analysis (include internal nodes) of the circuit is: ");
 
-    ARMA_PRINT(solution, "The OP analysis (include internal nodes) of the circuit is: ");
+    updateDeviceState(ckt);
+    history_trans_update(trans_op, trans_sim);
 
     /*-----------------------------------------------------------*/
     //                Transient simulation start                   

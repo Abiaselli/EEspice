@@ -284,6 +284,7 @@ double cond(double R)
     return 1 / R;
 }
 
+// Using std::move to store transient history!!!
 void history_trans_update(Transient &trans, TransientSimulator &trans_sim)
 {
     // Update transient history
