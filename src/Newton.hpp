@@ -35,7 +35,7 @@ std::pair<arma::mat, arma::vec> Dynamic(const CKTcircuit &ckt, const double h, c
     for (const auto &pulse : ckt.CKTelements.pulseVoltages)
     {
         double val_pulse = V_pulse_value(pulse.V1, pulse.V2, time_trans, pulse.td, pulse.tr, pulse.tf, pulse.pw, pulse.per);
-        RHS(pulse.RHS_locate) += val_pulse;
+        RHS(pulse.RHS_locate) += (val_pulse - pulse.V1);
     }
     return {LHS, RHS};
 }
