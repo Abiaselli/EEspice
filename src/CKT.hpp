@@ -18,8 +18,6 @@ struct CKTcircuit
     CircuitElements CKTelements;                    // Vector of circuit elements
     int external_nodes{};                           // Number of external nodes excluding ground and nodes inside the MOSFETs
     int internal_nodes{};                           // Number of internal nodes (nodes inside the MOSFETs)
-    // int external_mosfets{};                      // Number of standalone mosfets (excluding mosfets from ring oscillator)
-    int no_of_V_sources{};                          // Total number of voltage sources
     int num_of_states{};                            // Number of dynamic states (capacitors and bsim4v82)
     int T_nodes{};                                  // Total number of nodes excluding ground (Used to create the initial matrix in CKTsetup)
 

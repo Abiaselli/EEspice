@@ -113,7 +113,6 @@ void CKTload(CKTcircuit &ckt)
     {
         Vs_assigner(vol.nodePos, vol.nodeNeg, vol.value, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
         ckt.map.map_branch_currents.insert({vol.id_str, ckt.cktdematrix->RHS.n_rows - 1}); // Store the branch current index in the map
-        ckt.no_of_V_sources++;
     }
     for (const auto &cur : ckt.CKTelements.currentSources)
     {
@@ -133,7 +132,6 @@ void CKTload(CKTcircuit &ckt)
     }
     for (auto &pulse : ckt.CKTelements.pulseVoltages)
     {
-        ckt.no_of_V_sources++;
         ckt.pulse_num++;
         pulse.RHS_locate = V_pulse_assigner(pulse.nodePos, pulse.nodeNeg, pulse.V1, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
         ckt.map.map_branch_currents.insert({pulse.id_str, ckt.cktdematrix->RHS.n_rows - 1}); // Store the branch current index in the map

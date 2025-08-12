@@ -74,10 +74,26 @@ std::vector<MosfetOpData> extractMosfetData(const CKTcircuit &ckt) {
     return mosfet_data;
 }
 
-void printOperatingPoint(const arma::vec &op_solution, const CKTcircuit &ckt){
-    // Print the operating point solution
-    arma::vec node_volt_print = op_solution.submat(0, 0, ckt.external_nodes - 1, 0);
-    arma::vec current_print = op_solution.submat(op_solution.n_rows - ckt.no_of_V_sources, 0, op_solution.n_rows - 1, 0);
+void printOperatingPoint(const arma::vec &op_solution, const Circuitmap &map){
+    // Create vectors to hold the values we want to print
+    arma::vec node_volt_print(map.map_nodes.size());
+    arma::vec current_print(map.map_branch_currents.size());
+    
+    // Extract node voltages using map_nodes
+    size_t volt_idx = 0;
+    for (const auto& node : map.map_nodes) {
+        // node.second is the node_id (1-based), so subtract 1 for 0-based index
+        node_volt_print(volt_idx++) = op_solution(node.second - 1);
+    }
+    
+    // Extract branch currents using map_branch_currents  
+    size_t curr_idx = 0;
+    for (const auto& current : map.map_branch_currents) {
+        // current.second is the direct index in op_solution
+        current_print(curr_idx++) = op_solution(current.second);
+    }
+    
+    // Combine and print
     arma::vec op_solution_print = arma::join_vert(node_volt_print, current_print);
     op_solution_print.print("Operating Point Solution: ");
 }

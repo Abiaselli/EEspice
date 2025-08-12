@@ -142,12 +142,9 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_
     trans_op.next_h = trans_sim.trans_config.init_h;
     history_trans_update(trans_op, trans_sim);
 
-    arma::vec node_volt_print = solution.submat(0, 0, ckt.external_nodes - 1, 0);
-    arma::vec current_print = solution.submat(solution.n_rows - ckt.no_of_V_sources, 0, solution.n_rows - 1, 0);
-    arma::vec op_solution_print = arma::join_vert(node_volt_print, current_print);
     if (debugMode == false && batchMode == false)
     {
-        op_solution_print.print("The OP analysis of the circuit is: ");
+        printOperatingPointWithNames(trans_op.solution, ckt.map);
     }
     updateDeviceState(ckt);
 
