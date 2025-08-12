@@ -167,9 +167,9 @@ void Is_assigner_reverse(double node_x, double node_y, double I, arma::vec &RHS)
 // Capacitor stamp assigner with backward euler method
 void C_assigner_BE(int node_x, int node_y, double C, double h, arma::mat &LHS, arma::vec &RHS, const arma::vec &pre_solution, int mode)
 {
-    if (node_x == 0 && node_y == 0)
+    if (node_x == node_y)
     {
-        return;
+        return;     // No need to assign if both nodes shorted together
     }
     double x{}; // x = C/h
     double vol{};
@@ -190,16 +190,12 @@ void C_assigner_BE(int node_x, int node_y, double C, double h, arma::mat &LHS, a
         {
             vol = pre_solution(node_x - 1, 0) - pre_solution(node_y - 1, 0);
         }
+        // Matrix stamp for a capacitor on LHS
+        R_assigner(node_x, node_y, x, LHS);
+        // Matrix stamp for a capacitor on RHS
+        Is_assigner(node_x, node_y, -(x * vol), RHS);
     }
-    else
-    {
-        x = 0;
-        vol = 0;
-    }
-    // Matrix stamp for a capacitor on LHS
-    R_assigner(node_x, node_y, x, LHS);
-    // Matrix stamp for a capacitor on RHS
-    Is_assigner(node_x, node_y, -(x * vol), RHS);
+    // No need to assign if mode is 0 (op in transient)
 }
 // Capacitor stamp assigner AC
 void C_ACassigner(int node_x, int node_y, double C, double omega, arma::cx_dmat &LHS){
