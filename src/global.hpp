@@ -216,7 +216,7 @@ double convertToValue(const std::string &valueStr)
     return value; // No unit or unrecognized unit, assume the value is in base units
 }
 
-int convertToNode(const std::string &nodeStr, std::map<std::string, int> &map_nodes)
+int convertToNode(const std::string &nodeStr, std::unordered_map<std::string, int> &map_nodes)
 {   
     if(nodeStr == "0" || nodeStr == "GND" || nodeStr == "gnd"){
         return 0;
@@ -230,7 +230,7 @@ int convertToNode(const std::string &nodeStr, std::map<std::string, int> &map_no
     return new_node;
 }
 
-int convertToDevice(const std::string &deviceStr, std::map<std::string, int> &map_device){
+int convertToDevice(const std::string &deviceStr, std::unordered_map<std::string, int> &map_device){
     auto it = map_device.find(deviceStr);
     if (it != map_device.end()) {
        throw SetupException("Error: Device " + deviceStr + " already exists!", "DUPLICATE_DEVICE");
