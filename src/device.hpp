@@ -280,9 +280,7 @@ int V_pulse_assigner(int node_x, int node_y, double V_value, arma::mat &LHS, arm
     RHS = arma::join_cols(RHS, value);
 
     // location of voltage value for transient simulation
-    int Pulse_RHS_locate1 = RHS.n_rows;
-
-    return Pulse_RHS_locate1;
+    return RHS.n_rows - 1;
 }
 
 double V_pulse_value(double V1, double V2, double t1, double td, double tr, double tf, double tpw, double tper)

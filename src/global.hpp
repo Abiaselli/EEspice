@@ -41,7 +41,7 @@ struct Pulsevoltage
     double pw{};
     double per{};
 
-    int RHS_locate{};
+    int RHS_locate{};   // RHS index (starts from 0)
 };
 
 struct Diode

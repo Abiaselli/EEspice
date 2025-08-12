@@ -174,7 +174,7 @@ void CKTloadAC(CKTcircuit &ckt){
     constexpr double Shorted = 0.0;
     for (auto &pulse : ckt.CKTelements.pulseVoltages){
         Vs_ACassigner(pulse.nodePos, pulse.nodeNeg, Shorted, Shorted, ckt.cktdematrix->LHS_cx, ckt.cktdematrix->RHS_cx);
-        pulse.RHS_locate = ckt.cktdematrix->RHS_cx.n_rows;
+        pulse.RHS_locate = ckt.cktdematrix->RHS_cx.n_rows - 1;
         ckt.map.map_branch_currents.insert({pulse.id_str, ckt.cktdematrix->RHS_cx.n_rows - 1});
     }
     for (auto &vccs : ckt.CKTelements.vccs)
