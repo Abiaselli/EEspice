@@ -54,20 +54,20 @@ int main(int argc, const char **argv)
                 save_txt_op("op_solution.txt", op_result, ckt.map);
                 std::cout << "Operating point simulation completed." << std::endl;
             }
-            if(parser.is_transient){
+            else if(parser.is_transient){
                 TransientSimulator trans_sim = Transsetup(parser, ckt);
                 std::vector<Transient> vec_trans_result = Transient_ops(ckt, trans_sim, modmap);
                 save_csv("tran_solution.csv", ckt, vec_trans_result, ckt.map);
                 std::cout << "Transient simulation completed." << std::endl;
 
             }
-            if(parser.is_dc){
+            else if(parser.is_dc){
                 dc::DCSimulator dcSim = dc::DCsetup(parser, ckt);
                 std::vector<dc::DCResult> vec_dc_result = dc::DC_ops(ckt, dcSim, modmap);
                 save_csv_dc("dc_solution.csv", ckt, vec_dc_result, ckt.map);
                 std::cout << "DC simulation completed." << std::endl;
             }
-            if(parser.is_ac){
+            else if(parser.is_ac){
                 if(!CKTcheckAC(ckt.CKTelements)){throw SimulationException("Error: No AC sources found!", "CKTcheckAC");}
                 CKTloadAC(ckt);
                 ckt.cktdematrix->set_init_cxmatrix(); // Set the initial complex LHS and RHS matrices for AC analysis
@@ -75,6 +75,9 @@ int main(int argc, const char **argv)
                 std::vector<ac::ACResult> vec_ac_result = ac::AC_ops(ckt, acSim, modmap);
                 save_csv_ac("ac_solution.csv", ckt, vec_ac_result, ckt.map, acSim.type);
                 std::cout << "AC simulation completed." << std::endl;
+            }
+            else{
+                throw SimulationException("Error: No simulation type specified!", "main");
             }
         }
 
