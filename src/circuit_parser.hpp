@@ -246,7 +246,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
     std::istringstream iss(line);
     std::string type, id_str, valueStr;
     std::string v_nodePos_str, v_nodeNeg_str;
-    std::string v_type, t1_pulse;
+    std::string v_type;
 
     iss >> type; // Automatically skips leading whitespace before reading type
 

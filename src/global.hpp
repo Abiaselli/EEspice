@@ -32,7 +32,6 @@ struct Pulsevoltage
     int id{};
     std::string nodePos_str, nodeNeg_str;
     int nodePos{}, nodeNeg{};
-    double t1_pulse{};
     double V1{};
     double V2{};
     double td{};
