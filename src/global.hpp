@@ -43,6 +43,23 @@ struct Pulsevoltage
     int RHS_locate{};   // RHS index (starts from 0)
 };
 
+// sinusoidal voltage source
+struct Sinvoltage{
+    std::string id_str;
+    int id{};
+    std::string nodePos_str, nodeNeg_str;
+    int nodePos{}, nodeNeg{};
+
+    double vo{};        // Offset
+    double va{};        // Amplitude
+    double freq{};      // Frequency
+    double td{};        // Delay
+    double theta{};     // Damping factor
+    double phase{};     // Phase
+
+    int RHS_locate{};   // RHS index (starts from 0)
+};
+
 struct Diode
 {   
     std::string id_str;
@@ -155,6 +172,7 @@ struct CircuitElements
     std::vector<Resistor> resistors;
     std::vector<Capacitor> capacitors;
     std::vector<Pulsevoltage> pulseVoltages;
+    std::vector<Sinvoltage> sinVoltages;
     std::vector<Diode> diodes;
     std::vector<NMOS> nmos;
     std::vector<PMOS> pmos;

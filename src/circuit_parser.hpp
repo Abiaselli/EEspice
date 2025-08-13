@@ -300,6 +300,36 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
                 parser.elements.pulseVoltages.emplace_back(pv);
             }
+            else if (first_param == "sin" || first_param == "SIN"){
+                Sinvoltage sv;
+                std::string sinParamsString;
+                std::getline(iss, sinParamsString);
+                // Remove the parentheses
+                sinParamsString.erase(std::remove(sinParamsString.begin(), sinParamsString.end(), '('), sinParamsString.end());
+                sinParamsString.erase(std::remove(sinParamsString.begin(), sinParamsString.end(), ')'), sinParamsString.end());
+
+                // Split the sinParamsString into individual parameters
+                std::istringstream sinParamsStream(sinParamsString);
+                std::string vo, va, freq, td, theta, phase;
+
+                sv.id_str = id_str;
+                sv.id = v_id;
+                sv.nodePos_str = v_nodePos_str;
+                sv.nodeNeg_str = v_nodeNeg_str;
+                sv.nodePos = convertToNode(v_nodePos_str, cktmap.map_nodes);
+                sv.nodeNeg = convertToNode(v_nodeNeg_str, cktmap.map_nodes);
+
+                sinParamsStream >> vo >> va >> freq >> td >> theta >> phase;
+
+                sv.vo = convertToValue(vo);
+                sv.va = convertToValue(va);
+                sv.freq = convertToValue(freq);
+                sv.td = convertToValue(td);
+                sv.theta = convertToValue(theta);
+                sv.phase = convertToValue(phase);
+
+                parser.elements.sinVoltages.emplace_back(sv);
+            }
             else
             {
                 // It's a DC and/or AC source.
