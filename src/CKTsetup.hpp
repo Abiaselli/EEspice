@@ -84,6 +84,7 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     // ckt.T_nodes = ckt.external_nodes + 3 * ckt.no_of_mosfets;
     ckt.T_nodes = ckt.external_nodes + ckt.internal_nodes;  // Total number of nodes excluding ground
     ckt.CKTtemp = 300.15;                                   // Initial temperature of the circuit
+    ckt.CKTfinalTime = parser.double_t_end;                 // Final time for simulation
     ckt.spiceCompatible.setMode(0);                         // Initialize the CKTmode to 0
     ckt.CKTintegrateMethod = BACKWARD_EULER;                // Set the integration method to Backward Euler
     ckt.CKTorder = 1;                                       // Set the order of the integration method to 1
