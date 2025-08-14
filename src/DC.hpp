@@ -30,7 +30,7 @@ DCSimulator DCsetup(const CircuitParser &parser, const CKTcircuit &ckt){
     return dcSim;
 }
 
-void DeviceEvaluation(DCResult &dc, CKTcircuit &ckt, const DCSimulator &dcSim, DCMat &dcMat){
+void DeviceEvaluation(DCResult &dc, const CKTcircuit &ckt, const DCSimulator &dcSim, DCMat &dcMat){
     // Modify matrixes for DC sweep
     // If the source's nodes and are not changed, we can use the same LHS
     // We only need to modify the RHS
@@ -40,7 +40,10 @@ void DeviceEvaluation(DCResult &dc, CKTcircuit &ckt, const DCSimulator &dcSim, D
 
     for (const auto &vol : ckt.CKTelements.voltageSources){
         if(vol.id_str == dcSim.dcsweep.sourceName){
-            dcMat.RHS(ckt.T_nodes + vol.id - 1, 0) = dc.sweepValue; // Index is starting from 0
+            auto it = ckt.map.map_branch_currents.find(vol.id_str);
+            if (it != ckt.map.map_branch_currents.end()) {
+                dcMat.RHS(it->second) = dc.sweepValue;
+            }
             return;
         }
     }
