@@ -32,6 +32,27 @@
 
 namespace bsim4{
 
+// For safe modification of MNA matrix
+/*  
+    These checks are critical to prevent out-of-bounds access, 
+    which could lead to runtime errors or undefined behavior, especially
+    since negative indices are invalid for Armadillo matrices.
+*/
+inline void Stamp(arma::mat &mat, int row, int col, double val,
+                    const std::array<bool, 12> &BSIM4nodeValid, BSIM4V82::NodeType row_node, BSIM4V82::NodeType col_node)
+{
+    if (BSIM4nodeValid[row_node] && BSIM4nodeValid[col_node]){
+        mat[row, col] += val;
+    }
+}
+inline void StampRHS(arma::vec &vec, int index, double val,
+                     const std::array<bool, 12> &BSIM4nodeValid, BSIM4V82::NodeType node)
+{
+    if (BSIM4nodeValid[node]) {
+        vec[index] += val;
+    }
+}
+
 inline void dexp(const double A, double& B, double& C) noexcept {
     if (A > EXP_THRESHOLD) {
         B = MAX_EXP * (1.0 + (A) - EXP_THRESHOLD);
