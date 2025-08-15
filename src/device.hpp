@@ -270,7 +270,6 @@ double Diode_assigner(int node_x, int node_y, double Is, double VT, arma::mat &L
 
 int V_pulse_assigner(int node_x, int node_y, double V_value, arma::mat &LHS, arma::vec &RHS)
 {
-
     arma::vec value(1);
     value = V_value;
     // Extending the branch at the LHS matrix
@@ -319,6 +318,26 @@ double V_pulse_value(double V1, double V2, double t1, double td, double tr, doub
     else
     {
         throw DeviceException("Pulse voltage Error", "V_pulse_value");
+    }
+    return v;
+}
+
+int V_sin_assigner(int node_x, int node_y, double vo, arma::mat &LHS, arma::vec &RHS){
+    Vs_assigner(node_x, node_y, vo, LHS, RHS);
+    return RHS.n_rows - 1; // Return the index of the assigned voltage source
+}
+
+double V_sin_value(double vo, double va, double freq, double td, double theta, double phase_rad, double t){
+    double v = 0.0;
+    if (0 <= t && t < td){
+        v = vo + va * sin(phase_rad);
+    }
+    else if (td <= t){
+        v = vo + va * std::exp(-(t - td) * theta) *
+            std::sin(2.0 * M_PI * freq * (t - td) + phase_rad);
+    }
+    else{
+        throw DeviceException("Error: Invalid time for sinusoidal voltage source, t = ", "V_sin_value");
     }
     return v;
 }

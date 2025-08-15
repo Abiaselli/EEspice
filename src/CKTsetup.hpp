@@ -72,6 +72,12 @@ void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
             ckt.num_of_states += 3; // BSIM4qb, BSIM4qg, BSIM4qd
         }
     }
+    for (auto &sin : ckt.CKTelements.sinVoltages){
+        sin.phase_rad = sin.phase * M_PI / 180.0;   // Convert phase to radians
+        if (sin.freq == 0.0){
+            sin.freq = 1.0 / ckt.CKTfinalTime;      // Default frequency
+        }
+    }
 }
 
 void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<DenseMatrix> denseMatrixPtr, const Modelmap &modmap)
@@ -136,6 +142,10 @@ void CKTload(CKTcircuit &ckt)
         ckt.pulse_num++;
         pulse.RHS_locate = V_pulse_assigner(pulse.nodePos, pulse.nodeNeg, pulse.V1, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
         ckt.map.map_branch_currents.insert({pulse.id_str, ckt.cktdematrix->RHS.n_rows - 1}); // Store the branch current index in the map
+    }
+    for (auto &sin : ckt.CKTelements.sinVoltages){
+        sin.RHS_locate = V_sin_assigner(sin.nodePos, sin.nodeNeg, sin.vo, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
+        ckt.map.map_branch_currents.insert({sin.id_str, sin.RHS_locate});
     }
     for (auto &vccs : ckt.CKTelements.vccs)
     {

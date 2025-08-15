@@ -38,7 +38,7 @@ void DeviceEvaluation(DCResult &dc, const CKTcircuit &ckt, const DCSimulator &dc
     dcMat.RHS = ckt.cktdematrix->get_init_RHS();
     dc.solution = arma::vec(ckt.cktdematrix->RHS.n_rows, arma::fill::none);
 
-    for (const auto &vol : ckt.CKTelements.voltageSources){
+    for (const auto &vol : ckt.CKTelements.voltageSources){     // TODO: Skip the linear scan and look up the key directly
         if(vol.id_str == dcSim.dcsweep.sourceName){
             auto it = ckt.map.map_branch_currents.find(vol.id_str);
             if (it != ckt.map.map_branch_currents.end()) {

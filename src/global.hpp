@@ -56,6 +56,7 @@ struct Sinvoltage{
     double td{};        // Delay
     double theta{};     // Damping factor
     double phase{};     // Phase
+    double phase_rad{}; // Phase in radians
 
     int RHS_locate{};   // RHS index (starts from 0)
 };
