@@ -3610,7 +3610,7 @@ int BSIM4mParam(int param, const VariantValue &value, BSIM4model &mod){
             std::cerr << "BSIM4mparam: unknown parameter " << param << std::endl;
             return(false);
     }
-    return(true);
+    return 0;
 }
 
 // 2. set instance parameters
@@ -3776,7 +3776,7 @@ int BSIM4param(int param, const VariantValue &value, BSIM4V82 &inst){
             std::cerr << "BSIM4param: unknown parameter " << param << std::endl;
             return(false);
     }
-    return(true);
+    return 0;
 }
 
 // Paser for BSIM4 model
