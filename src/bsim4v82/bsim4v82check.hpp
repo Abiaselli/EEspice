@@ -44,7 +44,8 @@ bool BSIM4checkModel(BSIM4model &model, double CKTtemp){
     }
     // Check the version string (only allowed versions start with "4.8" or "4.81")
     if (!( model.BSIM4version == "4.8.2" ||
-        model.BSIM4version.substr(0, 4) == "4.82" ) )
+        model.BSIM4version.substr(0, 4) == "4.82" ) ||
+        model.BSIM4version == "4.8")
     {
         std::string warn1 = "Warning: This model supports BSIM4 version 4.8.2\n";
         std::string warn2 = "You specified a wrong version number. Working now with BSIM4.8.2\n";
