@@ -1312,7 +1312,8 @@ int instanceTemp(BSIM4V82 &BSIM4instance, BSIM4model &model){
                 if (version != "4.8.1" && 
                      version.substr(0, 4) != "4.81" &&
                      version != "4.8.2" && 
-                     version.substr(0, 4) != "4.82")
+                     version.substr(0, 4) != "4.82" &&
+                     version != "4.8")
                 {  /* check only for version <= 4.80 */
                   
                  BSIM4temp.pParam->BSIM4AechvbEdgeS =BSIM4temp.pParam->BSIM4Aechvb *BSIM4temp.pParam->BSIM4weff

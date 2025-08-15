@@ -318,7 +318,9 @@ void modelSetup(BSIM4model &model, double CKTnomTemp){
     if (version != "4.8.1" && 
         version.substr(0, 4) != "4.81" &&
         version != "4.8.2" && 
-        version.substr(0, 4) != "4.82")
+        version.substr(0, 4) != "4.82" &&
+        version != "4.8"
+    )
     {  /* check only for version <= 4.80 */
         if (!model.BSIM4uaGiven)
             model.BSIM4ua = ((model.BSIM4mobMod == 2)) ? 1.0e-15 : 1.0e-9; /* unit m/V */
