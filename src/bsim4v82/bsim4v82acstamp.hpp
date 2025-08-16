@@ -84,7 +84,7 @@ double ggidld, ggidlg, ggidlb, ggislg, ggislb, ggisls;
     const int dNodePrime = get_NodeIndex(instance.BSIM4dNodePrime);
     const int gNodePrime = get_NodeIndex(instance.BSIM4gNodePrime);
     const int gNodeMid = get_NodeIndex(instance.BSIM4gNodeMid);
-    const int sNodePrime = get_NodeIndex(instance.BSIM4sNode);
+    const int sNodePrime = get_NodeIndex(instance.BSIM4sNodePrime);
     const int bNodePrime = get_NodeIndex(instance.BSIM4bNodePrime);
     const int dbNode = get_NodeIndex(instance.BSIM4dbNode);
     const int sbNode = get_NodeIndex(instance.BSIM4sbNode);
