@@ -46,7 +46,7 @@ inline void Stamp(arma::mat &mat, int row, int col, double val,
                     const std::array<bool, 12> &BSIM4nodeValid, BSIM4V82::NodeType row_node, BSIM4V82::NodeType col_node)
 {
     if (BSIM4nodeValid[row_node] && BSIM4nodeValid[col_node]){
-        mat[row, col] += val;
+        mat(row, col) += val;
     }
 }
 inline void StampRHS(arma::vec &vec, int index, double val,
