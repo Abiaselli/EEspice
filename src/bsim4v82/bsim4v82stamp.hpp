@@ -37,6 +37,10 @@ namespace bsim4{
     These checks are critical to prevent out-of-bounds access, 
     which could lead to runtime errors or undefined behavior, especially
     since negative indices are invalid for Armadillo matrices.
+    Each stamp follows this template:
+    Stamp(LHS, {rowNode}, {colNode},
+        BSIM4{Row}{Col}, nodeValid, 
+        BSIM4V82::{ROW_NODE_TYPE}, BSIM4V82::{COL_NODE_TYPE});
 */
 inline void Stamp(arma::mat &mat, int row, int col, double val,
                     const std::array<bool, 12> &BSIM4nodeValid, BSIM4V82::NodeType row_node, BSIM4V82::NodeType col_node)
@@ -256,7 +260,7 @@ BSIM4load(const CKTcircuit &ckt, const BSIM4model &model, BSIM4V82 &instance, co
     const int dNodePrime = get_NodeIndex(instance.BSIM4dNodePrime);
     const int gNodePrime = get_NodeIndex(instance.BSIM4gNodePrime);
     const int gNodeMid = get_NodeIndex(instance.BSIM4gNodeMid);
-    const int sNodePrime = get_NodeIndex(instance.BSIM4sNode);
+    const int sNodePrime = get_NodeIndex(instance.BSIM4sNodePrime);
     const int bNodePrime = get_NodeIndex(instance.BSIM4bNodePrime);
     const int dbNode = get_NodeIndex(instance.BSIM4dbNode);
     const int sbNode = get_NodeIndex(instance.BSIM4sbNode);
