@@ -8,6 +8,7 @@
 #include <variant>
 #include <algorithm>
 #include <vector>
+#include <cctype>     // for std::tolower
 
 #include "models.hpp"
 #include "map.hpp"
@@ -19,14 +20,14 @@ void NMOSParamLV1::setFromMap(const std::map<std::string, std::string>& kvMap) {
     if (kvMap.count("gamma")) gamma = std::stod(kvMap.at("gamma"));
     if (kvMap.count("phi")) phi = std::stod(kvMap.at("phi"));
     if (kvMap.count("lambda")) LAMBDA = std::stod(kvMap.at("lambda"));
-    if (kvMap.count("Cgso")) CGSO = std::stod(kvMap.at("Cgso"));
-    if (kvMap.count("Cgdo")) CGDO = std::stod(kvMap.at("Cgdo"));
-    if (kvMap.count("Cgbo")) CGBO = std::stod(kvMap.at("Cgbo"));
-    if (kvMap.count("Cbd")) CBD = std::stod(kvMap.at("Cbd"));
-    if (kvMap.count("Cbs")) CBS = std::stod(kvMap.at("Cbs"));
-    if (kvMap.count("RD")) RD = std::stod(kvMap.at("RD"));
-    if (kvMap.count("RS")) RS = std::stod(kvMap.at("RS"));
-    if (kvMap.count("RG")) RG = std::stod(kvMap.at("RG"));
+    if (kvMap.count("cgso")) CGSO = std::stod(kvMap.at("cgso"));
+    if (kvMap.count("cgdo")) CGDO = std::stod(kvMap.at("cgdo"));
+    if (kvMap.count("cgbo")) CGBO = std::stod(kvMap.at("cgbo"));
+    if (kvMap.count("cbd")) CBD = std::stod(kvMap.at("cbd"));
+    if (kvMap.count("cbs")) CBS = std::stod(kvMap.at("cbs"));
+    if (kvMap.count("rd")) RD = std::stod(kvMap.at("rd"));
+    if (kvMap.count("rs")) RS = std::stod(kvMap.at("rs"));
+    if (kvMap.count("rg")) RG = std::stod(kvMap.at("rg"));
 }
 
 void PMOSParamLV1::setFromMap(const std::map<std::string, std::string>& kvMap) {
@@ -35,14 +36,14 @@ void PMOSParamLV1::setFromMap(const std::map<std::string, std::string>& kvMap) {
     if (kvMap.count("gamma")) gamma = std::stod(kvMap.at("gamma"));
     if (kvMap.count("phi")) phi = std::stod(kvMap.at("phi"));
     if (kvMap.count("lambda")) LAMBDA = std::stod(kvMap.at("lambda"));
-    if (kvMap.count("Cgso")) CGSO = std::stod(kvMap.at("Cgso"));
-    if (kvMap.count("Cgdo")) CGDO = std::stod(kvMap.at("Cgdo"));
-    if (kvMap.count("Cgbo")) CGBO = std::stod(kvMap.at("Cgbo"));
-    if (kvMap.count("Cbd")) CBD = std::stod(kvMap.at("Cbd"));
-    if (kvMap.count("Cbs")) CBS = std::stod(kvMap.at("Cbs"));
-    if (kvMap.count("RD")) RD = std::stod(kvMap.at("RD"));
-    if (kvMap.count("RS")) RS = std::stod(kvMap.at("RS"));
-    if (kvMap.count("RG")) RG = std::stod(kvMap.at("RG"));
+    if (kvMap.count("cgso")) CGSO = std::stod(kvMap.at("cgso"));
+    if (kvMap.count("cgdo")) CGDO = std::stod(kvMap.at("cgdo"));
+    if (kvMap.count("cgbo")) CGBO = std::stod(kvMap.at("cgbo"));
+    if (kvMap.count("cbd")) CBD = std::stod(kvMap.at("cbd"));
+    if (kvMap.count("cbs")) CBS = std::stod(kvMap.at("cbs"));
+    if (kvMap.count("rd")) RD = std::stod(kvMap.at("rd"));
+    if (kvMap.count("rs")) RS = std::stod(kvMap.at("rs"));
+    if (kvMap.count("rg")) RG = std::stod(kvMap.at("rg"));
 }
 
 void parseModel(std::istringstream &iss, const std::string &line, Modelmap &modmap) {
@@ -78,6 +79,9 @@ void parseModel(std::istringstream &iss, const std::string &line, Modelmap &modm
         if (eqPos == std::string::npos) continue; // Skip malformed tokens
         std::string key = paramToken.substr(0, eqPos);
         std::string valueStr = paramToken.substr(eqPos + 1);
+        // Convert key to lowercase
+        std::transform(key.begin(), key.end(), key.begin(), 
+                    [](unsigned char c){ return std::tolower(c); });
         kvMap[key] = valueStr;
     }
 
