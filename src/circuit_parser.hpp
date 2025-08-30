@@ -81,6 +81,10 @@ int getMaxNode(const CircuitElements &elements)
     {
         TwoMaxNode(pulse.nodePos, pulse.nodeNeg);
     }
+    for(const auto &sin : elements.sinVoltages)
+    {
+        TwoMaxNode(sin.nodePos, sin.nodeNeg);
+    }
     for(const auto &diode : elements.diodes)
     {
         TwoMaxNode(diode.nodePos, diode.nodeNeg);
