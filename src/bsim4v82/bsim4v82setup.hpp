@@ -2246,7 +2246,7 @@ if (!model.BSIM4idovvdscGiven)
 
 
 
-void instanceSetup(const BSIM4model &model, BSIM4V82 &inst){
+void instanceSetup(const BSIM4model &model, BSIM4V82 &inst, CKTcircuit &ckt){
     // Haven't implemented the noise part yet!
         // JOB   *job;
 
@@ -2257,6 +2257,7 @@ void instanceSetup(const BSIM4model &model, BSIM4V82 &inst){
         //         break;
         //     }
         // }
+    double Rtot;
     int noiseAnalGiven = 0;
     int error;
     int createNode;
@@ -2381,21 +2382,20 @@ void instanceSetup(const BSIM4model &model, BSIM4V82 &inst){
                 } else if (!inst.BSIM4drainSquaresGiven
                                 && (inst.BSIM4rgeoMod != 0))
                 {
-                    // BSIM4RdseffGeo(inst.BSIM4nf, inst.BSIM4geoMod,
-                    //         inst.BSIM4rgeoMod, inst.BSIM4min,
-                    //         inst.BSIM4w, model.BSIM4sheetResistance,
-                    //         model.DMCGeff, model.DMCIeff, model.DMDGeff, 0, &model.Rtot);
-                    if(model.Rtot > 0)
+                    BSIM4RdseffGeo(inst.BSIM4nf, inst.BSIM4geoMod,
+                            inst.BSIM4rgeoMod, inst.BSIM4min,
+                            inst.BSIM4w, model.BSIM4sheetResistance,
+                            model.DMCGeff, model.DMCIeff, model.DMDGeff, 0, &Rtot);
+                    if(Rtot > 0)
                         createNode = 1;
                 }
     }
     if ( createNode != 0  && (inst.BSIM4dNodePrime == 0))
     {   
-        std::cerr << "Haven't Creating node for drain" << std::endl;
-        exit(1);
         // error = CKTmkVolt(ckt,&tmp,inst.BSIM4name,"drain");
         // if(error) return(error);
         // inst.BSIM4dNodePrime = tmp->number;
+        inst.BSIM4dNodePrime = CKTmkVolt(ckt,inst.BSIM4name + "#drain");
     }
     else
     {   inst.BSIM4dNodePrime = inst.BSIM4dNode;
@@ -2416,43 +2416,40 @@ void instanceSetup(const BSIM4model &model, BSIM4V82 &inst){
                 } else if (!inst.BSIM4sourceSquaresGiven
                                 && (inst.BSIM4rgeoMod != 0))
                 {
-                    // BSIM4RdseffGeo(inst.BSIM4nf, inst.BSIM4geoMod,
-                    //         inst.BSIM4rgeoMod, inst.BSIM4min,
-                    //         inst.BSIM4w, model.BSIM4sheetResistance,
-                    //         model.DMCGeff, model.DMCIeff, model.DMDGeff, 1, &model.Rtot);
-                    if(model.Rtot > 0)
+                    BSIM4RdseffGeo(inst.BSIM4nf, inst.BSIM4geoMod,
+                            inst.BSIM4rgeoMod, inst.BSIM4min,
+                            inst.BSIM4w, model.BSIM4sheetResistance,
+                            model.DMCGeff, model.DMCIeff, model.DMDGeff, 1, &Rtot);
+                    if(Rtot > 0)
                         createNode = 1;
                 }
         }
     if ( createNode != 0  && inst.BSIM4sNodePrime == 0)
     {   
-        std::cerr << "Haven't Creating node for source" << std::endl;
-        exit(1);
         // error = CKTmkVolt(ckt,&tmp,inst.BSIM4name,"source");
         // if(error) return(error);
         // inst.BSIM4sNodePrime = tmp->number;
+        inst.BSIM4sNodePrime = CKTmkVolt(ckt,inst.BSIM4name + "#source");
     }
     else
         inst.BSIM4sNodePrime = inst.BSIM4sNode;
 
     if ((inst.BSIM4rgateMod > 0) && (inst.BSIM4gNodePrime == 0))
     {   
-        std::cerr << "Haven't Creating node for gate" << std::endl;
-        exit(1);
         // error = CKTmkVolt(ckt,&tmp,inst.BSIM4name,"gate");
         // if(error) return(error);
         //     inst.BSIM4gNodePrime = tmp->number;
+        inst.BSIM4gNodePrime = CKTmkVolt(ckt,inst.BSIM4name + "#gate");
     }
     else
         inst.BSIM4gNodePrime = inst.BSIM4gNodeExt;
 
     if ((inst.BSIM4rgateMod == 3) && (inst.BSIM4gNodeMid == 0))
     {   
-        std::cerr << "Haven't Creating node for midgate" << std::endl;
-        exit(1);
         // error = CKTmkVolt(ckt,&tmp,inst.BSIM4name,"midgate");
         // if(error) return(error);
         //     inst.BSIM4gNodeMid = tmp->number;
+        inst.BSIM4gNodeMid = CKTmkVolt(ckt,inst.BSIM4name + "#midgate");
     }
     else
         inst.BSIM4gNodeMid = inst.BSIM4gNodeExt;
@@ -2461,23 +2458,27 @@ void instanceSetup(const BSIM4model &model, BSIM4V82 &inst){
     /* internal body nodes for body resistance model */
     if ((inst.BSIM4rbodyMod ==1) || (inst.BSIM4rbodyMod ==2))
     {   
-        std::cerr << "Haven't Creating node for body" << std::endl;
-        exit(1);
-        // if (inst.BSIM4dbNode == 0)
-        // {   error = CKTmkVolt(ckt,&tmp,inst.BSIM4name,"dbody");
-        //     if(error) return(error);
-        //     inst.BSIM4dbNode = tmp->number;
-        // }
-        // if (inst.BSIM4bNodePrime == 0)
-        // {   error = CKTmkVolt(ckt,&tmp,inst.BSIM4name,"body");
-        //     if(error) return(error);
-        //     inst.BSIM4bNodePrime = tmp->number;
-        // }
-        // if (inst.BSIM4sbNode == 0)
-        // {   error = CKTmkVolt(ckt,&tmp,inst.BSIM4name,"sbody");
-        //     if(error) return(error);
-        //     inst.BSIM4sbNode = tmp->number;
-        // }
+        if (inst.BSIM4dbNode == 0)
+        {   
+            //  error = CKTmkVolt(ckt,&tmp,inst.BSIM4name,"dbody");
+            //  if(error) return(error);
+            //  inst.BSIM4dbNode = tmp->number;
+            inst.BSIM4dbNode = CKTmkVolt(ckt,inst.BSIM4name + "#dbody");
+        }
+        if (inst.BSIM4bNodePrime == 0)
+        {   
+            // error = CKTmkVolt(ckt,&tmp,inst.BSIM4name,"body");
+            // if(error) return(error);
+            // inst.BSIM4bNodePrime = tmp->number;
+            inst.BSIM4bNodePrime = CKTmkVolt(ckt,inst.BSIM4name + "#body");
+        }
+        if (inst.BSIM4sbNode == 0)
+        {   
+            // error = CKTmkVolt(ckt,&tmp,inst.BSIM4name,"sbody");
+            // if(error) return(error);
+            // inst.BSIM4sbNode = tmp->number;
+            inst.BSIM4sbNode = CKTmkVolt(ckt,inst.BSIM4name + "#sbody");
+        }
     }
     else
     inst.BSIM4dbNode = inst.BSIM4bNodePrime = inst.BSIM4sbNode
@@ -2486,11 +2487,10 @@ void instanceSetup(const BSIM4model &model, BSIM4V82 &inst){
     /* NQS node */
     if ((inst.BSIM4trnqsMod) && (inst.BSIM4qNode == 0))
     {   
-        std::cerr << "Haven't Creating node for NQS" << std::endl;
-        exit(1);
         // error = CKTmkVolt(ckt,&tmp,inst.BSIM4name,"charge");
         // if(error) return(error);
         // inst.BSIM4qNode = tmp->number;
+        inst.BSIM4qNode = CKTmkVolt(ckt,inst.BSIM4name + "#charge");
     }
     else
         {inst.BSIM4qNode = 0;}
