@@ -6,6 +6,7 @@
 #include "circuit_parser.hpp"
 #include "device.hpp"
 #include "map.hpp"
+#include "CKTmkVolt.hpp"
 #include "bsim4v82/bsim4v82setup.hpp"
 #include "bsim4v82/bsim4v82temp.hpp"
 #include "bsim4v82/bsim4v82stamp.hpp"
@@ -40,7 +41,7 @@ void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
         if(nmos.modelType == MosfetModelType::BSIM4V82){
             const auto &iter_bsim4 = modmap.bsim4Models.find(nmos.modelName);
             nmos.bsim4v82Instance = bsim4::paserBSIM4instance(nmos.id_str, iter_bsim4->second, nmos.node_vd, nmos.node_vg, nmos.node_vs, nmos.node_vb, nmos.W, nmos.L);
-            bsim4::instanceSetup(*nmos.bsim4v82Instance.BSIM4modPtr, nmos.bsim4v82Instance);
+            bsim4::instanceSetup(*nmos.bsim4v82Instance.BSIM4modPtr, nmos.bsim4v82Instance, ckt);
             bsim4::instanceTemp(nmos.bsim4v82Instance,*nmos.bsim4v82Instance.BSIM4modPtr);
             if (nmos.bsim4v82Instance.BSIM4trnqsMod){
                 ckt.num_of_states++; // BSIM4qcdump
@@ -53,12 +54,17 @@ void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
             }
             ckt.num_of_states += 3; // BSIM4qb, BSIM4qg, BSIM4qd
         }
+        else if(nmos.modelType == MosfetModelType::LEVEL1){
+           CKTmkVolt(ckt, nmos.id_str + "#drain");
+           CKTmkVolt(ckt, nmos.id_str + "#gate");
+           CKTmkVolt(ckt, nmos.id_str + "#source");
+        }
     }
     for (auto &pmos : ckt.CKTelements.pmos){
         if(pmos.modelType == MosfetModelType::BSIM4V82){
             const auto &iter_bsim4 = modmap.bsim4Models.find(pmos.modelName);
             pmos.bsim4v82Instance = bsim4::paserBSIM4instance(pmos.id_str, iter_bsim4->second, pmos.node_vd, pmos.node_vg, pmos.node_vs, pmos.node_vb, pmos.W, pmos.L);
-            bsim4::instanceSetup(*pmos.bsim4v82Instance.BSIM4modPtr, pmos.bsim4v82Instance);
+            bsim4::instanceSetup(*pmos.bsim4v82Instance.BSIM4modPtr, pmos.bsim4v82Instance, ckt);
             bsim4::instanceTemp(pmos.bsim4v82Instance,*pmos.bsim4v82Instance.BSIM4modPtr);
             if (pmos.bsim4v82Instance.BSIM4trnqsMod){
                 ckt.num_of_states++; // BSIM4qcdump
@@ -70,6 +76,11 @@ void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
                 ckt.num_of_states++; // BSIM4qgmid
             }
             ckt.num_of_states += 3; // BSIM4qb, BSIM4qg, BSIM4qd
+        }
+        else if(pmos.modelType == MosfetModelType::LEVEL1){
+           CKTmkVolt(ckt, pmos.id_str + "#drain");
+           CKTmkVolt(ckt, pmos.id_str + "#gate");
+           CKTmkVolt(ckt, pmos.id_str + "#source");
         }
     }
     for (auto &sin : ckt.CKTelements.sinVoltages){
@@ -85,10 +96,6 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     // Careful! getCircuitElements function is const, so it can't be used to modify the elements vector
     // ckt.elements = parser.getCircuitElements();
     ckt.CKTelements = parser.elements;
-    ckt.external_nodes = getMaxNode(ckt.CKTelements);
-    ckt.internal_nodes = getInternalMosfetNodes(ckt.CKTelements);
-    // ckt.T_nodes = ckt.external_nodes + 3 * ckt.no_of_mosfets;
-    ckt.T_nodes = ckt.external_nodes + ckt.internal_nodes;  // Total number of nodes excluding ground
     ckt.CKTtemp = 300.15;                                   // Initial temperature of the circuit
     ckt.CKTfinalTime = parser.double_t_end;                 // Final time for simulation
     ckt.spiceCompatible.setMode(0);                         // Initialize the CKTmode to 0
@@ -96,11 +103,17 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     ckt.CKTorder = 1;                                       // Set the order of the integration method to 1
     ckt.CKTag.fill(0.0);
 
-
-    // Setup the instances in the circuit (only bsim4)
+    // Setup the instances in the circuit and create internal nodes
     if(!modmap.bsim4Models.empty()){
         CKTinstanceSetup(ckt, modmap);
     }
+
+    // Get the external and internal nodes
+    // ckt.external_nodes = getMaxNode(ckt.CKTelements);
+    // ckt.internal_nodes = getInternalMosfetNodes(ckt.CKTelements);
+    ckt.external_nodes = ckt.map.map_nodes.size();
+    ckt.internal_nodes = ckt.map.map_internal_nodes.size();
+    ckt.T_nodes = ckt.external_nodes + ckt.internal_nodes;  // Total number of nodes excluding ground
 
     // Size of matrix
     ckt.cktdematrix = denseMatrixPtr;
@@ -119,7 +132,7 @@ void CKTload(CKTcircuit &ckt)
     for (const auto &vol : ckt.CKTelements.voltageSources)
     {
         Vs_assigner(vol.nodePos, vol.nodeNeg, vol.value, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
-        ckt.map.map_branch_currents.insert({vol.id_str, ckt.cktdematrix->RHS.n_rows - 1}); // Store the branch current index in the map
+        ckt.map.map_branch_currents.emplace(vol.id_str, static_cast<int>(ckt.cktdematrix->RHS.n_rows - 1)); // Store the branch current index in the map
     }
     for (const auto &cur : ckt.CKTelements.currentSources)
     {
@@ -141,11 +154,11 @@ void CKTload(CKTcircuit &ckt)
     {
         ckt.pulse_num++;
         pulse.RHS_locate = V_pulse_assigner(pulse.nodePos, pulse.nodeNeg, pulse.V1, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
-        ckt.map.map_branch_currents.insert({pulse.id_str, ckt.cktdematrix->RHS.n_rows - 1}); // Store the branch current index in the map
+        ckt.map.map_branch_currents.emplace(pulse.id_str, static_cast<int>(ckt.cktdematrix->RHS.n_rows - 1)); // Store the branch current index in the map
     }
     for (auto &sin : ckt.CKTelements.sinVoltages){
         sin.RHS_locate = V_sin_assigner(sin.nodePos, sin.nodeNeg, sin.vo, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
-        ckt.map.map_branch_currents.insert({sin.id_str, sin.RHS_locate});
+        ckt.map.map_branch_currents.emplace(sin.id_str, sin.RHS_locate);
     }
     for (auto &vccs : ckt.CKTelements.vccs)
     {
@@ -153,7 +166,7 @@ void CKTload(CKTcircuit &ckt)
     }
     for (auto &vcvs : ckt.CKTelements.vcvs){
         VCVS_assigner(vcvs.node_x, vcvs.node_y, vcvs.node_cx, vcvs.node_cy, vcvs.value, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
-        ckt.map.map_branch_currents.insert({vcvs.id_str, ckt.cktdematrix->RHS.n_rows - 1}); // Store the branch current index in the map
+        ckt.map.map_branch_currents.emplace(vcvs.id_str, static_cast<int>(ckt.cktdematrix->RHS.n_rows - 1)); // Store the branch current index in the map
     }
 }
 void CKTloadAC(CKTcircuit &ckt){
@@ -164,7 +177,7 @@ void CKTloadAC(CKTcircuit &ckt){
     for (const auto &vol : ckt.CKTelements.voltageSources)
     {
         Vs_ACassigner(vol.nodePos, vol.nodeNeg, vol.acReal, vol.acImag, ckt.cktdematrix->LHS_cx, ckt.cktdematrix->RHS_cx);
-        ckt.map.map_branch_currents.insert({vol.id_str, ckt.cktdematrix->RHS_cx.n_rows - 1});
+        ckt.map.map_branch_currents.emplace(vol.id_str, static_cast<int>(ckt.cktdematrix->RHS_cx.n_rows - 1));
     }
     for (const auto &cur : ckt.CKTelements.currentSources)
     {
@@ -186,7 +199,7 @@ void CKTloadAC(CKTcircuit &ckt){
     for (auto &pulse : ckt.CKTelements.pulseVoltages){
         Vs_ACassigner(pulse.nodePos, pulse.nodeNeg, Shorted, Shorted, ckt.cktdematrix->LHS_cx, ckt.cktdematrix->RHS_cx);
         pulse.RHS_locate = ckt.cktdematrix->RHS_cx.n_rows - 1;
-        ckt.map.map_branch_currents.insert({pulse.id_str, ckt.cktdematrix->RHS_cx.n_rows - 1});
+        ckt.map.map_branch_currents.emplace(pulse.id_str, static_cast<int>(ckt.cktdematrix->RHS_cx.n_rows - 1));
     }
     for (auto &vccs : ckt.CKTelements.vccs)
     {
@@ -196,7 +209,7 @@ void CKTloadAC(CKTcircuit &ckt){
     }
     for (auto &vcvs : ckt.CKTelements.vcvs){
         VCVS_ACassigner(vcvs.node_x, vcvs.node_y, vcvs.node_cx, vcvs.node_cy, vcvs.value, ckt.cktdematrix->LHS_cx, ckt.cktdematrix->RHS_cx);
-        ckt.map.map_branch_currents.insert({vcvs.id_str, ckt.cktdematrix->RHS_cx.n_rows - 1});
+        ckt.map.map_branch_currents.emplace(vcvs.id_str, static_cast<int>(ckt.cktdematrix->RHS_cx.n_rows - 1));
     }
 }
 

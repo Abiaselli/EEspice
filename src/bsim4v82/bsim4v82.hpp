@@ -1246,7 +1246,7 @@ struct BSIM4model
     // struct bsim4SizeDependParam *pSizeDependParamKnot;
     std::vector<std::shared_ptr<bsim4SizeDependParam>> vSizeDependParamKnot;
 
-    double DMCGeff = 0.0, DMCIeff = 0.0, DMDGeff = 0.0, Rtot = 0.0;
+    double DMCGeff = 0.0, DMCIeff = 0.0, DMDGeff = 0.0;
 
     /* Flags */
     bool  BSIM4mobModGiven = false;

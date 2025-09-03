@@ -3,6 +3,7 @@
 #include <string>
 #include <stdexcept>
 #include <iostream>
+#include "CKT.hpp"
 
 // Insert function specifically for internal_nodes and return a new id for internal node
 int CKTmkVolt(CKTcircuit &ckt, const std::string& key)

@@ -16,7 +16,7 @@
    *           Ali Niknejad, Chetan Kumar Dabhi, Yogesh Singh Chauhan,          *
    *           Sayeef Salahuddin, Chenming Hu                                   * 
    ******************************************************************************/
-
+#pragma once
 #include <stdio.h>
 #include <cmath>
 #include <iostream>
