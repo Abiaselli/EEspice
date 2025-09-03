@@ -5,11 +5,12 @@
 #include <iostream>
 
 // Insert function specifically for internal_nodes and return a new id for internal node
-int CKTmkVolt(std::unordered_map<std::string, int>& map_internal_nodes,
-                         const std::string& key) 
+int CKTmkVolt(CKTcircuit &ckt, const std::string& key)
 {
-    int new_id = static_cast<int>(map_internal_nodes.size()) + 1;
-    auto result = map_internal_nodes.insert({key, new_id});
+    int external_size = static_cast<int>(ckt.map.map_nodes.size());
+    int internal_size = static_cast<int>(ckt.map.map_internal_nodes.size());
+    int new_id = external_size + internal_size + 1;
+    auto result = ckt.map.map_internal_nodes.insert({key, new_id});
     if (!result.second) {
         std::cerr << "Error: Duplicate internal node detected for " << key << std::endl;
         throw std::runtime_error("Duplicate internal node: " + key);
