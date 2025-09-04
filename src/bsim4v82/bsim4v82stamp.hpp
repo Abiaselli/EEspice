@@ -4876,50 +4876,43 @@ line900:
         BSIM4Bdb{}, BSIM4Bbp{}, BSIM4Bsb{}, BSIM4Bb{}, BSIM4Dgp{}, BSIM4Dsp{}, BSIM4Dbp{}, BSIM4Sdp{}, BSIM4Sgp{}, BSIM4Sbp{};
 
     // Matrix stamps RHS
-    double BSIM4DPrhs{}, BSIM4GPrhs{};
+    double RHSdNodePrime{}, RHSgNodePrime{}, RHSgNodeExt{}, RHSgNodeMid{}, RHSbNodePrime{}, RHSsNodePrime{}, RHSdbNode{}, RHSsbNode{},
+        RHSdNode{}, RHSsNode{}, RHSqNode{};
 
-    /*
-    *  Loading RHS
-    */
-    if(!(dNodePrime < 0)){
-        RHS(dNodePrime) += (ceqjd - ceqbd + ceqgdtot - ceqdrn - ceqqd + Idtoteq);
-    }
-    if(!(gNodePrime < 0)){
-        RHS(gNodePrime) -= (ceqqg - ceqgcrg + Igtoteq);
-    }
+    
+    //Loading RHS
+    RHSdNodePrime += (ceqjd - ceqbd + ceqgdtot - ceqdrn - ceqqd + Idtoteq);
+    RHSgNodePrime -= (ceqqg - ceqgcrg + Igtoteq);
    
 
-    // if (instance.BSIM4rgateMod == 2)
-    //     RHS(instance.BSIM4gNodeExt - 1) -= ceqgcrg;
-    // else if (instance.BSIM4rgateMod == 3)
-    //     RHS(instance.BSIM4gNodeMid - 1) -= (ceqqgmid + ceqgcrg);
+    if (instance.BSIM4rgateMod == 2)
+        RHSgNodeExt -= ceqgcrg;
+    else if (instance.BSIM4rgateMod == 3)
+        RHSgNodeMid -= (ceqqgmid + ceqgcrg);
 
     if (!instance.BSIM4rbodyMod)
     {   
-        if(!(bNodePrime < 0)){
-            RHS(bNodePrime) += (ceqbd + ceqbs - ceqjd - ceqjs - ceqqb + Ibtoteq);
-        }
-        if(!(sNodePrime < 0)){
-            RHS(sNodePrime) += (ceqdrn - ceqbs + ceqjs + ceqqg + ceqqb + ceqqd + ceqqgmid - ceqgstot + Istoteq);
-        }       
+        RHSbNodePrime += (ceqbd + ceqbs - ceqjd - ceqjs - ceqqb + Ibtoteq); 
+        RHSsNodePrime += (ceqdrn - ceqbs + ceqjs + ceqqg + ceqqb + ceqqd + ceqqgmid - ceqgstot + Istoteq);
+         
     }
-    // else
-    // {   
-    //     RHS(instance.BSIM4dbNode - 1) -= (ceqjd + ceqqjd);
-    //     RHS(instance.BSIM4bNodePrime - 1) += (ceqbd + ceqbs - ceqqb + Ibtoteq);
-    //     RHS(instance.BSIM4sbNode - 1) -= (ceqjs + ceqqjs);
-    //     RHS(instance.BSIM4sNodePrime - 1) += (ceqdrn - ceqbs + ceqjs + ceqqd
-    //         + ceqqg + ceqqb + ceqqjd + ceqqjs + ceqqgmid - ceqgstot + Istoteq);
-    // }
+    else
+    {   
+        RHSdbNode  -= (ceqjd + ceqqjd);
+        RHSbNodePrime  += (ceqbd + ceqbs - ceqqb + Ibtoteq);
+        RHSsbNode  -= (ceqjs + ceqqjs);
+        RHSsNodePrime  += (ceqdrn - ceqbs + ceqjs + ceqqd
+            + ceqqg + ceqqb + ceqqjd + ceqqjs + ceqqgmid - ceqgstot + Istoteq);
+    }
 
-    // if (model.BSIM4rdsMod)
-    // {   
-    //     RHS(instance.BSIM4dNode - 1) -= ceqgdtot;
-    //     RHS(instance.BSIM4sNode - 1) += ceqgstot;
-    // }
+    if (model.BSIM4rdsMod)
+    {   
+        RHSdNode -= ceqgdtot;
+        RHSsNode += ceqgstot;
+    }
 
-    // if (instance.BSIM4trnqsMod)
-    //     RHS(instance.BSIM4qNode - 1) += (cqcheq - cqdef);
+    if (instance.BSIM4trnqsMod)
+        RHSqNode += (cqcheq - cqdef);
 
 
     /*
@@ -5105,9 +5098,43 @@ line900:
         (BSIM4GPq) -= instance.BSIM4gtau;
     }
 
-    // Now stamping the real and imaginary parts to the MNA matrix
+    // Now stamping to the MNA matrixes
     const std::array<bool,12> &nodeValid = instance.BSIM4nodeValid;
+    // RHS Stamps
+    // RHSdNodePrime 
+    StampRHS(RHS, dNodePrime, RHSdNodePrime, nodeValid, BSIM4V82::D_NODE_PRIME);
+    
+    // RHSgNodePrime 
+    StampRHS(RHS, gNodePrime, RHSgNodePrime, nodeValid, BSIM4V82::G_NODE_PRIME);
+    
+    // RHSgNodeExt 
+    StampRHS(RHS, gNodeExt, RHSgNodeExt, nodeValid, BSIM4V82::G_NODE_EXT);
+    
+    // RHSgNodeMid 
+    StampRHS(RHS, gNodeMid, RHSgNodeMid, nodeValid, BSIM4V82::G_NODE_MID);
+    
+    // RHSbNodePrime 
+    StampRHS(RHS, bNodePrime, RHSbNodePrime, nodeValid, BSIM4V82::B_NODE_PRIME);
+    
+    // RHSsNodePrime 
+    StampRHS(RHS, sNodePrime, RHSsNodePrime, nodeValid, BSIM4V82::S_NODE_PRIME);
+    
+    // RHSdbNode 
+    StampRHS(RHS, dbNode, RHSdbNode, nodeValid, BSIM4V82::DB_NODE);
+    
+    // RHSsbNode
+    StampRHS(RHS, sbNode, RHSsbNode, nodeValid, BSIM4V82::SB_NODE);
+        
+    // RHSdNode 
+    StampRHS(RHS, dNode, RHSdNode, nodeValid, BSIM4V82::D_NODE);
+    
+    // RHSsNode 
+    StampRHS(RHS, sNode, RHSsNode, nodeValid, BSIM4V82::S_NODE);
+    
+    // RHSqNode
+    StampRHS(RHS, qNode, RHSqNode, nodeValid, BSIM4V82::Q_NODE);
 
+    // LHS Stamps
     // BSIM4DPdPtr
     Stamp(LHS, dNodePrime, dNode,
         BSIM4DPd, nodeValid, 
