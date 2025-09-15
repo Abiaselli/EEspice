@@ -25,7 +25,9 @@
 #include <math.h>
 #include <string>
 #include "bsim4v82.hpp"
+#include "bsim4v82geo.hpp"
 #include "bsim4v82const.hpp"
+#include "CKTmkVolt.hpp"
 
 namespace bsim4{
 

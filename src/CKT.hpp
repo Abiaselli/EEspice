@@ -7,6 +7,9 @@
 #include <map>
 #include <memory>
 #include <array>
+#include "global.hpp"
+#include "matrix.hpp"
+#include "map.hpp"
 #include "SPICEcompatible.hpp"
 
 
