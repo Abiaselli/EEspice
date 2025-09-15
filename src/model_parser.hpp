@@ -170,7 +170,7 @@ void parseModel(std::istringstream &iss, const std::string &line, Modelmap &modm
             model.params = std::move(param);
             modmap.nmosModels[modelName] = model;
         }
-        else if (level == 14) {
+        else if (level == 14 || level == 54) {
             std::shared_ptr<bsim4::BSIM4model> bsim4Model = bsim4::paserBSIM4Model("nmos", modelName, kvMap);
             modmap.bsim4Models[modelName] = bsim4Model;
         }
@@ -200,7 +200,7 @@ void parseModel(std::istringstream &iss, const std::string &line, Modelmap &modm
             model.params = std::move(param);
             modmap.pmosModels[modelName] = model;
         }
-        else if (level == 14) {
+        else if (level == 14 || level == 54) {
             std::shared_ptr<bsim4::BSIM4model> bsim4Model = bsim4::paserBSIM4Model("pmos", modelName, kvMap);
             modmap.bsim4Models[modelName] = bsim4Model;
         }
