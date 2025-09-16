@@ -846,52 +846,172 @@ double ggidld, ggidlg, ggidlb, ggislg, ggislb, ggisls;
         BSIM4GPqReal, BSIM4GPqImag, nodeValid, 
         BSIM4V82::G_NODE_PRIME, BSIM4V82::Q_NODE);
         
-    // if (inst.BSIM4rgateMod != 0)
-        // BSIM4GEgePtr
-        // BSIM4GEgpPtr
-        // BSIM4GPgePtr
-        // BSIM4GEdpPtr
-        // BSIM4GEspPtr
-        // BSIM4GEbpPtr
-        // BSIM4GMdpPtr
-        // BSIM4GMgpPtr
-        // BSIM4GMgmPtr
-        // BSIM4GMgePtr
-        // BSIM4GMspPtr
-        // BSIM4GMbpPtr
-        // BSIM4DPgmPtr
-        // BSIM4GPgmPtr
-        // BSIM4GEgmPtr
-        // BSIM4SPgmPtr
-        // BSIM4BPgmPtr
-    
-    // if ((inst.BSIM4rbodyMod ==1) || (inst.BSIM4rbodyMod ==2))
-        // BSIM4DPdbPtr
-        // BSIM4SPsbPtr
-        // BSIM4DBdpPtr
-        // BSIM4DBdbPtr
-        // BSIM4DBbpPtr
-        // BSIM4DBbPtr
-        // BSIM4BPdbPtr
-        // BSIM4BPbPtr
-        // BSIM4BPsbPtr
-        // BSIM4SBspPtr
-        // BSIM4SBbpPtr
-        // BSIM4SBbPtr
-        // BSIM4SBsbPtr
-        // BSIM4BdbPtr
-        // BSIM4BbpPtr
-        // BSIM4BsbPtr
-        // BSIM4BbPtr
-    
-    // if (model.BSIM4rdsMod)
-        // BSIM4DgpPtr
-        // BSIM4DspPtr
-        // BSIM4DbpPtr
-        // BSIM4SdpPtr
-        // BSIM4SgpPtr
-        // BSIM4SbpPtr
 
+        // BSIM4GEgePtr
+        acStamp(LHS, gNodeExt, gNodeExt,
+            BSIM4GEgeReal, BSIM4GEgeImag, nodeValid,
+            BSIM4V82::G_NODE_EXT, BSIM4V82::G_NODE_EXT);
+        // BSIM4GEgpPtr
+        acStamp(LHS, gNodeExt, gNodePrime,
+            BSIM4GEgpReal, BSIM4GEgpImag, nodeValid,
+            BSIM4V82::G_NODE_EXT, BSIM4V82::G_NODE_PRIME);
+        // BSIM4GPgePtr
+        acStamp(LHS, gNodePrime, gNodeExt,
+            BSIM4GPgeReal, BSIM4GPgeImag, nodeValid,
+            BSIM4V82::G_NODE_PRIME, BSIM4V82::G_NODE_EXT);
+        // BSIM4GEdpPtr
+        acStamp(LHS, gNodeExt, dNodePrime,
+            BSIM4GEdpReal, BSIM4GEdpImag, nodeValid,
+            BSIM4V82::G_NODE_EXT, BSIM4V82::D_NODE_PRIME);
+        // BSIM4GEspPtr
+        acStamp(LHS, gNodeExt, sNodePrime,
+            BSIM4GEspReal, BSIM4GEspImag, nodeValid,
+            BSIM4V82::G_NODE_EXT, BSIM4V82::S_NODE_PRIME);
+        // BSIM4GEbpPtr
+        acStamp(LHS, gNodeExt, bNodePrime,
+            BSIM4GEbpReal, BSIM4GEbpImag, nodeValid,
+            BSIM4V82::G_NODE_EXT, BSIM4V82::B_NODE_PRIME);
+        // BSIM4GMdpPtr
+        acStamp(LHS, gNodeMid, dNodePrime,
+            BSIM4GMdpReal, BSIM4GMdpImag, nodeValid,
+            BSIM4V82::G_NODE_MID, BSIM4V82::D_NODE_PRIME);
+        // BSIM4GMgpPtr
+        acStamp(LHS, gNodeMid, gNodePrime,
+            BSIM4GMgpReal, BSIM4GMgpImag, nodeValid,
+            BSIM4V82::G_NODE_MID, BSIM4V82::G_NODE_PRIME);
+        // BSIM4GMgmPtr
+        acStamp(LHS, gNodeMid, gNodeMid,
+            BSIM4GMgmReal, BSIM4GMgmImag, nodeValid,
+            BSIM4V82::G_NODE_MID, BSIM4V82::G_NODE_MID);
+        // BSIM4GMgePtr
+        acStamp(LHS, gNodeMid, gNodeExt,
+            BSIM4GMgeReal, BSIM4GMgeImag, nodeValid,
+            BSIM4V82::G_NODE_MID, BSIM4V82::G_NODE_EXT);
+        // BSIM4GMspPtr
+        acStamp(LHS, gNodeMid, sNodePrime,
+            BSIM4GMspReal, BSIM4GMspImag, nodeValid,
+            BSIM4V82::G_NODE_MID, BSIM4V82::S_NODE_PRIME);
+        // BSIM4GMbpPtr
+        acStamp(LHS, gNodeMid, bNodePrime,
+            BSIM4GMbpReal, BSIM4GMbpImag, nodeValid,
+            BSIM4V82::G_NODE_MID, BSIM4V82::B_NODE_PRIME);
+        // BSIM4DPgmPtr
+        acStamp(LHS, dNodePrime, gNodeMid,
+            BSIM4DPgmReal, BSIM4DPgmImag, nodeValid,
+            BSIM4V82::D_NODE_PRIME, BSIM4V82::G_NODE_MID);
+        // BSIM4GPgmPtr
+        acStamp(LHS, gNodePrime, gNodeMid,
+            BSIM4GPgmReal, BSIM4GPgmImag, nodeValid,
+            BSIM4V82::G_NODE_PRIME, BSIM4V82::G_NODE_MID);
+        // BSIM4GEgmPtr
+        acStamp(LHS, gNodeExt, gNodeMid,
+            BSIM4GEgmReal, BSIM4GEgmImag, nodeValid,
+            BSIM4V82::G_NODE_EXT, BSIM4V82::G_NODE_MID);
+        // BSIM4SPgmPtr
+        acStamp(LHS, sNodePrime, gNodeMid,
+            BSIM4SPgmReal, BSIM4SPgmImag, nodeValid,
+            BSIM4V82::S_NODE_PRIME, BSIM4V82::G_NODE_MID);
+        // BSIM4BPgmPtr
+        acStamp(LHS, bNodePrime, gNodeMid,
+            BSIM4BPgmReal, BSIM4BPgmImag, nodeValid,
+            BSIM4V82::B_NODE_PRIME, BSIM4V82::G_NODE_MID);
+    
+
+        // BSIM4DPdbPtr
+        acStamp(LHS, dNodePrime, dbNode,
+            BSIM4DPdbReal, BSIM4DPdbImag, nodeValid,
+            BSIM4V82::D_NODE_PRIME, BSIM4V82::DB_NODE);
+        // BSIM4SPsbPtr
+        acStamp(LHS, sNodePrime, sbNode,
+            BSIM4SPsbReal, BSIM4SPsbImag, nodeValid,
+            BSIM4V82::S_NODE_PRIME, BSIM4V82::SB_NODE);
+        // BSIM4DBdpPtr
+        acStamp(LHS, dbNode, dNodePrime,
+            BSIM4DBdpReal, BSIM4DBdpImag, nodeValid,
+            BSIM4V82::DB_NODE, BSIM4V82::D_NODE_PRIME);
+        // BSIM4DBdbPtr
+        acStamp(LHS, dbNode, dbNode,
+            BSIM4DBdbReal, BSIM4DBdbImag, nodeValid,
+            BSIM4V82::DB_NODE, BSIM4V82::DB_NODE);
+        // BSIM4DBbpPtr
+        acStamp(LHS, dbNode, bNodePrime,
+            BSIM4DBbpReal, BSIM4DBbpImag, nodeValid,
+            BSIM4V82::DB_NODE, BSIM4V82::B_NODE_PRIME);
+        // BSIM4DBbPtr
+        acStamp(LHS, dbNode, bNode,
+            BSIM4DBbReal, BSIM4DBbImag, nodeValid,
+            BSIM4V82::DB_NODE, BSIM4V82::B_NODE);
+        // BSIM4BPdbPtr
+        acStamp(LHS, bNodePrime, dbNode,
+            BSIM4BPdbReal, BSIM4BPdbImag, nodeValid,
+            BSIM4V82::B_NODE_PRIME, BSIM4V82::DB_NODE);
+        // BSIM4BPbPtr
+        acStamp(LHS, bNodePrime, bNode,
+            BSIM4BPbReal, BSIM4BPbImag, nodeValid,
+            BSIM4V82::B_NODE_PRIME, BSIM4V82::B_NODE);
+        // BSIM4BPsbPtr
+        acStamp(LHS, bNodePrime, sbNode,
+            BSIM4BPsbReal, BSIM4BPsbImag, nodeValid,
+            BSIM4V82::B_NODE_PRIME, BSIM4V82::SB_NODE);
+        // BSIM4SBspPtr
+        acStamp(LHS, sbNode, sNodePrime,
+            BSIM4SBspReal, BSIM4SBspImag, nodeValid,
+            BSIM4V82::SB_NODE, BSIM4V82::S_NODE_PRIME);
+        // BSIM4SBbpPtr
+        acStamp(LHS, sbNode, bNodePrime,
+            BSIM4SBbpReal, BSIM4SBbpImag, nodeValid,
+            BSIM4V82::SB_NODE, BSIM4V82::B_NODE_PRIME);
+        // BSIM4SBbPtr
+        acStamp(LHS, sbNode, bNode,
+            BSIM4SBbReal, BSIM4SBbImag, nodeValid,
+            BSIM4V82::SB_NODE, BSIM4V82::B_NODE);
+        // BSIM4SBsbPtr
+        acStamp(LHS, sbNode, sbNode,
+            BSIM4SBsbReal, BSIM4SBsbImag, nodeValid,
+            BSIM4V82::SB_NODE, BSIM4V82::SB_NODE);
+        // BSIM4BdbPtr
+        acStamp(LHS, bNode, dbNode,
+            BSIM4BdbReal, BSIM4BdbImag, nodeValid,
+            BSIM4V82::B_NODE, BSIM4V82::DB_NODE);
+        // BSIM4BbpPtr
+        acStamp(LHS, bNode, bNodePrime,
+            BSIM4BbpReal, BSIM4BbpImag, nodeValid,
+            BSIM4V82::B_NODE, BSIM4V82::B_NODE_PRIME);
+        // BSIM4BsbPtr
+        acStamp(LHS, bNode, sbNode,
+            BSIM4BsbReal, BSIM4BsbImag, nodeValid,
+            BSIM4V82::B_NODE, BSIM4V82::SB_NODE);
+        // BSIM4BbPtr
+        acStamp(LHS, bNode, bNode,
+            BSIM4BbReal, BSIM4BbImag, nodeValid,
+            BSIM4V82::B_NODE, BSIM4V82::B_NODE);
+    
+
+
+        // BSIM4DgpPtr
+        acStamp(LHS, dNode, gNodePrime,
+            BSIM4DgpReal, BSIM4DgpImag, nodeValid,
+            BSIM4V82::D_NODE, BSIM4V82::G_NODE_PRIME);
+        // BSIM4DspPtr
+        acStamp(LHS, dNode, sNodePrime,
+            BSIM4DspReal, BSIM4DspImag, nodeValid,
+            BSIM4V82::D_NODE, BSIM4V82::S_NODE_PRIME);
+        // BSIM4DbpPtr
+        acStamp(LHS, dNode, bNodePrime,
+            BSIM4DbpReal, BSIM4DbpImag, nodeValid,
+            BSIM4V82::D_NODE, BSIM4V82::B_NODE_PRIME);
+        // BSIM4SdpPtr
+        acStamp(LHS, sNode, dNodePrime,
+            BSIM4SdpReal, BSIM4SdpImag, nodeValid,
+            BSIM4V82::S_NODE, BSIM4V82::D_NODE_PRIME);
+        // BSIM4SgpPtr
+        acStamp(LHS, sNode, gNodePrime,
+            BSIM4SgpReal, BSIM4SgpImag, nodeValid,
+            BSIM4V82::S_NODE, BSIM4V82::G_NODE_PRIME);
+        // BSIM4SbpPtr
+        acStamp(LHS, sNode, bNodePrime,
+            BSIM4SbpReal, BSIM4SbpImag, nodeValid,
+            BSIM4V82::S_NODE, BSIM4V82::B_NODE_PRIME);
     return 0;
 }
 
