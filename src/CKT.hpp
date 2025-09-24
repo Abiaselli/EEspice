@@ -11,6 +11,7 @@
 #include "matrix.hpp"
 #include "map.hpp"
 #include "SPICEcompatible.hpp"
+#include "sim_statistics.hpp"
 
 
 struct CKTcircuit
@@ -38,4 +39,5 @@ struct CKTcircuit
 
     SPICECompatible spiceCompatible;                // SPICE-compatible (cktmode)
     bool is_batch = false;                          // True if the circuit is a batch simulation
+    SimulationStatistics sim_stats;                 // Simulation statistics
 };
