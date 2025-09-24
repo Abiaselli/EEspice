@@ -24,7 +24,9 @@
 #include "bsim4v82/bsim4v82stamp.hpp"
 #include "NonLinearBatch.hpp"
 
-std::pair<arma::mat, arma::vec> Dynamic(const CKTcircuit &ckt, const double h, const arma::vec &pre_global_solution, const int mode, const double time_trans){
+std::pair<arma::mat, arma::vec> Dynamic(const CKTcircuit &ckt, const double h, const arma::vec &pre_global_solution, const int mode, const double time_trans, SimulationTime &simTime)
+{
+    ScopedTimer loadTimer(simTime.matrix_load_time);
     arma::mat LHS = ckt.cktdematrix->get_init_LHS();
     arma::vec RHS = ckt.cktdematrix->get_init_RHS();
 
@@ -48,7 +50,7 @@ std::pair<arma::mat, arma::vec> Dynamic(const CKTcircuit &ckt, const double h, c
 std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
     const std::pair<arma::mat, arma::vec> &matrixes, const Modelmap &modmap, double h)
 {
-
+    ScopedTimer loadTimer(ckt.sim_stats.simTime.matrix_load_time);
     arma::mat LHS = matrixes.first;
     arma::vec RHS = matrixes.second;
     // LHS.print("in_LHS matrix =");
@@ -192,7 +194,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
     std::vector<arma::vec> NR_solutions(ITL4+1);
     NR_solutions[0] = pre_global_solution;
 
-    init_matrices = Dynamic(ckt, h, pre_global_solution, mode, time_trans);
+    init_matrices = Dynamic(ckt, h, pre_global_solution, mode, time_trans, ckt.sim_stats.simTime);
 
     for (int i = 1; i < 3; i++)
     {
