@@ -22,6 +22,7 @@
 #include "device.hpp"
 #include "bsim4v82/bsim4v82.hpp"
 #include "bsim4v82/bsim4v82stamp.hpp"
+#include "NonLinearBatch.hpp"
 
 std::pair<arma::mat, arma::vec> Dynamic(const CKTcircuit &ckt, const double h, const arma::vec &pre_global_solution, const int mode, const double time_trans){
     arma::mat LHS = ckt.cktdematrix->get_init_LHS();
@@ -218,7 +219,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
             // Transient simulation convergence failed
             converged = false;
             NR_ITE = NR_iteration_counter;
-            total_NR_iteration += NR_iteration_counter;
+            ckt.sim_stats.total_NR_iteration += NR_iteration_counter;
             return solution;
         }
         else if (NR_iteration_counter >= 100 && mode == 0)
@@ -242,7 +243,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
     converged = true;
     NR_ITE = NR_iteration_counter;
-    total_NR_iteration += NR_iteration_counter;
+    ckt.sim_stats.total_NR_iteration += NR_iteration_counter;
 
     return solution;
 }
@@ -299,7 +300,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
     }
 
     NR_ITE = NR_iteration_counter;
-    total_NR_iteration += NR_iteration_counter;
+    ckt.sim_stats.total_NR_iteration += NR_iteration_counter;
 
     return solution;
 }
