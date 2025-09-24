@@ -191,6 +191,7 @@ void DynamicNonLinear(arma::cx_dmat &LHS, arma::cx_dvec &RHS, const CKTcircuit &
 
 // AC simulation function
 std::vector<ACResult> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap &modmap){
+    ScopedTimer analysisTimer(ckt.sim_stats.simTime.analysis_time); // Time the analysis
     // 1. OP analysis
     ckt.spiceCompatible.setFlagsOP();
     arma::vec op_solution = OperatingPointAnalysis(ckt, modmap, acSim.non_linear);

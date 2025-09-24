@@ -114,7 +114,8 @@ Transient Varibale_TimeStep(CKTcircuit &ckt, TransientSimulator &trans_sim, cons
 }
 
 std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_sim, const Modelmap modmap)
-{
+{   
+    ScopedTimer analysisTimer(ckt.sim_stats.simTime.analysis_time); // Time the analysis
     Transient trans_op;
 
     trans_op.LHS = ckt.cktdematrix->get_init_LHS();

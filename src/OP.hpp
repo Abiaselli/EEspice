@@ -126,6 +126,7 @@ void printOperatingPointWithNames(const arma::vec &op_solution, const Circuitmap
 
 // Only for .op command
 OPResult OP_ops(CKTcircuit &ckt, const Modelmap &modmap, bool non_linear) {
+    ScopedTimer analysisTimer(ckt.sim_stats.simTime.analysis_time); // Time the analysis
     OPResult result;
 
     // Set the flags for SPICE compatibility

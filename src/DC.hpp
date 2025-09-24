@@ -76,7 +76,8 @@ arma::vec DC_analysis_once(CKTcircuit &ckt, const DCSimulator &dcSim, DCResult &
 }
 
 std::vector<DCResult> DC_ops(CKTcircuit &ckt, DCSimulator &dcSim, const Modelmap &modmap)
-{
+{   
+    ScopedTimer analysisTimer(ckt.sim_stats.simTime.analysis_time); // Time the analysis
     // single sweep loop (only one device)
     const auto &sweepVals = dcSim.dcsweep.sweep_values;
     const auto &sweepName = dcSim.dcsweep.sourceName;
