@@ -157,7 +157,8 @@ void SaveOP(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
     }
 }
 
-void DynamicNonLinear(arma::cx_dmat &LHS, arma::cx_dvec &RHS, const CKTcircuit &ckt, double omega){
+void DynamicNonLinear(arma::cx_dmat &LHS, arma::cx_dvec &RHS, const CKTcircuit &ckt, double omega, SimulationTime &simTime){
+    ScopedTimer loadTimer(simTime.matrix_load_time);
     for (auto &nmos : ckt.CKTelements.nmos){
         if (nmos.modelType == MosfetModelType::LEVEL1){
             throw SetupException("NMOS model type LEVEL1 is not supported in AC analysis.", "AC::DynamicNonLinear");
@@ -220,7 +221,7 @@ std::vector<ACResult> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap
         // Update the LHS and RHS matrices
         acMat.LHS = ckt.cktdematrix->get_init_cxLHS();
         acMat.RHS = ckt.cktdematrix->get_init_cxRHS();
-        DynamicNonLinear(acMat.LHS, acMat.RHS, ckt, ac.omega);
+        DynamicNonLinear(acMat.LHS, acMat.RHS, ckt, ac.omega, ckt.sim_stats.simTime);
 
         // solve the MNA matrix
         ac.solution = arma::solve(acMat.LHS, acMat.RHS);
