@@ -191,7 +191,8 @@ arma::vec solveDense(const arma::mat &LHS, const arma::vec &RHS, SimulationTime 
 // Newton Raphson system solver for non-linear and dynamic elements
 arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode, const double time_trans, 
     const arma::vec &pre_global_solution, const Modelmap &modmap)
-{
+{   
+    ScopedTimer NRTimer(ckt.sim_stats.simTime.newton_time);
     int NR_iteration_counter = 0;
     bool isconverge = false;
     arma::vec solution = pre_global_solution;
@@ -260,7 +261,8 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
 // DC Analysis
 arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const arma::vec &init_RHS, const Modelmap &modmap)
-{
+{   
+    ScopedTimer NRTimer(ckt.sim_stats.simTime.newton_time);
     int NR_iteration_counter = 0;
     bool isconverge = false;
     arma::vec solution(init_RHS.n_rows, arma::fill::zeros);
