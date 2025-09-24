@@ -37,4 +37,5 @@ struct CKTcircuit
     std::array<double, 7> CKTag;                    // Coefficients for the integration method, 1/h and -1/h for BE
 
     SPICECompatible spiceCompatible;                // SPICE-compatible (cktmode)
+    bool is_batch = false;                          // True if the circuit is a batch simulation
 };
