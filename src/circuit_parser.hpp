@@ -44,6 +44,8 @@ struct CircuitParser
     dc::DCSweepSpec dcSweep_parser;
     // AC simulation parameters
     ac::ACSweepSpec acSweep_parser;
+    // Simulation options
+    bool acct = false; // If true, will print the statistics of the simulation
 
     CircuitParser(const std::string &filename) : filename(filename) {}
 
