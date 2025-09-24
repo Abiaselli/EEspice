@@ -180,6 +180,13 @@ bool isConverge(const std::vector<arma::vec> &NR_solutions, const CKTcircuit &ck
     return true;
 }
 
+// Solver for the Newton Raphson method
+arma::vec solveDense(const arma::mat &LHS, const arma::vec &RHS, SimulationTime &simTime)
+{
+    ScopedTimer solveTimer(simTime.solve_time);
+    return arma::solve(LHS, RHS, arma::solve_opts::fast);
+}
+
 // Transient Simulation
 // Newton Raphson system solver for non-linear and dynamic elements
 arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode, const double time_trans, 
@@ -204,7 +211,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
+        solution = solveDense(matrices.first, matrices.second, ckt.sim_stats.simTime);
         // solution = arma::solve(matrices.first, matrices.second);
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
@@ -233,7 +240,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
             // Solve Ax = b
             // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-            solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
+            solution = solveDense(matrices.first, matrices.second, ckt.sim_stats.simTime);
             // solution = arma::solve(matrices.first, matrices.second);
             NR_iteration_counter += 1;
             NR_solutions.at(NR_iteration_counter) = solution;
@@ -271,7 +278,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
+        solution = solveDense(matrices.first, matrices.second, ckt.sim_stats.simTime);
         
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
@@ -292,7 +299,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = arma::solve(matrices.first, matrices.second, arma::solve_opts::fast);
+        solution = solveDense(matrices.first, matrices.second, ckt.sim_stats.simTime);
 
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
