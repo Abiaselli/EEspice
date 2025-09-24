@@ -41,11 +41,14 @@ int main(int argc, const char **argv)
         else{           
             // CKT circuit setup
             CKTcircuit ckt;
-            ckt.map = cktmap; // Assign the circuit map to the CKTcircuit
-            auto denseMatrixPtr = std::make_shared<DenseMatrix>();  // Create the DenseMatrix as a shared pointer.
-            CKTsetup(ckt, parser, denseMatrixPtr, modmap); // Pass the parser to the ckt and the initialise LHS and RHS matrices
-            CKTload(ckt);
-            ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
+            {
+                ScopedTimer setupTimer(ckt.sim_stats.simTime.setup_time); // Time the CKT setup
+                ckt.map = cktmap; // Assign the circuit map to the CKTcircuit
+                auto denseMatrixPtr = std::make_shared<DenseMatrix>();  // Create the DenseMatrix as a shared pointer.
+                CKTsetup(ckt, parser, denseMatrixPtr, modmap); // Pass the parser to the ckt and the initialise LHS and RHS matrices
+                CKTload(ckt);
+                ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
+            }
 
             if(parser.is_op){
                 bool non_linear = CKTisNonLinear(ckt.CKTelements);
@@ -78,6 +81,10 @@ int main(int argc, const char **argv)
             }
             else{
                 throw SimulationException("Error: No simulation type specified!", "main");
+            }
+
+            if(parser.acct){
+                ckt.sim_stats.printStatistics();
             }
         }
 

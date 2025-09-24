@@ -44,7 +44,6 @@ bool batchMode = false;
 // Statistics of the transient simulation
 int NR_ITE = 0;
 int total_timepoint = 0;
-int total_NR_iteration = 0;
 
 // Constants in eespice
 constexpr double CONSTsqrt2 = 1.4142135623730950488016887242097;
