@@ -21,7 +21,7 @@ inline void merge_matrices(arma::mat &target_LHS, arma::vec &target_RHS,
 std::pair<arma::mat, arma::vec> NonLinearBatch(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
     const std::pair<arma::mat, arma::vec> &matrixes, const Modelmap &modmap, double h)
 {
-
+    ScopedTimer timer(ckt.sim_stats.simTime.matrix_load_time);
     arma::mat LHS = matrixes.first;
     arma::vec RHS = matrixes.second;
     // LHS.print("in_LHS matrix =");
