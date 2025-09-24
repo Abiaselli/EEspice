@@ -212,7 +212,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
         solution = solveDense(matrices.first, matrices.second, ckt.sim_stats.simTime);
-        // solution = arma::solve(matrices.first, matrices.second);
+
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
         ckt.spiceCompatible.updateStateMachine(false);
@@ -241,7 +241,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
             // Solve Ax = b
             // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
             solution = solveDense(matrices.first, matrices.second, ckt.sim_stats.simTime);
-            // solution = arma::solve(matrices.first, matrices.second);
+
             NR_iteration_counter += 1;
             NR_solutions.at(NR_iteration_counter) = solution;
 
