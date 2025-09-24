@@ -98,6 +98,8 @@ std::vector<DCResult> DC_ops(CKTcircuit &ckt, DCSimulator &dcSim, const Modelmap
         dcSim.vec_dc.emplace_back(dc);
     }
 
+    ckt.sim_stats.num_data_points = static_cast<int>(dcSim.vec_dc.size());
+
     return  dcSim.vec_dc;
 }
 } // namespace dc

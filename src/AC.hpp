@@ -230,6 +230,9 @@ std::vector<ACResult> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap
         acSim.vec_ac.push_back(ac);
         
     }
+
+    ckt.sim_stats.num_data_points = static_cast<int>(acSim.vec_ac.size());
+    
     // 4. Return the AC results
     return acSim.vec_ac;
 }

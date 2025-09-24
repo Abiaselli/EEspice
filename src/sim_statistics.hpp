@@ -4,14 +4,29 @@
 #include <iomanip>
 #include <chrono>
 #include <string>
+#include <format>
 
 
-// Helper function to format durations
+// Helper function to format durations with automatic unit selection
 template<typename Duration>
 std::string formatDuration(Duration d) {
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(d).count();
-    auto us = std::chrono::duration_cast<std::chrono::microseconds>(d).count() % 1000;
-    return std::to_string(ms) + "." + std::to_string(us) + " ms";
+    auto total_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(d).count();
+    
+    // Use microseconds for durations < 1 ms
+    // if (total_ns < 1'000'000) {
+    //     auto us = total_ns / 1'000.0;
+    //     return std::format("{:.3f} µs", us);
+    // }
+    // Use milliseconds for durations < 1 s
+    if (total_ns < 1'000'000'000) {
+        auto ms = total_ns / 1'000'000.0;
+        return std::format("{:.3f} ms", ms);
+    }
+    // Use seconds otherwise
+    else {
+        auto s = total_ns / 1'000'000'000.0;
+        return std::format("{:.3f} s", s);
+    }
 }
 
 // causes accounting and run time statistics
@@ -19,6 +34,7 @@ struct SimulationStatistics{
     SimulationTime simTime;
     int total_NR_iteration{}; // Total Newton Raphson iterations in the entire simulation
     int MNA_Matrix_size{};    // Size of the MNA matrix
+    int num_data_points{};   // Number of data points in the simulation (AC, DC sweep, Transient)
 
     void printStatistics() const;
 };
@@ -42,5 +58,6 @@ inline void SimulationStatistics::printStatistics() const {
     std::cout << "\nSimulation Details:\n";
     std::cout << "  Total NR iterations: " << total_NR_iteration << "\n";
     std::cout << "  MNA matrix size:     " << MNA_Matrix_size << "\n";
+    std::cout << "  No. Data points:     " << num_data_points << "\n";
     std::cout << "========================================\n";
 }

@@ -189,5 +189,7 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_
 
     } while (trans_sim.vec_trans.back().time_trans < trans_sim.trans_config.t_end && trans_sim.trans_end == false);
 
+    ckt.sim_stats.num_data_points = static_cast<int>(trans_sim.vec_trans.size());
+
     return trans_sim.vec_trans;
 }
