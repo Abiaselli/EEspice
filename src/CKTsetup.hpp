@@ -115,6 +115,7 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     ckt.external_nodes = ckt.map.map_nodes.size();
     ckt.internal_nodes = ckt.map.map_internal_nodes.size();
     ckt.T_nodes = ckt.external_nodes + ckt.internal_nodes;  // Total number of nodes excluding ground
+    ckt.sim_stats.MNA_Matrix_size = ckt.T_nodes;    // Store the size of MNA matrix in the statistics struct
 
     // Size of matrix
     ckt.cktdematrix = denseMatrixPtr;
