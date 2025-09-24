@@ -2,16 +2,19 @@
 
 #include <chrono>
 
-struct XB_Timer;
-struct SimulationTime;
+
+// -Timer overhead benchmark: ~84.9 ns per start/stop cycle
 
 struct XB_Timer
 {
 public:
+    using Clock = std::chrono::steady_clock;
+    using Duration = std::chrono::nanoseconds;
+
     // Starts or restarts the timer.
     void start()
     {
-        start_time = std::chrono::steady_clock::now();
+        start_time = Clock::now();
         is_running = true;
     }
 
@@ -20,43 +23,70 @@ public:
     {
         if (is_running)
         {
-            last_elapsed_time = std::chrono::steady_clock::now() - start_time;
+            last_elapsed_time = Clock::now() - start_time;
             total_duration += last_elapsed_time;
             is_running = false;
         }
     }
 
-    // Returns the duration of the last interval (from start() to stop()) in milliseconds.
-    double last_elapsed_ms() const
-    {
-        return std::chrono::duration<double, std::milli>(last_elapsed_time).count();
-    }
-
-    // Returns the total accumulated time in milliseconds.
-    double total_ms() const
-    {
-        return std::chrono::duration<double, std::milli>(total_duration).count();
-    }
-
     // Resets the total accumulated time to zero.
     void reset()
     {
-        total_duration = std::chrono::duration<double>::zero();
-        last_elapsed_time = std::chrono::duration<double>::zero();
+        total_duration = Duration::zero();
+        last_elapsed_time = Duration::zero();
+        is_running = false;
+    }
+
+    // --- Getters ---
+    [[nodiscard]] Duration last_elapsed() const { return last_elapsed_time; }
+    [[nodiscard]] Duration total() const { return total_duration; }
+    [[nodiscard]] Duration current_elapsed() const
+    {
+        return is_running ? (Clock::now() - start_time) : Duration::zero();
     }
 
 private:
-    std::chrono::time_point<std::chrono::steady_clock> start_time;
-    std::chrono::duration<double> last_elapsed_time{};
-    std::chrono::duration<double> total_duration{};
+    std::chrono::time_point<Clock> start_time;
+    Duration last_elapsed_time{};
+    Duration total_duration{};
     bool is_running = false;
+};
+
+// The RAII helper class
+class ScopedTimer
+{
+public:
+    // 1. Constructor: When a ScopedTimer is created, it takes a reference
+    //    to an XB_Timer and immediately calls start() on it.
+    explicit ScopedTimer(XB_Timer& timer) 
+        : timer_ref(timer)
+    {
+        timer_ref.start();
+    }
+
+    // 2. Destructor: When the ScopedTimer goes out of scope (e.g., at the
+    //    end of a function or block), this is automatically called, stopping the timer.
+    ~ScopedTimer()
+    {
+        timer_ref.stop();
+    }
+
+    // 3. Disable Copying and Moving: A scoped timer's job is unique to its
+    //    scope. Copying it would lead to confusion (e.g., who stops the timer?).
+    //    Deleting these prevents bugs.
+    ScopedTimer(const ScopedTimer&) = delete;
+    ScopedTimer& operator=(const ScopedTimer&) = delete;
+
+private:
+    XB_Timer& timer_ref; // Holds a reference to the actual timer object
 };
 
 struct SimulationTime{
     XB_Timer total_time;
     XB_Timer parse_time;
-    XB_Timer setup_time;
-    XB_Timer analysis_time;
-    XB_Timer solve_time;
-    XB_Timer newton_time;
+    XB_Timer setup_time;        // ckt setup time
+    XB_Timer analysis_time;     // dc, tran, ac analysis time
+    XB_Timer matrix_load_time;  // matrix loading time (Device stamping time)
+    XB_Timer solve_time;        // solver time
+    XB_Timer newton_time;       // Newton's method time
 };
