@@ -20,6 +20,8 @@ int main(int argc, const char **argv)
     }
 
     try {
+        XB_Timer total;
+        total.start();
         setDebugMode(false); // Set the debug mode to false or true
 
         // Parse netlist file
@@ -84,6 +86,9 @@ int main(int argc, const char **argv)
             }
 
             if(parser.acct){
+                total.stop();
+                ckt.sim_stats.simTime.total_time = total;
+                ckt.sim_stats.simTime.parse_time = parser.parseTimer;
                 ckt.sim_stats.printStatistics();
             }
         }

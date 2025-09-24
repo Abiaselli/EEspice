@@ -45,7 +45,10 @@ struct CircuitParser
     // AC simulation parameters
     ac::ACSweepSpec acSweep_parser;
     // Simulation options
-    bool acct = false; // If true, will print the statistics of the simulation
+    bool acct = true; // If true, will print the statistics of the simulation
+
+    // Parser Timer
+    XB_Timer parseTimer;
 
     CircuitParser(const std::string &filename) : filename(filename) {}
 
@@ -913,6 +916,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
 // Modified parser_netlist function - now just calls the recursive parser
 void parser_netlist(CircuitParser &parser, Circuitmap &cktmap, Modelmap &modmap) {
+    parser.parseTimer.start();
     std::unordered_set<std::string> includeStack;
     
     // Get canonical path of the main file
@@ -924,6 +928,7 @@ void parser_netlist(CircuitParser &parser, Circuitmap &cktmap, Modelmap &modmap)
     }
     
     parseNetlistFile(mainPath.string(), parser, cktmap, modmap, includeStack, true);
+    parser.parseTimer.stop();
 }
 
 // New recursive file parser that handles .INCLUDE and continuation lines
