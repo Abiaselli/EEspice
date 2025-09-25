@@ -50,6 +50,7 @@ int main(int argc, const char **argv)
                 CKTsetup(ckt, parser, denseMatrixPtr, modmap); // Pass the parser to the ckt and the initialise LHS and RHS matrices
                 CKTload(ckt);
                 ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
+                ckt.sim_stats.MNA_Matrix_size = ckt.cktdematrix->LHS.n_rows;    // Store the size of MNA matrix to the simulation statistics
             }
 
             if(parser.is_op){
