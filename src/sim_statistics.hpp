@@ -12,10 +12,9 @@ template<typename Duration>
 std::string formatDuration(Duration d) {
     auto total_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(d).count();
     
-    // Use microseconds for durations < 0.001 ms
+    // Use nanoseconds for durations < 1 µs
     if (total_ns < 1'000) {
-        auto us = total_ns / 1'000.0;
-        return std::format("{:.3f} µs", us);
+        return std::format("{:.3f} ns", static_cast<double>(total_ns));
     }
     // Use milliseconds for durations < 1 s
     if (total_ns < 1'000'000'000) {
