@@ -22,7 +22,7 @@
 #include "device.hpp"
 #include "bsim4v82/bsim4v82.hpp"
 #include "bsim4v82/bsim4v82stamp.hpp"
-#include "NonLinearBatch.hpp"
+#include "NonLinearMuti.hpp"
 
 std::pair<arma::mat, arma::vec> Dynamic(const CKTcircuit &ckt, const double h, const arma::vec &pre_global_solution, const int mode, const double time_trans, SimulationTime &simTime)
 {
@@ -190,8 +190,12 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
     init_matrices = Dynamic(ckt, h, pre_global_solution, mode, time_trans, ckt.sim_stats.simTime);
 
     for (int i = 1; i < 3; i++)
-    {
-        matrices = NonLinear(ckt, solution, init_matrices, modmap, h);
+    {   
+        if (ckt.CKTmutithreaded) {
+            matrices = NonLinearMutithreaded(ckt, solution, init_matrices, modmap, h);
+        } else {
+            matrices = NonLinear(ckt, solution, init_matrices, modmap, h);
+        }
         // const arma::mat &LHS = matrices.first;
         // const arma::mat &RHS = matrices.second;
 
@@ -222,7 +226,11 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
             throw ConvergenceException("Transient Simulation did not converge at the op analysis!", "TRANSIENT_OP_CONVERGENCE");
         }
         else {
-            matrices = NonLinear(ckt, solution, init_matrices, modmap, h);
+            if (ckt.CKTmutithreaded) {
+                matrices = NonLinearMutithreaded(ckt, solution, init_matrices, modmap, h);
+            } else {
+                matrices = NonLinear(ckt, solution, init_matrices, modmap, h);
+            }
 
             // Solve Ax = b
             // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
@@ -261,7 +269,11 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
 
     for (int i = 1; i < 3; i++)
     {
-        matrices = NonLinear(ckt, solution, init_matrices, modmap, 0.0);
+        if (ckt.CKTmutithreaded) {
+            matrices = NonLinearMutithreaded(ckt, solution, init_matrices, modmap, 0.0);
+        } else {
+            matrices = NonLinear(ckt, solution, init_matrices, modmap, 0.0);
+        }
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
@@ -282,7 +294,11 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
             throw ConvergenceException("DC Analysis did not converge!", "DC_CONVERGENCE");
         }
 
-        matrices = NonLinear(ckt, solution, init_matrices, modmap, 0.0);
+        if (ckt.CKTmutithreaded) {
+            matrices = NonLinearMutithreaded(ckt, solution, init_matrices, modmap, 0.0);
+        } else {
+            matrices = NonLinear(ckt, solution, init_matrices, modmap, 0.0);
+        }
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
