@@ -141,49 +141,26 @@ void SaveOP(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
     // Only BSIM4V82 is supported for now
     arma::mat init_LHS = ckt.cktdematrix->get_init_LHS();
     arma::vec init_RHS = ckt.cktdematrix->get_init_RHS();
-    for (auto &nmos : ckt.CKTelements.nmos){
-        if (nmos.modelType == MosfetModelType::BSIM4V82){
-            const bsim4::BSIM4model &b4model = *nmos.bsim4v82Instance.BSIM4modPtr;
-            bsim4::BSIM4V82 &b4instance = nmos.bsim4v82Instance;
-            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, init_LHS, init_RHS);
-        }
-    }
-    for (auto &pmos : ckt.CKTelements.pmos){
-        if (pmos.modelType == MosfetModelType::BSIM4V82){
-            const bsim4::BSIM4model &b4model = *pmos.bsim4v82Instance.BSIM4modPtr;
-            bsim4::BSIM4V82 &b4instance = pmos.bsim4v82Instance;
-            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, init_LHS, init_RHS);
-        }
+
+    for (auto &bsim4 : ckt.CKTelements.bsim4){
+        const bsim4::BSIM4model &b4model = *bsim4.bsim4v82Instance.BSIM4modPtr;
+        bsim4::BSIM4V82 &b4instance = bsim4.bsim4v82Instance;
+        bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, init_LHS, init_RHS);
     }
 }
 
 void DynamicNonLinear(arma::cx_dmat &LHS, arma::cx_dvec &RHS, const CKTcircuit &ckt, double omega, SimulationTime &simTime){
     ScopedTimer loadTimer(simTime.matrix_load_time);
     for (auto &nmos : ckt.CKTelements.nmos){
-        if (nmos.modelType == MosfetModelType::LEVEL1){
-            throw SetupException("NMOS model type LEVEL1 is not supported in AC analysis.", "AC::DynamicNonLinear");
-        }
-        else if (nmos.modelType == MosfetModelType::BSIM4V82){
-            const bsim4::BSIM4model &b4model = *nmos.bsim4v82Instance.BSIM4modPtr;
-            const bsim4::BSIM4V82 &b4instance = nmos.bsim4v82Instance;
-            bsim4::BSIM4acLoad(ckt, b4model, b4instance, ckt.spiceCompatible, omega, LHS, RHS);
-        }
-        else{
-            throw SetupException("NMOS model type is not supported.", "AC::DynamicNonLinear");
-        }
+        throw SetupException("NMOS model type LEVEL1 is not supported in AC analysis.", "AC::DynamicNonLinear");
     }
     for (auto &pmos : ckt.CKTelements.pmos){
-        if (pmos.modelType == MosfetModelType::LEVEL1){
-            throw SetupException("PMOS model type LEVEL1 is not supported in AC analysis.", "AC::DynamicNonLinear");
-        }
-        else if (pmos.modelType == MosfetModelType::BSIM4V82){
-            const bsim4::BSIM4model &b4model = *pmos.bsim4v82Instance.BSIM4modPtr;
-            const bsim4::BSIM4V82 &b4instance = pmos.bsim4v82Instance;
-            bsim4::BSIM4acLoad(ckt, b4model, b4instance, ckt.spiceCompatible, omega, LHS, RHS);
-        }
-        else{
-            throw SetupException("PMOS model type is not supported.", "AC::DynamicNonLinear");
-        }
+        throw SetupException("PMOS model type LEVEL1 is not supported in AC analysis.", "AC::DynamicNonLinear");
+    }
+    for (auto &bsim4 : ckt.CKTelements.bsim4){
+        const bsim4::BSIM4model &b4model = *bsim4.bsim4v82Instance.BSIM4modPtr;
+        const bsim4::BSIM4V82 &b4instance = bsim4.bsim4v82Instance;
+        bsim4::BSIM4acLoad(ckt, b4model, b4instance, ckt.spiceCompatible, omega, LHS, RHS);
     }
     for (auto &cap : ckt.CKTelements.capacitors){
         C_ACassigner(cap.nodePos, cap.nodeNeg, cap.value, omega, LHS);
