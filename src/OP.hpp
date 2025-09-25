@@ -56,16 +56,8 @@ std::vector<MosfetOpData> extractMosfetData(const CKTcircuit &ckt) {
         return data;
     };
 
-    for (const auto& nmos : ckt.CKTelements.nmos){
-        if (nmos.modelType == MosfetModelType::BSIM4V82) {
-            mosfet_data.push_back(extract_data(nmos));
-        }
-    }
-
-    for (const auto& pmos : ckt.CKTelements.pmos){
-        if (pmos.modelType == MosfetModelType::BSIM4V82) {
-            mosfet_data.push_back(extract_data(pmos));
-        }
+    for (const auto& bsim4 : ckt.CKTelements.bsim4){
+        mosfet_data.push_back(extract_data(bsim4));
     }
 
     return mosfet_data;
