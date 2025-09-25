@@ -57,32 +57,17 @@ std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_
     // RHS.print("RHS matrix =");
 
     for (auto &nmos : ckt.CKTelements.nmos){
-        if (nmos.modelType == MosfetModelType::LEVEL1){
-            const NMOSModel nmosModel = modmap.nmosModels.at(nmos.modelName);
-            NMOS_assigner(nmos.id, nmos.node_vd, nmos.node_vg, nmos.node_vs, nmos.node_vb, nmos.W, nmos.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, nmosModel);
-        }
-        else if (nmos.modelType == MosfetModelType::BSIM4V82){
-            const bsim4::BSIM4model &b4model = *nmos.bsim4v82Instance.BSIM4modPtr;
-            bsim4::BSIM4V82 &b4instance = nmos.bsim4v82Instance;
-            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, LHS, RHS);
-        }
-        else{
-            throw DeviceException("Error: NMOS model type is not supported!", "UNSUPPORTED_NMOS_MODEL");
-        }
+        const NMOSModel nmosModel = modmap.nmosModels.at(nmos.modelName);
+        NMOS_assigner(nmos.id, nmos.node_vd, nmos.node_vg, nmos.node_vs, nmos.node_vb, nmos.W, nmos.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, nmosModel);
     }
     for (auto &pmos : ckt.CKTelements.pmos){
-        if (pmos.modelType == MosfetModelType::LEVEL1){
-            const PMOSModel pmosModel = modmap.pmosModels.at(pmos.modelName);
-            PMOS_assigner(pmos.id, pmos.node_vd, pmos.node_vg, pmos.node_vs, pmos.node_vb, pmos.W, pmos.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, pmosModel);
-        }
-        else if (pmos.modelType == MosfetModelType::BSIM4V82){
-            const bsim4::BSIM4model &b4model = *pmos.bsim4v82Instance.BSIM4modPtr;
-            bsim4::BSIM4V82 &b4instance = pmos.bsim4v82Instance;
-            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, LHS, RHS);
-        }
-        else{
-            throw DeviceException("Error: PMOS model type is not supported!", "UNSUPPORTED_PMOS_MODEL");
-        }
+        const PMOSModel pmosModel = modmap.pmosModels.at(pmos.modelName);
+        PMOS_assigner(pmos.id, pmos.node_vd, pmos.node_vg, pmos.node_vs, pmos.node_vb, pmos.W, pmos.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, pmosModel);
+    }
+    for (auto &bsim4 : ckt.CKTelements.bsim4){
+        const bsim4::BSIM4model &b4model = *bsim4.bsim4v82Instance.BSIM4modPtr;
+        bsim4::BSIM4V82 &b4instance = bsim4.bsim4v82Instance;
+        bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, LHS, RHS);
     }
     for (const auto &diode : ckt.CKTelements.diodes){
         Diode_assigner(diode.nodePos, diode.nodeNeg, diode.Is, diode.VT, LHS, RHS, pre_NR_solution);
