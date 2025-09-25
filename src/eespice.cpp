@@ -51,6 +51,10 @@ int main(int argc, const char **argv)
                 CKTload(ckt);
                 ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
                 ckt.sim_stats.MNA_Matrix_size = ckt.cktdematrix->LHS.n_rows;    // Store the size of MNA matrix to the simulation statistics
+                if (argc >= 3 && std::string(argv[2]) == "-mt"){
+                    ckt.CKTmutithreaded = true;
+                    std::cout << "Multithreading enabled for BSIM4 transistors." << std::endl;
+                }
             }
 
             if(parser.is_op){
