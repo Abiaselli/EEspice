@@ -12,11 +12,11 @@ template<typename Duration>
 std::string formatDuration(Duration d) {
     auto total_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(d).count();
     
-    // Use microseconds for durations < 1 ms
-    // if (total_ns < 1'000'000) {
-    //     auto us = total_ns / 1'000.0;
-    //     return std::format("{:.3f} µs", us);
-    // }
+    // Use microseconds for durations < 0.001 ms
+    if (total_ns < 1'000) {
+        auto us = total_ns / 1'000.0;
+        return std::format("{:.3f} µs", us);
+    }
     // Use milliseconds for durations < 1 s
     if (total_ns < 1'000'000'000) {
         auto ms = total_ns / 1'000'000.0;
@@ -60,4 +60,5 @@ inline void SimulationStatistics::printStatistics() const {
     std::cout << "  MNA matrix size:     " << MNA_Matrix_size << "\n";
     std::cout << "  No. Data points:     " << num_data_points << "\n";
     std::cout << "========================================\n";
+    std::cout << "matrix_load_time: " << simTime.matrix_load_time.total().count() << " ns\n";
 }
