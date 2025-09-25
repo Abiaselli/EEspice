@@ -15,7 +15,11 @@
 bool CKTisNonLinear(const CircuitElements &elements)
 {
     bool non_linear = false;
-    if(!elements.nmos.empty() || !elements.pmos.empty() || !elements.diodes.empty()){
+    if(!elements.nmos.empty() || 
+        !elements.pmos.empty() || 
+        !elements.bsim4.empty() ||
+        !elements.diodes.empty())
+    {
         non_linear = true;
     }
     return non_linear;
