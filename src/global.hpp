@@ -127,6 +127,19 @@ struct PMOS
     std::vector<double> batchL;
 };
 
+struct BSIM4{
+    std::string id_str;
+    int id{};
+    std::string node_vd_str, node_vg_str, node_vs_str, node_vb_str;
+    int node_vd{}, node_vg{}, node_vs{}, node_vb{};
+    double W{}, L{};
+    std::string modelName;
+    // MosfetModelType modelType;
+    bsim4::BSIM4V82 bsim4v82Instance;
+    std::vector<double> batchW; // For batch simulation
+    std::vector<double> batchL;
+};
+
 struct CurrentSource
 {   
     std::string id_str;
@@ -177,6 +190,7 @@ struct CircuitElements
     std::vector<Diode> diodes;
     std::vector<NMOS> nmos;
     std::vector<PMOS> pmos;
+    std::vector<BSIM4> bsim4;
     std::vector<VCCS> vccs;
     std::vector<VCVS> vcvs;
 };
