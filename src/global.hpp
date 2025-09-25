@@ -92,11 +92,6 @@ struct VCVS{
     std::vector<double> batchValues;
 };
 
-enum class MosfetModelType {
-    LEVEL1,
-    BSIM4V82
-};
-
 struct NMOS
 {   
     std::string id_str;
@@ -105,7 +100,6 @@ struct NMOS
     int node_vd{}, node_vg{}, node_vs{}, node_vb{};
     double W{}, L{};
     std::string modelName;
-    MosfetModelType modelType;
     bsim4::BSIM4V82 bsim4v82Instance;
     // NMOS(const std::string& name) : id_str(name), bsim4v82Instance(name) {}
     std::vector<double> batchW; // For batch simulation
@@ -120,14 +114,14 @@ struct PMOS
     int node_vd{}, node_vg{}, node_vs{}, node_vb{};
     double W{}, L{};
     std::string modelName;
-    MosfetModelType modelType;
     bsim4::BSIM4V82 bsim4v82Instance;
     // PMOS(const std::string& name) : id_str(name), bsim4v82Instance(name) {}
     std::vector<double> batchW; // For batch simulation
     std::vector<double> batchL;
 };
 
-struct BSIM4{
+struct BSIM4
+{
     std::string id_str;
     int id{};
     std::string node_vd_str, node_vg_str, node_vs_str, node_vb_str;

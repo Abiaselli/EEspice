@@ -116,17 +116,11 @@ int getInternalMosfetNodes(const CircuitElements &elements)
 
     for (const auto &nmos : elements.nmos)
     {
-        if (nmos.modelType == MosfetModelType::LEVEL1)
-        {
-            internal_nodes += 3; // For LEVEL1 model
-        }
+        internal_nodes += 3; // For LEVEL1 model
     }
     for (const auto &pmos : elements.pmos)
     {
-        if (pmos.modelType == MosfetModelType::LEVEL1)
-        {
-            internal_nodes += 3; // For LEVEL1 model
-        }
+        internal_nodes += 3; // For LEVEL1 model
     }
     // Add more cases for different model types if needed...
     return internal_nodes;
@@ -592,7 +586,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
             mn.id_str = id_str;
             // mn.id_str = id_str;
             mn.id = M_id;
-            mn.modelType = MosfetModelType::LEVEL1;
+            // mn.modelType = MosfetModelType::LEVEL1;
 
             mn.node_vd_str = M_node_vd_str;
             mn.node_vg_str = M_node_vg_str;
@@ -656,7 +650,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
             mp.id_str = id_str;
             // mp.id_str = id_str;
             mp.id = M_id;
-            mp.modelType = MosfetModelType::LEVEL1;
+            // mp.modelType = MosfetModelType::LEVEL1;
 
             mp.node_vd_str = M_node_vd_str;
             mp.node_vg_str = M_node_vg_str;
