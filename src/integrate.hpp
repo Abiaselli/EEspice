@@ -75,48 +75,25 @@ CapacitanceState get_cap_state(const CKTcircuit &ckt, const arma::vec &solution,
     }
     // Update the charge and current of the bsim4 capacitors
     // They are calculated in the bsim4load function by NIintegrate
-    for (const auto &nmos : ckt.CKTelements.nmos){
-        if (nmos.modelType == MosfetModelType::BSIM4V82){
-            CapCharge.push_back(std::abs(nmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qb])); // charge update
-            CapCurrent.push_back(std::abs(nmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qb+1])); // ccap = (qcap+1)
-            CapCharge.push_back(std::abs(nmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qg]));
-            CapCurrent.push_back(std::abs(nmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qg+1]));
-            CapCharge.push_back(std::abs(nmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qd]));
-            CapCurrent.push_back(std::abs(nmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qd+1]));
-            if (nmos.bsim4v82Instance.BSIM4trnqsMod){
-                CapCharge.push_back(std::abs(nmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qcdump]));
-                CapCurrent.push_back(std::abs(nmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qcdump+1]));
-            }
-            if(nmos.bsim4v82Instance.BSIM4rbodyMod){
-                CapCharge.push_back(std::abs(nmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qbs]));
-                CapCurrent.push_back(std::abs(nmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qbs+1]));
-            }
-            if(nmos.bsim4v82Instance.BSIM4rgateMod == 3){
-                CapCharge.push_back(std::abs(nmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qgmid]));
-                CapCurrent.push_back(std::abs(nmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qgmid+1]));
-            }
+    for (const auto &bsim4 : ckt.CKTelements.bsim4)
+    {
+        CapCharge.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qb])); // charge update
+        CapCurrent.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qb+1])); // ccap = (qcap+1)
+        CapCharge.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qg]));
+        CapCurrent.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qg+1]));
+        CapCharge.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qd]));
+        CapCurrent.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qd+1]));
+        if (bsim4.bsim4v82Instance.BSIM4trnqsMod){
+            CapCharge.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qcdump]));
+            CapCurrent.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qcdump+1]));
         }
-    }
-    for (const auto &pmos : ckt.CKTelements.pmos){
-        if (pmos.modelType == MosfetModelType::BSIM4V82){
-            CapCharge.push_back(std::abs(pmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qb])); // charge update
-            CapCurrent.push_back(std::abs(pmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qb+1])); // ccap = (qcap+1)
-            CapCharge.push_back(std::abs(pmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qg]));
-            CapCurrent.push_back(std::abs(pmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qg+1]));
-            CapCharge.push_back(std::abs(pmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qd]));
-            CapCurrent.push_back(std::abs(pmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qd+1]));
-            if (pmos.bsim4v82Instance.BSIM4trnqsMod){
-                CapCharge.push_back(std::abs(pmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qcdump]));
-                CapCurrent.push_back(std::abs(pmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qcdump+1]));
-            }
-            if(pmos.bsim4v82Instance.BSIM4rbodyMod){
-                CapCharge.push_back(std::abs(pmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qbs]));
-                CapCurrent.push_back(std::abs(pmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qbs+1]));
-            }
-            if(pmos.bsim4v82Instance.BSIM4rgateMod == 3){
-                CapCharge.push_back(std::abs(pmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qgmid]));
-                CapCurrent.push_back(std::abs(pmos.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qgmid+1]));
-            }
+        if(bsim4.bsim4v82Instance.BSIM4rbodyMod){
+            CapCharge.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qbs]));
+            CapCurrent.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qbs+1]));
+        }
+        if(bsim4.bsim4v82Instance.BSIM4rgateMod == 3){
+            CapCharge.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qgmid]));
+            CapCurrent.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qgmid+1]));
         }
     }
     
