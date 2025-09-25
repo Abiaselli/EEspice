@@ -56,11 +56,11 @@ std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_
     // LHS.print("in_LHS matrix =");
     // RHS.print("RHS matrix =");
 
-    for (auto &nmos : ckt.CKTelements.nmos){
+    for (const auto &nmos : ckt.CKTelements.nmos){
         const NMOSModel nmosModel = modmap.nmosModels.at(nmos.modelName);
         NMOS_assigner(nmos.id, nmos.node_vd, nmos.node_vg, nmos.node_vs, nmos.node_vb, nmos.W, nmos.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, nmosModel);
     }
-    for (auto &pmos : ckt.CKTelements.pmos){
+    for (const auto &pmos : ckt.CKTelements.pmos){
         const PMOSModel pmosModel = modmap.pmosModels.at(pmos.modelName);
         PMOS_assigner(pmos.id, pmos.node_vd, pmos.node_vg, pmos.node_vs, pmos.node_vb, pmos.W, pmos.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, pmosModel);
     }
