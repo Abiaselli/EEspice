@@ -246,7 +246,7 @@ BSIM4load(const CKTcircuit &ckt, const BSIM4model &model, BSIM4V82 &instance, co
     
     double vs, Fsevl, dvs_dVg, dvs_dVd, dvs_dVb, dFsevl_dVg, dFsevl_dVd, dFsevl_dVb;
     double vgdx, vgsx, epssub, toxe, epsrox;
-    struct bsim4SizeDependParam pParam;
+    // struct bsim4SizeDependParam pParam;
     int ByPass, ChargeComputationNeeded, error, Check, Check1, Check2;
 
     // Node indexes in mna matrix
@@ -285,7 +285,7 @@ BSIM4load(const CKTcircuit &ckt, const BSIM4model &model, BSIM4V82 &instance, co
 
     Check = Check1 = Check2 = 1;
     ByPass = 0;
-    pParam = *instance.pParam;
+    const auto& pParam = *instance.pParam;
 
     // Loading node voltages
 
