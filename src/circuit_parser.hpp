@@ -716,134 +716,63 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         else if (iter_bsim4 != modmap.bsim4Models.end())
         {
             // Parse BSIM4 instance
-            // Create a new NMOS instance
-            if (iter_bsim4->second->BSIM4type == bsim4::BSIM4_NMOS){
-                NMOS mn;
-                mn.id_str = id_str;
-                mn.id = M_id;
-                mn.node_vd_str = M_node_vd_str;
-                mn.node_vg_str = M_node_vg_str;
-                mn.node_vs_str = M_node_vs_str;
-                mn.node_vb_str = M_node_vb_str;
+            BSIM4 b4;
+            b4.id_str = id_str;
+            b4.id = M_id;
+            b4.node_vd_str = M_node_vd_str;
+            b4.node_vg_str = M_node_vg_str;
+            b4.node_vs_str = M_node_vs_str;
+            b4.node_vb_str = M_node_vb_str;
 
-                mn.node_vd = convertToNode(M_node_vd_str, cktmap.map_nodes);
-                mn.node_vg = convertToNode(M_node_vg_str, cktmap.map_nodes);
-                mn.node_vs = convertToNode(M_node_vs_str, cktmap.map_nodes);
-                mn.node_vb = convertToNode(M_node_vb_str, cktmap.map_nodes);
-                mn.modelName = M_modelName;
-                // Read and parse the W and L parameters with their prefixes
-                while (iss >> parameter)
+            b4.node_vd = convertToNode(M_node_vd_str, cktmap.map_nodes);
+            b4.node_vg = convertToNode(M_node_vg_str, cktmap.map_nodes);
+            b4.node_vs = convertToNode(M_node_vs_str, cktmap.map_nodes);
+            b4.node_vb = convertToNode(M_node_vb_str, cktmap.map_nodes);
+            b4.modelName = M_modelName;
+            // Read and parse the W and L parameters with their prefixes
+            while (iss >> parameter)
+            {
+                size_t pos = parameter.find('=');
+                if (pos != std::string::npos)
                 {
-                    size_t pos = parameter.find('=');
-                    if (pos != std::string::npos)
-                    {
-                        std::string key = parameter.substr(0, pos);
-                        std::string value = parameter.substr(pos + 1);
+                    std::string key = parameter.substr(0, pos);
+                    std::string value = parameter.substr(pos + 1);
 
-                        if (key == "W" || key == "w")
+                    if (key == "W" || key == "w")
+                    {
+                        valueStr = value;
+                        if (valueStr.front() == '[' || valueStr.front() == '(')
                         {
-                            valueStr = value;
-                            if (valueStr.front() == '[' || valueStr.front() == '(')
-                            {
-                                // Batch simulation case
-                                parser.is_batch = true;
-                                mn.batchW = batchVector(valueStr, line);
-                            }
-                            else
-                            {
-                                // Single value W
-                                mn.W = convertToValue(valueStr);
-                            }
+                            // Batch simulation case
+                            parser.is_batch = true;
+                            b4.batchW = batchVector(valueStr, line);
                         }
-                        else if (key == "L" || key == "l")
+                        else
                         {
-                            valueStr = value;
-                            if (valueStr.front() == '[' || valueStr.front() == '(')
-                            {
-                                // Batch simulation case
-                                parser.is_batch = true;
-                                mn.batchL = batchVector(valueStr, line);
-                            }
-                            else
-                            {
-                                // Single value L
-                                mn.L = convertToValue(valueStr);
-                            }                          
+                            // Single value W
+                            b4.W = convertToValue(valueStr);
                         }
                     }
-                }
-                // Setup modelType
-                mn.modelType = MosfetModelType::BSIM4V82;
-                // Move to CKTinstanceSetup!!!
-                // mn.bsim4v82Instance = bsim4::paserBSIM4instance(id_str, iter_bsim4->second, mn.node_vd, mn.node_vg, mn.node_vs, mn.node_vb, mn.W, mn.L);
-                parser.elements.nmos.emplace_back(mn);
-            }
-            // Create a new PMOS instance
-            else if (iter_bsim4->second->BSIM4type == bsim4::BSIM4_PMOS){
-                PMOS mp;
-                mp.id_str = id_str;
-                mp.id = M_id;
-
-                mp.node_vd_str = M_node_vd_str;
-                mp.node_vg_str = M_node_vg_str;
-                mp.node_vs_str = M_node_vs_str;
-                mp.node_vb_str = M_node_vb_str;
-
-                mp.node_vd = convertToNode(M_node_vd_str, cktmap.map_nodes);  
-                mp.node_vg = convertToNode(M_node_vg_str, cktmap.map_nodes);
-                mp.node_vs = convertToNode(M_node_vs_str, cktmap.map_nodes);
-                mp.node_vb = convertToNode(M_node_vb_str, cktmap.map_nodes);
-                mp.modelName = M_modelName;
-
-                while (iss >> parameter)
-                {
-                    size_t pos = parameter.find('=');
-                    if (pos != std::string::npos)
+                    else if (key == "L" || key == "l")
                     {
-                        std::string key = parameter.substr(0, pos);
-                        std::string value = parameter.substr(pos + 1);
-
-                        if (key == "W" || key == "w")
+                        valueStr = value;
+                        if (valueStr.front() == '[' || valueStr.front() == '(')
                         {
-                            valueStr = value;
-                            if (valueStr.front() == '[' || valueStr.front() == '(')
-                            {
-                                // Batch simulation case
-                                parser.is_batch = true;
-                                mp.batchW = batchVector(valueStr, line);
-                            }
-                            else
-                            {
-                                // Single value W
-                                mp.W = convertToValue(valueStr);
-                            }                          
+                            // Batch simulation case
+                            parser.is_batch = true;
+                            b4.batchL = batchVector(valueStr, line);
                         }
-                        else if (key == "L" || key == "l")
+                        else
                         {
-                            valueStr = value;
-                            if (valueStr.front() == '[' || valueStr.front() == '(')
-                            {
-                                // Batch simulation case
-                                parser.is_batch = true;
-                                mp.batchL = batchVector(valueStr, line);
-                            }
-                            else
-                            {
-                                // Single value L
-                                mp.L = convertToValue(valueStr);
-                            }
-                        }
+                            // Single value L
+                            b4.L = convertToValue(valueStr);
+                        }                          
                     }
                 }
-                // Paser modelType
-                mp.modelType = MosfetModelType::BSIM4V82;
-                // Move to CKTinstanceSetup!!!
-                // mp.bsim4v82Instance = bsim4::paserBSIM4instance(id_str, iter_bsim4->second, mp.node_vd, mp.node_vg, mp.node_vs, mp.node_vb, mp.W, mp.L);
-                parser.elements.pmos.emplace_back(mp);
             }
-            else{
-                throw ParsingException("Error: Unknown BSIM4 model type for: " + M_modelName, "UNKNOWN_BSIM4_MODEL");
-            }
+            // Move to CKTinstanceSetup!!!
+            // b4.bsim4v82Instance = bsim4::paserBSIM4instance(id_str, iter_bsim4->second, b4.node_vd, b4.node_vg, b4.node_vs, b4.node_vb, b4.W, b4.L);
+            parser.elements.bsim4.emplace_back(b4);
         }
         else
         {
