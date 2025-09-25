@@ -38,50 +38,30 @@ void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
     // Setup the mosfet instance parameters
 
     for (auto &nmos : ckt.CKTelements.nmos){
-        if(nmos.modelType == MosfetModelType::BSIM4V82){
-            const auto &iter_bsim4 = modmap.bsim4Models.find(nmos.modelName);
-            nmos.bsim4v82Instance = bsim4::paserBSIM4instance(nmos.id_str, iter_bsim4->second, nmos.node_vd, nmos.node_vg, nmos.node_vs, nmos.node_vb, nmos.W, nmos.L);
-            bsim4::instanceSetup(*nmos.bsim4v82Instance.BSIM4modPtr, nmos.bsim4v82Instance, ckt);
-            bsim4::instanceTemp(nmos.bsim4v82Instance,*nmos.bsim4v82Instance.BSIM4modPtr);
-            if (nmos.bsim4v82Instance.BSIM4trnqsMod){
-                ckt.num_of_states++; // BSIM4qcdump
-            }
-            if(nmos.bsim4v82Instance.BSIM4rbodyMod){
-                ckt.num_of_states++; // BSIM4qbs
-            }
-            if(nmos.bsim4v82Instance.BSIM4rgateMod == 3){
-                ckt.num_of_states++; // BSIM4qgmid
-            }
-            ckt.num_of_states += 3; // BSIM4qb, BSIM4qg, BSIM4qd
-        }
-        else if(nmos.modelType == MosfetModelType::LEVEL1){
-           CKTmkVolt(ckt, nmos.id_str + "#drain");
-           CKTmkVolt(ckt, nmos.id_str + "#gate");
-           CKTmkVolt(ckt, nmos.id_str + "#source");
-        }
+        CKTmkVolt(ckt, nmos.id_str + "#drain");
+        CKTmkVolt(ckt, nmos.id_str + "#gate");
+        CKTmkVolt(ckt, nmos.id_str + "#source"); 
     }
     for (auto &pmos : ckt.CKTelements.pmos){
-        if(pmos.modelType == MosfetModelType::BSIM4V82){
-            const auto &iter_bsim4 = modmap.bsim4Models.find(pmos.modelName);
-            pmos.bsim4v82Instance = bsim4::paserBSIM4instance(pmos.id_str, iter_bsim4->second, pmos.node_vd, pmos.node_vg, pmos.node_vs, pmos.node_vb, pmos.W, pmos.L);
-            bsim4::instanceSetup(*pmos.bsim4v82Instance.BSIM4modPtr, pmos.bsim4v82Instance, ckt);
-            bsim4::instanceTemp(pmos.bsim4v82Instance,*pmos.bsim4v82Instance.BSIM4modPtr);
-            if (pmos.bsim4v82Instance.BSIM4trnqsMod){
-                ckt.num_of_states++; // BSIM4qcdump
-            }
-            if(pmos.bsim4v82Instance.BSIM4rbodyMod){
-                ckt.num_of_states++; // BSIM4qbs
-            }
-            if(pmos.bsim4v82Instance.BSIM4rgateMod == 3){
-                ckt.num_of_states++; // BSIM4qgmid
-            }
-            ckt.num_of_states += 3; // BSIM4qb, BSIM4qg, BSIM4qd
+        CKTmkVolt(ckt, pmos.id_str + "#drain");
+        CKTmkVolt(ckt, pmos.id_str + "#gate");
+        CKTmkVolt(ckt, pmos.id_str + "#source");
+    }
+    for (auto &bsim4 : ckt.CKTelements.bsim4){
+        const auto &iter_bsim4 = modmap.bsim4Models.find(bsim4.modelName);
+        bsim4.bsim4v82Instance = bsim4::paserBSIM4instance(bsim4.id_str, iter_bsim4->second, bsim4.node_vd, bsim4.node_vg, bsim4.node_vs, bsim4.node_vb, bsim4.W, bsim4.L);
+        bsim4::instanceSetup(*bsim4.bsim4v82Instance.BSIM4modPtr, bsim4.bsim4v82Instance, ckt);
+        bsim4::instanceTemp(bsim4.bsim4v82Instance,*bsim4.bsim4v82Instance.BSIM4modPtr);
+        if (bsim4.bsim4v82Instance.BSIM4trnqsMod){
+            ckt.num_of_states++; // BSIM4qcdump
         }
-        else if(pmos.modelType == MosfetModelType::LEVEL1){
-           CKTmkVolt(ckt, pmos.id_str + "#drain");
-           CKTmkVolt(ckt, pmos.id_str + "#gate");
-           CKTmkVolt(ckt, pmos.id_str + "#source");
+        if(bsim4.bsim4v82Instance.BSIM4rbodyMod){
+            ckt.num_of_states++; // BSIM4qbs
         }
+        if(bsim4.bsim4v82Instance.BSIM4rgateMod == 3){
+            ckt.num_of_states++; // BSIM4qgmid
+        }
+        ckt.num_of_states += 3; // BSIM4qb, BSIM4qg, BSIM4qd
     }
     for (auto &sin : ckt.CKTelements.sinVoltages){
         sin.phase_rad = sin.phase * M_PI / 180.0;   // Convert phase to radians
@@ -216,20 +196,9 @@ void CKTloadAC(CKTcircuit &ckt){
 }
 
 void updateDeviceState(CKTcircuit &ckt){
-
-    for (auto &nmos : ckt.CKTelements.nmos)
+    for (auto &bsim4 : ckt.CKTelements.bsim4)
     {
-        if (nmos.modelType == MosfetModelType::BSIM4V82)
-        {
-            bsim4::updateState1(nmos.bsim4v82Instance);
-        }
-    }
-    for (auto &pmos : ckt.CKTelements.pmos)
-    {
-        if (pmos.modelType == MosfetModelType::BSIM4V82)
-        {
-            bsim4::updateState1(pmos.bsim4v82Instance);
-        }
+        bsim4::updateState1(bsim4.bsim4v82Instance);
     }
 }
 
