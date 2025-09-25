@@ -60,5 +60,4 @@ inline void SimulationStatistics::printStatistics() const {
     std::cout << "  MNA matrix size:     " << MNA_Matrix_size << "\n";
     std::cout << "  No. Data points:     " << num_data_points << "\n";
     std::cout << "========================================\n";
-    std::cout << "matrix_load_time: " << simTime.matrix_load_time.total().count() << " ns\n";
 }
