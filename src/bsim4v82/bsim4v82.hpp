@@ -47,6 +47,21 @@ struct bsim4v82temp
     std::shared_ptr<bsim4SizeDependParam> pParam = nullptr;
 };
 
+struct BSIM4stamp{
+    // Matrix stamps LHS
+    double  BSIM4DPbp{}, BSIM4GPbp{}, BSIM4SPbp{}, BSIM4BPdp{}, BSIM4BPgp{}, BSIM4BPsp{}, BSIM4BPbp{}, BSIM4Dd{}, BSIM4GPgp{}, BSIM4Ss{},
+        BSIM4DPdp{}, BSIM4SPsp{}, BSIM4Ddp{}, BSIM4GPdp{}, BSIM4GPsp{}, BSIM4Ssp{}, BSIM4DPsp{}, BSIM4DPd{}, BSIM4DPgp{}, BSIM4SPgp{},
+        BSIM4SPs{}, BSIM4SPdp{}, BSIM4Qq{}, BSIM4Qbp{}, BSIM4Qdp{}, BSIM4Qsp{}, BSIM4Qgp{}, BSIM4DPq{}, BSIM4SPq{}, BSIM4GPq{},
+        BSIM4GEge{}, BSIM4GEgp{}, BSIM4GPge{}, BSIM4GEdp{}, BSIM4GEsp{}, BSIM4GEbp{}, BSIM4GMdp{}, BSIM4GMgp{}, BSIM4GMgm{}, BSIM4GMge{},
+        BSIM4GMsp{}, BSIM4GMbp{}, BSIM4DPgm{}, BSIM4GPgm{}, BSIM4GEgm{}, BSIM4SPgm{}, BSIM4BPgm{}, BSIM4DPdb{}, BSIM4SPsb{}, BSIM4DBdp{},
+        BSIM4DBdb{}, BSIM4DBbp{}, BSIM4DBb{}, BSIM4BPdb{}, BSIM4BPb{}, BSIM4BPsb{}, BSIM4SBsp{}, BSIM4SBbp{}, BSIM4SBb{}, BSIM4SBsb{},
+        BSIM4Bdb{}, BSIM4Bbp{}, BSIM4Bsb{}, BSIM4Bb{}, BSIM4Dgp{}, BSIM4Dsp{}, BSIM4Dbp{}, BSIM4Sdp{}, BSIM4Sgp{}, BSIM4Sbp{};
+
+    // Matrix stamps RHS
+    double RHSdNodePrime{}, RHSgNodePrime{}, RHSgNodeExt{}, RHSgNodeMid{}, RHSbNodePrime{}, RHSsNodePrime{}, RHSdbNode{}, RHSsbNode{},
+        RHSdNode{}, RHSsNode{}, RHSqNode{};
+};
+
 struct bsim4SizeDependParam
 {
     double Width = 0.0;
