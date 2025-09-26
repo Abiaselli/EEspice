@@ -9,7 +9,7 @@
 #include "CKTmkVolt.hpp"
 #include "bsim4v82/bsim4v82setup.hpp"
 #include "bsim4v82/bsim4v82temp.hpp"
-#include "bsim4v82/bsim4v82stamp.hpp"
+#include "bsim4v82/bsim4v82load/bsim4v82load.hpp"
 #include "bsim4v82/bsim4v82paser.hpp"
 
 bool CKTisNonLinear(const CircuitElements &elements)

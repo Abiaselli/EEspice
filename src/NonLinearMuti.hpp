@@ -6,7 +6,7 @@
 #include "CKT.hpp"
 #include "gal_variables.hpp"
 #include "device.hpp"
-#include "bsim4v82/bsim4v82stamp.hpp"
+#include "bsim4v82/bsim4v82load/bsim4v82load.hpp"
 
 // Helper function to safely merge thread-local matrices
 inline void merge_matrices(arma::mat &target_LHS, arma::vec &target_RHS,

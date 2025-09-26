@@ -21,7 +21,7 @@
 #include "CKT.hpp"
 #include "device.hpp"
 #include "bsim4v82/bsim4v82.hpp"
-#include "bsim4v82/bsim4v82stamp.hpp"
+#include "bsim4v82/bsim4v82load/bsim4v82load.hpp"
 #include "NonLinearMuti.hpp"
 
 std::pair<arma::mat, arma::vec> Dynamic(const CKTcircuit &ckt, const double h, const arma::vec &pre_global_solution, const int mode, const double time_trans, SimulationTime &simTime)
