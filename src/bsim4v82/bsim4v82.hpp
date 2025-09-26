@@ -48,6 +48,8 @@ struct bsim4v82temp
 };
 
 struct BSIM4stamp{
+    // flag of whether stamps need to be loaded into the matrix
+    bool load = false;
     // Matrix stamps LHS
     double  BSIM4DPbp{}, BSIM4GPbp{}, BSIM4SPbp{}, BSIM4BPdp{}, BSIM4BPgp{}, BSIM4BPsp{}, BSIM4BPbp{}, BSIM4Dd{}, BSIM4GPgp{}, BSIM4Ss{},
         BSIM4DPdp{}, BSIM4SPsp{}, BSIM4Ddp{}, BSIM4GPdp{}, BSIM4GPsp{}, BSIM4Ssp{}, BSIM4DPsp{}, BSIM4DPd{}, BSIM4DPgp{}, BSIM4SPgp{},
