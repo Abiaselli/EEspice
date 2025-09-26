@@ -4382,7 +4382,7 @@ line755:
     {   
         // goto line1000;
         s.load = false; // do not load stamps into the matrix
-        return;
+        return s;
     }
 
     if (!ChargeComputationNeeded)
