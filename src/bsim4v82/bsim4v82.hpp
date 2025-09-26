@@ -1,6 +1,3 @@
-/*
-    bsim4def.h - BSIM4v4.8.2
-*/
 /* ******************************************************************************
    *  BSIM4 4.8.2 released by Chetan Kumar Dabhi 01/01/2020                     *
    *  BSIM4 Model Equations                                                     *
@@ -47,6 +44,12 @@ struct bsim4v82temp
     std::shared_ptr<bsim4SizeDependParam> pParam = nullptr;
 };
 
+/**
+ * @struct BSIM4stamp
+ * @brief Holds all the calculated conductance and current values for stamping into the system matrices.
+ * This struct serves as the return type for the calculation function, separating the physics calculations
+ * from the matrix modification logic.
+ */
 struct BSIM4stamp{
     // flag of whether stamps need to be loaded into the matrix
     bool load = false;
