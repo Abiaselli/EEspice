@@ -7,7 +7,6 @@
 #include "gal_variables.hpp"
 #include "device.hpp"
 #include "bsim4v82/bsim4v82load/bsim4v82load.hpp"
-#include "bsim4v82/bsim4v82load/bsim4v82applyStampsatomic.hpp"
 
 
 std::pair<arma::mat, arma::vec> NonLinearMutithreaded(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
