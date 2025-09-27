@@ -4,6 +4,7 @@
 #include <vector>
 #include <variant>
 #include <map>
+#include <unordered_map>
 #include "sim_variables.hpp"
 #include "simulation_exceptions.hpp"
 #include "bsim4v82/bsim4v82.hpp"
