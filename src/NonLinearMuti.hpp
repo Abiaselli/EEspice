@@ -2,11 +2,15 @@
 #include <iostream>
 #include <vector>
 #include <future>
-#include <mutex>
 #include "CKT.hpp"
 #include "gal_variables.hpp"
 #include "device.hpp"
 #include "bsim4v82/bsim4v82load/bsim4v82load.hpp"
+
+struct CalculationResult {
+    bsim4::BSIM4stamp stamp;
+    bsim4::BSIM4V82 updated_instance_state;
+};
 
 
 std::pair<arma::mat, arma::vec> NonLinearMutithreaded(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
@@ -48,63 +52,68 @@ std::pair<arma::mat, arma::vec> NonLinearMutithreaded(CKTcircuit &ckt, const arm
     // }
 
     // Parallel BSIM4: compute stamps in parallel with detach_task
-    // if (!ckt.CKTelements.bsim4.empty()) {
-    //     // Step 1: Create a vector to hold the results from each thread.
-    //     std::vector<bsim4::BSIM4stamp> results(ckt.CKTelements.bsim4.size());
+    if (!ckt.CKTelements.bsim4.empty()) {
+        // Step 1: Create a vector to hold the results from each thread.
+        std::vector<CalculationResult> results(ckt.CKTelements.bsim4.size());
 
-    //     for (size_t i = 0; i < ckt.CKTelements.bsim4.size(); ++i) {
-    //         // Submit tasks and store futures
-    //         pool_global.detach_task([&, i]() {
-    //             const bsim4::BSIM4model &b4model = *ckt.CKTelements.bsim4[i].bsim4v82Instance.BSIM4modPtr;
-    //             bsim4::BSIM4V82 &b4instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
+        for (size_t i = 0; i < ckt.CKTelements.bsim4.size(); ++i) {
+            // Submit tasks and store futures
+            pool_global.detach_task([&, i]() {
+                const bsim4::BSIM4model &b4model = *ckt.CKTelements.bsim4[i].bsim4v82Instance.BSIM4modPtr;
+                // *** KEY CHANGE: Create a local copy ***
+                bsim4::BSIM4V82 local_instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
                 
-    //             // Calculate and store the result in the corresponding slot. NO LOCKING.
-    //             results[i] = bsim4::BSIM4calculateStamps(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin);
-    //         });
-    //     }
+                // Calculate and store the result in the corresponding slot. NO LOCKING.
+                results[i].stamp = bsim4::BSIM4calculateStamps(ckt, b4model, local_instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin);
+                // *** KEY CHANGE: Store the modified state ***
+                results[i].updated_instance_state = local_instance;
+            });
+        }
 
-    //     // Wait for all calculations to complete.
+        // Wait for all calculations to complete.
+        pool_global.wait();
+
+        // Step 2: Now, apply all the results serially. This is very fast.
+        for (size_t i = 0; i < ckt.CKTelements.bsim4.size(); ++i) {
+            // Update the original instance with the modified state
+            ckt.CKTelements.bsim4[i].bsim4v82Instance = results[i].updated_instance_state;
+            bsim4::bsim4applyStamps(ckt.CKTelements.bsim4[i].bsim4v82Instance, results[i].stamp, LHS, RHS);
+        }
+    }
+
+    // Parallel BSIM4: compute stamps in parallel with detach_loop, then apply serially
+    // const std::size_t N = ckt.CKTelements.bsim4.size();
+    // if (N > 0) {
+    //     // 1) pick a good num_blocks: ~threads^2/2, clamped to [threads, N]
+    //     const std::size_t threads = pool_global.get_thread_count();
+    //     const std::size_t heuristic = (threads * threads) / 2; // avoids over-blocking vs. threads^2
+    //     const std::size_t num_blocks =
+    //         std::max<std::size_t>(threads, std::min<std::size_t>(heuristic, N));
+    //     // const std::size_t num_blocks = 2;
+
+    //     // 2) compute stamps in parallel, one index per task; each writes to its own slot
+    //     std::vector<bsim4::BSIM4stamp> results(N);
+    //     pool_global.detach_loop(
+    //         std::size_t{0}, N,
+    //         [&](std::size_t i) {
+    //             const auto &dev = ckt.CKTelements.bsim4[i];
+    //             const bsim4::BSIM4model &b4model = *dev.bsim4v82Instance.BSIM4modPtr;
+    //             bsim4::BSIM4V82 &b4instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
+
+    //             results[i] = bsim4::BSIM4calculateStamps(
+    //                 ckt, b4model, b4instance, ckt.spiceCompatible,
+    //                 pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin);
+    //         },
+    //         num_blocks);
+
+    //     // 3) wait for all per-device computations to finish
     //     pool_global.wait();
 
-    //     // Step 2: Now, apply all the results serially. This is very fast.
-    //     for (size_t i = 0; i < ckt.CKTelements.bsim4.size(); ++i) {
+    //     // 4) apply stamps to the global matrices (fast, serial; avoids lock contention)
+    //     for (std::size_t i = 0; i < N; ++i) {
     //         bsim4::bsim4applyStamps(ckt.CKTelements.bsim4[i].bsim4v82Instance, results[i], LHS, RHS);
     //     }
     // }
-
-    // Parallel BSIM4: compute stamps in parallel with detach_loop, then apply serially
-    const std::size_t N = ckt.CKTelements.bsim4.size();
-    if (N > 0) {
-        // 1) pick a good num_blocks: ~threads^2/2, clamped to [threads, N]
-        const std::size_t threads = pool_global.get_thread_count();
-        const std::size_t heuristic = (threads * threads) / 2; // avoids over-blocking vs. threads^2
-        // const std::size_t num_blocks =
-        //     std::max<std::size_t>(threads, std::min<std::size_t>(heuristic, N));
-        const std::size_t num_blocks = 2;
-
-        // 2) compute stamps in parallel, one index per task; each writes to its own slot
-        std::vector<bsim4::BSIM4stamp> results(N);
-        pool_global.detach_loop(
-            std::size_t{0}, N,
-            [&](std::size_t i) {
-                const auto &dev = ckt.CKTelements.bsim4[i];
-                const bsim4::BSIM4model &b4model = *dev.bsim4v82Instance.BSIM4modPtr;
-                bsim4::BSIM4V82 &b4instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
-
-                results[i] = bsim4::BSIM4calculateStamps(
-                    ckt, b4model, b4instance, ckt.spiceCompatible,
-                    pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin);
-            },
-            num_blocks);
-
-        // 3) wait for all per-device computations to finish
-        pool_global.wait();
-
-        // 4) apply stamps to the global matrices (fast, serial; avoids lock contention)
-        for (std::size_t i = 0; i < N; ++i) {
-            bsim4::bsim4applyStamps(ckt.CKTelements.bsim4[i].bsim4v82Instance, results[i], LHS, RHS);
-        }
-    }
 
     // // Parallel BSIM4 using detach_blocks
     // const std::size_t N = ckt.CKTelements.bsim4.size();
