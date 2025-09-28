@@ -121,7 +121,7 @@ struct PMOS
     std::vector<double> batchL;
 };
 
-struct BSIM4
+struct alignas(std::hardware_destructive_interference_size) BSIM4
 {
     std::string id_str;
     int id{};
