@@ -7,18 +7,13 @@
 #include "device.hpp"
 #include "bsim4v82/bsim4v82load/bsim4v82load.hpp"
 
-struct CalculationResult {
-    bsim4::BSIM4stamp stamp;
-    bsim4::BSIM4V82 updated_instance_state;
-};
-
 /**
  * @struct ThreadBuf
  * @brief Thread-local storage for BSIM4 parallel processing results.
  * Each thread accumulates its results in its own buffer, avoiding false sharing
  * and reducing upfront memory allocation compared to a pre-sized global vector.
  */
-struct ThreadBuf {
+struct alignas(std::hardware_destructive_interference_size) ThreadBuf {
     std::vector<size_t> idx;                    // Device indices processed by this thread
     std::vector<bsim4::BSIM4V82> states;        // Updated instance states
     std::vector<bsim4::BSIM4stamp> stamps;      // Computed stamps
@@ -63,7 +58,7 @@ std::pair<arma::mat, arma::vec> NonLinearMutithreaded(CKTcircuit &ckt, const arm
                 const size_t chunk_start = thread_id * num_devices / num_threads;
                 const size_t chunk_end = (thread_id + 1) * num_devices / num_threads;
 
-                // reverse tls_buffer
+                // reserve tls_buffer
                 tls_buffer.idx.reserve(chunk_end - chunk_start);
                 tls_buffer.states.reserve(chunk_end - chunk_start);
                 tls_buffer.stamps.reserve(chunk_end - chunk_start);
@@ -86,7 +81,7 @@ std::pair<arma::mat, arma::vec> NonLinearMutithreaded(CKTcircuit &ckt, const arm
                 }
 
                 // Copy thread-local results to the shared collection
-                thread_results[thread_id] = tls_buffer;
+                thread_results[thread_id] = std::move(tls_buffer);
             });
         }
 

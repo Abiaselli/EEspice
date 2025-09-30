@@ -3,4 +3,4 @@
 
 // Store global data for the simulator
 
-BS::thread_pool pool_global; // Global thread pool for parallel tasks
+BS::thread_pool pool_global(8); // Global thread pool for parallel tasks
