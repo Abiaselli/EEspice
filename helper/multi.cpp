@@ -1,5 +1,5 @@
 #define ARMA_DONT_USE_WRAPPER
-// #define ARMA_USE_MKL_ALLOC
+#define ARMA_USE_MKL_ALLOC
 #include <iostream>
 #include <chrono>
 #include <vector>
@@ -19,7 +19,8 @@
 #include "bsim4v82/bsim4v82load/bsim4v82calculateStamps.hpp"
 #include "BS_thread_pool/BS_thread_pool.hpp"
 
-constexpr size_t num_instances = 1e7; // Number of BSIM4 instances
+constexpr size_t num_instances = 60 * 5; // Number of BSIM4 instances
+constexpr int num_iterations = 1e7 / 5; // Number of iterations for benchmarking
 std::vector<bsim4::BSIM4stamp> stamps(num_instances);
 
 
@@ -66,13 +67,13 @@ void single(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
         const size_t num_devices = ckt.CKTelements.bsim4.size();
 
         // Step 1: Serial computation - each iteration processes one device
-        for (auto &b4 : ckt.CKTelements.bsim4) {
-            const bsim4::BSIM4model &b4model = *b4.bsim4v82Instance.BSIM4modPtr;
+        for (size_t i = 0; i < ckt.CKTelements.bsim4.size(); ++i) {
+            const bsim4::BSIM4model &b4model = *ckt.CKTelements.bsim4[i].bsim4v82Instance.BSIM4modPtr;
             // Create a local copy of the instance state
-            bsim4::BSIM4V82 &instance = b4.bsim4v82Instance;
+            bsim4::BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
 
             // Calculate stamps
-            bsim4::BSIM4stamp stamp = bsim4::BSIM4calculateStamps(
+            stamps[i] = bsim4::BSIM4calculateStamps(
                 ckt, b4model, instance, ckt.spiceCompatible,
                 pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin);
         }
@@ -107,18 +108,20 @@ int main(){
     single(ckt, pre_NR_solution);
     std::cout << "Warm-up complete.\n\n";
 
-    // Benchmark single-threaded execution
-    std::cout << "Benchmarking single-threaded execution...\n";
+    // Benchmark single-threaded execution (simulating num_iterations of N-R iterations)
+    std::cout << "Benchmarking single-threaded execution (" << num_iterations << " iterations)...\n";
     auto start = std::chrono::high_resolution_clock::now();
-    single(ckt, pre_NR_solution);
+    for (int iter = 0; iter < num_iterations; ++iter) {
+        single(ckt, pre_NR_solution);
+    }
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> single_time = end - start;
 
-    std::cout << "Single-threaded time: " << std::fixed << std::setprecision(6)
+    std::cout << "Single-threaded total time: " << std::fixed << std::setprecision(6)
               << single_time.count() << " seconds\n\n";
 
     // Test different thread counts
-    std::vector<int> thread_counts = {1, 2, 4, 8, 16, 20, 24};
+    std::vector<int> thread_counts = {1, 2, 4, 8, 16, 24, 32, 48, 64, 96, 128};
     double best_speedup = 0;
     int best_threads = 1;
 
@@ -134,7 +137,9 @@ int main(){
         omp_set_num_threads(num_threads);
 
         start = std::chrono::high_resolution_clock::now();
-        multiomp(ckt, pre_NR_solution);
+        for (int iter = 0; iter < num_iterations; ++iter) {
+            multiomp(ckt, pre_NR_solution);
+        }
         end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> parallel_time = end - start;
 
