@@ -1,0 +1,160 @@
+#define ARMA_DONT_USE_WRAPPER
+// #define ARMA_USE_MKL_ALLOC
+#include <iostream>
+#include <chrono>
+#include <vector>
+#include <iomanip>
+#include <memory>
+#include <algorithm>
+#include <numeric>
+#include <random>
+#include <fstream>
+#include <omp.h>
+
+// EEspice includes
+#include "CKT.hpp"
+#include "global.hpp"
+#include "bsim4v82/bsim4v82setup.hpp"
+#include "bsim4v82/bsim4v82temp.hpp"
+#include "bsim4v82/bsim4v82load/bsim4v82calculateStamps.hpp"
+#include "BS_thread_pool/BS_thread_pool.hpp"
+
+constexpr size_t num_instances = 1e7; // Number of BSIM4 instances
+std::vector<bsim4::BSIM4stamp> stamps(num_instances);
+
+
+std::shared_ptr<bsim4::BSIM4model> CreateBSIM4Model(){
+    auto model = std::make_shared<bsim4::BSIM4model>();
+    // Setup the model using the default temperature
+    bsim4::modelSetup(*model, nomTemp);
+    // Setup the model using the actual temperature
+    bsim4::modelTemp(*model, nomTemp);
+    return model;
+}
+
+std::vector<BSIM4> CreateBSIM4Instances(std::shared_ptr<bsim4::BSIM4model> &model, size_t num_instances){
+    std::vector<BSIM4> bsim4(num_instances);
+    CKTcircuit ckt; // Dummy circuit for instance setup
+    for(auto &b4 : bsim4){
+        // Assign the model pointer
+        b4.bsim4v82Instance.BSIM4modPtr = model;
+        // Setup the instance using the default temperature
+        bsim4::instanceSetup(*model, b4.bsim4v82Instance, ckt);
+        // Setup the instance using the actual temperature
+        bsim4::instanceTemp(b4.bsim4v82Instance, *model);
+    }
+    return bsim4;
+}
+
+
+void multiomp(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
+    // Parallel BSIM4: compute stamps in parallel using OpenMP (one device per thread)
+    if (!ckt.CKTelements.bsim4.empty()) {
+        // Parallel computation - each iteration processes one device
+        #pragma omp parallel for
+        for (size_t i = 0; i < ckt.CKTelements.bsim4.size(); ++i) {
+            const bsim4::BSIM4model &b4model = *ckt.CKTelements.bsim4[i].bsim4v82Instance.BSIM4modPtr;
+            bsim4::BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
+            // Calculate stamps
+            stamps[i] = bsim4::BSIM4calculateStamps(ckt, b4model, instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin);
+        }
+    }
+}
+
+void single(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
+    if (!ckt.CKTelements.bsim4.empty()) {
+        const size_t num_devices = ckt.CKTelements.bsim4.size();
+
+        // Step 1: Serial computation - each iteration processes one device
+        for (auto &b4 : ckt.CKTelements.bsim4) {
+            const bsim4::BSIM4model &b4model = *b4.bsim4v82Instance.BSIM4modPtr;
+            // Create a local copy of the instance state
+            bsim4::BSIM4V82 &instance = b4.bsim4v82Instance;
+
+            // Calculate stamps
+            bsim4::BSIM4stamp stamp = bsim4::BSIM4calculateStamps(
+                ckt, b4model, instance, ckt.spiceCompatible,
+                pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin);
+        }
+    }
+}
+
+
+int main(){
+
+    // 1. Create a circuit
+    CKTcircuit ckt;
+
+    // 2. bsim4 model
+    auto bsim4model = CreateBSIM4Model();
+
+    // 3. Create some instances
+    ckt.CKTelements.bsim4 = CreateBSIM4Instances(bsim4model, num_instances);
+
+    // 4. pre solution vector
+    arma::vec pre_NR_solution = arma::vec(num_instances * 4, arma::fill::randu); // Assuming 4 nodes per instance
+
+    // Print benchmark header
+    std::cout << "BSIM4 Calculation Benchmark\n";
+    std::cout << "============================\n";
+    std::cout << "Number of BSIM4 instances: " << num_instances << "\n";
+    std::cout << "CPU cores: " << omp_get_num_procs() << "\n";
+    std::cout << "OpenMP max threads: " << omp_get_max_threads() << "\n";
+    // std::cout << "Thread pool threads: " << pool.get_thread_count() << "\n\n";
+
+    // Warm-up run to initialize caches
+    std::cout << "Running warm-up...\n";
+    single(ckt, pre_NR_solution);
+    std::cout << "Warm-up complete.\n\n";
+
+    // Benchmark single-threaded execution
+    std::cout << "Benchmarking single-threaded execution...\n";
+    auto start = std::chrono::high_resolution_clock::now();
+    single(ckt, pre_NR_solution);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> single_time = end - start;
+
+    std::cout << "Single-threaded time: " << std::fixed << std::setprecision(6)
+              << single_time.count() << " seconds\n\n";
+
+    // Test different thread counts
+    std::vector<int> thread_counts = {1, 2, 4, 8, 16, 20, 24};
+    double best_speedup = 0;
+    int best_threads = 1;
+
+    std::cout << "Testing different thread counts:\n";
+    std::cout << "================================\n";
+
+    for (int num_threads : thread_counts) {
+        if (num_threads > omp_get_num_procs()) {
+            std::cout << "Skipping " << num_threads << " threads (exceeds available cores)\n";
+            continue;
+        }
+
+        omp_set_num_threads(num_threads);
+
+        start = std::chrono::high_resolution_clock::now();
+        multiomp(ckt, pre_NR_solution);
+        end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> parallel_time = end - start;
+
+        double speedup = single_time.count() / parallel_time.count();
+        double efficiency = (speedup / num_threads) * 100.0;
+
+        std::cout << "Parallel (" << std::setw(2) << num_threads << " threads): "
+                  << std::fixed << std::setprecision(6) << parallel_time.count()
+                  << " seconds  |  Speedup: " << std::setprecision(2) << speedup
+                  << "x  |  Efficiency: " << std::setprecision(1) << efficiency << "%\n";
+        std::cout.flush();
+
+        if (speedup > best_speedup) {
+            best_speedup = speedup;
+            best_threads = num_threads;
+        }
+    }
+
+    std::cout << "\nBest configuration: " << best_threads << " threads with "
+              << std::fixed << std::setprecision(2) << best_speedup << "x speedup\n";
+
+    return 0;
+}
