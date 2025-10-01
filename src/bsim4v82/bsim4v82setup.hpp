@@ -178,7 +178,7 @@ void modelSetup(BSIM4model &model, double CKTnomTemp){
         printf("Warning: tempMod has been set to its default value: 0.\n");
     }
     if (!model.BSIM4versionGiven)
-        model.BSIM4version = 4.82;
+        model.BSIM4version = "4.82";
     if (!model.BSIM4toxrefGiven)
         model.BSIM4toxref = 30.0e-10;
     if (!model.BSIM4eotGiven)
