@@ -17,7 +17,7 @@
 #include "bsim4v82/bsim4v82setup.hpp"
 #include "bsim4v82/bsim4v82temp.hpp"
 #include "bsim4v82/bsim4v82load/bsim4v82calculateStamps.hpp"
-#include "BS_thread_pool/BS_thread_pool.hpp"
+#include "bsim4v82/bsim4v82load/bsim4v82applyStamps.hpp"
 
 constexpr size_t num_instances = 60 * 5; // Number of BSIM4 instances
 constexpr int num_iterations = 1e7 / 5; // Number of iterations for benchmarking
@@ -33,9 +33,29 @@ std::shared_ptr<bsim4::BSIM4model> CreateBSIM4Model(){
     return model;
 }
 
+void CreateNodes(std::vector<BSIM4> &bsim4){
+    // Create nodes for the circuit
+    for (int i = 0; i < bsim4.size(); ++i) {
+        const int node = i + 1;
+        bsim4[i].bsim4v82Instance.BSIM4dNode = node;
+        bsim4[i].bsim4v82Instance.BSIM4gNodeExt = node;
+        bsim4[i].bsim4v82Instance.BSIM4sNode = node;
+        bsim4[i].bsim4v82Instance.BSIM4bNode = node;
+        bsim4[i].bsim4v82Instance.BSIM4dNodePrime = node;
+        bsim4[i].bsim4v82Instance.BSIM4gNodePrime = node;
+        bsim4[i].bsim4v82Instance.BSIM4gNodeMid = node;
+        bsim4[i].bsim4v82Instance.BSIM4sNodePrime = node;
+        bsim4[i].bsim4v82Instance.BSIM4bNodePrime = node;
+        bsim4[i].bsim4v82Instance.BSIM4dbNode = node;
+        bsim4[i].bsim4v82Instance.BSIM4sbNode = node;
+        bsim4[i].bsim4v82Instance.BSIM4qNode = node; 
+    }
+}
+
 std::vector<BSIM4> CreateBSIM4Instances(std::shared_ptr<bsim4::BSIM4model> &model, size_t num_instances){
     std::vector<BSIM4> bsim4(num_instances);
     CKTcircuit ckt; // Dummy circuit for instance setup
+    CreateNodes(bsim4); // Create nodes for each instance
     for(auto &b4 : bsim4){
         // Assign the model pointer
         b4.bsim4v82Instance.BSIM4modPtr = model;
@@ -48,7 +68,7 @@ std::vector<BSIM4> CreateBSIM4Instances(std::shared_ptr<bsim4::BSIM4model> &mode
 }
 
 
-void multiomp(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
+void multiomp(CKTcircuit &ckt, const arma::vec &pre_NR_solution, arma::mat &LHS, arma::vec &RHS){
     // Parallel BSIM4: compute stamps in parallel using OpenMP (one device per thread)
     if (!ckt.CKTelements.bsim4.empty()) {
         // Parallel computation - each iteration processes one device
@@ -59,10 +79,15 @@ void multiomp(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
             // Calculate stamps
             stamps[i] = bsim4::BSIM4calculateStamps(ckt, b4model, instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin);
         }
+        
+        for (size_t i = 0; i < ckt.CKTelements.bsim4.size(); ++i) {
+            bsim4::BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
+            bsim4::bsim4applyStamps(instance, stamps[i], LHS, RHS);
+        }
     }
 }
 
-void single(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
+void single(CKTcircuit &ckt, const arma::vec &pre_NR_solution, arma::mat &LHS, arma::vec &RHS){
     if (!ckt.CKTelements.bsim4.empty()) {
         const size_t num_devices = ckt.CKTelements.bsim4.size();
 
@@ -73,9 +98,12 @@ void single(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
             bsim4::BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
 
             // Calculate stamps
-            stamps[i] = bsim4::BSIM4calculateStamps(
+            const auto stamp = bsim4::BSIM4calculateStamps(
                 ckt, b4model, instance, ckt.spiceCompatible,
                 pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin);
+
+            // Apply the calculated stamps to the global LHS and RHS matrices
+            bsim4::bsim4applyStamps(instance, stamp, LHS, RHS);
         }
     }
 }
@@ -93,6 +121,8 @@ int main(){
     ckt.CKTelements.bsim4 = CreateBSIM4Instances(bsim4model, num_instances);
 
     // 4. pre solution vector
+    arma::mat LHS = arma::mat(num_instances * 4, num_instances * 4, arma::fill::randu); // Assuming 4 nodes per instance
+    arma::vec RHS = arma::vec(num_instances * 4, arma::fill::randu);
     arma::vec pre_NR_solution = arma::vec(num_instances * 4, arma::fill::randu); // Assuming 4 nodes per instance
 
     // Print benchmark header
@@ -105,14 +135,14 @@ int main(){
 
     // Warm-up run to initialize caches
     std::cout << "Running warm-up...\n";
-    single(ckt, pre_NR_solution);
+    single(ckt, pre_NR_solution, LHS, RHS);
     std::cout << "Warm-up complete.\n\n";
 
     // Benchmark single-threaded execution (simulating num_iterations of N-R iterations)
     std::cout << "Benchmarking single-threaded execution (" << num_iterations << " iterations)...\n";
     auto start = std::chrono::high_resolution_clock::now();
     for (int iter = 0; iter < num_iterations; ++iter) {
-        single(ckt, pre_NR_solution);
+        single(ckt, pre_NR_solution, LHS, RHS);
     }
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> single_time = end - start;
@@ -138,7 +168,7 @@ int main(){
 
         start = std::chrono::high_resolution_clock::now();
         for (int iter = 0; iter < num_iterations; ++iter) {
-            multiomp(ckt, pre_NR_solution);
+            multiomp(ckt, pre_NR_solution, LHS, RHS);
         }
         end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> parallel_time = end - start;
