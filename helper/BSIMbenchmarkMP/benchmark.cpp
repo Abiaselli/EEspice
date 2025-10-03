@@ -16,8 +16,12 @@
 #include "global.hpp"
 #include "bsim4v82/bsim4v82setup.hpp"
 #include "bsim4v82/bsim4v82temp.hpp"
-#include "bsim4v82/bsim4v82load/bsim4v82calculateStamps.hpp"
-#include "bsim4v82/bsim4v82load/bsim4v82applyStamps.hpp"
+
+// Benchmarking includes
+#include "calomp.hpp"
+#include "loadomp.hpp"
+#include "single.hpp"
+
 
 constexpr size_t num_instances = 60 * 5; // Number of BSIM4 instances
 constexpr int num_iterations = 1e7 / 5; // Number of iterations for benchmarking
@@ -68,47 +72,6 @@ std::vector<BSIM4> CreateBSIM4Instances(std::shared_ptr<bsim4::BSIM4model> &mode
 }
 
 
-void multiomp(CKTcircuit &ckt, const arma::vec &pre_NR_solution, arma::mat &LHS, arma::vec &RHS){
-    // Parallel BSIM4: compute stamps in parallel using OpenMP (one device per thread)
-    if (!ckt.CKTelements.bsim4.empty()) {
-        // Parallel computation - each iteration processes one device
-        #pragma omp parallel for
-        for (size_t i = 0; i < ckt.CKTelements.bsim4.size(); ++i) {
-            const bsim4::BSIM4model &b4model = *ckt.CKTelements.bsim4[i].bsim4v82Instance.BSIM4modPtr;
-            bsim4::BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
-            // Calculate stamps
-            stamps[i] = bsim4::BSIM4calculateStamps(ckt, b4model, instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin);
-        }
-        
-        for (size_t i = 0; i < ckt.CKTelements.bsim4.size(); ++i) {
-            bsim4::BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
-            bsim4::bsim4applyStamps(instance, stamps[i], LHS, RHS);
-        }
-    }
-}
-
-void single(CKTcircuit &ckt, const arma::vec &pre_NR_solution, arma::mat &LHS, arma::vec &RHS){
-    if (!ckt.CKTelements.bsim4.empty()) {
-        const size_t num_devices = ckt.CKTelements.bsim4.size();
-
-        // Step 1: Serial computation - each iteration processes one device
-        for (size_t i = 0; i < ckt.CKTelements.bsim4.size(); ++i) {
-            const bsim4::BSIM4model &b4model = *ckt.CKTelements.bsim4[i].bsim4v82Instance.BSIM4modPtr;
-            // Create a local copy of the instance state
-            bsim4::BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
-
-            // Calculate stamps
-            const auto stamp = bsim4::BSIM4calculateStamps(
-                ckt, b4model, instance, ckt.spiceCompatible,
-                pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin);
-
-            // Apply the calculated stamps to the global LHS and RHS matrices
-            bsim4::bsim4applyStamps(instance, stamp, LHS, RHS);
-        }
-    }
-}
-
-
 int main(){
 
     // 1. Create a circuit
@@ -135,14 +98,14 @@ int main(){
 
     // Warm-up run to initialize caches
     std::cout << "Running warm-up...\n";
-    single(ckt, pre_NR_solution, LHS, RHS);
+    calsingle(ckt, pre_NR_solution, LHS, RHS, stamps);
     std::cout << "Warm-up complete.\n\n";
 
     // Benchmark single-threaded execution (simulating num_iterations of N-R iterations)
     std::cout << "Benchmarking single-threaded execution (" << num_iterations << " iterations)...\n";
     auto start = std::chrono::high_resolution_clock::now();
     for (int iter = 0; iter < num_iterations; ++iter) {
-        single(ckt, pre_NR_solution, LHS, RHS);
+        calsingle(ckt, pre_NR_solution, LHS, RHS, stamps);
     }
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> single_time = end - start;
@@ -168,7 +131,7 @@ int main(){
 
         start = std::chrono::high_resolution_clock::now();
         for (int iter = 0; iter < num_iterations; ++iter) {
-            multiomp(ckt, pre_NR_solution, LHS, RHS);
+            calomp(ckt, pre_NR_solution, LHS, RHS, stamps);
         }
         end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> parallel_time = end - start;
