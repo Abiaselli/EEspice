@@ -1,6 +1,7 @@
 #pragma once
 #include "CKT.hpp"
 #include "bsim4v82/bsim4v82load/bsim4v82calculateStamps.hpp"
+#include <omp.h>
 
 /** 
  * @brief Benchmark function for testing OpenMP multi-threaded BSIM4 stamp calculation
