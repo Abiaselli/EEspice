@@ -131,21 +131,29 @@ int main(){
 
         omp_set_num_threads(num_threads);
 
+        double total_calc_time = 0.0;
+        double total_apply_time = 0.0;
+
         start = std::chrono::high_resolution_clock::now();
         for (int iter = 0; iter < num_iterations; ++iter) {
             // calomp(ckt, pre_NR_solution, LHS, RHS, stamps);
-            loadomp(ckt, pre_NR_solution, LHS, RHS, stamps);
+            LoadOMPTiming timing = loadomp(ckt, pre_NR_solution, LHS, RHS, stamps);
+            total_calc_time += timing.parallel_calc_time;
+            total_apply_time += timing.apply_stamps_time;
         }
         end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> parallel_time = end - start;
 
         double speedup = single_time.count() / parallel_time.count();
         double efficiency = (speedup / num_threads) * 100.0;
+        double total_loadomp_time = total_calc_time + total_apply_time;
+        double apply_percentage = (total_apply_time / total_loadomp_time) * 100.0;
 
         std::cout << "Parallel (" << std::setw(2) << num_threads << " threads): "
                   << std::fixed << std::setprecision(6) << parallel_time.count()
                   << " seconds  |  Speedup: " << std::setprecision(2) << speedup
-                  << "x  |  Efficiency: " << std::setprecision(1) << efficiency << "%\n";
+                  << "x  |  Efficiency: " << std::setprecision(1) << efficiency << "%"
+                  << "  |  applyStamps: " << std::setprecision(1) << apply_percentage << "%\n";
         std::cout.flush();
 
         if (speedup > best_speedup) {
