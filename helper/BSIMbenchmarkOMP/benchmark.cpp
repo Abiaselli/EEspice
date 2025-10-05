@@ -98,14 +98,16 @@ int main(){
 
     // Warm-up run to initialize caches
     std::cout << "Running warm-up...\n";
-    calsingle(ckt, pre_NR_solution, LHS, RHS, stamps);
+    // calsingle(ckt, pre_NR_solution, LHS, RHS, stamps);
+    loadsingle(ckt, pre_NR_solution, LHS, RHS);
     std::cout << "Warm-up complete.\n\n";
 
     // Benchmark single-threaded execution (simulating num_iterations of N-R iterations)
     std::cout << "Benchmarking single-threaded execution (" << num_iterations << " iterations)...\n";
     auto start = std::chrono::high_resolution_clock::now();
     for (int iter = 0; iter < num_iterations; ++iter) {
-        calsingle(ckt, pre_NR_solution, LHS, RHS, stamps);
+        // calsingle(ckt, pre_NR_solution, LHS, RHS, stamps);
+        loadsingle(ckt, pre_NR_solution, LHS, RHS);
     }
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> single_time = end - start;
@@ -131,7 +133,8 @@ int main(){
 
         start = std::chrono::high_resolution_clock::now();
         for (int iter = 0; iter < num_iterations; ++iter) {
-            calomp(ckt, pre_NR_solution, LHS, RHS, stamps);
+            // calomp(ckt, pre_NR_solution, LHS, RHS, stamps);
+            loadomp(ckt, pre_NR_solution, LHS, RHS, stamps);
         }
         end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> parallel_time = end - start;
