@@ -3,6 +3,7 @@
 *.so
 *.csv
 *.txt
+*.data
 output.txt
 temp
 .vscode
