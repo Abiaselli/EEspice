@@ -4,6 +4,7 @@
 *.csv
 *.txt
 *.data
+*.png
 output.txt
 temp
 .vscode
