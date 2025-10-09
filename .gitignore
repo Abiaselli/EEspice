@@ -13,5 +13,6 @@ temp
 test.cpp
 CLAUDE.md
 massif.out.*
+venv
 
 
