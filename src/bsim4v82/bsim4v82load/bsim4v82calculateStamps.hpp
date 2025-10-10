@@ -23,8 +23,6 @@ namespace bsim4{
 BSIM4stamp BSIM4calculateStamps(const CKTcircuit &ckt, const BSIM4model &model, BSIM4V82 &instance, const SPICECompatible &spice, const arma::vec &presolution,
     const double CKTtemp, const double CKTgmin)
 {
-    BSIM4stamp s; // Struct to hold all calculated matrix values.
-
     double ceqgstot, dgstot_dvd, dgstot_dvg, dgstot_dvs, dgstot_dvb;
     double ceqgdtot, dgdtot_dvd, dgdtot_dvg, dgdtot_dvs, dgdtot_dvb;
     double gstot, gstotd, gstotg, gstots, gstotb, gspr, Rs, Rd;
@@ -4381,6 +4379,7 @@ line755:
     if (CKTmode & MODEINITSMSIG)
     {   
         // goto line1000;
+        BSIM4stamp s; // Struct to hold all calculated matrix values.
         s.load = false; // do not load stamps into the matrix
         return s;
     }
@@ -4766,8 +4765,9 @@ line900:
            if (instance.BSIM4rgateMod == 3)
            ceqqgmid = -ceqqgmid;
        }
-
     
+    // Start loading the stamp
+    BSIM4stamp s; // Struct to hold all calculated matrix values.
     //Loading RHS
     s.RHSdNodePrime += (ceqjd - ceqbd + ceqgdtot - ceqdrn - ceqqd + Idtoteq);
     s.RHSgNodePrime -= (ceqqg - ceqgcrg + Igtoteq);
