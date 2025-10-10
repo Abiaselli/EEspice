@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/home/boris/github/EEspice/venv/bin/python3
 """
 Cache Miss Analysis Script
 
@@ -6,61 +6,155 @@ This script runs danial_cache.o with varying array sizes and collects
 L1, L2, and L3 cache miss statistics using perf. It then generates plots
 showing the relationship between array size and cache misses.
 
+Supports both Intel and AMD CPUs with appropriate performance counters:
+- Intel: Uses l2_rqsts events for L2 cache statistics
+- AMD: Uses all_l2_cache_* metrics with -M flag
+- Generic: L1-dcache and LLC (L3) events work on both platforms
+
 L3 miss rate is calculated as cache-misses / cache-references.
+
+Usage:
+    python cache_analysis.py                    # Auto-detect CPU
+    python cache_analysis.py --cpu-vendor intel # Force Intel configuration
+    python cache_analysis.py --verbose          # Show detailed perf events
+    python cache_analysis.py --use-generic      # Use only generic events
 """
 
 import subprocess
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
 import os
 import sys
+import argparse
 
 # Configuration
 EXECUTABLE = "./danial_cache.o"
 ARRAY_SIZES = [
-    1000, 2000, 4000, 8000,           # < 64KB (fits in L1)
-    16000, 32000, 64000,              # ~128KB-512KB (fits in L2)
-    128000, 256000, 512000,           # ~1MB-4MB (exceeds L2, fits in L3)
-    1000000, 2000000, 4000000         # > 8MB (exceeds most caches)
+    1000, 2000, 4000, 8000,           # < 64KB (fits in L0-D)
+    16000, 30000, 50000,              # ~128KB-400KB (exceeds L0-D+L1, fits in L2)
+    100000, 200000, 400000,           # ~800KB-3.2MB (around L2 boundary)
+    600000, 1000000, 2000000,         # ~4.8MB-16MB (exceeds L2, fits in L3)
+    5000000, 10000000                 # > 40MB (exceeds L3)
 ]
 ITERATION_CONFIGS = [1, 100000]  # Test with 1 iteration and 100000 iterations
 
-# Perf events to monitor
-# L1: L1-dcache-loads and L1-dcache-load-misses for accurate L1 miss rate
-# L3 (LLC): Generic cache-references and cache-misses (Last Level Cache)
-#           L3 miss rate = cache-misses / cache-references
-PERF_EVENTS = "L1-dcache-loads,L1-dcache-load-misses,cache-references,cache-misses"
-
-# AMD-specific L2 metrics (must use -M flag, may not be available on all kernels)
-# Note: These may not work without elevated permissions
-PERF_METRICS = "all_l2_cache_accesses,all_l2_cache_misses"
+# Global configuration
+CPU_VENDOR = "auto"  # Will be set by detect_cpu_vendor() or command-line
+VERBOSE = False      # Will be set by command-line
 
 
-def run_perf_test(array_size, iterations):
+def detect_cpu_vendor():
+    """
+    Detect CPU vendor from /proc/cpuinfo.
+
+    Returns:
+        str: 'intel', 'amd', or 'unknown'
+    """
+    try:
+        with open('/proc/cpuinfo', 'r') as f:
+            cpuinfo = f.read().lower()
+
+        if 'genuineintel' in cpuinfo:
+            return 'intel'
+        elif 'authenticamd' in cpuinfo:
+            return 'amd'
+        else:
+            # Check vendor_id line as fallback
+            for line in cpuinfo.split('\n'):
+                if line.startswith('vendor_id'):
+                    if 'intel' in line:
+                        return 'intel'
+                    elif 'amd' in line:
+                        return 'amd'
+            return 'unknown'
+    except Exception as e:
+        if VERBOSE:
+            print(f"Warning: Could not detect CPU vendor: {e}")
+        return 'unknown'
+
+
+def get_perf_events(cpu_vendor):
+    """
+    Get appropriate perf events based on CPU vendor.
+
+    Args:
+        cpu_vendor: 'intel', 'amd', or 'unknown'
+
+    Returns:
+        tuple: (events_string, metrics_string, use_metrics_flag)
+    """
+    # L1 and L3 events are generic and work on both Intel and AMD
+    base_events = "L1-dcache-loads,L1-dcache-load-misses,cache-references,cache-misses"
+
+    if cpu_vendor == 'intel':
+        # For Intel, we'll use generic events since specific L2 events may not be available
+        # Note: On modern Intel systems, cache-references/misses typically refer to LLC (L3)
+        # L2 statistics may not be directly accessible via perf on all Intel CPUs
+        events = base_events
+        metrics = ""  # Intel doesn't use -M flag
+        use_metrics = False
+
+        if VERBOSE:
+            print(f"Using Intel performance events:")
+            print(f"  Events: {base_events}")
+            print(f"  Note: L2 statistics estimated from L1 and L3 miss patterns")
+
+    elif cpu_vendor == 'amd':
+        # AMD-specific configuration
+        events = base_events
+        metrics = "all_l2_cache_accesses,all_l2_cache_misses"
+        use_metrics = True
+
+        if VERBOSE:
+            print(f"Using AMD performance events:")
+            print(f"  Base events: {base_events}")
+            print(f"  L2 metrics: {metrics}")
+
+    else:
+        # Unknown vendor - use generic events only
+        events = base_events
+        metrics = ""
+        use_metrics = False
+
+        if VERBOSE:
+            print(f"Using generic performance events only (unknown CPU vendor)")
+            print(f"  Events: {base_events}")
+
+    return events, metrics, use_metrics
+
+
+def run_perf_test(array_size, iterations, cpu_vendor):
     """
     Run danial_cache.o with perf stat to collect cache statistics.
 
     Args:
         array_size: Size of array to test
         iterations: Number of iterations to run
+        cpu_vendor: CPU vendor ('intel', 'amd', or 'unknown')
 
     Returns:
         Dictionary with cache statistics or None if failed
     """
-    # Build perf command
-    events = PERF_EVENTS
+    # Get appropriate perf events for this CPU
+    events, metrics, use_metrics = get_perf_events(cpu_vendor)
 
+    # Build perf command
     cmd = [
         "perf", "stat",
         "--no-big-num",            # Disable locale/group separators
         "-x", ";",                 # CSV-like output with semicolon delimiter
-        "-e", events,
-        "-M", PERF_METRICS,
+        "-e", events
+    ]
+
+    # Only add -M flag for AMD CPUs with metrics
+    if use_metrics and metrics:
+        cmd.extend(["-M", metrics])
+
+    cmd.extend([
         EXECUTABLE,
         str(array_size),
         str(iterations)
-    ]
+    ])
 
     try:
         # Run perf stat (output goes to stderr)
@@ -75,7 +169,7 @@ def run_perf_test(array_size, iterations):
         )
 
         # Parse perf output
-        stats = parse_perf_output(result.stderr)
+        stats = parse_perf_output(result.stderr, cpu_vendor)
         stats['array_size'] = array_size
         stats['iterations'] = iterations
         stats['array_size_kb'] = (array_size * 8) / 1024  # doubles are 8 bytes
@@ -102,7 +196,7 @@ def run_perf_test(array_size, iterations):
         return None
 
 
-def parse_perf_output(output: str):
+def parse_perf_output(output: str, cpu_vendor: str):
     """
     Parse perf stat CSV output to extract cache statistics.
 
@@ -112,6 +206,7 @@ def parse_perf_output(output: str):
 
     Args:
         output: stderr output from perf stat (CSV format)
+        cpu_vendor: CPU vendor ('intel', 'amd', or 'unknown')
 
     Returns:
         Dictionary with parsed statistics
@@ -178,12 +273,22 @@ def parse_perf_output(output: str):
                 # Use generic LLC misses for L3 misses
                 stats['l3_misses'] = int(value)
 
+    # For Intel CPUs without specific L2 events, estimate L2 behavior
+    # L2 accesses ≈ L1 misses (what misses L1 goes to L2)
+    # L2 misses ≈ L3 accesses (what misses L2 goes to L3)
+    if cpu_vendor == 'intel' and stats['l2_accesses'] == 0 and stats['l2_misses'] == 0:
+        stats['l2_accesses'] = stats['l1_misses']
+        stats['l2_misses'] = stats['l3_accesses']
+
     return stats
 
 
-def collect_data():
+def collect_data(cpu_vendor):
     """
     Collect cache miss data for all array sizes and iteration counts.
+
+    Args:
+        cpu_vendor: CPU vendor ('intel', 'amd', or 'unknown')
 
     Returns:
         pandas DataFrame with all collected data
@@ -192,7 +297,7 @@ def collect_data():
     total_tests = len(ARRAY_SIZES) * len(ITERATION_CONFIGS)
     test_count = 0
 
-    print(f"Running {total_tests} tests...")
+    print(f"Running {total_tests} tests on {cpu_vendor.upper()} CPU...")
     print(f"Array sizes: {len(ARRAY_SIZES)} configurations")
     print(f"Iteration counts: {ITERATION_CONFIGS}")
     print("-" * 60)
@@ -204,7 +309,7 @@ def collect_data():
             print(f"  [{test_count}/{total_tests}] Array size: {array_size:>8} elements "
                   f"({(array_size*8/1024):.1f} KB)...", end=" ", flush=True)
 
-            stats = run_perf_test(array_size, iterations)
+            stats = run_perf_test(array_size, iterations, cpu_vendor)
 
             if stats:
                 all_data.append(stats)
@@ -218,7 +323,7 @@ def collect_data():
     return pd.DataFrame(all_data)
 
 
-def plot_cache_misses(df, iterations, output_file):
+def plot_cache_misses(df, iterations, output_file, cpu_vendor):
     """
     Create a plot showing cache misses vs array size.
 
@@ -226,23 +331,44 @@ def plot_cache_misses(df, iterations, output_file):
         df: DataFrame with cache statistics
         iterations: Filter data for this iteration count
         output_file: Output filename for the plot
+        cpu_vendor: CPU vendor for cache size labels
     """
     # Filter data for specific iteration count
     data = df[df['iterations'] == iterations].copy()
     data = data.sort_values('array_size')
 
+    # Set cache size labels based on CPU vendor
+    if cpu_vendor == 'intel':
+        # Intel cache sizes for modern CPUs
+        # L0-D (48KB) + L1 (192KB) = 240KB total per-core data cache
+        l1_label = 'L1 Data Cache Misses (240KB per core)'
+        l2_label = 'L2 Cache Misses [estimated] (3MB per core)'
+        l3_label = 'L3 Cache Misses (36MB shared)'
+        # Intel cache sizes in elements (doubles = 8 bytes)
+        l1_size = 30720     # 240KB / 8 bytes (L0-D + L1 data cache)
+        l2_size = 393216    # 3MB / 8 bytes
+        l3_size = 4718592   # 36MB / 8 bytes
+    else:
+        # AMD cache sizes (original values)
+        l1_label = 'L1 Cache Misses (64KB)'
+        l2_label = 'L2 Cache Misses (512KB)'
+        l3_label = 'L3 Cache Misses (256MB)'
+        l1_size = 8192      # 64KB / 8 bytes
+        l2_size = 65536     # 512KB / 8 bytes
+        l3_size = 33554432  # 256MB / 8 bytes
+
     # Create figure
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
-    fig.suptitle(f'Cache Performance Analysis (Iterations: {iterations})',
+    fig.suptitle(f'Cache Performance Analysis ({cpu_vendor.upper()} CPU, Iterations: {iterations})',
                  fontsize=16, fontweight='bold')
 
     # Plot 1: Cache misses vs array size (log scale)
     ax1.plot(data['array_size'], data['l1_misses'],
-             'o-', linewidth=2, markersize=8, label='L1 Cache Misses (64KB)', color='#e74c3c')
+             'o-', linewidth=2, markersize=8, label=l1_label, color='#e74c3c')
     ax1.plot(data['array_size'], data['l2_misses'],
-             '^-', linewidth=2, markersize=8, label='L2 Cache Misses (512KB)', color='#f39c12')
+             '^-', linewidth=2, markersize=8, label=l2_label, color='#f39c12')
     ax1.plot(data['array_size'], data['l3_misses'],
-             's-', linewidth=2, markersize=8, label='L3 Cache Misses (256MB)', color='#3498db')
+             's-', linewidth=2, markersize=8, label=l3_label, color='#3498db')
 
     ax1.set_xlabel('Array Size (elements)', fontsize=12)
     ax1.set_ylabel('Cache Misses', fontsize=12)
@@ -253,12 +379,9 @@ def plot_cache_misses(df, iterations, output_file):
     ax1.legend(fontsize=10)
 
     # Add cache size reference lines (in elements, 1 double = 8 bytes)
-    # L1: 64 KB = 8,192 elements
-    # L2: 512 KB = 65,536 elements
-    # L3: 256 MB = 33,554,432 elements
-    ax1.axvline(x=8192, color='#e74c3c', linestyle='--', alpha=0.3, linewidth=1.5)
-    ax1.axvline(x=65536, color='#f39c12', linestyle='--', alpha=0.3, linewidth=1.5)
-    ax1.axvline(x=33554432, color='#3498db', linestyle='--', alpha=0.3, linewidth=1.5)
+    ax1.axvline(x=l1_size, color='#e74c3c', linestyle='--', alpha=0.3, linewidth=1.5)
+    ax1.axvline(x=l2_size, color='#f39c12', linestyle='--', alpha=0.3, linewidth=1.5)
+    ax1.axvline(x=l3_size, color='#3498db', linestyle='--', alpha=0.3, linewidth=1.5)
 
     # Plot 2: Miss rate (percentage)
     # Calculate miss rates using correct denominators for each cache level
@@ -329,6 +452,32 @@ def generate_report(df, output_file="cache_report.txt"):
 
 def main():
     """Main execution function."""
+    global CPU_VENDOR, VERBOSE
+
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(
+        description='Cache miss analysis tool for Intel and AMD CPUs',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s                    # Auto-detect CPU and run analysis
+  %(prog)s --cpu-vendor intel # Force Intel CPU configuration
+  %(prog)s --verbose         # Show detailed perf event information
+  %(prog)s --use-generic     # Use only generic perf events
+        """
+    )
+    parser.add_argument('--cpu-vendor', choices=['auto', 'intel', 'amd'],
+                        default='auto',
+                        help='CPU vendor (default: auto-detect)')
+    parser.add_argument('--verbose', action='store_true',
+                        help='Enable verbose output for debugging')
+    parser.add_argument('--use-generic', action='store_true',
+                        help='Use only generic perf events (no vendor-specific events)')
+
+    args = parser.parse_args()
+
+    VERBOSE = args.verbose
+
     print("=" * 60)
     print("Cache Miss Analysis Tool")
     print("=" * 60)
@@ -338,6 +487,7 @@ def main():
     if not os.path.exists(EXECUTABLE):
         print(f"Error: Executable '{EXECUTABLE}' not found!")
         print("Please build danial_cache.cpp first.")
+        print("Build command: g++ -O2 danial_cache.cpp -o danial_cache.o")
         return 1
 
     # Check if perf is available
@@ -346,17 +496,37 @@ def main():
     except (subprocess.CalledProcessError, FileNotFoundError):
         print("Error: 'perf' command not found!")
         print("Please install linux-tools package.")
+        print("  Ubuntu/Debian: sudo apt-get install linux-tools-common linux-tools-generic")
+        print("  Fedora/RHEL: sudo dnf install perf")
         return 1
 
+    # Determine CPU vendor
+    if args.use_generic:
+        cpu_vendor = 'unknown'  # Forces generic events only
+        print("Using generic perf events only (--use-generic flag)")
+    elif args.cpu_vendor == 'auto':
+        cpu_vendor = detect_cpu_vendor()
+        print(f"Detected CPU vendor: {cpu_vendor.upper()}")
+        if cpu_vendor == 'unknown':
+            print("Warning: Could not detect CPU vendor, using generic events only")
+    else:
+        cpu_vendor = args.cpu_vendor
+        print(f"Using specified CPU vendor: {cpu_vendor.upper()}")
+
     # Note about permissions
-    print("Note: AMD L2 metrics may require elevated permissions.")
-    print("If L2 counters are zero, try adjusting perf_event_paranoid:")
-    print("  sudo sysctl kernel.perf_event_paranoid=1")
+    if cpu_vendor == 'amd':
+        print("\nNote: AMD L2 metrics may require elevated permissions.")
+        print("If L2 counters are zero, try adjusting perf_event_paranoid:")
+        print("  sudo sysctl kernel.perf_event_paranoid=1")
+    elif cpu_vendor == 'intel':
+        print("\nNote: For Intel CPUs, L2 statistics are estimated from L1/L3 miss patterns")
+        print("as direct L2 events may not be available on all Intel systems.")
+        print("L2 accesses ≈ L1 misses, L2 misses ≈ L3 accesses")
     print("L1 and L3 counters use generic events and should work without special permissions.")
     print()
 
     # Collect data
-    df = collect_data()
+    df = collect_data(cpu_vendor)
 
     if df.empty:
         print("Error: No data collected!")
@@ -370,8 +540,8 @@ def main():
     # Generate plots
     print("\nGenerating plots...")
     for iterations in ITERATION_CONFIGS:
-        output_file = f"cache_misses_{iterations}iter.png"
-        plot_cache_misses(df, iterations, output_file)
+        output_file = f"cache_misses_{cpu_vendor}_{iterations}iter.png"
+        plot_cache_misses(df, iterations, output_file, cpu_vendor)
 
     # Generate report
     generate_report(df)

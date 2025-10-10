@@ -1,14 +1,16 @@
 #include <iostream>
-#include <sys/prctl.h>
 #include <cstdlib>
 #include <chrono>
 #include <iomanip>
 #include <vector>
 
-#ifndef PR_TASK_PERF_EVENTS_DISABLE
-#define PR_TASK_PERF_EVENTS_DISABLE 31
-#define PR_TASK_PERF_EVENTS_ENABLE  32
-#endif
+void benchmark(const size_t size, const size_t iterations, double &c, std::vector<double> &a) {
+    for (size_t iter = 0; iter < iterations; iter++) {
+        for (size_t i = 0; i < size; i++) {
+            c = a[i] + c;
+        }
+    }
+}
 
 int main(int argc, char* argv[]){
     // Parse command-line arguments
@@ -40,20 +42,14 @@ int main(int argc, char* argv[]){
         a[i]=i*1.0;
     }
     auto start = std::chrono::high_resolution_clock::now();
-    // Run the summation loop many times for measurable cache statistics
-    prctl(PR_TASK_PERF_EVENTS_ENABLE, 0, 0, 0, 0);
-    for (size_t iter = 0; iter < iterations; iter++) {
-        for (size_t i = 0; i < size; i++) {
-            c = a[i] + c;
-        }
-    }
-    prctl(PR_TASK_PERF_EVENTS_DISABLE, 0, 0, 0, 0);
+    benchmark(size, iterations, c, a);
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << "c = " << c << std::endl;
 
-    std::chrono::duration<double> total_time = end - start;
-    std::cout << "Total time: " << std::fixed << std::setprecision(6)
-              << total_time.count() << " seconds\n";
+    std::chrono::duration<double, std::milli> elapsed = end - start;
+    double time_ms = elapsed.count();
+
+    std::cout << "benchmark Time taken: " << time_ms << " ms" << std::endl;
 
     return 0;
 }
