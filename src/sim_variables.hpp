@@ -100,6 +100,9 @@ constexpr int BACKWARD_EULER = 0;
 constexpr int TRAPEZOIDAL = 1;
 constexpr int GEAR = 2;
 
+// Cache line size (typical x86-64)
+constexpr size_t CACHE_LINE_SIZE = 64;
+
 
 
 
