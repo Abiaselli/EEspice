@@ -27,6 +27,14 @@ inline void StampRHS(arma::vec &vec, int index, double val,
         vec[index] += val;
     }
 }
+inline void StampOffset(arma::mat &mat, int row, int col, double val,
+                    const std::array<bool, 12> &BSIM4nodeValid, BSIM4V82::NodeType row_node, BSIM4V82::NodeType col_node)
+{
+    if (BSIM4nodeValid[row_node] && BSIM4nodeValid[col_node]){
+        double* p = mat.memptr();
+        p[row + col * mat.n_rows] += val; // column-major storage
+    }
+}
 
 /**
  * @brief Applies the calculated conductances and currents to the system matrices.
