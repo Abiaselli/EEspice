@@ -100,12 +100,12 @@ int main(){
               << coloring_time.count() << "s\n\n";
 
     // Test different thread counts
-    std::vector<int> thread_counts = {4};
+    std::vector<int> thread_counts = {1, 2, 4, 8, 16, 20, 24};
     double baseline_time = 0.0;
     auto start = std::chrono::high_resolution_clock::now();
     auto end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Threads  Efficiency  LoadOMP Time  Apply %\n";
+    std::cout << "Threads  Speedup  Efficiency  LoadOMP Time  Apply %\n";
 
     for (int num_threads : thread_counts) {
         if (num_threads > omp_get_num_procs()) {
@@ -137,7 +137,8 @@ int main(){
         double apply_percentage = (total_apply_time / total_loadomp_time) * 100.0;
 
         std::cout << std::setw(7) << num_threads << "  "
-                  << std::fixed << std::setprecision(1) << std::setw(10) << efficiency << "%  "
+                  << std::fixed << std::setprecision(2) << std::setw(7) << speedup << "x  "
+                  << std::setprecision(1) << std::setw(10) << efficiency << "%  "
                   << std::setprecision(6) << std::setw(12) << total_loadomp_time << "s  "
                   << std::setprecision(1) << std::setw(7) << apply_percentage << "%\n";
         std::cout.flush();
