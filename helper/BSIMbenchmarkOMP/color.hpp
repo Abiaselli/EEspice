@@ -8,11 +8,9 @@
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
+#include "time.hpp"
 
-struct LoadOMPColorTiming {
-    double parallel_calc_time;
-    double apply_stamps_time;
-};
+
 
 class BSIM4Coloring {
 private:
@@ -136,12 +134,12 @@ public:
     }
 };
 
-LoadOMPColorTiming loadompColor(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
+LoadOMPTiming loadompColor(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
                       arma::mat &LHS, arma::vec &RHS, 
                       std::vector<bsim4::BSIM4stamp> &stamps,
                       const BSIM4Coloring &coloring)
 {
-    LoadOMPColorTiming timing{0.0, 0.0};
+    LoadOMPTiming timing{0.0, 0.0};
     
     if (!ckt.CKTelements.bsim4.empty()) {
         const size_t n = ckt.CKTelements.bsim4.size();

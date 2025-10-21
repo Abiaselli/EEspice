@@ -100,7 +100,7 @@ int main(){
               << coloring_time.count() << "s\n\n";
 
     // Test different thread counts
-    std::vector<int> thread_counts = {1, 2, 4, 8, 16, 20, 24};
+    std::vector<int> thread_counts = {1, 2, 4, 8, 16, 24, 32, 48, 64, 96, 128};
     double baseline_time = 0.0;
     auto start = std::chrono::high_resolution_clock::now();
     auto end = std::chrono::high_resolution_clock::now();
@@ -119,7 +119,7 @@ int main(){
 
         start = std::chrono::high_resolution_clock::now();
         for (int iter = 0; iter < num_iterations; ++iter) {
-            LoadOMPColorTiming timing = loadompColor(ckt, pre_NR_solution, LHS, RHS, stamps, coloring);
+            LoadOMPTiming timing = loadompColor(ckt, pre_NR_solution, LHS, RHS, stamps, coloring);
             total_calc_time += timing.parallel_calc_time;
             total_apply_time += timing.apply_stamps_time;
         }
