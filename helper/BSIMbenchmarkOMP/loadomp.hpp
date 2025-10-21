@@ -4,11 +4,7 @@
 #include "bsim4v82/bsim4v82load/bsim4v82applyStamps.hpp"
 #include <omp.h>
 #include <chrono>
-
-struct LoadOMPTiming {
-    double parallel_calc_time;
-    double apply_stamps_time;
-};
+#include "time.hpp"
 
 /**
  * @brief Benchmark function for testing OpenMP multi-threaded BSIM4 stamp calculation and MNA application.
