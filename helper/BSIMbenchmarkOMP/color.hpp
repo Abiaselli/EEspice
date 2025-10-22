@@ -18,35 +18,49 @@ private:
     size_t num_colors;
     
     // Extract all nodes used by a BSIM4 instance
+    // Note: Excludes node 0 (ground) since grounded nodes don't create matrix conflicts
     std::unordered_set<int> getInstanceNodes(const BSIM4& instance) {
         std::unordered_set<int> nodes;
-        
-        // Add all nodes that this instance uses
-        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::D_NODE])
+
+        // Add all non-ground nodes that this instance uses
+        // Node 0 is excluded because grounded nodes don't appear in MNA matrix equations
+        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::D_NODE]
+            && instance.bsim4v82Instance.BSIM4dNode != 0)
             nodes.insert(instance.bsim4v82Instance.BSIM4dNode);
-        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::G_NODE_EXT])
+        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::G_NODE_EXT]
+            && instance.bsim4v82Instance.BSIM4gNodeExt != 0)
             nodes.insert(instance.bsim4v82Instance.BSIM4gNodeExt);
-        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::S_NODE])
+        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::S_NODE]
+            && instance.bsim4v82Instance.BSIM4sNode != 0)
             nodes.insert(instance.bsim4v82Instance.BSIM4sNode);
-        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::B_NODE])
+        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::B_NODE]
+            && instance.bsim4v82Instance.BSIM4bNode != 0)
             nodes.insert(instance.bsim4v82Instance.BSIM4bNode);
-        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::D_NODE_PRIME])
+        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::D_NODE_PRIME]
+            && instance.bsim4v82Instance.BSIM4dNodePrime != 0)
             nodes.insert(instance.bsim4v82Instance.BSIM4dNodePrime);
-        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::G_NODE_PRIME])
+        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::G_NODE_PRIME]
+            && instance.bsim4v82Instance.BSIM4gNodePrime != 0)
             nodes.insert(instance.bsim4v82Instance.BSIM4gNodePrime);
-        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::G_NODE_MID])
+        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::G_NODE_MID]
+            && instance.bsim4v82Instance.BSIM4gNodeMid != 0)
             nodes.insert(instance.bsim4v82Instance.BSIM4gNodeMid);
-        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::S_NODE_PRIME])
+        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::S_NODE_PRIME]
+            && instance.bsim4v82Instance.BSIM4sNodePrime != 0)
             nodes.insert(instance.bsim4v82Instance.BSIM4sNodePrime);
-        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::B_NODE_PRIME])
+        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::B_NODE_PRIME]
+            && instance.bsim4v82Instance.BSIM4bNodePrime != 0)
             nodes.insert(instance.bsim4v82Instance.BSIM4bNodePrime);
-        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::DB_NODE])
+        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::DB_NODE]
+            && instance.bsim4v82Instance.BSIM4dbNode != 0)
             nodes.insert(instance.bsim4v82Instance.BSIM4dbNode);
-        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::SB_NODE])
+        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::SB_NODE]
+            && instance.bsim4v82Instance.BSIM4sbNode != 0)
             nodes.insert(instance.bsim4v82Instance.BSIM4sbNode);
-        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::Q_NODE])
+        if (instance.bsim4v82Instance.BSIM4nodeValid[bsim4::BSIM4V82::NodeType::Q_NODE]
+            && instance.bsim4v82Instance.BSIM4qNode != 0)
             nodes.insert(instance.bsim4v82Instance.BSIM4qNode);
-            
+
         return nodes;
     }
     
