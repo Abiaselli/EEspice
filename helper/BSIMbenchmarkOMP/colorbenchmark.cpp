@@ -22,7 +22,7 @@
 #include "single.hpp"
 
 
-constexpr size_t num_instances = 60; // Number of BSIM4 instances
+constexpr size_t num_instances = 60 * 5; // Number of BSIM4 instances
 constexpr int num_iterations = 1e7 / 5; // Number of iterations for benchmarking
 std::vector<bsim4::BSIM4stamp> stamps(num_instances);
 
