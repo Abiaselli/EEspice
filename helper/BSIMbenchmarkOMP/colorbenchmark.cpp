@@ -28,42 +28,9 @@ constexpr int num_iterations = 1e7 / 5; // Number of iterations for benchmarking
 std::vector<bsim4::BSIM4stamp> stamps(num_instances);
 
 
-// Generate node distribution count sequence: 1, 2, 5, 10, 20, 50, 100, 200, 500, ...
+// Generate node distribution count sequence: 2 (for ~num_instances/2 colors) and num_instances (for 1 color)
 std::vector<int> generateNodeDistributionSequence(int max_node_count) {
-    std::vector<int> sequence;
-    int power = 1;
-
-    while (true) {
-        // Add 1×10^n
-        if (power <= max_node_count) {
-            sequence.push_back(power);
-        } else {
-            break;
-        }
-
-        // Add 2×10^n
-        if (2 * power <= max_node_count) {
-            sequence.push_back(2 * power);
-        } else {
-            break;
-        }
-
-        // Add 5×10^n
-        if (5 * power <= max_node_count) {
-            sequence.push_back(5 * power);
-        } else {
-            break;
-        }
-
-        power *= 10;
-    }
-
-    // Always include max_node_count if not already in sequence
-    if (sequence.empty() || sequence.back() != max_node_count) {
-        sequence.push_back(max_node_count);
-    }
-
-    return sequence;
+    return {2, max_node_count};
 }
 
 std::shared_ptr<bsim4::BSIM4model> CreateBSIM4Model(){
@@ -121,14 +88,9 @@ int main(){
     std::cout << "OpenMP max threads: " << omp_get_max_threads() << "\n";
     std::cout << "Iterations per test: " << num_iterations << "\n\n";
 
-    // 1. Generate node distribution sequence
+    // 1. Generate node distribution sequence (2 test cases: 2 nodes and num_instances nodes)
     std::vector<int> node_distribution_sequence = generateNodeDistributionSequence(num_instances);
-    std::cout << "Node distribution sequence: ";
-    for (size_t i = 0; i < node_distribution_sequence.size(); ++i) {
-        std::cout << node_distribution_sequence[i];
-        if (i < node_distribution_sequence.size() - 1) std::cout << ", ";
-    }
-    std::cout << "\n\n";
+    std::cout << "Testing " << node_distribution_sequence.size() << " color configurations\n\n";
 
     // 2. Create BSIM4 model (shared across all tests)
     auto bsim4model = CreateBSIM4Model();
@@ -163,7 +125,7 @@ int main(){
     for (int node_distribution_count : node_distribution_sequence) {
         std::cout << "\n";
         std::cout << "========================================\n";
-        std::cout << "Testing with " << node_distribution_count << " distinct nodes\n";
+        std::cout << "Color Configuration Test\n";
         std::cout << "========================================\n\n";
 
         // Create circuit with specified node distribution count
@@ -180,7 +142,6 @@ int main(){
 
         // Output coloring results
         size_t actual_colors = coloring.getNumColors();
-        std::cout << "Node distribution count: " << node_distribution_count << "\n";
         std::cout << "Actual colors: " << actual_colors << "\n";
         std::cout << "Coloring time: " << std::fixed << std::setprecision(6)
                   << coloring_time.count() << " seconds\n";
@@ -250,7 +211,7 @@ int main(){
             }
         }
 
-        std::cout << "\nBest for " << node_distribution_count << " distinct nodes: " << best_threads << " threads with "
+        std::cout << "\nBest for " << actual_colors << " colors: " << best_threads << " threads with "
                   << std::fixed << std::setprecision(2) << best_speedup << "x speedup\n";
 
         // Store results for summary
@@ -258,55 +219,21 @@ int main(){
                           single_time.count(), best_threads, best_speedup});
     }
 
-    // Group results by actual colors
-    std::map<int, std::vector<ColorResult>> results_by_color;
-    for (const auto& r : results) {
-        results_by_color[r.actual_colors].push_back(r);
-    }
-
-    // Print summary table organized by actual colors
+    // Print summary table
     std::cout << "\n\n";
-    std::cout << "===========================================================================================================\n";
-    std::cout << "SUMMARY - Performance vs Actual Colors\n";
-    std::cout << "===========================================================================================================\n";
-    std::cout << "Actual Colors | Node Distributions | Avg Coloring Time | Best Speedup | Best Threads | Samples\n";
-    std::cout << "--------------|--------------------|--------------------|--------------|--------------|--------\n";
+    std::cout << "================================================================================\n";
+    std::cout << "SUMMARY - Performance vs Colors\n";
+    std::cout << "================================================================================\n";
+    std::cout << "Actual Colors | Coloring Time (s) | Best Speedup | Best Threads\n";
+    std::cout << "--------------|-------------------|--------------|-------------\n";
 
-    for (const auto& [actual_colors, color_results] : results_by_color) {
-        // Compute statistics for this color count
-        double avg_coloring_time = 0.0;
-        double max_speedup = 0.0;
-        int best_threads_overall = 1;
-
-        for (const auto& r : color_results) {
-            avg_coloring_time += r.coloring_time;
-            if (r.best_speedup > max_speedup) {
-                max_speedup = r.best_speedup;
-                best_threads_overall = r.best_threads;
-            }
-        }
-        avg_coloring_time /= color_results.size();
-
-        // Build string of node distributions that produced this color count
-        std::string node_dists;
-        for (size_t i = 0; i < color_results.size(); ++i) {
-            node_dists += std::to_string(color_results[i].node_distribution_count);
-            if (i < color_results.size() - 1) node_dists += ", ";
-        }
-
-        // Truncate if too long
-        if (node_dists.length() > 18) {
-            node_dists = node_dists.substr(0, 15) + "...";
-        }
-
-        std::cout << std::setw(13) << actual_colors << " | "
-                  << std::setw(18) << node_dists << " | "
-                  << std::fixed << std::setprecision(6) << std::setw(18) << avg_coloring_time << " | "
-                  << std::setprecision(2) << std::setw(12) << max_speedup << "x | "
-                  << std::setw(12) << best_threads_overall << " | "
-                  << std::setw(7) << color_results.size() << "\n";
+    for (const auto& r : results) {
+        std::cout << std::setw(13) << r.actual_colors << " | "
+                  << std::fixed << std::setprecision(6) << std::setw(17) << r.coloring_time << " | "
+                  << std::setprecision(2) << std::setw(12) << r.best_speedup << "x | "
+                  << std::setw(12) << r.best_threads << "\n";
     }
-    std::cout << "===========================================================================================================\n";
+    std::cout << "================================================================================\n";
 
     return 0;
 }
