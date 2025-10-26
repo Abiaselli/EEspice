@@ -86,7 +86,7 @@ int main(){
     std::cout << "OpenMP max threads: " << omp_get_max_threads() << "\n\n";
 
     // Instance counts to test
-    std::vector<size_t> instance_counts = {100, 200, 300, 400, 500, 600};
+    std::vector<size_t> instance_counts = {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
 
     // Thread counts to test
     std::vector<int> thread_counts = {1, 2, 4, 8, 16, 24, 32, 48, 64, 96, 128};
