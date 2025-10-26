@@ -78,12 +78,25 @@ std::vector<BSIM4> CreateBSIM4Instances(std::shared_ptr<bsim4::BSIM4model> &mode
 
 
 int main(){
+    // Open log file for terminal output
+    std::ofstream log_file("coloring_benchmark_log.txt");
+    if (!log_file.is_open()) {
+        std::cerr << "Warning: Could not open log file for writing. Continuing without logging.\n";
+    }
+
+    // Macro to write to both console and log file
+    #define LOG_OUTPUT(stream_expr) \
+        do { \
+            std::cout << stream_expr; \
+            if (log_file.is_open()) { log_file << stream_expr; } \
+        } while(0)
 
     // Print benchmark header
-    std::cout << "BSIM4 Graph Coloring Benchmark - Color Scan with Variable Instances\n";
-    std::cout << "===================================================================\n";
-    std::cout << "CPU cores: " << omp_get_num_procs() << "\n";
-    std::cout << "OpenMP max threads: " << omp_get_max_threads() << "\n\n";
+    LOG_OUTPUT("BSIM4 Graph Coloring Benchmark - Color Scan with Variable Instances\n");
+    LOG_OUTPUT("===================================================================\n");
+    LOG_OUTPUT("CPU cores: " << omp_get_num_procs() << "\n");
+    LOG_OUTPUT("OpenMP max threads: " << omp_get_max_threads() << "\n");
+    LOG_OUTPUT("Output will be logged to: coloring_benchmark_log.txt\n\n");
 
     // Instance counts to test
     std::vector<size_t> instance_counts = {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
@@ -97,6 +110,7 @@ int main(){
     // Storage for detailed results (one row per test configuration)
     struct BenchmarkResult {
         size_t num_instances;
+        int num_iterations;
         int node_distribution_count;
         int actual_colors;
         double coloring_time_s;
@@ -113,14 +127,14 @@ int main(){
 
     // Outer loop: iterate through different instance counts
     for (size_t num_instances : instance_counts) {
-        std::cout << "\n";
-        std::cout << "========================================================================\n";
-        std::cout << "Testing with " << num_instances << " BSIM4 instances\n";
-        std::cout << "========================================================================\n\n";
+        LOG_OUTPUT("\n");
+        LOG_OUTPUT("========================================================================\n");
+        LOG_OUTPUT("Testing with " << num_instances << " BSIM4 instances\n");
+        LOG_OUTPUT("========================================================================\n\n");
 
         // Calculate iterations (scale down for larger instances to keep runtime reasonable)
         int num_iterations = std::max(1000, static_cast<int>(2e6 / num_instances));
-        std::cout << "Iterations per test: " << num_iterations << "\n\n";
+        LOG_OUTPUT("Iterations per test: " << num_iterations << "\n\n");
 
         // Generate node distribution sequence for this instance count
         std::vector<int> node_distribution_sequence = generateNodeDistributionSequence(num_instances);
@@ -132,25 +146,25 @@ int main(){
         std::vector<bsim4::BSIM4stamp> stamps(num_instances);
 
         // Warm-up run to initialize caches
-        std::cout << "Running warm-up...\n";
+        LOG_OUTPUT("Running warm-up...\n");
         CKTcircuit warmup_ckt;
         warmup_ckt.CKTelements.bsim4 = CreateBSIM4Instances(bsim4model, num_instances, node_distribution_sequence[0]);
         loadsingle(warmup_ckt, pre_NR_solution, LHS, RHS);
-        std::cout << "Warm-up complete.\n\n";
+        LOG_OUTPUT("Warm-up complete.\n\n");
 
         // Middle loop: iterate through each node distribution count
         for (int node_distribution_count : node_distribution_sequence) {
-            std::cout << "\n";
-            std::cout << "----------------------------------------\n";
-            std::cout << "Node Distribution Count: " << node_distribution_count << "\n";
-            std::cout << "----------------------------------------\n\n";
+            LOG_OUTPUT("\n");
+            LOG_OUTPUT("----------------------------------------\n");
+            LOG_OUTPUT("Node Distribution Count: " << node_distribution_count << "\n");
+            LOG_OUTPUT("----------------------------------------\n\n");
 
             // Create circuit with specified node distribution count
             CKTcircuit ckt;
             ckt.CKTelements.bsim4 = CreateBSIM4Instances(bsim4model, num_instances, node_distribution_count);
 
             // Compute graph coloring
-            std::cout << "Computing graph coloring...\n";
+            LOG_OUTPUT("Computing graph coloring...\n");
             auto start_color = std::chrono::high_resolution_clock::now();
             BSIM4Coloring coloring;
             coloring.computeColoring(ckt.CKTelements.bsim4);
@@ -159,12 +173,12 @@ int main(){
 
             // Output coloring results
             size_t actual_colors = coloring.getNumColors();
-            std::cout << "Actual colors: " << actual_colors << "\n";
-            std::cout << "Coloring time: " << std::fixed << std::setprecision(6)
-                      << coloring_time.count() << " seconds\n";
+            LOG_OUTPUT("Actual colors: " << actual_colors << "\n");
+            LOG_OUTPUT("Coloring time: " << std::fixed << std::setprecision(6)
+                      << coloring_time.count() << " seconds\n");
 
             // Benchmark single-threaded execution
-            std::cout << "Benchmarking single-threaded execution...\n";
+            LOG_OUTPUT("Benchmarking single-threaded execution...\n");
             auto start = std::chrono::high_resolution_clock::now();
             for (int iter = 0; iter < num_iterations; ++iter) {
                 loadsingle(ckt, pre_NR_solution, LHS, RHS);
@@ -172,15 +186,15 @@ int main(){
             auto end = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double> single_time = end - start;
 
-            std::cout << "Single-threaded total time: " << std::fixed << std::setprecision(6)
-                      << single_time.count() << " seconds\n\n";
+            LOG_OUTPUT("Single-threaded total time: " << std::fixed << std::setprecision(6)
+                      << single_time.count() << " seconds\n\n");
 
             // Test different thread counts
             double best_speedup = 0;
             int best_threads = 1;
 
-            std::cout << "Testing different thread counts:\n";
-            std::cout << "--------------------------------\n";
+            LOG_OUTPUT("Testing different thread counts:\n");
+            LOG_OUTPUT("--------------------------------\n");
 
             for (int num_threads : thread_counts) {
                 if (num_threads > omp_get_num_procs()) {
@@ -206,16 +220,18 @@ int main(){
                 double total_loadomp_time = total_calc_time + total_apply_time;
                 double apply_percentage = (total_apply_time / total_loadomp_time) * 100.0;
 
-                std::cout << "Parallel (" << std::setw(3) << num_threads << " threads): "
+                LOG_OUTPUT("Parallel (" << std::setw(3) << num_threads << " threads): "
                           << std::fixed << std::setprecision(6) << parallel_time.count()
                           << " s  |  Speedup: " << std::setprecision(2) << std::setw(5) << speedup
                           << "x  |  Eff: " << std::setprecision(1) << std::setw(4) << efficiency << "%"
-                          << "  |  applyStamps: " << std::setprecision(1) << std::setw(4) << apply_percentage << "%\n";
+                          << "  |  applyStamps: " << std::setprecision(1) << std::setw(4) << apply_percentage << "%\n");
                 std::cout.flush();
+                if (log_file.is_open()) { log_file.flush(); }
 
                 // Store result for this configuration
                 all_results.push_back({
                     num_instances,                    // NumInstances
+                    num_iterations,                   // NumIterations
                     node_distribution_count,          // NodeDistributionCount
                     static_cast<int>(actual_colors),  // ActualColors
                     coloring_time.count(),            // ColoringTime_s
@@ -235,16 +251,16 @@ int main(){
                 }
             }
 
-            std::cout << "\nBest result: " << best_threads << " threads with "
-                      << std::fixed << std::setprecision(2) << best_speedup << "x speedup\n";
+            LOG_OUTPUT("\nBest result: " << best_threads << " threads with "
+                      << std::fixed << std::setprecision(2) << best_speedup << "x speedup\n");
         }
     }
 
     // Write results to CSV file
-    std::cout << "\n\n";
-    std::cout << "================================================================================\n";
-    std::cout << "Writing results to CSV file...\n";
-    std::cout << "================================================================================\n";
+    LOG_OUTPUT("\n\n");
+    LOG_OUTPUT("================================================================================\n");
+    LOG_OUTPUT("Writing results to CSV file...\n");
+    LOG_OUTPUT("================================================================================\n");
 
     std::ofstream csv_file("coloring_benchmark_results.csv");
     if (!csv_file.is_open()) {
@@ -253,13 +269,14 @@ int main(){
     }
 
     // Write CSV header
-    csv_file << "NumInstances,NodeDistributionCount,ActualColors,ColoringTime_s,"
+    csv_file << "NumInstances,NumIterations,NodeDistributionCount,ActualColors,ColoringTime_s,"
              << "SingleThreadTime_s,NumThreads,ParallelTime_s,ParallelCalcTime_s,"
              << "ParallelApplyTime_s,ApplyStamps_pct,Speedup,Efficiency_pct\n";
 
     // Write all results
     for (const auto& r : all_results) {
         csv_file << r.num_instances << ","
+                 << r.num_iterations << ","
                  << r.node_distribution_count << ","
                  << r.actual_colors << ","
                  << std::fixed << std::setprecision(6) << r.coloring_time_s << ","
@@ -274,16 +291,16 @@ int main(){
     }
 
     csv_file.close();
-    std::cout << "Results written to: coloring_benchmark_results.csv\n";
-    std::cout << "Total result rows: " << all_results.size() << "\n";
+    LOG_OUTPUT("Results written to: coloring_benchmark_results.csv\n");
+    LOG_OUTPUT("Total result rows: " << all_results.size() << "\n");
 
     // Print brief summary
-    std::cout << "\n";
-    std::cout << "================================================================================\n";
-    std::cout << "SUMMARY - Best Speedups by Instance Count\n";
-    std::cout << "================================================================================\n";
-    std::cout << "Instances | Colors (2-node) | Best Speedup | Colors (N-node) | Best Speedup\n";
-    std::cout << "----------|-----------------|--------------|-----------------|-------------\n";
+    LOG_OUTPUT("\n");
+    LOG_OUTPUT("================================================================================\n");
+    LOG_OUTPUT("SUMMARY - Best Speedups by Instance Count\n");
+    LOG_OUTPUT("================================================================================\n");
+    LOG_OUTPUT("Instances | Colors (2-node) | Best Speedup | Colors (N-node) | Best Speedup\n");
+    LOG_OUTPUT("----------|-----------------|--------------|-----------------|-------------\n");
 
     // Group results by instance count and find best speedups
     for (size_t num_inst : instance_counts) {
@@ -304,13 +321,21 @@ int main(){
             }
         }
 
-        std::cout << std::setw(9) << num_inst << " | "
+        LOG_OUTPUT(std::setw(9) << num_inst << " | "
                   << std::setw(15) << colors_2node << " | "
                   << std::fixed << std::setprecision(2) << std::setw(12) << best_speedup_2node << "x | "
                   << std::setw(15) << colors_nnode << " | "
-                  << std::setw(12) << best_speedup_nnode << "x\n";
+                  << std::setw(12) << best_speedup_nnode << "x\n");
     }
-    std::cout << "================================================================================\n";
+    LOG_OUTPUT("================================================================================\n");
+
+    // Close log file
+    if (log_file.is_open()) {
+        log_file.close();
+        std::cout << "\nLog file written to: coloring_benchmark_log.txt\n";
+    }
+
+    #undef LOG_OUTPUT
 
     return 0;
 }
