@@ -12,6 +12,7 @@
 #include "map.hpp"
 #include "SPICEcompatible.hpp"
 #include "sim_statistics.hpp"
+#include "color.hpp"
 
 
 struct CKTcircuit
@@ -41,4 +42,6 @@ struct CKTcircuit
     bool is_batch = false;                          // True if the circuit is a batch simulation
     SimulationStatistics sim_stats;                 // Simulation statistics
     bool CKTmutithreaded = false;                   // True if the circuit is using multithreading for BSIM4 transistors
+
+    BSIM4Coloring b4coloring;                       // BSIM4 coloring for multithreading
 };

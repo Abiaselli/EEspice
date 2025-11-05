@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
-#include "CKT.hpp"
+#include "global.hpp"
 #include "bsim4v82/bsim4v82.hpp"
 
 class BSIM4Coloring {
