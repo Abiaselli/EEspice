@@ -53,6 +53,7 @@ int main(int argc, const char **argv)
                 ckt.sim_stats.MNA_Matrix_size = ckt.cktdematrix->LHS.n_rows;    // Store the size of MNA matrix to the simulation statistics
                 if (argc >= 3 && std::string(argv[2]) == "-mt"){
                     ckt.CKTmutithreaded = true;
+                    ckt.b4coloring.computeColoring(ckt.CKTelements.bsim4);      // Compute coloring for BSIM4 instances
                     std::cout << "Multithreading enabled for BSIM4 transistors." << std::endl;
                 }
             }
