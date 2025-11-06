@@ -1,0 +1,1518 @@
+* 500-stage CMOS inverter chain (no subcircuits) using BSIM4 models
+VDD vdd 0 1.0
+VIN n0 0 PULSE (0 1.0 0 10p 10p 2n 4n)
+Cload n500 0 1f
+
+* Models
+.model nmos nmos (level=14 version=4.8.2)
+.model pmos pmos (level=14 version=4.8.2)
+
+* Added: series resistor between each inverter and global VDD
+
+
+* Inverters expanded inline: Mp=PMOS pull-up, Mn=NMOS pull-down
+* Each stage i uses local supply node vddi, with Rvddi from global vdd to vddi
+Rvdd1 vdd vdd1 1k
+Mp1 n1 n0 vdd1 vdd1 pmos W=1u L=45n
+Mn1 n1 n0 0 0 nmos W=0.5u L=45n
+Rvdd2 vdd vdd2 1k
+Mp2 n2 n1 vdd2 vdd2 pmos W=1u L=45n
+Mn2 n2 n1 0 0 nmos W=0.5u L=45n
+Rvdd3 vdd vdd3 1k
+Mp3 n3 n2 vdd3 vdd3 pmos W=1u L=45n
+Mn3 n3 n2 0 0 nmos W=0.5u L=45n
+Rvdd4 vdd vdd4 1k
+Mp4 n4 n3 vdd4 vdd4 pmos W=1u L=45n
+Mn4 n4 n3 0 0 nmos W=0.5u L=45n
+Rvdd5 vdd vdd5 1k
+Mp5 n5 n4 vdd5 vdd5 pmos W=1u L=45n
+Mn5 n5 n4 0 0 nmos W=0.5u L=45n
+Rvdd6 vdd vdd6 1k
+Mp6 n6 n5 vdd6 vdd6 pmos W=1u L=45n
+Mn6 n6 n5 0 0 nmos W=0.5u L=45n
+Rvdd7 vdd vdd7 1k
+Mp7 n7 n6 vdd7 vdd7 pmos W=1u L=45n
+Mn7 n7 n6 0 0 nmos W=0.5u L=45n
+Rvdd8 vdd vdd8 1k
+Mp8 n8 n7 vdd8 vdd8 pmos W=1u L=45n
+Mn8 n8 n7 0 0 nmos W=0.5u L=45n
+Rvdd9 vdd vdd9 1k
+Mp9 n9 n8 vdd9 vdd9 pmos W=1u L=45n
+Mn9 n9 n8 0 0 nmos W=0.5u L=45n
+Rvdd10 vdd vdd10 1k
+Mp10 n10 n9 vdd10 vdd10 pmos W=1u L=45n
+Mn10 n10 n9 0 0 nmos W=0.5u L=45n
+Rvdd11 vdd vdd11 1k
+Mp11 n11 n10 vdd11 vdd11 pmos W=1u L=45n
+Mn11 n11 n10 0 0 nmos W=0.5u L=45n
+Rvdd12 vdd vdd12 1k
+Mp12 n12 n11 vdd12 vdd12 pmos W=1u L=45n
+Mn12 n12 n11 0 0 nmos W=0.5u L=45n
+Rvdd13 vdd vdd13 1k
+Mp13 n13 n12 vdd13 vdd13 pmos W=1u L=45n
+Mn13 n13 n12 0 0 nmos W=0.5u L=45n
+Rvdd14 vdd vdd14 1k
+Mp14 n14 n13 vdd14 vdd14 pmos W=1u L=45n
+Mn14 n14 n13 0 0 nmos W=0.5u L=45n
+Rvdd15 vdd vdd15 1k
+Mp15 n15 n14 vdd15 vdd15 pmos W=1u L=45n
+Mn15 n15 n14 0 0 nmos W=0.5u L=45n
+Rvdd16 vdd vdd16 1k
+Mp16 n16 n15 vdd16 vdd16 pmos W=1u L=45n
+Mn16 n16 n15 0 0 nmos W=0.5u L=45n
+Rvdd17 vdd vdd17 1k
+Mp17 n17 n16 vdd17 vdd17 pmos W=1u L=45n
+Mn17 n17 n16 0 0 nmos W=0.5u L=45n
+Rvdd18 vdd vdd18 1k
+Mp18 n18 n17 vdd18 vdd18 pmos W=1u L=45n
+Mn18 n18 n17 0 0 nmos W=0.5u L=45n
+Rvdd19 vdd vdd19 1k
+Mp19 n19 n18 vdd19 vdd19 pmos W=1u L=45n
+Mn19 n19 n18 0 0 nmos W=0.5u L=45n
+Rvdd20 vdd vdd20 1k
+Mp20 n20 n19 vdd20 vdd20 pmos W=1u L=45n
+Mn20 n20 n19 0 0 nmos W=0.5u L=45n
+Rvdd21 vdd vdd21 1k
+Mp21 n21 n20 vdd21 vdd21 pmos W=1u L=45n
+Mn21 n21 n20 0 0 nmos W=0.5u L=45n
+Rvdd22 vdd vdd22 1k
+Mp22 n22 n21 vdd22 vdd22 pmos W=1u L=45n
+Mn22 n22 n21 0 0 nmos W=0.5u L=45n
+Rvdd23 vdd vdd23 1k
+Mp23 n23 n22 vdd23 vdd23 pmos W=1u L=45n
+Mn23 n23 n22 0 0 nmos W=0.5u L=45n
+Rvdd24 vdd vdd24 1k
+Mp24 n24 n23 vdd24 vdd24 pmos W=1u L=45n
+Mn24 n24 n23 0 0 nmos W=0.5u L=45n
+Rvdd25 vdd vdd25 1k
+Mp25 n25 n24 vdd25 vdd25 pmos W=1u L=45n
+Mn25 n25 n24 0 0 nmos W=0.5u L=45n
+Rvdd26 vdd vdd26 1k
+Mp26 n26 n25 vdd26 vdd26 pmos W=1u L=45n
+Mn26 n26 n25 0 0 nmos W=0.5u L=45n
+Rvdd27 vdd vdd27 1k
+Mp27 n27 n26 vdd27 vdd27 pmos W=1u L=45n
+Mn27 n27 n26 0 0 nmos W=0.5u L=45n
+Rvdd28 vdd vdd28 1k
+Mp28 n28 n27 vdd28 vdd28 pmos W=1u L=45n
+Mn28 n28 n27 0 0 nmos W=0.5u L=45n
+Rvdd29 vdd vdd29 1k
+Mp29 n29 n28 vdd29 vdd29 pmos W=1u L=45n
+Mn29 n29 n28 0 0 nmos W=0.5u L=45n
+Rvdd30 vdd vdd30 1k
+Mp30 n30 n29 vdd30 vdd30 pmos W=1u L=45n
+Mn30 n30 n29 0 0 nmos W=0.5u L=45n
+Rvdd31 vdd vdd31 1k
+Mp31 n31 n30 vdd31 vdd31 pmos W=1u L=45n
+Mn31 n31 n30 0 0 nmos W=0.5u L=45n
+Rvdd32 vdd vdd32 1k
+Mp32 n32 n31 vdd32 vdd32 pmos W=1u L=45n
+Mn32 n32 n31 0 0 nmos W=0.5u L=45n
+Rvdd33 vdd vdd33 1k
+Mp33 n33 n32 vdd33 vdd33 pmos W=1u L=45n
+Mn33 n33 n32 0 0 nmos W=0.5u L=45n
+Rvdd34 vdd vdd34 1k
+Mp34 n34 n33 vdd34 vdd34 pmos W=1u L=45n
+Mn34 n34 n33 0 0 nmos W=0.5u L=45n
+Rvdd35 vdd vdd35 1k
+Mp35 n35 n34 vdd35 vdd35 pmos W=1u L=45n
+Mn35 n35 n34 0 0 nmos W=0.5u L=45n
+Rvdd36 vdd vdd36 1k
+Mp36 n36 n35 vdd36 vdd36 pmos W=1u L=45n
+Mn36 n36 n35 0 0 nmos W=0.5u L=45n
+Rvdd37 vdd vdd37 1k
+Mp37 n37 n36 vdd37 vdd37 pmos W=1u L=45n
+Mn37 n37 n36 0 0 nmos W=0.5u L=45n
+Rvdd38 vdd vdd38 1k
+Mp38 n38 n37 vdd38 vdd38 pmos W=1u L=45n
+Mn38 n38 n37 0 0 nmos W=0.5u L=45n
+Rvdd39 vdd vdd39 1k
+Mp39 n39 n38 vdd39 vdd39 pmos W=1u L=45n
+Mn39 n39 n38 0 0 nmos W=0.5u L=45n
+Rvdd40 vdd vdd40 1k
+Mp40 n40 n39 vdd40 vdd40 pmos W=1u L=45n
+Mn40 n40 n39 0 0 nmos W=0.5u L=45n
+Rvdd41 vdd vdd41 1k
+Mp41 n41 n40 vdd41 vdd41 pmos W=1u L=45n
+Mn41 n41 n40 0 0 nmos W=0.5u L=45n
+Rvdd42 vdd vdd42 1k
+Mp42 n42 n41 vdd42 vdd42 pmos W=1u L=45n
+Mn42 n42 n41 0 0 nmos W=0.5u L=45n
+Rvdd43 vdd vdd43 1k
+Mp43 n43 n42 vdd43 vdd43 pmos W=1u L=45n
+Mn43 n43 n42 0 0 nmos W=0.5u L=45n
+Rvdd44 vdd vdd44 1k
+Mp44 n44 n43 vdd44 vdd44 pmos W=1u L=45n
+Mn44 n44 n43 0 0 nmos W=0.5u L=45n
+Rvdd45 vdd vdd45 1k
+Mp45 n45 n44 vdd45 vdd45 pmos W=1u L=45n
+Mn45 n45 n44 0 0 nmos W=0.5u L=45n
+Rvdd46 vdd vdd46 1k
+Mp46 n46 n45 vdd46 vdd46 pmos W=1u L=45n
+Mn46 n46 n45 0 0 nmos W=0.5u L=45n
+Rvdd47 vdd vdd47 1k
+Mp47 n47 n46 vdd47 vdd47 pmos W=1u L=45n
+Mn47 n47 n46 0 0 nmos W=0.5u L=45n
+Rvdd48 vdd vdd48 1k
+Mp48 n48 n47 vdd48 vdd48 pmos W=1u L=45n
+Mn48 n48 n47 0 0 nmos W=0.5u L=45n
+Rvdd49 vdd vdd49 1k
+Mp49 n49 n48 vdd49 vdd49 pmos W=1u L=45n
+Mn49 n49 n48 0 0 nmos W=0.5u L=45n
+Rvdd50 vdd vdd50 1k
+Mp50 n50 n49 vdd50 vdd50 pmos W=1u L=45n
+Mn50 n50 n49 0 0 nmos W=0.5u L=45n
+Rvdd51 vdd vdd51 1k
+Mp51 n51 n50 vdd51 vdd51 pmos W=1u L=45n
+Mn51 n51 n50 0 0 nmos W=0.5u L=45n
+Rvdd52 vdd vdd52 1k
+Mp52 n52 n51 vdd52 vdd52 pmos W=1u L=45n
+Mn52 n52 n51 0 0 nmos W=0.5u L=45n
+Rvdd53 vdd vdd53 1k
+Mp53 n53 n52 vdd53 vdd53 pmos W=1u L=45n
+Mn53 n53 n52 0 0 nmos W=0.5u L=45n
+Rvdd54 vdd vdd54 1k
+Mp54 n54 n53 vdd54 vdd54 pmos W=1u L=45n
+Mn54 n54 n53 0 0 nmos W=0.5u L=45n
+Rvdd55 vdd vdd55 1k
+Mp55 n55 n54 vdd55 vdd55 pmos W=1u L=45n
+Mn55 n55 n54 0 0 nmos W=0.5u L=45n
+Rvdd56 vdd vdd56 1k
+Mp56 n56 n55 vdd56 vdd56 pmos W=1u L=45n
+Mn56 n56 n55 0 0 nmos W=0.5u L=45n
+Rvdd57 vdd vdd57 1k
+Mp57 n57 n56 vdd57 vdd57 pmos W=1u L=45n
+Mn57 n57 n56 0 0 nmos W=0.5u L=45n
+Rvdd58 vdd vdd58 1k
+Mp58 n58 n57 vdd58 vdd58 pmos W=1u L=45n
+Mn58 n58 n57 0 0 nmos W=0.5u L=45n
+Rvdd59 vdd vdd59 1k
+Mp59 n59 n58 vdd59 vdd59 pmos W=1u L=45n
+Mn59 n59 n58 0 0 nmos W=0.5u L=45n
+Rvdd60 vdd vdd60 1k
+Mp60 n60 n59 vdd60 vdd60 pmos W=1u L=45n
+Mn60 n60 n59 0 0 nmos W=0.5u L=45n
+Rvdd61 vdd vdd61 1k
+Mp61 n61 n60 vdd61 vdd61 pmos W=1u L=45n
+Mn61 n61 n60 0 0 nmos W=0.5u L=45n
+Rvdd62 vdd vdd62 1k
+Mp62 n62 n61 vdd62 vdd62 pmos W=1u L=45n
+Mn62 n62 n61 0 0 nmos W=0.5u L=45n
+Rvdd63 vdd vdd63 1k
+Mp63 n63 n62 vdd63 vdd63 pmos W=1u L=45n
+Mn63 n63 n62 0 0 nmos W=0.5u L=45n
+Rvdd64 vdd vdd64 1k
+Mp64 n64 n63 vdd64 vdd64 pmos W=1u L=45n
+Mn64 n64 n63 0 0 nmos W=0.5u L=45n
+Rvdd65 vdd vdd65 1k
+Mp65 n65 n64 vdd65 vdd65 pmos W=1u L=45n
+Mn65 n65 n64 0 0 nmos W=0.5u L=45n
+Rvdd66 vdd vdd66 1k
+Mp66 n66 n65 vdd66 vdd66 pmos W=1u L=45n
+Mn66 n66 n65 0 0 nmos W=0.5u L=45n
+Rvdd67 vdd vdd67 1k
+Mp67 n67 n66 vdd67 vdd67 pmos W=1u L=45n
+Mn67 n67 n66 0 0 nmos W=0.5u L=45n
+Rvdd68 vdd vdd68 1k
+Mp68 n68 n67 vdd68 vdd68 pmos W=1u L=45n
+Mn68 n68 n67 0 0 nmos W=0.5u L=45n
+Rvdd69 vdd vdd69 1k
+Mp69 n69 n68 vdd69 vdd69 pmos W=1u L=45n
+Mn69 n69 n68 0 0 nmos W=0.5u L=45n
+Rvdd70 vdd vdd70 1k
+Mp70 n70 n69 vdd70 vdd70 pmos W=1u L=45n
+Mn70 n70 n69 0 0 nmos W=0.5u L=45n
+Rvdd71 vdd vdd71 1k
+Mp71 n71 n70 vdd71 vdd71 pmos W=1u L=45n
+Mn71 n71 n70 0 0 nmos W=0.5u L=45n
+Rvdd72 vdd vdd72 1k
+Mp72 n72 n71 vdd72 vdd72 pmos W=1u L=45n
+Mn72 n72 n71 0 0 nmos W=0.5u L=45n
+Rvdd73 vdd vdd73 1k
+Mp73 n73 n72 vdd73 vdd73 pmos W=1u L=45n
+Mn73 n73 n72 0 0 nmos W=0.5u L=45n
+Rvdd74 vdd vdd74 1k
+Mp74 n74 n73 vdd74 vdd74 pmos W=1u L=45n
+Mn74 n74 n73 0 0 nmos W=0.5u L=45n
+Rvdd75 vdd vdd75 1k
+Mp75 n75 n74 vdd75 vdd75 pmos W=1u L=45n
+Mn75 n75 n74 0 0 nmos W=0.5u L=45n
+Rvdd76 vdd vdd76 1k
+Mp76 n76 n75 vdd76 vdd76 pmos W=1u L=45n
+Mn76 n76 n75 0 0 nmos W=0.5u L=45n
+Rvdd77 vdd vdd77 1k
+Mp77 n77 n76 vdd77 vdd77 pmos W=1u L=45n
+Mn77 n77 n76 0 0 nmos W=0.5u L=45n
+Rvdd78 vdd vdd78 1k
+Mp78 n78 n77 vdd78 vdd78 pmos W=1u L=45n
+Mn78 n78 n77 0 0 nmos W=0.5u L=45n
+Rvdd79 vdd vdd79 1k
+Mp79 n79 n78 vdd79 vdd79 pmos W=1u L=45n
+Mn79 n79 n78 0 0 nmos W=0.5u L=45n
+Rvdd80 vdd vdd80 1k
+Mp80 n80 n79 vdd80 vdd80 pmos W=1u L=45n
+Mn80 n80 n79 0 0 nmos W=0.5u L=45n
+Rvdd81 vdd vdd81 1k
+Mp81 n81 n80 vdd81 vdd81 pmos W=1u L=45n
+Mn81 n81 n80 0 0 nmos W=0.5u L=45n
+Rvdd82 vdd vdd82 1k
+Mp82 n82 n81 vdd82 vdd82 pmos W=1u L=45n
+Mn82 n82 n81 0 0 nmos W=0.5u L=45n
+Rvdd83 vdd vdd83 1k
+Mp83 n83 n82 vdd83 vdd83 pmos W=1u L=45n
+Mn83 n83 n82 0 0 nmos W=0.5u L=45n
+Rvdd84 vdd vdd84 1k
+Mp84 n84 n83 vdd84 vdd84 pmos W=1u L=45n
+Mn84 n84 n83 0 0 nmos W=0.5u L=45n
+Rvdd85 vdd vdd85 1k
+Mp85 n85 n84 vdd85 vdd85 pmos W=1u L=45n
+Mn85 n85 n84 0 0 nmos W=0.5u L=45n
+Rvdd86 vdd vdd86 1k
+Mp86 n86 n85 vdd86 vdd86 pmos W=1u L=45n
+Mn86 n86 n85 0 0 nmos W=0.5u L=45n
+Rvdd87 vdd vdd87 1k
+Mp87 n87 n86 vdd87 vdd87 pmos W=1u L=45n
+Mn87 n87 n86 0 0 nmos W=0.5u L=45n
+Rvdd88 vdd vdd88 1k
+Mp88 n88 n87 vdd88 vdd88 pmos W=1u L=45n
+Mn88 n88 n87 0 0 nmos W=0.5u L=45n
+Rvdd89 vdd vdd89 1k
+Mp89 n89 n88 vdd89 vdd89 pmos W=1u L=45n
+Mn89 n89 n88 0 0 nmos W=0.5u L=45n
+Rvdd90 vdd vdd90 1k
+Mp90 n90 n89 vdd90 vdd90 pmos W=1u L=45n
+Mn90 n90 n89 0 0 nmos W=0.5u L=45n
+Rvdd91 vdd vdd91 1k
+Mp91 n91 n90 vdd91 vdd91 pmos W=1u L=45n
+Mn91 n91 n90 0 0 nmos W=0.5u L=45n
+Rvdd92 vdd vdd92 1k
+Mp92 n92 n91 vdd92 vdd92 pmos W=1u L=45n
+Mn92 n92 n91 0 0 nmos W=0.5u L=45n
+Rvdd93 vdd vdd93 1k
+Mp93 n93 n92 vdd93 vdd93 pmos W=1u L=45n
+Mn93 n93 n92 0 0 nmos W=0.5u L=45n
+Rvdd94 vdd vdd94 1k
+Mp94 n94 n93 vdd94 vdd94 pmos W=1u L=45n
+Mn94 n94 n93 0 0 nmos W=0.5u L=45n
+Rvdd95 vdd vdd95 1k
+Mp95 n95 n94 vdd95 vdd95 pmos W=1u L=45n
+Mn95 n95 n94 0 0 nmos W=0.5u L=45n
+Rvdd96 vdd vdd96 1k
+Mp96 n96 n95 vdd96 vdd96 pmos W=1u L=45n
+Mn96 n96 n95 0 0 nmos W=0.5u L=45n
+Rvdd97 vdd vdd97 1k
+Mp97 n97 n96 vdd97 vdd97 pmos W=1u L=45n
+Mn97 n97 n96 0 0 nmos W=0.5u L=45n
+Rvdd98 vdd vdd98 1k
+Mp98 n98 n97 vdd98 vdd98 pmos W=1u L=45n
+Mn98 n98 n97 0 0 nmos W=0.5u L=45n
+Rvdd99 vdd vdd99 1k
+Mp99 n99 n98 vdd99 vdd99 pmos W=1u L=45n
+Mn99 n99 n98 0 0 nmos W=0.5u L=45n
+Rvdd100 vdd vdd100 1k
+Mp100 n100 n99 vdd100 vdd100 pmos W=1u L=45n
+Mn100 n100 n99 0 0 nmos W=0.5u L=45n
+Rvdd101 vdd vdd101 1k
+Mp101 n101 n100 vdd101 vdd101 pmos W=1u L=45n
+Mn101 n101 n100 0 0 nmos W=0.5u L=45n
+Rvdd102 vdd vdd102 1k
+Mp102 n102 n101 vdd102 vdd102 pmos W=1u L=45n
+Mn102 n102 n101 0 0 nmos W=0.5u L=45n
+Rvdd103 vdd vdd103 1k
+Mp103 n103 n102 vdd103 vdd103 pmos W=1u L=45n
+Mn103 n103 n102 0 0 nmos W=0.5u L=45n
+Rvdd104 vdd vdd104 1k
+Mp104 n104 n103 vdd104 vdd104 pmos W=1u L=45n
+Mn104 n104 n103 0 0 nmos W=0.5u L=45n
+Rvdd105 vdd vdd105 1k
+Mp105 n105 n104 vdd105 vdd105 pmos W=1u L=45n
+Mn105 n105 n104 0 0 nmos W=0.5u L=45n
+Rvdd106 vdd vdd106 1k
+Mp106 n106 n105 vdd106 vdd106 pmos W=1u L=45n
+Mn106 n106 n105 0 0 nmos W=0.5u L=45n
+Rvdd107 vdd vdd107 1k
+Mp107 n107 n106 vdd107 vdd107 pmos W=1u L=45n
+Mn107 n107 n106 0 0 nmos W=0.5u L=45n
+Rvdd108 vdd vdd108 1k
+Mp108 n108 n107 vdd108 vdd108 pmos W=1u L=45n
+Mn108 n108 n107 0 0 nmos W=0.5u L=45n
+Rvdd109 vdd vdd109 1k
+Mp109 n109 n108 vdd109 vdd109 pmos W=1u L=45n
+Mn109 n109 n108 0 0 nmos W=0.5u L=45n
+Rvdd110 vdd vdd110 1k
+Mp110 n110 n109 vdd110 vdd110 pmos W=1u L=45n
+Mn110 n110 n109 0 0 nmos W=0.5u L=45n
+Rvdd111 vdd vdd111 1k
+Mp111 n111 n110 vdd111 vdd111 pmos W=1u L=45n
+Mn111 n111 n110 0 0 nmos W=0.5u L=45n
+Rvdd112 vdd vdd112 1k
+Mp112 n112 n111 vdd112 vdd112 pmos W=1u L=45n
+Mn112 n112 n111 0 0 nmos W=0.5u L=45n
+Rvdd113 vdd vdd113 1k
+Mp113 n113 n112 vdd113 vdd113 pmos W=1u L=45n
+Mn113 n113 n112 0 0 nmos W=0.5u L=45n
+Rvdd114 vdd vdd114 1k
+Mp114 n114 n113 vdd114 vdd114 pmos W=1u L=45n
+Mn114 n114 n113 0 0 nmos W=0.5u L=45n
+Rvdd115 vdd vdd115 1k
+Mp115 n115 n114 vdd115 vdd115 pmos W=1u L=45n
+Mn115 n115 n114 0 0 nmos W=0.5u L=45n
+Rvdd116 vdd vdd116 1k
+Mp116 n116 n115 vdd116 vdd116 pmos W=1u L=45n
+Mn116 n116 n115 0 0 nmos W=0.5u L=45n
+Rvdd117 vdd vdd117 1k
+Mp117 n117 n116 vdd117 vdd117 pmos W=1u L=45n
+Mn117 n117 n116 0 0 nmos W=0.5u L=45n
+Rvdd118 vdd vdd118 1k
+Mp118 n118 n117 vdd118 vdd118 pmos W=1u L=45n
+Mn118 n118 n117 0 0 nmos W=0.5u L=45n
+Rvdd119 vdd vdd119 1k
+Mp119 n119 n118 vdd119 vdd119 pmos W=1u L=45n
+Mn119 n119 n118 0 0 nmos W=0.5u L=45n
+Rvdd120 vdd vdd120 1k
+Mp120 n120 n119 vdd120 vdd120 pmos W=1u L=45n
+Mn120 n120 n119 0 0 nmos W=0.5u L=45n
+Rvdd121 vdd vdd121 1k
+Mp121 n121 n120 vdd121 vdd121 pmos W=1u L=45n
+Mn121 n121 n120 0 0 nmos W=0.5u L=45n
+Rvdd122 vdd vdd122 1k
+Mp122 n122 n121 vdd122 vdd122 pmos W=1u L=45n
+Mn122 n122 n121 0 0 nmos W=0.5u L=45n
+Rvdd123 vdd vdd123 1k
+Mp123 n123 n122 vdd123 vdd123 pmos W=1u L=45n
+Mn123 n123 n122 0 0 nmos W=0.5u L=45n
+Rvdd124 vdd vdd124 1k
+Mp124 n124 n123 vdd124 vdd124 pmos W=1u L=45n
+Mn124 n124 n123 0 0 nmos W=0.5u L=45n
+Rvdd125 vdd vdd125 1k
+Mp125 n125 n124 vdd125 vdd125 pmos W=1u L=45n
+Mn125 n125 n124 0 0 nmos W=0.5u L=45n
+Rvdd126 vdd vdd126 1k
+Mp126 n126 n125 vdd126 vdd126 pmos W=1u L=45n
+Mn126 n126 n125 0 0 nmos W=0.5u L=45n
+Rvdd127 vdd vdd127 1k
+Mp127 n127 n126 vdd127 vdd127 pmos W=1u L=45n
+Mn127 n127 n126 0 0 nmos W=0.5u L=45n
+Rvdd128 vdd vdd128 1k
+Mp128 n128 n127 vdd128 vdd128 pmos W=1u L=45n
+Mn128 n128 n127 0 0 nmos W=0.5u L=45n
+Rvdd129 vdd vdd129 1k
+Mp129 n129 n128 vdd129 vdd129 pmos W=1u L=45n
+Mn129 n129 n128 0 0 nmos W=0.5u L=45n
+Rvdd130 vdd vdd130 1k
+Mp130 n130 n129 vdd130 vdd130 pmos W=1u L=45n
+Mn130 n130 n129 0 0 nmos W=0.5u L=45n
+Rvdd131 vdd vdd131 1k
+Mp131 n131 n130 vdd131 vdd131 pmos W=1u L=45n
+Mn131 n131 n130 0 0 nmos W=0.5u L=45n
+Rvdd132 vdd vdd132 1k
+Mp132 n132 n131 vdd132 vdd132 pmos W=1u L=45n
+Mn132 n132 n131 0 0 nmos W=0.5u L=45n
+Rvdd133 vdd vdd133 1k
+Mp133 n133 n132 vdd133 vdd133 pmos W=1u L=45n
+Mn133 n133 n132 0 0 nmos W=0.5u L=45n
+Rvdd134 vdd vdd134 1k
+Mp134 n134 n133 vdd134 vdd134 pmos W=1u L=45n
+Mn134 n134 n133 0 0 nmos W=0.5u L=45n
+Rvdd135 vdd vdd135 1k
+Mp135 n135 n134 vdd135 vdd135 pmos W=1u L=45n
+Mn135 n135 n134 0 0 nmos W=0.5u L=45n
+Rvdd136 vdd vdd136 1k
+Mp136 n136 n135 vdd136 vdd136 pmos W=1u L=45n
+Mn136 n136 n135 0 0 nmos W=0.5u L=45n
+Rvdd137 vdd vdd137 1k
+Mp137 n137 n136 vdd137 vdd137 pmos W=1u L=45n
+Mn137 n137 n136 0 0 nmos W=0.5u L=45n
+Rvdd138 vdd vdd138 1k
+Mp138 n138 n137 vdd138 vdd138 pmos W=1u L=45n
+Mn138 n138 n137 0 0 nmos W=0.5u L=45n
+Rvdd139 vdd vdd139 1k
+Mp139 n139 n138 vdd139 vdd139 pmos W=1u L=45n
+Mn139 n139 n138 0 0 nmos W=0.5u L=45n
+Rvdd140 vdd vdd140 1k
+Mp140 n140 n139 vdd140 vdd140 pmos W=1u L=45n
+Mn140 n140 n139 0 0 nmos W=0.5u L=45n
+Rvdd141 vdd vdd141 1k
+Mp141 n141 n140 vdd141 vdd141 pmos W=1u L=45n
+Mn141 n141 n140 0 0 nmos W=0.5u L=45n
+Rvdd142 vdd vdd142 1k
+Mp142 n142 n141 vdd142 vdd142 pmos W=1u L=45n
+Mn142 n142 n141 0 0 nmos W=0.5u L=45n
+Rvdd143 vdd vdd143 1k
+Mp143 n143 n142 vdd143 vdd143 pmos W=1u L=45n
+Mn143 n143 n142 0 0 nmos W=0.5u L=45n
+Rvdd144 vdd vdd144 1k
+Mp144 n144 n143 vdd144 vdd144 pmos W=1u L=45n
+Mn144 n144 n143 0 0 nmos W=0.5u L=45n
+Rvdd145 vdd vdd145 1k
+Mp145 n145 n144 vdd145 vdd145 pmos W=1u L=45n
+Mn145 n145 n144 0 0 nmos W=0.5u L=45n
+Rvdd146 vdd vdd146 1k
+Mp146 n146 n145 vdd146 vdd146 pmos W=1u L=45n
+Mn146 n146 n145 0 0 nmos W=0.5u L=45n
+Rvdd147 vdd vdd147 1k
+Mp147 n147 n146 vdd147 vdd147 pmos W=1u L=45n
+Mn147 n147 n146 0 0 nmos W=0.5u L=45n
+Rvdd148 vdd vdd148 1k
+Mp148 n148 n147 vdd148 vdd148 pmos W=1u L=45n
+Mn148 n148 n147 0 0 nmos W=0.5u L=45n
+Rvdd149 vdd vdd149 1k
+Mp149 n149 n148 vdd149 vdd149 pmos W=1u L=45n
+Mn149 n149 n148 0 0 nmos W=0.5u L=45n
+Rvdd150 vdd vdd150 1k
+Mp150 n150 n149 vdd150 vdd150 pmos W=1u L=45n
+Mn150 n150 n149 0 0 nmos W=0.5u L=45n
+Rvdd151 vdd vdd151 1k
+Mp151 n151 n150 vdd151 vdd151 pmos W=1u L=45n
+Mn151 n151 n150 0 0 nmos W=0.5u L=45n
+Rvdd152 vdd vdd152 1k
+Mp152 n152 n151 vdd152 vdd152 pmos W=1u L=45n
+Mn152 n152 n151 0 0 nmos W=0.5u L=45n
+Rvdd153 vdd vdd153 1k
+Mp153 n153 n152 vdd153 vdd153 pmos W=1u L=45n
+Mn153 n153 n152 0 0 nmos W=0.5u L=45n
+Rvdd154 vdd vdd154 1k
+Mp154 n154 n153 vdd154 vdd154 pmos W=1u L=45n
+Mn154 n154 n153 0 0 nmos W=0.5u L=45n
+Rvdd155 vdd vdd155 1k
+Mp155 n155 n154 vdd155 vdd155 pmos W=1u L=45n
+Mn155 n155 n154 0 0 nmos W=0.5u L=45n
+Rvdd156 vdd vdd156 1k
+Mp156 n156 n155 vdd156 vdd156 pmos W=1u L=45n
+Mn156 n156 n155 0 0 nmos W=0.5u L=45n
+Rvdd157 vdd vdd157 1k
+Mp157 n157 n156 vdd157 vdd157 pmos W=1u L=45n
+Mn157 n157 n156 0 0 nmos W=0.5u L=45n
+Rvdd158 vdd vdd158 1k
+Mp158 n158 n157 vdd158 vdd158 pmos W=1u L=45n
+Mn158 n158 n157 0 0 nmos W=0.5u L=45n
+Rvdd159 vdd vdd159 1k
+Mp159 n159 n158 vdd159 vdd159 pmos W=1u L=45n
+Mn159 n159 n158 0 0 nmos W=0.5u L=45n
+Rvdd160 vdd vdd160 1k
+Mp160 n160 n159 vdd160 vdd160 pmos W=1u L=45n
+Mn160 n160 n159 0 0 nmos W=0.5u L=45n
+Rvdd161 vdd vdd161 1k
+Mp161 n161 n160 vdd161 vdd161 pmos W=1u L=45n
+Mn161 n161 n160 0 0 nmos W=0.5u L=45n
+Rvdd162 vdd vdd162 1k
+Mp162 n162 n161 vdd162 vdd162 pmos W=1u L=45n
+Mn162 n162 n161 0 0 nmos W=0.5u L=45n
+Rvdd163 vdd vdd163 1k
+Mp163 n163 n162 vdd163 vdd163 pmos W=1u L=45n
+Mn163 n163 n162 0 0 nmos W=0.5u L=45n
+Rvdd164 vdd vdd164 1k
+Mp164 n164 n163 vdd164 vdd164 pmos W=1u L=45n
+Mn164 n164 n163 0 0 nmos W=0.5u L=45n
+Rvdd165 vdd vdd165 1k
+Mp165 n165 n164 vdd165 vdd165 pmos W=1u L=45n
+Mn165 n165 n164 0 0 nmos W=0.5u L=45n
+Rvdd166 vdd vdd166 1k
+Mp166 n166 n165 vdd166 vdd166 pmos W=1u L=45n
+Mn166 n166 n165 0 0 nmos W=0.5u L=45n
+Rvdd167 vdd vdd167 1k
+Mp167 n167 n166 vdd167 vdd167 pmos W=1u L=45n
+Mn167 n167 n166 0 0 nmos W=0.5u L=45n
+Rvdd168 vdd vdd168 1k
+Mp168 n168 n167 vdd168 vdd168 pmos W=1u L=45n
+Mn168 n168 n167 0 0 nmos W=0.5u L=45n
+Rvdd169 vdd vdd169 1k
+Mp169 n169 n168 vdd169 vdd169 pmos W=1u L=45n
+Mn169 n169 n168 0 0 nmos W=0.5u L=45n
+Rvdd170 vdd vdd170 1k
+Mp170 n170 n169 vdd170 vdd170 pmos W=1u L=45n
+Mn170 n170 n169 0 0 nmos W=0.5u L=45n
+Rvdd171 vdd vdd171 1k
+Mp171 n171 n170 vdd171 vdd171 pmos W=1u L=45n
+Mn171 n171 n170 0 0 nmos W=0.5u L=45n
+Rvdd172 vdd vdd172 1k
+Mp172 n172 n171 vdd172 vdd172 pmos W=1u L=45n
+Mn172 n172 n171 0 0 nmos W=0.5u L=45n
+Rvdd173 vdd vdd173 1k
+Mp173 n173 n172 vdd173 vdd173 pmos W=1u L=45n
+Mn173 n173 n172 0 0 nmos W=0.5u L=45n
+Rvdd174 vdd vdd174 1k
+Mp174 n174 n173 vdd174 vdd174 pmos W=1u L=45n
+Mn174 n174 n173 0 0 nmos W=0.5u L=45n
+Rvdd175 vdd vdd175 1k
+Mp175 n175 n174 vdd175 vdd175 pmos W=1u L=45n
+Mn175 n175 n174 0 0 nmos W=0.5u L=45n
+Rvdd176 vdd vdd176 1k
+Mp176 n176 n175 vdd176 vdd176 pmos W=1u L=45n
+Mn176 n176 n175 0 0 nmos W=0.5u L=45n
+Rvdd177 vdd vdd177 1k
+Mp177 n177 n176 vdd177 vdd177 pmos W=1u L=45n
+Mn177 n177 n176 0 0 nmos W=0.5u L=45n
+Rvdd178 vdd vdd178 1k
+Mp178 n178 n177 vdd178 vdd178 pmos W=1u L=45n
+Mn178 n178 n177 0 0 nmos W=0.5u L=45n
+Rvdd179 vdd vdd179 1k
+Mp179 n179 n178 vdd179 vdd179 pmos W=1u L=45n
+Mn179 n179 n178 0 0 nmos W=0.5u L=45n
+Rvdd180 vdd vdd180 1k
+Mp180 n180 n179 vdd180 vdd180 pmos W=1u L=45n
+Mn180 n180 n179 0 0 nmos W=0.5u L=45n
+Rvdd181 vdd vdd181 1k
+Mp181 n181 n180 vdd181 vdd181 pmos W=1u L=45n
+Mn181 n181 n180 0 0 nmos W=0.5u L=45n
+Rvdd182 vdd vdd182 1k
+Mp182 n182 n181 vdd182 vdd182 pmos W=1u L=45n
+Mn182 n182 n181 0 0 nmos W=0.5u L=45n
+Rvdd183 vdd vdd183 1k
+Mp183 n183 n182 vdd183 vdd183 pmos W=1u L=45n
+Mn183 n183 n182 0 0 nmos W=0.5u L=45n
+Rvdd184 vdd vdd184 1k
+Mp184 n184 n183 vdd184 vdd184 pmos W=1u L=45n
+Mn184 n184 n183 0 0 nmos W=0.5u L=45n
+Rvdd185 vdd vdd185 1k
+Mp185 n185 n184 vdd185 vdd185 pmos W=1u L=45n
+Mn185 n185 n184 0 0 nmos W=0.5u L=45n
+Rvdd186 vdd vdd186 1k
+Mp186 n186 n185 vdd186 vdd186 pmos W=1u L=45n
+Mn186 n186 n185 0 0 nmos W=0.5u L=45n
+Rvdd187 vdd vdd187 1k
+Mp187 n187 n186 vdd187 vdd187 pmos W=1u L=45n
+Mn187 n187 n186 0 0 nmos W=0.5u L=45n
+Rvdd188 vdd vdd188 1k
+Mp188 n188 n187 vdd188 vdd188 pmos W=1u L=45n
+Mn188 n188 n187 0 0 nmos W=0.5u L=45n
+Rvdd189 vdd vdd189 1k
+Mp189 n189 n188 vdd189 vdd189 pmos W=1u L=45n
+Mn189 n189 n188 0 0 nmos W=0.5u L=45n
+Rvdd190 vdd vdd190 1k
+Mp190 n190 n189 vdd190 vdd190 pmos W=1u L=45n
+Mn190 n190 n189 0 0 nmos W=0.5u L=45n
+Rvdd191 vdd vdd191 1k
+Mp191 n191 n190 vdd191 vdd191 pmos W=1u L=45n
+Mn191 n191 n190 0 0 nmos W=0.5u L=45n
+Rvdd192 vdd vdd192 1k
+Mp192 n192 n191 vdd192 vdd192 pmos W=1u L=45n
+Mn192 n192 n191 0 0 nmos W=0.5u L=45n
+Rvdd193 vdd vdd193 1k
+Mp193 n193 n192 vdd193 vdd193 pmos W=1u L=45n
+Mn193 n193 n192 0 0 nmos W=0.5u L=45n
+Rvdd194 vdd vdd194 1k
+Mp194 n194 n193 vdd194 vdd194 pmos W=1u L=45n
+Mn194 n194 n193 0 0 nmos W=0.5u L=45n
+Rvdd195 vdd vdd195 1k
+Mp195 n195 n194 vdd195 vdd195 pmos W=1u L=45n
+Mn195 n195 n194 0 0 nmos W=0.5u L=45n
+Rvdd196 vdd vdd196 1k
+Mp196 n196 n195 vdd196 vdd196 pmos W=1u L=45n
+Mn196 n196 n195 0 0 nmos W=0.5u L=45n
+Rvdd197 vdd vdd197 1k
+Mp197 n197 n196 vdd197 vdd197 pmos W=1u L=45n
+Mn197 n197 n196 0 0 nmos W=0.5u L=45n
+Rvdd198 vdd vdd198 1k
+Mp198 n198 n197 vdd198 vdd198 pmos W=1u L=45n
+Mn198 n198 n197 0 0 nmos W=0.5u L=45n
+Rvdd199 vdd vdd199 1k
+Mp199 n199 n198 vdd199 vdd199 pmos W=1u L=45n
+Mn199 n199 n198 0 0 nmos W=0.5u L=45n
+Rvdd200 vdd vdd200 1k
+Mp200 n200 n199 vdd200 vdd200 pmos W=1u L=45n
+Mn200 n200 n199 0 0 nmos W=0.5u L=45n
+Rvdd201 vdd vdd201 1k
+Mp201 n201 n200 vdd201 vdd201 pmos W=1u L=45n
+Mn201 n201 n200 0 0 nmos W=0.5u L=45n
+Rvdd202 vdd vdd202 1k
+Mp202 n202 n201 vdd202 vdd202 pmos W=1u L=45n
+Mn202 n202 n201 0 0 nmos W=0.5u L=45n
+Rvdd203 vdd vdd203 1k
+Mp203 n203 n202 vdd203 vdd203 pmos W=1u L=45n
+Mn203 n203 n202 0 0 nmos W=0.5u L=45n
+Rvdd204 vdd vdd204 1k
+Mp204 n204 n203 vdd204 vdd204 pmos W=1u L=45n
+Mn204 n204 n203 0 0 nmos W=0.5u L=45n
+Rvdd205 vdd vdd205 1k
+Mp205 n205 n204 vdd205 vdd205 pmos W=1u L=45n
+Mn205 n205 n204 0 0 nmos W=0.5u L=45n
+Rvdd206 vdd vdd206 1k
+Mp206 n206 n205 vdd206 vdd206 pmos W=1u L=45n
+Mn206 n206 n205 0 0 nmos W=0.5u L=45n
+Rvdd207 vdd vdd207 1k
+Mp207 n207 n206 vdd207 vdd207 pmos W=1u L=45n
+Mn207 n207 n206 0 0 nmos W=0.5u L=45n
+Rvdd208 vdd vdd208 1k
+Mp208 n208 n207 vdd208 vdd208 pmos W=1u L=45n
+Mn208 n208 n207 0 0 nmos W=0.5u L=45n
+Rvdd209 vdd vdd209 1k
+Mp209 n209 n208 vdd209 vdd209 pmos W=1u L=45n
+Mn209 n209 n208 0 0 nmos W=0.5u L=45n
+Rvdd210 vdd vdd210 1k
+Mp210 n210 n209 vdd210 vdd210 pmos W=1u L=45n
+Mn210 n210 n209 0 0 nmos W=0.5u L=45n
+Rvdd211 vdd vdd211 1k
+Mp211 n211 n210 vdd211 vdd211 pmos W=1u L=45n
+Mn211 n211 n210 0 0 nmos W=0.5u L=45n
+Rvdd212 vdd vdd212 1k
+Mp212 n212 n211 vdd212 vdd212 pmos W=1u L=45n
+Mn212 n212 n211 0 0 nmos W=0.5u L=45n
+Rvdd213 vdd vdd213 1k
+Mp213 n213 n212 vdd213 vdd213 pmos W=1u L=45n
+Mn213 n213 n212 0 0 nmos W=0.5u L=45n
+Rvdd214 vdd vdd214 1k
+Mp214 n214 n213 vdd214 vdd214 pmos W=1u L=45n
+Mn214 n214 n213 0 0 nmos W=0.5u L=45n
+Rvdd215 vdd vdd215 1k
+Mp215 n215 n214 vdd215 vdd215 pmos W=1u L=45n
+Mn215 n215 n214 0 0 nmos W=0.5u L=45n
+Rvdd216 vdd vdd216 1k
+Mp216 n216 n215 vdd216 vdd216 pmos W=1u L=45n
+Mn216 n216 n215 0 0 nmos W=0.5u L=45n
+Rvdd217 vdd vdd217 1k
+Mp217 n217 n216 vdd217 vdd217 pmos W=1u L=45n
+Mn217 n217 n216 0 0 nmos W=0.5u L=45n
+Rvdd218 vdd vdd218 1k
+Mp218 n218 n217 vdd218 vdd218 pmos W=1u L=45n
+Mn218 n218 n217 0 0 nmos W=0.5u L=45n
+Rvdd219 vdd vdd219 1k
+Mp219 n219 n218 vdd219 vdd219 pmos W=1u L=45n
+Mn219 n219 n218 0 0 nmos W=0.5u L=45n
+Rvdd220 vdd vdd220 1k
+Mp220 n220 n219 vdd220 vdd220 pmos W=1u L=45n
+Mn220 n220 n219 0 0 nmos W=0.5u L=45n
+Rvdd221 vdd vdd221 1k
+Mp221 n221 n220 vdd221 vdd221 pmos W=1u L=45n
+Mn221 n221 n220 0 0 nmos W=0.5u L=45n
+Rvdd222 vdd vdd222 1k
+Mp222 n222 n221 vdd222 vdd222 pmos W=1u L=45n
+Mn222 n222 n221 0 0 nmos W=0.5u L=45n
+Rvdd223 vdd vdd223 1k
+Mp223 n223 n222 vdd223 vdd223 pmos W=1u L=45n
+Mn223 n223 n222 0 0 nmos W=0.5u L=45n
+Rvdd224 vdd vdd224 1k
+Mp224 n224 n223 vdd224 vdd224 pmos W=1u L=45n
+Mn224 n224 n223 0 0 nmos W=0.5u L=45n
+Rvdd225 vdd vdd225 1k
+Mp225 n225 n224 vdd225 vdd225 pmos W=1u L=45n
+Mn225 n225 n224 0 0 nmos W=0.5u L=45n
+Rvdd226 vdd vdd226 1k
+Mp226 n226 n225 vdd226 vdd226 pmos W=1u L=45n
+Mn226 n226 n225 0 0 nmos W=0.5u L=45n
+Rvdd227 vdd vdd227 1k
+Mp227 n227 n226 vdd227 vdd227 pmos W=1u L=45n
+Mn227 n227 n226 0 0 nmos W=0.5u L=45n
+Rvdd228 vdd vdd228 1k
+Mp228 n228 n227 vdd228 vdd228 pmos W=1u L=45n
+Mn228 n228 n227 0 0 nmos W=0.5u L=45n
+Rvdd229 vdd vdd229 1k
+Mp229 n229 n228 vdd229 vdd229 pmos W=1u L=45n
+Mn229 n229 n228 0 0 nmos W=0.5u L=45n
+Rvdd230 vdd vdd230 1k
+Mp230 n230 n229 vdd230 vdd230 pmos W=1u L=45n
+Mn230 n230 n229 0 0 nmos W=0.5u L=45n
+Rvdd231 vdd vdd231 1k
+Mp231 n231 n230 vdd231 vdd231 pmos W=1u L=45n
+Mn231 n231 n230 0 0 nmos W=0.5u L=45n
+Rvdd232 vdd vdd232 1k
+Mp232 n232 n231 vdd232 vdd232 pmos W=1u L=45n
+Mn232 n232 n231 0 0 nmos W=0.5u L=45n
+Rvdd233 vdd vdd233 1k
+Mp233 n233 n232 vdd233 vdd233 pmos W=1u L=45n
+Mn233 n233 n232 0 0 nmos W=0.5u L=45n
+Rvdd234 vdd vdd234 1k
+Mp234 n234 n233 vdd234 vdd234 pmos W=1u L=45n
+Mn234 n234 n233 0 0 nmos W=0.5u L=45n
+Rvdd235 vdd vdd235 1k
+Mp235 n235 n234 vdd235 vdd235 pmos W=1u L=45n
+Mn235 n235 n234 0 0 nmos W=0.5u L=45n
+Rvdd236 vdd vdd236 1k
+Mp236 n236 n235 vdd236 vdd236 pmos W=1u L=45n
+Mn236 n236 n235 0 0 nmos W=0.5u L=45n
+Rvdd237 vdd vdd237 1k
+Mp237 n237 n236 vdd237 vdd237 pmos W=1u L=45n
+Mn237 n237 n236 0 0 nmos W=0.5u L=45n
+Rvdd238 vdd vdd238 1k
+Mp238 n238 n237 vdd238 vdd238 pmos W=1u L=45n
+Mn238 n238 n237 0 0 nmos W=0.5u L=45n
+Rvdd239 vdd vdd239 1k
+Mp239 n239 n238 vdd239 vdd239 pmos W=1u L=45n
+Mn239 n239 n238 0 0 nmos W=0.5u L=45n
+Rvdd240 vdd vdd240 1k
+Mp240 n240 n239 vdd240 vdd240 pmos W=1u L=45n
+Mn240 n240 n239 0 0 nmos W=0.5u L=45n
+Rvdd241 vdd vdd241 1k
+Mp241 n241 n240 vdd241 vdd241 pmos W=1u L=45n
+Mn241 n241 n240 0 0 nmos W=0.5u L=45n
+Rvdd242 vdd vdd242 1k
+Mp242 n242 n241 vdd242 vdd242 pmos W=1u L=45n
+Mn242 n242 n241 0 0 nmos W=0.5u L=45n
+Rvdd243 vdd vdd243 1k
+Mp243 n243 n242 vdd243 vdd243 pmos W=1u L=45n
+Mn243 n243 n242 0 0 nmos W=0.5u L=45n
+Rvdd244 vdd vdd244 1k
+Mp244 n244 n243 vdd244 vdd244 pmos W=1u L=45n
+Mn244 n244 n243 0 0 nmos W=0.5u L=45n
+Rvdd245 vdd vdd245 1k
+Mp245 n245 n244 vdd245 vdd245 pmos W=1u L=45n
+Mn245 n245 n244 0 0 nmos W=0.5u L=45n
+Rvdd246 vdd vdd246 1k
+Mp246 n246 n245 vdd246 vdd246 pmos W=1u L=45n
+Mn246 n246 n245 0 0 nmos W=0.5u L=45n
+Rvdd247 vdd vdd247 1k
+Mp247 n247 n246 vdd247 vdd247 pmos W=1u L=45n
+Mn247 n247 n246 0 0 nmos W=0.5u L=45n
+Rvdd248 vdd vdd248 1k
+Mp248 n248 n247 vdd248 vdd248 pmos W=1u L=45n
+Mn248 n248 n247 0 0 nmos W=0.5u L=45n
+Rvdd249 vdd vdd249 1k
+Mp249 n249 n248 vdd249 vdd249 pmos W=1u L=45n
+Mn249 n249 n248 0 0 nmos W=0.5u L=45n
+Rvdd250 vdd vdd250 1k
+Mp250 n250 n249 vdd250 vdd250 pmos W=1u L=45n
+Mn250 n250 n249 0 0 nmos W=0.5u L=45n
+Rvdd251 vdd vdd251 1k
+Mp251 n251 n250 vdd251 vdd251 pmos W=1u L=45n
+Mn251 n251 n250 0 0 nmos W=0.5u L=45n
+Rvdd252 vdd vdd252 1k
+Mp252 n252 n251 vdd252 vdd252 pmos W=1u L=45n
+Mn252 n252 n251 0 0 nmos W=0.5u L=45n
+Rvdd253 vdd vdd253 1k
+Mp253 n253 n252 vdd253 vdd253 pmos W=1u L=45n
+Mn253 n253 n252 0 0 nmos W=0.5u L=45n
+Rvdd254 vdd vdd254 1k
+Mp254 n254 n253 vdd254 vdd254 pmos W=1u L=45n
+Mn254 n254 n253 0 0 nmos W=0.5u L=45n
+Rvdd255 vdd vdd255 1k
+Mp255 n255 n254 vdd255 vdd255 pmos W=1u L=45n
+Mn255 n255 n254 0 0 nmos W=0.5u L=45n
+Rvdd256 vdd vdd256 1k
+Mp256 n256 n255 vdd256 vdd256 pmos W=1u L=45n
+Mn256 n256 n255 0 0 nmos W=0.5u L=45n
+Rvdd257 vdd vdd257 1k
+Mp257 n257 n256 vdd257 vdd257 pmos W=1u L=45n
+Mn257 n257 n256 0 0 nmos W=0.5u L=45n
+Rvdd258 vdd vdd258 1k
+Mp258 n258 n257 vdd258 vdd258 pmos W=1u L=45n
+Mn258 n258 n257 0 0 nmos W=0.5u L=45n
+Rvdd259 vdd vdd259 1k
+Mp259 n259 n258 vdd259 vdd259 pmos W=1u L=45n
+Mn259 n259 n258 0 0 nmos W=0.5u L=45n
+Rvdd260 vdd vdd260 1k
+Mp260 n260 n259 vdd260 vdd260 pmos W=1u L=45n
+Mn260 n260 n259 0 0 nmos W=0.5u L=45n
+Rvdd261 vdd vdd261 1k
+Mp261 n261 n260 vdd261 vdd261 pmos W=1u L=45n
+Mn261 n261 n260 0 0 nmos W=0.5u L=45n
+Rvdd262 vdd vdd262 1k
+Mp262 n262 n261 vdd262 vdd262 pmos W=1u L=45n
+Mn262 n262 n261 0 0 nmos W=0.5u L=45n
+Rvdd263 vdd vdd263 1k
+Mp263 n263 n262 vdd263 vdd263 pmos W=1u L=45n
+Mn263 n263 n262 0 0 nmos W=0.5u L=45n
+Rvdd264 vdd vdd264 1k
+Mp264 n264 n263 vdd264 vdd264 pmos W=1u L=45n
+Mn264 n264 n263 0 0 nmos W=0.5u L=45n
+Rvdd265 vdd vdd265 1k
+Mp265 n265 n264 vdd265 vdd265 pmos W=1u L=45n
+Mn265 n265 n264 0 0 nmos W=0.5u L=45n
+Rvdd266 vdd vdd266 1k
+Mp266 n266 n265 vdd266 vdd266 pmos W=1u L=45n
+Mn266 n266 n265 0 0 nmos W=0.5u L=45n
+Rvdd267 vdd vdd267 1k
+Mp267 n267 n266 vdd267 vdd267 pmos W=1u L=45n
+Mn267 n267 n266 0 0 nmos W=0.5u L=45n
+Rvdd268 vdd vdd268 1k
+Mp268 n268 n267 vdd268 vdd268 pmos W=1u L=45n
+Mn268 n268 n267 0 0 nmos W=0.5u L=45n
+Rvdd269 vdd vdd269 1k
+Mp269 n269 n268 vdd269 vdd269 pmos W=1u L=45n
+Mn269 n269 n268 0 0 nmos W=0.5u L=45n
+Rvdd270 vdd vdd270 1k
+Mp270 n270 n269 vdd270 vdd270 pmos W=1u L=45n
+Mn270 n270 n269 0 0 nmos W=0.5u L=45n
+Rvdd271 vdd vdd271 1k
+Mp271 n271 n270 vdd271 vdd271 pmos W=1u L=45n
+Mn271 n271 n270 0 0 nmos W=0.5u L=45n
+Rvdd272 vdd vdd272 1k
+Mp272 n272 n271 vdd272 vdd272 pmos W=1u L=45n
+Mn272 n272 n271 0 0 nmos W=0.5u L=45n
+Rvdd273 vdd vdd273 1k
+Mp273 n273 n272 vdd273 vdd273 pmos W=1u L=45n
+Mn273 n273 n272 0 0 nmos W=0.5u L=45n
+Rvdd274 vdd vdd274 1k
+Mp274 n274 n273 vdd274 vdd274 pmos W=1u L=45n
+Mn274 n274 n273 0 0 nmos W=0.5u L=45n
+Rvdd275 vdd vdd275 1k
+Mp275 n275 n274 vdd275 vdd275 pmos W=1u L=45n
+Mn275 n275 n274 0 0 nmos W=0.5u L=45n
+Rvdd276 vdd vdd276 1k
+Mp276 n276 n275 vdd276 vdd276 pmos W=1u L=45n
+Mn276 n276 n275 0 0 nmos W=0.5u L=45n
+Rvdd277 vdd vdd277 1k
+Mp277 n277 n276 vdd277 vdd277 pmos W=1u L=45n
+Mn277 n277 n276 0 0 nmos W=0.5u L=45n
+Rvdd278 vdd vdd278 1k
+Mp278 n278 n277 vdd278 vdd278 pmos W=1u L=45n
+Mn278 n278 n277 0 0 nmos W=0.5u L=45n
+Rvdd279 vdd vdd279 1k
+Mp279 n279 n278 vdd279 vdd279 pmos W=1u L=45n
+Mn279 n279 n278 0 0 nmos W=0.5u L=45n
+Rvdd280 vdd vdd280 1k
+Mp280 n280 n279 vdd280 vdd280 pmos W=1u L=45n
+Mn280 n280 n279 0 0 nmos W=0.5u L=45n
+Rvdd281 vdd vdd281 1k
+Mp281 n281 n280 vdd281 vdd281 pmos W=1u L=45n
+Mn281 n281 n280 0 0 nmos W=0.5u L=45n
+Rvdd282 vdd vdd282 1k
+Mp282 n282 n281 vdd282 vdd282 pmos W=1u L=45n
+Mn282 n282 n281 0 0 nmos W=0.5u L=45n
+Rvdd283 vdd vdd283 1k
+Mp283 n283 n282 vdd283 vdd283 pmos W=1u L=45n
+Mn283 n283 n282 0 0 nmos W=0.5u L=45n
+Rvdd284 vdd vdd284 1k
+Mp284 n284 n283 vdd284 vdd284 pmos W=1u L=45n
+Mn284 n284 n283 0 0 nmos W=0.5u L=45n
+Rvdd285 vdd vdd285 1k
+Mp285 n285 n284 vdd285 vdd285 pmos W=1u L=45n
+Mn285 n285 n284 0 0 nmos W=0.5u L=45n
+Rvdd286 vdd vdd286 1k
+Mp286 n286 n285 vdd286 vdd286 pmos W=1u L=45n
+Mn286 n286 n285 0 0 nmos W=0.5u L=45n
+Rvdd287 vdd vdd287 1k
+Mp287 n287 n286 vdd287 vdd287 pmos W=1u L=45n
+Mn287 n287 n286 0 0 nmos W=0.5u L=45n
+Rvdd288 vdd vdd288 1k
+Mp288 n288 n287 vdd288 vdd288 pmos W=1u L=45n
+Mn288 n288 n287 0 0 nmos W=0.5u L=45n
+Rvdd289 vdd vdd289 1k
+Mp289 n289 n288 vdd289 vdd289 pmos W=1u L=45n
+Mn289 n289 n288 0 0 nmos W=0.5u L=45n
+Rvdd290 vdd vdd290 1k
+Mp290 n290 n289 vdd290 vdd290 pmos W=1u L=45n
+Mn290 n290 n289 0 0 nmos W=0.5u L=45n
+Rvdd291 vdd vdd291 1k
+Mp291 n291 n290 vdd291 vdd291 pmos W=1u L=45n
+Mn291 n291 n290 0 0 nmos W=0.5u L=45n
+Rvdd292 vdd vdd292 1k
+Mp292 n292 n291 vdd292 vdd292 pmos W=1u L=45n
+Mn292 n292 n291 0 0 nmos W=0.5u L=45n
+Rvdd293 vdd vdd293 1k
+Mp293 n293 n292 vdd293 vdd293 pmos W=1u L=45n
+Mn293 n293 n292 0 0 nmos W=0.5u L=45n
+Rvdd294 vdd vdd294 1k
+Mp294 n294 n293 vdd294 vdd294 pmos W=1u L=45n
+Mn294 n294 n293 0 0 nmos W=0.5u L=45n
+Rvdd295 vdd vdd295 1k
+Mp295 n295 n294 vdd295 vdd295 pmos W=1u L=45n
+Mn295 n295 n294 0 0 nmos W=0.5u L=45n
+Rvdd296 vdd vdd296 1k
+Mp296 n296 n295 vdd296 vdd296 pmos W=1u L=45n
+Mn296 n296 n295 0 0 nmos W=0.5u L=45n
+Rvdd297 vdd vdd297 1k
+Mp297 n297 n296 vdd297 vdd297 pmos W=1u L=45n
+Mn297 n297 n296 0 0 nmos W=0.5u L=45n
+Rvdd298 vdd vdd298 1k
+Mp298 n298 n297 vdd298 vdd298 pmos W=1u L=45n
+Mn298 n298 n297 0 0 nmos W=0.5u L=45n
+Rvdd299 vdd vdd299 1k
+Mp299 n299 n298 vdd299 vdd299 pmos W=1u L=45n
+Mn299 n299 n298 0 0 nmos W=0.5u L=45n
+Rvdd300 vdd vdd300 1k
+Mp300 n300 n299 vdd300 vdd300 pmos W=1u L=45n
+Mn300 n300 n299 0 0 nmos W=0.5u L=45n
+Rvdd301 vdd vdd301 1k
+Mp301 n301 n300 vdd301 vdd301 pmos W=1u L=45n
+Mn301 n301 n300 0 0 nmos W=0.5u L=45n
+Rvdd302 vdd vdd302 1k
+Mp302 n302 n301 vdd302 vdd302 pmos W=1u L=45n
+Mn302 n302 n301 0 0 nmos W=0.5u L=45n
+Rvdd303 vdd vdd303 1k
+Mp303 n303 n302 vdd303 vdd303 pmos W=1u L=45n
+Mn303 n303 n302 0 0 nmos W=0.5u L=45n
+Rvdd304 vdd vdd304 1k
+Mp304 n304 n303 vdd304 vdd304 pmos W=1u L=45n
+Mn304 n304 n303 0 0 nmos W=0.5u L=45n
+Rvdd305 vdd vdd305 1k
+Mp305 n305 n304 vdd305 vdd305 pmos W=1u L=45n
+Mn305 n305 n304 0 0 nmos W=0.5u L=45n
+Rvdd306 vdd vdd306 1k
+Mp306 n306 n305 vdd306 vdd306 pmos W=1u L=45n
+Mn306 n306 n305 0 0 nmos W=0.5u L=45n
+Rvdd307 vdd vdd307 1k
+Mp307 n307 n306 vdd307 vdd307 pmos W=1u L=45n
+Mn307 n307 n306 0 0 nmos W=0.5u L=45n
+Rvdd308 vdd vdd308 1k
+Mp308 n308 n307 vdd308 vdd308 pmos W=1u L=45n
+Mn308 n308 n307 0 0 nmos W=0.5u L=45n
+Rvdd309 vdd vdd309 1k
+Mp309 n309 n308 vdd309 vdd309 pmos W=1u L=45n
+Mn309 n309 n308 0 0 nmos W=0.5u L=45n
+Rvdd310 vdd vdd310 1k
+Mp310 n310 n309 vdd310 vdd310 pmos W=1u L=45n
+Mn310 n310 n309 0 0 nmos W=0.5u L=45n
+Rvdd311 vdd vdd311 1k
+Mp311 n311 n310 vdd311 vdd311 pmos W=1u L=45n
+Mn311 n311 n310 0 0 nmos W=0.5u L=45n
+Rvdd312 vdd vdd312 1k
+Mp312 n312 n311 vdd312 vdd312 pmos W=1u L=45n
+Mn312 n312 n311 0 0 nmos W=0.5u L=45n
+Rvdd313 vdd vdd313 1k
+Mp313 n313 n312 vdd313 vdd313 pmos W=1u L=45n
+Mn313 n313 n312 0 0 nmos W=0.5u L=45n
+Rvdd314 vdd vdd314 1k
+Mp314 n314 n313 vdd314 vdd314 pmos W=1u L=45n
+Mn314 n314 n313 0 0 nmos W=0.5u L=45n
+Rvdd315 vdd vdd315 1k
+Mp315 n315 n314 vdd315 vdd315 pmos W=1u L=45n
+Mn315 n315 n314 0 0 nmos W=0.5u L=45n
+Rvdd316 vdd vdd316 1k
+Mp316 n316 n315 vdd316 vdd316 pmos W=1u L=45n
+Mn316 n316 n315 0 0 nmos W=0.5u L=45n
+Rvdd317 vdd vdd317 1k
+Mp317 n317 n316 vdd317 vdd317 pmos W=1u L=45n
+Mn317 n317 n316 0 0 nmos W=0.5u L=45n
+Rvdd318 vdd vdd318 1k
+Mp318 n318 n317 vdd318 vdd318 pmos W=1u L=45n
+Mn318 n318 n317 0 0 nmos W=0.5u L=45n
+Rvdd319 vdd vdd319 1k
+Mp319 n319 n318 vdd319 vdd319 pmos W=1u L=45n
+Mn319 n319 n318 0 0 nmos W=0.5u L=45n
+Rvdd320 vdd vdd320 1k
+Mp320 n320 n319 vdd320 vdd320 pmos W=1u L=45n
+Mn320 n320 n319 0 0 nmos W=0.5u L=45n
+Rvdd321 vdd vdd321 1k
+Mp321 n321 n320 vdd321 vdd321 pmos W=1u L=45n
+Mn321 n321 n320 0 0 nmos W=0.5u L=45n
+Rvdd322 vdd vdd322 1k
+Mp322 n322 n321 vdd322 vdd322 pmos W=1u L=45n
+Mn322 n322 n321 0 0 nmos W=0.5u L=45n
+Rvdd323 vdd vdd323 1k
+Mp323 n323 n322 vdd323 vdd323 pmos W=1u L=45n
+Mn323 n323 n322 0 0 nmos W=0.5u L=45n
+Rvdd324 vdd vdd324 1k
+Mp324 n324 n323 vdd324 vdd324 pmos W=1u L=45n
+Mn324 n324 n323 0 0 nmos W=0.5u L=45n
+Rvdd325 vdd vdd325 1k
+Mp325 n325 n324 vdd325 vdd325 pmos W=1u L=45n
+Mn325 n325 n324 0 0 nmos W=0.5u L=45n
+Rvdd326 vdd vdd326 1k
+Mp326 n326 n325 vdd326 vdd326 pmos W=1u L=45n
+Mn326 n326 n325 0 0 nmos W=0.5u L=45n
+Rvdd327 vdd vdd327 1k
+Mp327 n327 n326 vdd327 vdd327 pmos W=1u L=45n
+Mn327 n327 n326 0 0 nmos W=0.5u L=45n
+Rvdd328 vdd vdd328 1k
+Mp328 n328 n327 vdd328 vdd328 pmos W=1u L=45n
+Mn328 n328 n327 0 0 nmos W=0.5u L=45n
+Rvdd329 vdd vdd329 1k
+Mp329 n329 n328 vdd329 vdd329 pmos W=1u L=45n
+Mn329 n329 n328 0 0 nmos W=0.5u L=45n
+Rvdd330 vdd vdd330 1k
+Mp330 n330 n329 vdd330 vdd330 pmos W=1u L=45n
+Mn330 n330 n329 0 0 nmos W=0.5u L=45n
+Rvdd331 vdd vdd331 1k
+Mp331 n331 n330 vdd331 vdd331 pmos W=1u L=45n
+Mn331 n331 n330 0 0 nmos W=0.5u L=45n
+Rvdd332 vdd vdd332 1k
+Mp332 n332 n331 vdd332 vdd332 pmos W=1u L=45n
+Mn332 n332 n331 0 0 nmos W=0.5u L=45n
+Rvdd333 vdd vdd333 1k
+Mp333 n333 n332 vdd333 vdd333 pmos W=1u L=45n
+Mn333 n333 n332 0 0 nmos W=0.5u L=45n
+Rvdd334 vdd vdd334 1k
+Mp334 n334 n333 vdd334 vdd334 pmos W=1u L=45n
+Mn334 n334 n333 0 0 nmos W=0.5u L=45n
+Rvdd335 vdd vdd335 1k
+Mp335 n335 n334 vdd335 vdd335 pmos W=1u L=45n
+Mn335 n335 n334 0 0 nmos W=0.5u L=45n
+Rvdd336 vdd vdd336 1k
+Mp336 n336 n335 vdd336 vdd336 pmos W=1u L=45n
+Mn336 n336 n335 0 0 nmos W=0.5u L=45n
+Rvdd337 vdd vdd337 1k
+Mp337 n337 n336 vdd337 vdd337 pmos W=1u L=45n
+Mn337 n337 n336 0 0 nmos W=0.5u L=45n
+Rvdd338 vdd vdd338 1k
+Mp338 n338 n337 vdd338 vdd338 pmos W=1u L=45n
+Mn338 n338 n337 0 0 nmos W=0.5u L=45n
+Rvdd339 vdd vdd339 1k
+Mp339 n339 n338 vdd339 vdd339 pmos W=1u L=45n
+Mn339 n339 n338 0 0 nmos W=0.5u L=45n
+Rvdd340 vdd vdd340 1k
+Mp340 n340 n339 vdd340 vdd340 pmos W=1u L=45n
+Mn340 n340 n339 0 0 nmos W=0.5u L=45n
+Rvdd341 vdd vdd341 1k
+Mp341 n341 n340 vdd341 vdd341 pmos W=1u L=45n
+Mn341 n341 n340 0 0 nmos W=0.5u L=45n
+Rvdd342 vdd vdd342 1k
+Mp342 n342 n341 vdd342 vdd342 pmos W=1u L=45n
+Mn342 n342 n341 0 0 nmos W=0.5u L=45n
+Rvdd343 vdd vdd343 1k
+Mp343 n343 n342 vdd343 vdd343 pmos W=1u L=45n
+Mn343 n343 n342 0 0 nmos W=0.5u L=45n
+Rvdd344 vdd vdd344 1k
+Mp344 n344 n343 vdd344 vdd344 pmos W=1u L=45n
+Mn344 n344 n343 0 0 nmos W=0.5u L=45n
+Rvdd345 vdd vdd345 1k
+Mp345 n345 n344 vdd345 vdd345 pmos W=1u L=45n
+Mn345 n345 n344 0 0 nmos W=0.5u L=45n
+Rvdd346 vdd vdd346 1k
+Mp346 n346 n345 vdd346 vdd346 pmos W=1u L=45n
+Mn346 n346 n345 0 0 nmos W=0.5u L=45n
+Rvdd347 vdd vdd347 1k
+Mp347 n347 n346 vdd347 vdd347 pmos W=1u L=45n
+Mn347 n347 n346 0 0 nmos W=0.5u L=45n
+Rvdd348 vdd vdd348 1k
+Mp348 n348 n347 vdd348 vdd348 pmos W=1u L=45n
+Mn348 n348 n347 0 0 nmos W=0.5u L=45n
+Rvdd349 vdd vdd349 1k
+Mp349 n349 n348 vdd349 vdd349 pmos W=1u L=45n
+Mn349 n349 n348 0 0 nmos W=0.5u L=45n
+Rvdd350 vdd vdd350 1k
+Mp350 n350 n349 vdd350 vdd350 pmos W=1u L=45n
+Mn350 n350 n349 0 0 nmos W=0.5u L=45n
+Rvdd351 vdd vdd351 1k
+Mp351 n351 n350 vdd351 vdd351 pmos W=1u L=45n
+Mn351 n351 n350 0 0 nmos W=0.5u L=45n
+Rvdd352 vdd vdd352 1k
+Mp352 n352 n351 vdd352 vdd352 pmos W=1u L=45n
+Mn352 n352 n351 0 0 nmos W=0.5u L=45n
+Rvdd353 vdd vdd353 1k
+Mp353 n353 n352 vdd353 vdd353 pmos W=1u L=45n
+Mn353 n353 n352 0 0 nmos W=0.5u L=45n
+Rvdd354 vdd vdd354 1k
+Mp354 n354 n353 vdd354 vdd354 pmos W=1u L=45n
+Mn354 n354 n353 0 0 nmos W=0.5u L=45n
+Rvdd355 vdd vdd355 1k
+Mp355 n355 n354 vdd355 vdd355 pmos W=1u L=45n
+Mn355 n355 n354 0 0 nmos W=0.5u L=45n
+Rvdd356 vdd vdd356 1k
+Mp356 n356 n355 vdd356 vdd356 pmos W=1u L=45n
+Mn356 n356 n355 0 0 nmos W=0.5u L=45n
+Rvdd357 vdd vdd357 1k
+Mp357 n357 n356 vdd357 vdd357 pmos W=1u L=45n
+Mn357 n357 n356 0 0 nmos W=0.5u L=45n
+Rvdd358 vdd vdd358 1k
+Mp358 n358 n357 vdd358 vdd358 pmos W=1u L=45n
+Mn358 n358 n357 0 0 nmos W=0.5u L=45n
+Rvdd359 vdd vdd359 1k
+Mp359 n359 n358 vdd359 vdd359 pmos W=1u L=45n
+Mn359 n359 n358 0 0 nmos W=0.5u L=45n
+Rvdd360 vdd vdd360 1k
+Mp360 n360 n359 vdd360 vdd360 pmos W=1u L=45n
+Mn360 n360 n359 0 0 nmos W=0.5u L=45n
+Rvdd361 vdd vdd361 1k
+Mp361 n361 n360 vdd361 vdd361 pmos W=1u L=45n
+Mn361 n361 n360 0 0 nmos W=0.5u L=45n
+Rvdd362 vdd vdd362 1k
+Mp362 n362 n361 vdd362 vdd362 pmos W=1u L=45n
+Mn362 n362 n361 0 0 nmos W=0.5u L=45n
+Rvdd363 vdd vdd363 1k
+Mp363 n363 n362 vdd363 vdd363 pmos W=1u L=45n
+Mn363 n363 n362 0 0 nmos W=0.5u L=45n
+Rvdd364 vdd vdd364 1k
+Mp364 n364 n363 vdd364 vdd364 pmos W=1u L=45n
+Mn364 n364 n363 0 0 nmos W=0.5u L=45n
+Rvdd365 vdd vdd365 1k
+Mp365 n365 n364 vdd365 vdd365 pmos W=1u L=45n
+Mn365 n365 n364 0 0 nmos W=0.5u L=45n
+Rvdd366 vdd vdd366 1k
+Mp366 n366 n365 vdd366 vdd366 pmos W=1u L=45n
+Mn366 n366 n365 0 0 nmos W=0.5u L=45n
+Rvdd367 vdd vdd367 1k
+Mp367 n367 n366 vdd367 vdd367 pmos W=1u L=45n
+Mn367 n367 n366 0 0 nmos W=0.5u L=45n
+Rvdd368 vdd vdd368 1k
+Mp368 n368 n367 vdd368 vdd368 pmos W=1u L=45n
+Mn368 n368 n367 0 0 nmos W=0.5u L=45n
+Rvdd369 vdd vdd369 1k
+Mp369 n369 n368 vdd369 vdd369 pmos W=1u L=45n
+Mn369 n369 n368 0 0 nmos W=0.5u L=45n
+Rvdd370 vdd vdd370 1k
+Mp370 n370 n369 vdd370 vdd370 pmos W=1u L=45n
+Mn370 n370 n369 0 0 nmos W=0.5u L=45n
+Rvdd371 vdd vdd371 1k
+Mp371 n371 n370 vdd371 vdd371 pmos W=1u L=45n
+Mn371 n371 n370 0 0 nmos W=0.5u L=45n
+Rvdd372 vdd vdd372 1k
+Mp372 n372 n371 vdd372 vdd372 pmos W=1u L=45n
+Mn372 n372 n371 0 0 nmos W=0.5u L=45n
+Rvdd373 vdd vdd373 1k
+Mp373 n373 n372 vdd373 vdd373 pmos W=1u L=45n
+Mn373 n373 n372 0 0 nmos W=0.5u L=45n
+Rvdd374 vdd vdd374 1k
+Mp374 n374 n373 vdd374 vdd374 pmos W=1u L=45n
+Mn374 n374 n373 0 0 nmos W=0.5u L=45n
+Rvdd375 vdd vdd375 1k
+Mp375 n375 n374 vdd375 vdd375 pmos W=1u L=45n
+Mn375 n375 n374 0 0 nmos W=0.5u L=45n
+Rvdd376 vdd vdd376 1k
+Mp376 n376 n375 vdd376 vdd376 pmos W=1u L=45n
+Mn376 n376 n375 0 0 nmos W=0.5u L=45n
+Rvdd377 vdd vdd377 1k
+Mp377 n377 n376 vdd377 vdd377 pmos W=1u L=45n
+Mn377 n377 n376 0 0 nmos W=0.5u L=45n
+Rvdd378 vdd vdd378 1k
+Mp378 n378 n377 vdd378 vdd378 pmos W=1u L=45n
+Mn378 n378 n377 0 0 nmos W=0.5u L=45n
+Rvdd379 vdd vdd379 1k
+Mp379 n379 n378 vdd379 vdd379 pmos W=1u L=45n
+Mn379 n379 n378 0 0 nmos W=0.5u L=45n
+Rvdd380 vdd vdd380 1k
+Mp380 n380 n379 vdd380 vdd380 pmos W=1u L=45n
+Mn380 n380 n379 0 0 nmos W=0.5u L=45n
+Rvdd381 vdd vdd381 1k
+Mp381 n381 n380 vdd381 vdd381 pmos W=1u L=45n
+Mn381 n381 n380 0 0 nmos W=0.5u L=45n
+Rvdd382 vdd vdd382 1k
+Mp382 n382 n381 vdd382 vdd382 pmos W=1u L=45n
+Mn382 n382 n381 0 0 nmos W=0.5u L=45n
+Rvdd383 vdd vdd383 1k
+Mp383 n383 n382 vdd383 vdd383 pmos W=1u L=45n
+Mn383 n383 n382 0 0 nmos W=0.5u L=45n
+Rvdd384 vdd vdd384 1k
+Mp384 n384 n383 vdd384 vdd384 pmos W=1u L=45n
+Mn384 n384 n383 0 0 nmos W=0.5u L=45n
+Rvdd385 vdd vdd385 1k
+Mp385 n385 n384 vdd385 vdd385 pmos W=1u L=45n
+Mn385 n385 n384 0 0 nmos W=0.5u L=45n
+Rvdd386 vdd vdd386 1k
+Mp386 n386 n385 vdd386 vdd386 pmos W=1u L=45n
+Mn386 n386 n385 0 0 nmos W=0.5u L=45n
+Rvdd387 vdd vdd387 1k
+Mp387 n387 n386 vdd387 vdd387 pmos W=1u L=45n
+Mn387 n387 n386 0 0 nmos W=0.5u L=45n
+Rvdd388 vdd vdd388 1k
+Mp388 n388 n387 vdd388 vdd388 pmos W=1u L=45n
+Mn388 n388 n387 0 0 nmos W=0.5u L=45n
+Rvdd389 vdd vdd389 1k
+Mp389 n389 n388 vdd389 vdd389 pmos W=1u L=45n
+Mn389 n389 n388 0 0 nmos W=0.5u L=45n
+Rvdd390 vdd vdd390 1k
+Mp390 n390 n389 vdd390 vdd390 pmos W=1u L=45n
+Mn390 n390 n389 0 0 nmos W=0.5u L=45n
+Rvdd391 vdd vdd391 1k
+Mp391 n391 n390 vdd391 vdd391 pmos W=1u L=45n
+Mn391 n391 n390 0 0 nmos W=0.5u L=45n
+Rvdd392 vdd vdd392 1k
+Mp392 n392 n391 vdd392 vdd392 pmos W=1u L=45n
+Mn392 n392 n391 0 0 nmos W=0.5u L=45n
+Rvdd393 vdd vdd393 1k
+Mp393 n393 n392 vdd393 vdd393 pmos W=1u L=45n
+Mn393 n393 n392 0 0 nmos W=0.5u L=45n
+Rvdd394 vdd vdd394 1k
+Mp394 n394 n393 vdd394 vdd394 pmos W=1u L=45n
+Mn394 n394 n393 0 0 nmos W=0.5u L=45n
+Rvdd395 vdd vdd395 1k
+Mp395 n395 n394 vdd395 vdd395 pmos W=1u L=45n
+Mn395 n395 n394 0 0 nmos W=0.5u L=45n
+Rvdd396 vdd vdd396 1k
+Mp396 n396 n395 vdd396 vdd396 pmos W=1u L=45n
+Mn396 n396 n395 0 0 nmos W=0.5u L=45n
+Rvdd397 vdd vdd397 1k
+Mp397 n397 n396 vdd397 vdd397 pmos W=1u L=45n
+Mn397 n397 n396 0 0 nmos W=0.5u L=45n
+Rvdd398 vdd vdd398 1k
+Mp398 n398 n397 vdd398 vdd398 pmos W=1u L=45n
+Mn398 n398 n397 0 0 nmos W=0.5u L=45n
+Rvdd399 vdd vdd399 1k
+Mp399 n399 n398 vdd399 vdd399 pmos W=1u L=45n
+Mn399 n399 n398 0 0 nmos W=0.5u L=45n
+Rvdd400 vdd vdd400 1k
+Mp400 n400 n399 vdd400 vdd400 pmos W=1u L=45n
+Mn400 n400 n399 0 0 nmos W=0.5u L=45n
+Rvdd401 vdd vdd401 1k
+Mp401 n401 n400 vdd401 vdd401 pmos W=1u L=45n
+Mn401 n401 n400 0 0 nmos W=0.5u L=45n
+Rvdd402 vdd vdd402 1k
+Mp402 n402 n401 vdd402 vdd402 pmos W=1u L=45n
+Mn402 n402 n401 0 0 nmos W=0.5u L=45n
+Rvdd403 vdd vdd403 1k
+Mp403 n403 n402 vdd403 vdd403 pmos W=1u L=45n
+Mn403 n403 n402 0 0 nmos W=0.5u L=45n
+Rvdd404 vdd vdd404 1k
+Mp404 n404 n403 vdd404 vdd404 pmos W=1u L=45n
+Mn404 n404 n403 0 0 nmos W=0.5u L=45n
+Rvdd405 vdd vdd405 1k
+Mp405 n405 n404 vdd405 vdd405 pmos W=1u L=45n
+Mn405 n405 n404 0 0 nmos W=0.5u L=45n
+Rvdd406 vdd vdd406 1k
+Mp406 n406 n405 vdd406 vdd406 pmos W=1u L=45n
+Mn406 n406 n405 0 0 nmos W=0.5u L=45n
+Rvdd407 vdd vdd407 1k
+Mp407 n407 n406 vdd407 vdd407 pmos W=1u L=45n
+Mn407 n407 n406 0 0 nmos W=0.5u L=45n
+Rvdd408 vdd vdd408 1k
+Mp408 n408 n407 vdd408 vdd408 pmos W=1u L=45n
+Mn408 n408 n407 0 0 nmos W=0.5u L=45n
+Rvdd409 vdd vdd409 1k
+Mp409 n409 n408 vdd409 vdd409 pmos W=1u L=45n
+Mn409 n409 n408 0 0 nmos W=0.5u L=45n
+Rvdd410 vdd vdd410 1k
+Mp410 n410 n409 vdd410 vdd410 pmos W=1u L=45n
+Mn410 n410 n409 0 0 nmos W=0.5u L=45n
+Rvdd411 vdd vdd411 1k
+Mp411 n411 n410 vdd411 vdd411 pmos W=1u L=45n
+Mn411 n411 n410 0 0 nmos W=0.5u L=45n
+Rvdd412 vdd vdd412 1k
+Mp412 n412 n411 vdd412 vdd412 pmos W=1u L=45n
+Mn412 n412 n411 0 0 nmos W=0.5u L=45n
+Rvdd413 vdd vdd413 1k
+Mp413 n413 n412 vdd413 vdd413 pmos W=1u L=45n
+Mn413 n413 n412 0 0 nmos W=0.5u L=45n
+Rvdd414 vdd vdd414 1k
+Mp414 n414 n413 vdd414 vdd414 pmos W=1u L=45n
+Mn414 n414 n413 0 0 nmos W=0.5u L=45n
+Rvdd415 vdd vdd415 1k
+Mp415 n415 n414 vdd415 vdd415 pmos W=1u L=45n
+Mn415 n415 n414 0 0 nmos W=0.5u L=45n
+Rvdd416 vdd vdd416 1k
+Mp416 n416 n415 vdd416 vdd416 pmos W=1u L=45n
+Mn416 n416 n415 0 0 nmos W=0.5u L=45n
+Rvdd417 vdd vdd417 1k
+Mp417 n417 n416 vdd417 vdd417 pmos W=1u L=45n
+Mn417 n417 n416 0 0 nmos W=0.5u L=45n
+Rvdd418 vdd vdd418 1k
+Mp418 n418 n417 vdd418 vdd418 pmos W=1u L=45n
+Mn418 n418 n417 0 0 nmos W=0.5u L=45n
+Rvdd419 vdd vdd419 1k
+Mp419 n419 n418 vdd419 vdd419 pmos W=1u L=45n
+Mn419 n419 n418 0 0 nmos W=0.5u L=45n
+Rvdd420 vdd vdd420 1k
+Mp420 n420 n419 vdd420 vdd420 pmos W=1u L=45n
+Mn420 n420 n419 0 0 nmos W=0.5u L=45n
+Rvdd421 vdd vdd421 1k
+Mp421 n421 n420 vdd421 vdd421 pmos W=1u L=45n
+Mn421 n421 n420 0 0 nmos W=0.5u L=45n
+Rvdd422 vdd vdd422 1k
+Mp422 n422 n421 vdd422 vdd422 pmos W=1u L=45n
+Mn422 n422 n421 0 0 nmos W=0.5u L=45n
+Rvdd423 vdd vdd423 1k
+Mp423 n423 n422 vdd423 vdd423 pmos W=1u L=45n
+Mn423 n423 n422 0 0 nmos W=0.5u L=45n
+Rvdd424 vdd vdd424 1k
+Mp424 n424 n423 vdd424 vdd424 pmos W=1u L=45n
+Mn424 n424 n423 0 0 nmos W=0.5u L=45n
+Rvdd425 vdd vdd425 1k
+Mp425 n425 n424 vdd425 vdd425 pmos W=1u L=45n
+Mn425 n425 n424 0 0 nmos W=0.5u L=45n
+Rvdd426 vdd vdd426 1k
+Mp426 n426 n425 vdd426 vdd426 pmos W=1u L=45n
+Mn426 n426 n425 0 0 nmos W=0.5u L=45n
+Rvdd427 vdd vdd427 1k
+Mp427 n427 n426 vdd427 vdd427 pmos W=1u L=45n
+Mn427 n427 n426 0 0 nmos W=0.5u L=45n
+Rvdd428 vdd vdd428 1k
+Mp428 n428 n427 vdd428 vdd428 pmos W=1u L=45n
+Mn428 n428 n427 0 0 nmos W=0.5u L=45n
+Rvdd429 vdd vdd429 1k
+Mp429 n429 n428 vdd429 vdd429 pmos W=1u L=45n
+Mn429 n429 n428 0 0 nmos W=0.5u L=45n
+Rvdd430 vdd vdd430 1k
+Mp430 n430 n429 vdd430 vdd430 pmos W=1u L=45n
+Mn430 n430 n429 0 0 nmos W=0.5u L=45n
+Rvdd431 vdd vdd431 1k
+Mp431 n431 n430 vdd431 vdd431 pmos W=1u L=45n
+Mn431 n431 n430 0 0 nmos W=0.5u L=45n
+Rvdd432 vdd vdd432 1k
+Mp432 n432 n431 vdd432 vdd432 pmos W=1u L=45n
+Mn432 n432 n431 0 0 nmos W=0.5u L=45n
+Rvdd433 vdd vdd433 1k
+Mp433 n433 n432 vdd433 vdd433 pmos W=1u L=45n
+Mn433 n433 n432 0 0 nmos W=0.5u L=45n
+Rvdd434 vdd vdd434 1k
+Mp434 n434 n433 vdd434 vdd434 pmos W=1u L=45n
+Mn434 n434 n433 0 0 nmos W=0.5u L=45n
+Rvdd435 vdd vdd435 1k
+Mp435 n435 n434 vdd435 vdd435 pmos W=1u L=45n
+Mn435 n435 n434 0 0 nmos W=0.5u L=45n
+Rvdd436 vdd vdd436 1k
+Mp436 n436 n435 vdd436 vdd436 pmos W=1u L=45n
+Mn436 n436 n435 0 0 nmos W=0.5u L=45n
+Rvdd437 vdd vdd437 1k
+Mp437 n437 n436 vdd437 vdd437 pmos W=1u L=45n
+Mn437 n437 n436 0 0 nmos W=0.5u L=45n
+Rvdd438 vdd vdd438 1k
+Mp438 n438 n437 vdd438 vdd438 pmos W=1u L=45n
+Mn438 n438 n437 0 0 nmos W=0.5u L=45n
+Rvdd439 vdd vdd439 1k
+Mp439 n439 n438 vdd439 vdd439 pmos W=1u L=45n
+Mn439 n439 n438 0 0 nmos W=0.5u L=45n
+Rvdd440 vdd vdd440 1k
+Mp440 n440 n439 vdd440 vdd440 pmos W=1u L=45n
+Mn440 n440 n439 0 0 nmos W=0.5u L=45n
+Rvdd441 vdd vdd441 1k
+Mp441 n441 n440 vdd441 vdd441 pmos W=1u L=45n
+Mn441 n441 n440 0 0 nmos W=0.5u L=45n
+Rvdd442 vdd vdd442 1k
+Mp442 n442 n441 vdd442 vdd442 pmos W=1u L=45n
+Mn442 n442 n441 0 0 nmos W=0.5u L=45n
+Rvdd443 vdd vdd443 1k
+Mp443 n443 n442 vdd443 vdd443 pmos W=1u L=45n
+Mn443 n443 n442 0 0 nmos W=0.5u L=45n
+Rvdd444 vdd vdd444 1k
+Mp444 n444 n443 vdd444 vdd444 pmos W=1u L=45n
+Mn444 n444 n443 0 0 nmos W=0.5u L=45n
+Rvdd445 vdd vdd445 1k
+Mp445 n445 n444 vdd445 vdd445 pmos W=1u L=45n
+Mn445 n445 n444 0 0 nmos W=0.5u L=45n
+Rvdd446 vdd vdd446 1k
+Mp446 n446 n445 vdd446 vdd446 pmos W=1u L=45n
+Mn446 n446 n445 0 0 nmos W=0.5u L=45n
+Rvdd447 vdd vdd447 1k
+Mp447 n447 n446 vdd447 vdd447 pmos W=1u L=45n
+Mn447 n447 n446 0 0 nmos W=0.5u L=45n
+Rvdd448 vdd vdd448 1k
+Mp448 n448 n447 vdd448 vdd448 pmos W=1u L=45n
+Mn448 n448 n447 0 0 nmos W=0.5u L=45n
+Rvdd449 vdd vdd449 1k
+Mp449 n449 n448 vdd449 vdd449 pmos W=1u L=45n
+Mn449 n449 n448 0 0 nmos W=0.5u L=45n
+Rvdd450 vdd vdd450 1k
+Mp450 n450 n449 vdd450 vdd450 pmos W=1u L=45n
+Mn450 n450 n449 0 0 nmos W=0.5u L=45n
+Rvdd451 vdd vdd451 1k
+Mp451 n451 n450 vdd451 vdd451 pmos W=1u L=45n
+Mn451 n451 n450 0 0 nmos W=0.5u L=45n
+Rvdd452 vdd vdd452 1k
+Mp452 n452 n451 vdd452 vdd452 pmos W=1u L=45n
+Mn452 n452 n451 0 0 nmos W=0.5u L=45n
+Rvdd453 vdd vdd453 1k
+Mp453 n453 n452 vdd453 vdd453 pmos W=1u L=45n
+Mn453 n453 n452 0 0 nmos W=0.5u L=45n
+Rvdd454 vdd vdd454 1k
+Mp454 n454 n453 vdd454 vdd454 pmos W=1u L=45n
+Mn454 n454 n453 0 0 nmos W=0.5u L=45n
+Rvdd455 vdd vdd455 1k
+Mp455 n455 n454 vdd455 vdd455 pmos W=1u L=45n
+Mn455 n455 n454 0 0 nmos W=0.5u L=45n
+Rvdd456 vdd vdd456 1k
+Mp456 n456 n455 vdd456 vdd456 pmos W=1u L=45n
+Mn456 n456 n455 0 0 nmos W=0.5u L=45n
+Rvdd457 vdd vdd457 1k
+Mp457 n457 n456 vdd457 vdd457 pmos W=1u L=45n
+Mn457 n457 n456 0 0 nmos W=0.5u L=45n
+Rvdd458 vdd vdd458 1k
+Mp458 n458 n457 vdd458 vdd458 pmos W=1u L=45n
+Mn458 n458 n457 0 0 nmos W=0.5u L=45n
+Rvdd459 vdd vdd459 1k
+Mp459 n459 n458 vdd459 vdd459 pmos W=1u L=45n
+Mn459 n459 n458 0 0 nmos W=0.5u L=45n
+Rvdd460 vdd vdd460 1k
+Mp460 n460 n459 vdd460 vdd460 pmos W=1u L=45n
+Mn460 n460 n459 0 0 nmos W=0.5u L=45n
+Rvdd461 vdd vdd461 1k
+Mp461 n461 n460 vdd461 vdd461 pmos W=1u L=45n
+Mn461 n461 n460 0 0 nmos W=0.5u L=45n
+Rvdd462 vdd vdd462 1k
+Mp462 n462 n461 vdd462 vdd462 pmos W=1u L=45n
+Mn462 n462 n461 0 0 nmos W=0.5u L=45n
+Rvdd463 vdd vdd463 1k
+Mp463 n463 n462 vdd463 vdd463 pmos W=1u L=45n
+Mn463 n463 n462 0 0 nmos W=0.5u L=45n
+Rvdd464 vdd vdd464 1k
+Mp464 n464 n463 vdd464 vdd464 pmos W=1u L=45n
+Mn464 n464 n463 0 0 nmos W=0.5u L=45n
+Rvdd465 vdd vdd465 1k
+Mp465 n465 n464 vdd465 vdd465 pmos W=1u L=45n
+Mn465 n465 n464 0 0 nmos W=0.5u L=45n
+Rvdd466 vdd vdd466 1k
+Mp466 n466 n465 vdd466 vdd466 pmos W=1u L=45n
+Mn466 n466 n465 0 0 nmos W=0.5u L=45n
+Rvdd467 vdd vdd467 1k
+Mp467 n467 n466 vdd467 vdd467 pmos W=1u L=45n
+Mn467 n467 n466 0 0 nmos W=0.5u L=45n
+Rvdd468 vdd vdd468 1k
+Mp468 n468 n467 vdd468 vdd468 pmos W=1u L=45n
+Mn468 n468 n467 0 0 nmos W=0.5u L=45n
+Rvdd469 vdd vdd469 1k
+Mp469 n469 n468 vdd469 vdd469 pmos W=1u L=45n
+Mn469 n469 n468 0 0 nmos W=0.5u L=45n
+Rvdd470 vdd vdd470 1k
+Mp470 n470 n469 vdd470 vdd470 pmos W=1u L=45n
+Mn470 n470 n469 0 0 nmos W=0.5u L=45n
+Rvdd471 vdd vdd471 1k
+Mp471 n471 n470 vdd471 vdd471 pmos W=1u L=45n
+Mn471 n471 n470 0 0 nmos W=0.5u L=45n
+Rvdd472 vdd vdd472 1k
+Mp472 n472 n471 vdd472 vdd472 pmos W=1u L=45n
+Mn472 n472 n471 0 0 nmos W=0.5u L=45n
+Rvdd473 vdd vdd473 1k
+Mp473 n473 n472 vdd473 vdd473 pmos W=1u L=45n
+Mn473 n473 n472 0 0 nmos W=0.5u L=45n
+Rvdd474 vdd vdd474 1k
+Mp474 n474 n473 vdd474 vdd474 pmos W=1u L=45n
+Mn474 n474 n473 0 0 nmos W=0.5u L=45n
+Rvdd475 vdd vdd475 1k
+Mp475 n475 n474 vdd475 vdd475 pmos W=1u L=45n
+Mn475 n475 n474 0 0 nmos W=0.5u L=45n
+Rvdd476 vdd vdd476 1k
+Mp476 n476 n475 vdd476 vdd476 pmos W=1u L=45n
+Mn476 n476 n475 0 0 nmos W=0.5u L=45n
+Rvdd477 vdd vdd477 1k
+Mp477 n477 n476 vdd477 vdd477 pmos W=1u L=45n
+Mn477 n477 n476 0 0 nmos W=0.5u L=45n
+Rvdd478 vdd vdd478 1k
+Mp478 n478 n477 vdd478 vdd478 pmos W=1u L=45n
+Mn478 n478 n477 0 0 nmos W=0.5u L=45n
+Rvdd479 vdd vdd479 1k
+Mp479 n479 n478 vdd479 vdd479 pmos W=1u L=45n
+Mn479 n479 n478 0 0 nmos W=0.5u L=45n
+Rvdd480 vdd vdd480 1k
+Mp480 n480 n479 vdd480 vdd480 pmos W=1u L=45n
+Mn480 n480 n479 0 0 nmos W=0.5u L=45n
+Rvdd481 vdd vdd481 1k
+Mp481 n481 n480 vdd481 vdd481 pmos W=1u L=45n
+Mn481 n481 n480 0 0 nmos W=0.5u L=45n
+Rvdd482 vdd vdd482 1k
+Mp482 n482 n481 vdd482 vdd482 pmos W=1u L=45n
+Mn482 n482 n481 0 0 nmos W=0.5u L=45n
+Rvdd483 vdd vdd483 1k
+Mp483 n483 n482 vdd483 vdd483 pmos W=1u L=45n
+Mn483 n483 n482 0 0 nmos W=0.5u L=45n
+Rvdd484 vdd vdd484 1k
+Mp484 n484 n483 vdd484 vdd484 pmos W=1u L=45n
+Mn484 n484 n483 0 0 nmos W=0.5u L=45n
+Rvdd485 vdd vdd485 1k
+Mp485 n485 n484 vdd485 vdd485 pmos W=1u L=45n
+Mn485 n485 n484 0 0 nmos W=0.5u L=45n
+Rvdd486 vdd vdd486 1k
+Mp486 n486 n485 vdd486 vdd486 pmos W=1u L=45n
+Mn486 n486 n485 0 0 nmos W=0.5u L=45n
+Rvdd487 vdd vdd487 1k
+Mp487 n487 n486 vdd487 vdd487 pmos W=1u L=45n
+Mn487 n487 n486 0 0 nmos W=0.5u L=45n
+Rvdd488 vdd vdd488 1k
+Mp488 n488 n487 vdd488 vdd488 pmos W=1u L=45n
+Mn488 n488 n487 0 0 nmos W=0.5u L=45n
+Rvdd489 vdd vdd489 1k
+Mp489 n489 n488 vdd489 vdd489 pmos W=1u L=45n
+Mn489 n489 n488 0 0 nmos W=0.5u L=45n
+Rvdd490 vdd vdd490 1k
+Mp490 n490 n489 vdd490 vdd490 pmos W=1u L=45n
+Mn490 n490 n489 0 0 nmos W=0.5u L=45n
+Rvdd491 vdd vdd491 1k
+Mp491 n491 n490 vdd491 vdd491 pmos W=1u L=45n
+Mn491 n491 n490 0 0 nmos W=0.5u L=45n
+Rvdd492 vdd vdd492 1k
+Mp492 n492 n491 vdd492 vdd492 pmos W=1u L=45n
+Mn492 n492 n491 0 0 nmos W=0.5u L=45n
+Rvdd493 vdd vdd493 1k
+Mp493 n493 n492 vdd493 vdd493 pmos W=1u L=45n
+Mn493 n493 n492 0 0 nmos W=0.5u L=45n
+Rvdd494 vdd vdd494 1k
+Mp494 n494 n493 vdd494 vdd494 pmos W=1u L=45n
+Mn494 n494 n493 0 0 nmos W=0.5u L=45n
+Rvdd495 vdd vdd495 1k
+Mp495 n495 n494 vdd495 vdd495 pmos W=1u L=45n
+Mn495 n495 n494 0 0 nmos W=0.5u L=45n
+Rvdd496 vdd vdd496 1k
+Mp496 n496 n495 vdd496 vdd496 pmos W=1u L=45n
+Mn496 n496 n495 0 0 nmos W=0.5u L=45n
+Rvdd497 vdd vdd497 1k
+Mp497 n497 n496 vdd497 vdd497 pmos W=1u L=45n
+Mn497 n497 n496 0 0 nmos W=0.5u L=45n
+Rvdd498 vdd vdd498 1k
+Mp498 n498 n497 vdd498 vdd498 pmos W=1u L=45n
+Mn498 n498 n497 0 0 nmos W=0.5u L=45n
+Rvdd499 vdd vdd499 1k
+Mp499 n499 n498 vdd499 vdd499 pmos W=1u L=45n
+Mn499 n499 n498 0 0 nmos W=0.5u L=45n
+Rvdd500 vdd vdd500 1k
+Mp500 n500 n499 vdd500 vdd500 pmos W=1u L=45n
+Mn500 n500 n499 0 0 nmos W=0.5u L=45n
+
+.tran 1p 20n
+
+.end

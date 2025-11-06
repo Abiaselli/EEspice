@@ -11,7 +11,7 @@
 std::pair<arma::mat, arma::vec> NonLinearMutithreaded(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
     const std::pair<arma::mat, arma::vec> &matrixes, const Modelmap &modmap, double h)
 {
-    std::vector<bsim4::BSIM4stamp> stamps(ckt.CKTelements.bsim4.size());
+    // std::vector<bsim4::BSIM4stamp> stamps(ckt.CKTelements.bsim4.size());
     ScopedTimer timer(ckt.sim_stats.simTime.matrix_load_time);
     arma::mat LHS = matrixes.first;
     arma::vec RHS = matrixes.second;
@@ -27,17 +27,34 @@ std::pair<arma::mat, arma::vec> NonLinearMutithreaded(CKTcircuit &ckt, const arm
 
     // Parallel BSIM4: compute stamps in parallel using OpenMP (one device per thread)
     if (!ckt.CKTelements.bsim4.empty()) {
-        // Parallel computation - each iteration processes one device
+        const size_t n = ckt.CKTelements.bsim4.size();
+        std::vector<bsim4::BSIM4stamp> stamps(n);
+        
+        // Phase 1: Parallel computation of stamps
         #pragma omp parallel for
-        for (size_t i = 0; i < ckt.CKTelements.bsim4.size(); ++i) {
+        for (size_t i = 0; i < n; ++i) {
             const bsim4::BSIM4model &b4model = *ckt.CKTelements.bsim4[i].bsim4v82Instance.BSIM4modPtr;
             bsim4::BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
-            // Calculate stamps
-            stamps[i] = bsim4::BSIM4calculateStamps(ckt, b4model, instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin);
+            stamps[i] = bsim4::BSIM4calculateStamps(ckt, b4model, instance, 
+                                                     ckt.spiceCompatible, pre_NR_solution, 
+                                                     ckt.CKTtemp, ckt.CKTgmin);
         }
-        // After parallel region, integrate results into global LHS and RHS
-        for (size_t i = 0; i < ckt.CKTelements.bsim4.size(); ++i) {
-            bsim4applyStamps(ckt.CKTelements.bsim4[i].bsim4v82Instance, stamps[i], LHS, RHS);
+        
+        // Graph coloring
+        const auto& color_groups = ckt.b4coloring.getColorGroups();
+
+        // Phase 2: Parallel application of stamps using coloring
+        #pragma omp parallel // <-- Create threads ONCE
+        {
+            for (const auto& group : color_groups) {
+                // All instances in this group can be processed in parallel
+                #pragma omp for // <-- Distribute work, threads are already active
+                for (size_t idx = 0; idx < group.size(); ++idx) {
+                    size_t i = group[idx];
+                    bsim4::BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
+                    bsim4::bsim4applyStamps(instance, stamps[i], LHS, RHS);
+                }
+            }
         }
     }
 
