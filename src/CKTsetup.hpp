@@ -94,8 +94,10 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     ckt.is_batch = parser.is_batch;                         // Set the batch mode
     ckt.CKTmultithreaded = parser.multithreaded;            // Set multithreading mode
     ckt.num_threads = parser.num_threads;                   // Set number of threads for multithreading
-    omp_set_num_threads(ckt.num_threads);                   // Set number of OpenMP threads
-    ckt.b4coloring.computeColoring(ckt.CKTelements.bsim4);  // Compute coloring for BSIM4 instances
+    if(ckt.CKTmultithreaded){
+        omp_set_num_threads(ckt.num_threads);                   // Set number of OpenMP threads
+        ckt.b4coloring.computeColoring(ckt.CKTelements.bsim4);  // Compute coloring for BSIM4 instances
+    }
 
     // Setup the instances in the circuit and create internal nodes
     if(!modmap.bsim4Models.empty()){
