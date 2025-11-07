@@ -5,6 +5,7 @@
 #include <chrono>
 #include <string>
 #include <format>
+#include <omp.h>
 
 
 // Helper function to format durations with automatic unit selection
@@ -33,7 +34,9 @@ struct SimulationStatistics{
     SimulationTime simTime;
     int total_NR_iteration{}; // Total Newton Raphson iterations in the entire simulation
     int MNA_Matrix_size{};    // Size of the MNA matrix
-    int num_data_points{};   // Number of data points in the simulation (AC, DC sweep, Transient)
+    int num_data_points{};    // Number of data points in the simulation (AC, DC sweep, Transient)
+    int num_threads{};        // Number of threads used in multithreaded simulations
+    int num_colors{};         // Number of colors used in graph coloring
 
     void printStatistics() const;
 };
@@ -58,5 +61,9 @@ inline void SimulationStatistics::printStatistics() const {
     std::cout << "  Total NR iterations: " << total_NR_iteration << "\n";
     std::cout << "  MNA matrix size:     " << MNA_Matrix_size << "\n";
     std::cout << "  No. Data points:     " << num_data_points << "\n";
+    std::cout << "  CPU cores:           " << omp_get_num_procs() << "\n";
+    std::cout << "  OpenMP max threads:   " << omp_get_max_threads() << "\n";
+    std::cout << "  Threads used:        " << num_threads << "\n";
+    std::cout << "  Graph colors:        " << num_colors << "\n";
     std::cout << "========================================\n";
 }

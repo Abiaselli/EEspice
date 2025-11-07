@@ -75,6 +75,11 @@ void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
     }
 }
 
+void CKTloadStatistics(CKTcircuit &ckt){
+    ckt.sim_stats.num_threads = ckt.num_threads;
+    ckt.sim_stats.num_colors = ckt.b4coloring.getNumColors();
+}
+
 void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<DenseMatrix> denseMatrixPtr, const Modelmap &modmap)
 {
     // Careful! getCircuitElements function is const, so it can't be used to modify the elements vector
@@ -112,6 +117,9 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     ckt.cktdematrix->RHS = arma::zeros(ckt.cktdematrix->Maxi, 1);                        // RHS matrix
     ckt.cktdematrix->LHS_cx = arma::cx_mat(ckt.cktdematrix->Maxi, ckt.cktdematrix->Maxj, arma::fill::zeros); // Complex LHS matrix for AC analysis
     ckt.cktdematrix->RHS_cx = arma::cx_mat(ckt.cktdematrix->Maxi, 1, arma::fill::zeros);                     // Complex RHS matrix for AC analysis
+
+    // Load simulation statistics
+    CKTloadStatistics(ckt);
 }
 
 void CKTload(CKTcircuit &ckt)
