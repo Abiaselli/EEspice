@@ -55,8 +55,6 @@ int main(int argc, const char **argv)
 
                 // Check for multithreading from parser
                 if (ckt.CKTmultithreaded){
-                    omp_set_num_threads(ckt.num_threads);  // Set number of OpenMP threads
-                    ckt.b4coloring.computeColoring(ckt.CKTelements.bsim4);      // Compute coloring for BSIM4 instances
                     std::cout << "Multithreading enabled for BSIM4 transistors with " << ckt.num_threads << " threads." << std::endl;
                 }
             }
