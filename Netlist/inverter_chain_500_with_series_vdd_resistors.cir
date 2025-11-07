@@ -1,4 +1,6 @@
 * 500-stage CMOS inverter chain (no subcircuits) using BSIM4 models
+.options acct
+.options num_threads=8
 VDD vdd 0 1.0
 *VIN n0 0 PULSE (0 1.0 0 10p 10p 2n 4n)
 VIN n0 0 1

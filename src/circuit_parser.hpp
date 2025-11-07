@@ -263,7 +263,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
     {
         parseModel(iss, line, modmap);
     }
-    if(type == ".options" || type == ".OPTIONS")
+    else if(type == ".options" || type == ".OPTIONS")
     {
         std::string option_token;
         while (iss >> option_token)
