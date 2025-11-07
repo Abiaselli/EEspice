@@ -1,6 +1,7 @@
 * 500-stage CMOS inverter chain (no subcircuits) using BSIM4 models
 VDD vdd 0 1.0
-VIN n0 0 PULSE (0 1.0 0 10p 10p 2n 4n)
+*VIN n0 0 PULSE (0 1.0 0 10p 10p 2n 4n)
+VIN n0 0 1
 Cload n500 0 1f
 
 * Models
