@@ -45,7 +45,9 @@ struct CircuitParser
     // AC simulation parameters
     ac::ACSweepSpec acSweep_parser;
     // Simulation options
-    bool acct = true; // If true, will print the statistics of the simulation
+    bool acct = false;        // If true, will print the statistics of the simulation
+    bool multithreaded = false; // If true, will use multithreading for simulation
+    int num_threads = 1;      // Number of threads to use if multithreading is enabled
 
     // Parser Timer
     XB_Timer parseTimer;
@@ -260,6 +262,51 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
     if(type == ".model" || type == ".MODEL")
     {
         parseModel(iss, line, modmap);
+    }
+    if(type == ".options" || type == ".OPTIONS")
+    {
+        std::string option_token;
+        while (iss >> option_token)
+        {
+            // Convert to lowercase for case-insensitive comparison
+            std::string option_lower = option_token;
+            std::transform(option_lower.begin(), option_lower.end(), option_lower.begin(), ::tolower);
+
+            // Check for key=value format
+            size_t eq_pos = option_lower.find('=');
+            if (eq_pos != std::string::npos)
+            {
+                std::string key = option_lower.substr(0, eq_pos);
+                std::string value = option_token.substr(eq_pos + 1);
+
+                if (key == "num_threads")
+                {
+                    try {
+                        parser.num_threads = std::stoi(value);
+                        parser.multithreaded = true;
+                    }
+                    catch (const std::exception& e) {
+                        std::cerr << "Warning: Invalid value for num_threads option: " << value << std::endl;
+                    }
+                }
+                else
+                {
+                    std::cerr << "Warning: Unknown .options parameter: " << option_token << std::endl;
+                }
+            }
+            else
+            {
+                // Standalone flag
+                if (option_lower == "acct")
+                {
+                    parser.acct = true;
+                }
+                else
+                {
+                    std::cerr << "Warning: Unknown .options parameter: " << option_token << std::endl;
+                }
+            }
+        }
     }
     else if (type[0] == 'V' || type[0] == 'v')
     {

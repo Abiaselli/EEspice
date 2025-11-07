@@ -191,7 +191,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
     for (int i = 1; i < 3; i++)
     {   
-        if (ckt.CKTmutithreaded) {
+        if (ckt.CKTmultithreaded) {
             matrices = NonLinearMutithreaded(ckt, solution, init_matrices, modmap, h);
         } else {
             matrices = NonLinear(ckt, solution, init_matrices, modmap, h);
@@ -226,7 +226,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
             throw ConvergenceException("Transient Simulation did not converge at the op analysis!", "TRANSIENT_OP_CONVERGENCE");
         }
         else {
-            if (ckt.CKTmutithreaded) {
+            if (ckt.CKTmultithreaded) {
                 matrices = NonLinearMutithreaded(ckt, solution, init_matrices, modmap, h);
             } else {
                 matrices = NonLinear(ckt, solution, init_matrices, modmap, h);
@@ -269,7 +269,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
 
     for (int i = 1; i < 3; i++)
     {
-        if (ckt.CKTmutithreaded) {
+        if (ckt.CKTmultithreaded) {
             matrices = NonLinearMutithreaded(ckt, solution, init_matrices, modmap, 0.0);
         } else {
             matrices = NonLinear(ckt, solution, init_matrices, modmap, 0.0);
@@ -294,7 +294,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
             throw ConvergenceException("DC Analysis did not converge!", "DC_CONVERGENCE");
         }
 
-        if (ckt.CKTmutithreaded) {
+        if (ckt.CKTmultithreaded) {
             matrices = NonLinearMutithreaded(ckt, solution, init_matrices, modmap, 0.0);
         } else {
             matrices = NonLinear(ckt, solution, init_matrices, modmap, 0.0);

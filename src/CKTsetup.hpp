@@ -87,6 +87,8 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     ckt.CKTorder = 1;                                       // Set the order of the integration method to 1
     ckt.CKTag.fill(0.0);
     ckt.is_batch = parser.is_batch;                         // Set the batch mode
+    ckt.CKTmultithreaded = parser.multithreaded;            // Set multithreading mode
+    ckt.num_threads = parser.num_threads;                   // Set number of threads for multithreading
 
     // Setup the instances in the circuit and create internal nodes
     if(!modmap.bsim4Models.empty()){

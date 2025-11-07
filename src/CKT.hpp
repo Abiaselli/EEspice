@@ -41,7 +41,8 @@ struct CKTcircuit
     SPICECompatible spiceCompatible;                // SPICE-compatible (cktmode)
     bool is_batch = false;                          // True if the circuit is a batch simulation
     SimulationStatistics sim_stats;                 // Simulation statistics
-    bool CKTmutithreaded = false;                   // True if the circuit is using multithreading for BSIM4 transistors
+    bool CKTmultithreaded = false;                  // True if the circuit is using multithreading for BSIM4 transistors
+    int num_threads = 1;                            // Number of threads to use for multithreading
 
     BSIM4Coloring b4coloring;                       // BSIM4 coloring for multithreading
 };
