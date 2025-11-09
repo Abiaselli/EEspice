@@ -94,10 +94,6 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     ckt.is_batch = parser.is_batch;                         // Set the batch mode
     ckt.CKTmultithreaded = parser.multithreaded;            // Set multithreading mode
     ckt.num_threads = parser.num_threads;                   // Set number of threads for multithreading
-    if(ckt.CKTmultithreaded){
-        omp_set_num_threads(ckt.num_threads);                   // Set number of OpenMP threads
-        ckt.b4coloring.computeColoring(ckt.CKTelements.bsim4);  // Compute coloring for BSIM4 instances
-    }
 
     // Setup the instances in the circuit and create internal nodes
     if(!modmap.bsim4Models.empty()){
@@ -119,6 +115,13 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     ckt.cktdematrix->RHS = arma::zeros(ckt.cktdematrix->Maxi, 1);                        // RHS matrix
     ckt.cktdematrix->LHS_cx = arma::cx_mat(ckt.cktdematrix->Maxi, ckt.cktdematrix->Maxj, arma::fill::zeros); // Complex LHS matrix for AC analysis
     ckt.cktdematrix->RHS_cx = arma::cx_mat(ckt.cktdematrix->Maxi, 1, arma::fill::zeros);                     // Complex RHS matrix for AC analysis
+
+    // Calculate the number of colors for BSIM4 instances if multithreading is enabled
+    // Must be done after setting up the instances
+    if(ckt.CKTmultithreaded){
+        omp_set_num_threads(ckt.num_threads);                   // Set number of OpenMP threads
+        ckt.b4coloring.computeColoring(ckt.CKTelements.bsim4);  // Compute coloring for BSIM4 instances
+    }
 
     // Load simulation statistics
     CKTloadStatistics(ckt);
