@@ -77,7 +77,12 @@ void CKTinstanceSetup(CKTcircuit &ckt, const Modelmap &modmap){
 
 void CKTloadStatistics(CKTcircuit &ckt){
     ckt.sim_stats.num_threads = ckt.num_threads;
-    ckt.sim_stats.num_colors = ckt.b4coloring.getNumColors();
+    if(ckt.CKTmultithreaded){
+        ckt.sim_stats.num_colors = ckt.b4coloring.getNumColors();
+    }
+    else{
+        ckt.sim_stats.num_colors = 0;
+    }
 }
 
 void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<DenseMatrix> denseMatrixPtr, const Modelmap &modmap)
