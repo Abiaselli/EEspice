@@ -55,6 +55,7 @@ inline void SimulationStatistics::printStatistics() const {
     std::cout << "  Matrix loading:     " << formatDuration(simTime.matrix_load_time.total()) << "\n";
     std::cout << "  Solver time:        " << formatDuration(simTime.solve_time.total()) << "\n";
     std::cout << "  Newton method:      " << formatDuration(simTime.newton_time.total()) << "\n";
+    std::cout << "  BSIM4 evaluation:   " << formatDuration(simTime.bsim4_time.total()) << "\n";
 
     // Iteration and matrix information
     std::cout << "\nSimulation Details:\n";

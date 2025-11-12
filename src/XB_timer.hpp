@@ -89,4 +89,5 @@ struct SimulationTime{
     XB_Timer matrix_load_time;  // matrix loading time (Device stamping time)
     XB_Timer solve_time;        // solver time
     XB_Timer newton_time;       // Newton's method time
+    XB_Timer bsim4_time;        // BSIM4 device evaluation time
 };
