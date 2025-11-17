@@ -57,3 +57,8 @@ private:
     arma::cx_dmat init_cxLHS;   // The initial complex LHS and RHS values to be used in the NR-algorithm for AC analysis
     arma::cx_dvec init_cxRHS;
 };
+
+struct MNA {
+    arma::mat LHS;
+    arma::vec RHS;
+};

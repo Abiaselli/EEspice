@@ -24,55 +24,56 @@
 #include "bsim4v82/bsim4v82load/bsim4v82load.hpp"
 #include "NonLinearMuti.hpp"
 
-std::pair<arma::mat, arma::vec> Dynamic(const CKTcircuit &ckt, const double h, const arma::vec &pre_global_solution, const int mode, const double time_trans, SimulationTime &simTime)
+
+MNA Dynamic(const CKTcircuit &ckt, const double h, const arma::vec &pre_global_solution, const int mode, const double time_trans, SimulationTime &simTime)
 {
     ScopedTimer loadTimer(simTime.matrix_load_time);
-    arma::mat LHS = ckt.cktdematrix->get_init_LHS();
-    arma::vec RHS = ckt.cktdematrix->get_init_RHS();
+    MNA mna;
+    mna.LHS = ckt.cktdematrix->get_init_LHS();
+    mna.RHS = ckt.cktdematrix->get_init_RHS();
 
     for (const auto &cap : ckt.CKTelements.capacitors)
     {   
         // Linear Capacitor
-        C_assigner_BE(cap.nodePos, cap.nodeNeg, cap.value, h, LHS, RHS, pre_global_solution, mode);
+        C_assigner_BE(cap.nodePos, cap.nodeNeg, cap.value, h, mna.LHS, mna.RHS, pre_global_solution, mode);
     }
     for (const auto &pulse : ckt.CKTelements.pulseVoltages)
     {
         double val_pulse = V_pulse_value(pulse.V1, pulse.V2, time_trans, pulse.td, pulse.tr, pulse.tf, pulse.pw, pulse.per);
-        RHS(pulse.RHS_locate) += (val_pulse - pulse.V1);
+        mna.RHS(pulse.RHS_locate) += (val_pulse - pulse.V1);
     }
     for (const auto &sin : ckt.CKTelements.sinVoltages){
         double val_sin = V_sin_value(sin.vo, sin.va, sin.freq, sin.td, sin.theta, sin.phase_rad, time_trans);
-        RHS(sin.RHS_locate) += (val_sin - sin.vo);
+        mna.RHS(sin.RHS_locate) += (val_sin - sin.vo);
     }
-    return {LHS, RHS};
+    return mna;
 }
 
-std::pair<arma::mat, arma::vec> NonLinear(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
-    const std::pair<arma::mat, arma::vec> &matrixes, const Modelmap &modmap, double h)
+MNA NonLinear(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
+    const MNA &matrixes, const Modelmap &modmap, double h)
 {
     ScopedTimer loadTimer(ckt.sim_stats.simTime.matrix_load_time);
-    arma::mat LHS = matrixes.first;
-    arma::vec RHS = matrixes.second;
-    // LHS.print("in_LHS matrix =");
-    // RHS.print("RHS matrix =");
+    MNA mna;
+    mna.LHS = matrixes.LHS;
+    mna.RHS = matrixes.RHS;
 
     for (const auto &nmos : ckt.CKTelements.nmos){
         const NMOSModel nmosModel = modmap.nmosModels.at(nmos.modelName);
-        NMOS_assigner(nmos.id, nmos.node_vd, nmos.node_vg, nmos.node_vs, nmos.node_vb, nmos.W, nmos.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, nmosModel);
+        NMOS_assigner(nmos.id, nmos.node_vd, nmos.node_vg, nmos.node_vs, nmos.node_vb, nmos.W, nmos.L, pre_NR_solution, ckt.T_nodes, mna.LHS, mna.RHS, nmosModel);
     }
     for (const auto &pmos : ckt.CKTelements.pmos){
         const PMOSModel pmosModel = modmap.pmosModels.at(pmos.modelName);
-        PMOS_assigner(pmos.id, pmos.node_vd, pmos.node_vg, pmos.node_vs, pmos.node_vb, pmos.W, pmos.L, pre_NR_solution, ckt.T_nodes, LHS, RHS, pmosModel);
+        PMOS_assigner(pmos.id, pmos.node_vd, pmos.node_vg, pmos.node_vs, pmos.node_vb, pmos.W, pmos.L, pre_NR_solution, ckt.T_nodes, mna.LHS, mna.RHS, pmosModel);
     }
     for (auto &bsim4 : ckt.CKTelements.bsim4){
         const bsim4::BSIM4model &b4model = *bsim4.bsim4v82Instance.BSIM4modPtr;
         bsim4::BSIM4V82 &b4instance = bsim4.bsim4v82Instance;
-        bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, LHS, RHS);
+        bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, mna.LHS, mna.RHS);
     }
     for (const auto &diode : ckt.CKTelements.diodes){
-        Diode_assigner(diode.nodePos, diode.nodeNeg, diode.Is, diode.VT, LHS, RHS, pre_NR_solution);
+        Diode_assigner(diode.nodePos, diode.nodeNeg, diode.Is, diode.VT, mna.LHS, mna.RHS, pre_NR_solution);
     }
-    return {LHS, RHS};
+    return mna;
 }
 
 bool isConverge(const std::vector<arma::vec> &NR_solutions, const CKTcircuit &ckt, const int &NR_iteration_counter)
@@ -181,8 +182,8 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
     int NR_iteration_counter = 0;
     bool isconverge = false;
     arma::vec solution = pre_global_solution;
-    std::pair<arma::mat, arma::vec> init_matrices;
-    std::pair<arma::mat, arma::vec> matrices;
+    MNA init_matrices;
+    MNA matrices;
 
     std::vector<arma::vec> NR_solutions(ITL4+1);
     NR_solutions[0] = pre_global_solution;
@@ -196,12 +197,12 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
         } else {
             matrices = NonLinear(ckt, solution, init_matrices, modmap, h);
         }
-        // const arma::mat &LHS = matrices.first;
-        // const arma::mat &RHS = matrices.second;
+        // const arma::mat &LHS = matrices.LHS;
+        // const arma::mat &RHS = matrices.RHS;
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = solveDense(matrices.first, matrices.second, ckt.sim_stats.simTime);
+        solution = solveDense(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
 
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
@@ -234,7 +235,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
             // Solve Ax = b
             // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-            solution = solveDense(matrices.first, matrices.second, ckt.sim_stats.simTime);
+            solution = solveDense(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
 
             NR_iteration_counter += 1;
             NR_solutions.at(NR_iteration_counter) = solution;
@@ -259,8 +260,8 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
     int NR_iteration_counter = 0;
     bool isconverge = false;
     arma::vec solution(init_RHS.n_rows, arma::fill::zeros);
-    std::pair<arma::mat, arma::vec> init_matrices = {init_LHS, init_RHS};
-    std::pair<arma::mat, arma::vec> matrices;
+    MNA init_matrices = {init_LHS, init_RHS};
+    MNA matrices;
 
     std::vector<arma::vec> NR_solutions(ITL4+1);
     NR_solutions[0] = solution;
@@ -277,7 +278,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = solveDense(matrices.first, matrices.second, ckt.sim_stats.simTime);
+        solution = solveDense(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
         
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
@@ -302,7 +303,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = solveDense(matrices.first, matrices.second, ckt.sim_stats.simTime);
+        solution = solveDense(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
 
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;

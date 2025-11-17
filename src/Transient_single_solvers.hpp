@@ -295,9 +295,9 @@ single_timestep single_solution_solver(const double &h, const Transient &trans, 
         }
     }
     else{
-        std::pair<arma::mat, arma::vec> matrices;
+        MNA matrices;
         matrices = Dynamic(ckt, h, trans_sim.vec_trans.back().solution, trans.mode, single_h.t, ckt.sim_stats.simTime);
-        single_h.solution = solveDense(matrices.first, matrices.second, ckt.sim_stats.simTime);
+        single_h.solution = solveDense(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
         single_h.CapState = get_cap_state(ckt, single_h.solution, single_h.h, trans_sim.vec_trans);
     }
 
