@@ -50,36 +50,24 @@ arma::mat branch_ext(arma::mat M, int node_x, int node_y)
 // branch extender function for HybridMatrix
 HybridMatrix branch_ext(const HybridMatrix& M, int node_x, int node_y)
 {
+// Create a deep copy first
+    HybridMatrix result = M.copy();
+    
+    // Resize using the HybridMatrix resize wrapper
+    // Armadillo handles sparse resizing intelligently
+    result.resize(M.rows() + 1, M.cols() + 1);
+
+    // Add the branch current stamps (last row/col)
     size_t old_rows = M.rows();
     size_t old_cols = M.cols();
 
-    // Create a new matrix with expanded dimensions
-    HybridMatrix result(old_rows + 1, old_cols + 1, M.is_sparse());
-
-    // Copy the old matrix values to the new matrix
-    for (size_t i = 0; i < old_rows; ++i) {
-        for (size_t j = 0; j < old_cols; ++j) {
-            double val = M.get_element(i, j);
-            if (val != 0.0) {
-                result.set_element(i, j, val);
-            }
-        }
-    }
-
-    // Add the branch current column (last column)
     if (node_x > 0) {
-        result.set_element(node_x - 1, old_cols, -1.0);
+        result.add_stamp(node_x - 1, old_cols, -1.0); // Col
+        result.add_stamp(old_rows, node_x - 1, -1.0); // Row
     }
     if (node_y > 0) {
-        result.set_element(node_y - 1, old_cols, 1.0);
-    }
-
-    // Add the branch current row (last row)
-    if (node_x > 0) {
-        result.set_element(old_rows, node_x - 1, -1.0);
-    }
-    if (node_y > 0) {
-        result.set_element(old_rows, node_y - 1, 1.0);
+        result.add_stamp(node_y - 1, old_cols, 1.0);  // Col
+        result.add_stamp(old_rows, node_y - 1, 1.0);  // Row
     }
 
     return result;
