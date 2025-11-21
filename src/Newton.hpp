@@ -167,10 +167,11 @@ bool isConverge(const std::vector<arma::vec> &NR_solutions, const CKTcircuit &ck
 }
 
 // Solver for the Newton Raphson method
-arma::vec solveDense(const arma::mat &LHS, const arma::vec &RHS, SimulationTime &simTime)
+arma::vec solveDense(const HybridMatrix &LHS, const arma::vec &RHS, SimulationTime &simTime)
 {
     ScopedTimer solveTimer(simTime.solve_time);
-    return arma::solve(LHS, RHS, arma::solve_opts::fast);
+    // HybridMatrix automatically selects between dense and sparse solver
+    return LHS.solve(RHS);
 }
 
 // Transient Simulation
@@ -254,7 +255,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
 
 // DC Analysis
-arma::vec NewtonRaphson_system(CKTcircuit &ckt, const arma::mat &init_LHS, const arma::vec &init_RHS, const Modelmap &modmap)
+arma::vec NewtonRaphson_system(CKTcircuit &ckt, const HybridMatrix &init_LHS, const arma::vec &init_RHS, const Modelmap &modmap)
 {   
     ScopedTimer NRTimer(ckt.sim_stats.simTime.newton_time);
     int NR_iteration_counter = 0;

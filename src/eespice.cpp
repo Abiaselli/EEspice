@@ -48,10 +48,11 @@ int main(int argc, const char **argv)
                 ScopedTimer setupTimer(ckt.sim_stats.simTime.setup_time); // Time the CKT setup
                 ckt.map = cktmap; // Assign the circuit map to the CKTcircuit
                 auto denseMatrixPtr = std::make_shared<DenseMatrix>();  // Create the DenseMatrix as a shared pointer.
+                denseMatrixPtr->use_sparse = parser.use_sparse;  // Set sparse matrix flag based on netlist directive
                 CKTsetup(ckt, parser, denseMatrixPtr, modmap); // Pass the parser to the ckt and the initialise LHS and RHS matrices
                 CKTload(ckt);
                 ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
-                ckt.sim_stats.MNA_Matrix_size = ckt.cktdematrix->LHS.n_rows;    // Store the size of MNA matrix to the simulation statistics
+                ckt.sim_stats.MNA_Matrix_size = ckt.cktdematrix->LHS.rows();    // Store the size of MNA matrix to the simulation statistics
 
                 // Check for multithreading from parser
                 if (ckt.CKTmultithreaded){

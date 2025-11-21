@@ -139,7 +139,7 @@ ACsimulator ACsetup(const CircuitParser &parser, const CKTcircuit &ckt){
 void SaveOP(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
     // Make sure the cktstate is updated outside
     // Only BSIM4V82 is supported for now
-    arma::mat init_LHS = ckt.cktdematrix->get_init_LHS();
+    HybridMatrix init_LHS = ckt.cktdematrix->get_init_LHS();
     arma::vec init_RHS = ckt.cktdematrix->get_init_RHS();
 
     for (auto &bsim4 : ckt.CKTelements.bsim4){

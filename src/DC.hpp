@@ -70,7 +70,7 @@ arma::vec DC_analysis_once(CKTcircuit &ckt, const DCSimulator &dcSim, DCResult &
     }
     else
     {
-        solution = arma::solve(dcMat.LHS, dcMat.RHS);
+        solution = dcMat.LHS.solve(dcMat.RHS);  // Use HybridMatrix::solve() method
     }
     return solution;
 }

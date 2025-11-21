@@ -36,6 +36,7 @@ struct CircuitParser
     bool is_ac = false;
     bool is_op = false;
     bool timestep_control = true;
+    bool use_sparse = false; // If true, use sparse matrices for LHS
     // CKT parameters
     // Transient simulation parameters
     double double_t_end; // This double_t_end can be passed to the CKTcircuit class
@@ -876,7 +877,11 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         parser.acSweep_parser = spec;
         parser.is_ac = true;
     }
-    
+    else if (type == ".sparse" || type == ".SPARSE")
+    {
+        parser.use_sparse = true;  // Enable sparse matrix mode for LHS
+    }
+
     else
     {
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "bsim4v82/bsim4v82.hpp"
 #include <armadillo>
+#include "hybrid_matrix.hpp"
 
 namespace bsim4 {
 // For safe modification of MNA matrix
@@ -13,11 +14,11 @@ namespace bsim4 {
         BSIM4{Row}{Col}, nodeValid, 
         BSIM4V82::{ROW_NODE_TYPE}, BSIM4V82::{COL_NODE_TYPE});
 */
-inline void Stamp(arma::mat &mat, int row, int col, double val,
+inline void Stamp(HybridMatrix &mat, int row, int col, double val,
                     const std::array<bool, 12> &BSIM4nodeValid, BSIM4V82::NodeType row_node, BSIM4V82::NodeType col_node)
 {
     if (BSIM4nodeValid[row_node] && BSIM4nodeValid[col_node]){
-        mat(row, col) += val;
+        mat.add_stamp(row, col, val);
     }
 }
 inline void StampRHS(arma::vec &vec, int index, double val,
@@ -27,12 +28,12 @@ inline void StampRHS(arma::vec &vec, int index, double val,
         vec[index] += val;
     }
 }
-inline void StampOffset(arma::mat &mat, int row, int col, double val,
+inline void StampOffset(HybridMatrix &mat, int row, int col, double val,
                     const std::array<bool, 12> &BSIM4nodeValid, BSIM4V82::NodeType row_node, BSIM4V82::NodeType col_node)
 {
     if (BSIM4nodeValid[row_node] && BSIM4nodeValid[col_node]){
-        double* p = mat.memptr();
-        p[row + col * mat.n_rows] += val; // column-major storage
+        // Use HybridMatrix's stamping method for portability
+        mat.add_stamp(row, col, val);
     }
 }
 
@@ -47,8 +48,8 @@ inline void StampOffset(arma::mat &mat, int row, int col, double val,
  * @param LHS The MNA conductance matrix (to be modified).
  * @param RHS The MNA current/voltage source vector (to be modified).
  */
-void bsim4applyStamps(const BSIM4V82 &instance, const BSIM4stamp &s, 
-                      arma::mat &LHS, arma::vec &RHS)
+void bsim4applyStamps(const BSIM4V82 &instance, const BSIM4stamp &s,
+                      HybridMatrix &LHS, arma::vec &RHS)
 {
     if (!s.load) return; // do not load stamps into the matrix
 

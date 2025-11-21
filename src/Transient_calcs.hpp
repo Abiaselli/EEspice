@@ -18,6 +18,7 @@
 #include "XB_timer.hpp"
 #include "device.hpp"
 #include "matrix.hpp"
+#include "hybrid_matrix.hpp"
 #include "CKT.hpp"
 #include "CKTsetup.hpp"
 #include "global.hpp"
@@ -62,7 +63,7 @@ struct Transient
     int mode{};
     int trans_count{};
     arma::vec solution;
-    arma::mat LHS;
+    HybridMatrix LHS;  // Can be dense or sparse matrix
     arma::vec RHS;
     CapacitanceState CapState; // Capacitance state (including cap, bsim4, etc.)
 

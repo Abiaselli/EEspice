@@ -116,7 +116,7 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     ckt.cktdematrix = denseMatrixPtr;
     ckt.cktdematrix->Maxi = ckt.T_nodes;
     ckt.cktdematrix->Maxj = ckt.cktdematrix->Maxi;
-    ckt.cktdematrix->LHS = arma::zeros(ckt.cktdematrix->Maxi, ckt.cktdematrix->Maxj);    // LHS matrix
+    ckt.cktdematrix->LHS = HybridMatrix(ckt.cktdematrix->Maxi, ckt.cktdematrix->Maxj, ckt.cktdematrix->use_sparse); // LHS matrix (can be sparse or dense)
     ckt.cktdematrix->RHS = arma::zeros(ckt.cktdematrix->Maxi, 1);                        // RHS matrix
     ckt.cktdematrix->LHS_cx = arma::cx_mat(ckt.cktdematrix->Maxi, ckt.cktdematrix->Maxj, arma::fill::zeros); // Complex LHS matrix for AC analysis
     ckt.cktdematrix->RHS_cx = arma::cx_mat(ckt.cktdematrix->Maxi, 1, arma::fill::zeros);                     // Complex RHS matrix for AC analysis

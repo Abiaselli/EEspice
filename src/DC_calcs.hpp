@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <armadillo>
+#include "hybrid_matrix.hpp"
 
 namespace dc{
 struct DCSweepSpec {
@@ -15,7 +16,7 @@ struct DCSweepSpec {
 
 struct DCMat{
     // Reuse LHS and RHS
-    arma::mat LHS;  // Left-hand side matrix
+    HybridMatrix LHS;  // Left-hand side matrix (can be dense or sparse)
     arma::vec RHS;  // Right-hand side vector
 };
 

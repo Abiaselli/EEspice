@@ -7,14 +7,15 @@
 #include "bsim4v82/bsim4v82NI.hpp"
 #include "bsim4v82calculateStamps.hpp"
 #include "bsim4v82applyStamps.hpp"
+#include "../../hybrid_matrix.hpp"
 
 #include <cmath>
 #include <armadillo>
 
 namespace bsim4{
-int 
-loadompColor(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
-                      arma::mat &LHS, arma::vec &RHS, 
+int
+loadompColor(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
+                      HybridMatrix &LHS, arma::vec &RHS,
                       std::vector<BSIM4stamp> &stamps,
                       const BSIM4Coloring &coloring)
 {
@@ -55,9 +56,9 @@ loadompColor(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
     return 0; // return success
 }
 
-int 
-loadompColor2(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
-                      arma::mat &LHS, arma::vec &RHS, 
+int
+loadompColor2(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
+                      HybridMatrix &LHS, arma::vec &RHS,
                       std::vector<BSIM4stamp> &stamps,
                       const BSIM4Coloring &coloring)
 {
@@ -101,9 +102,9 @@ loadompColor2(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
     return 0; // return success
 }
 
-int 
-loadompColor3(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
-                      arma::mat &LHS, arma::vec &RHS, 
+int
+loadompColor3(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
+                      HybridMatrix &LHS, arma::vec &RHS,
                       std::vector<BSIM4stamp> &stamps,
                       const BSIM4Coloring &coloring)
 {
@@ -147,9 +148,9 @@ loadompColor3(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
     return 0; // return success
 }
 
-int 
-loadompColor4(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
-                      arma::mat &LHS, arma::vec &RHS, 
+int
+loadompColor4(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
+                      HybridMatrix &LHS, arma::vec &RHS,
                       const BSIM4Coloring &coloring)
 {
     if (!ckt.CKTelements.bsim4.empty()) {

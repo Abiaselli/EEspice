@@ -9,6 +9,7 @@
 
 #include "sim_variables.hpp"
 #include "global.hpp"
+#include "hybrid_matrix.hpp"
 
 #define DEBUG_PRINT(x)               \
     if (isDebugMode())               \
@@ -16,7 +17,7 @@
         std::cout << x << std::endl; \
     }
 
-// branch extender function
+// branch extender function for dense matrices
 arma::mat branch_ext(arma::mat M, int node_x, int node_y)
 {
     int M_cols = M.n_cols;
@@ -46,8 +47,46 @@ arma::mat branch_ext(arma::mat M, int node_x, int node_y)
     return M2;
 }
 
-// create resistor matrix stamp
-void R_assigner(int node_x, int node_y, double G, arma::mat &LHS)
+// branch extender function for HybridMatrix
+HybridMatrix branch_ext(const HybridMatrix& M, int node_x, int node_y)
+{
+    size_t old_rows = M.rows();
+    size_t old_cols = M.cols();
+
+    // Create a new matrix with expanded dimensions
+    HybridMatrix result(old_rows + 1, old_cols + 1, M.is_sparse());
+
+    // Copy the old matrix values to the new matrix
+    for (size_t i = 0; i < old_rows; ++i) {
+        for (size_t j = 0; j < old_cols; ++j) {
+            double val = M.get_element(i, j);
+            if (val != 0.0) {
+                result.set_element(i, j, val);
+            }
+        }
+    }
+
+    // Add the branch current column (last column)
+    if (node_x > 0) {
+        result.set_element(node_x - 1, old_cols, -1.0);
+    }
+    if (node_y > 0) {
+        result.set_element(node_y - 1, old_cols, 1.0);
+    }
+
+    // Add the branch current row (last row)
+    if (node_x > 0) {
+        result.set_element(old_rows, node_x - 1, -1.0);
+    }
+    if (node_y > 0) {
+        result.set_element(old_rows, node_y - 1, 1.0);
+    }
+
+    return result;
+}
+
+// create resistor matrix stamp for HybridMatrix (used in transient/DC analysis)
+void R_assigner(int node_x, int node_y, double G, HybridMatrix &LHS)
 {
 
     // if(G == 0){
@@ -58,6 +97,35 @@ void R_assigner(int node_x, int node_y, double G, arma::mat &LHS)
     if ((node_x == 0) && (node_y == 0))
     {
         // x = 0;
+        return;
+    }
+    else
+    {
+        if (node_x == 0)
+        {
+            LHS.add_stamp(node_y - 1, node_y - 1, G);
+        }
+        else if (node_y == 0)
+        {
+            LHS.add_stamp(node_x - 1, node_x - 1, G);
+        }
+        else
+        {
+            LHS.add_stamp(node_x - 1, node_x - 1, G);
+            LHS.add_stamp(node_x - 1, node_y - 1, -G);
+            LHS.add_stamp(node_y - 1, node_x - 1, -G);
+            LHS.add_stamp(node_y - 1, node_y - 1, G);
+        }
+    }
+
+    // RR = RR +1;
+}
+
+// Overloaded version for arma::mat (used in AC analysis with complex matrices)
+void R_assigner(int node_x, int node_y, double G, arma::mat &LHS)
+{
+    if ((node_x == 0) && (node_y == 0))
+    {
         return;
     }
     else
@@ -78,12 +146,10 @@ void R_assigner(int node_x, int node_y, double G, arma::mat &LHS)
             LHS.row(node_y - 1).col(node_y - 1) += G;
         }
     }
-
-    // RR = RR +1;
 }
 
-// Voltage source stamp assigner
-void Vs_assigner(int node_x, int node_y, double V_value, arma::mat &LHS, arma::vec &RHS)
+// Voltage source stamp assigner for HybridMatrix (used in transient/DC analysis)
+void Vs_assigner(int node_x, int node_y, double V_value, HybridMatrix &LHS, arma::vec &RHS)
 {
 
     arma::vec value(1);
@@ -99,6 +165,19 @@ void Vs_assigner(int node_x, int node_y, double V_value, arma::mat &LHS, arma::v
 
     // return V_locate1;
 }
+
+// Overloaded version for arma::mat (used in AC analysis)
+void Vs_assigner(int node_x, int node_y, double V_value, arma::mat &LHS, arma::vec &RHS)
+{
+    arma::vec value(1);
+    value = V_value;
+    // Extending the branch at the LHS matrix
+    LHS = branch_ext(LHS, node_x, node_y);
+
+    // Assigning the value at RHS
+    RHS = arma::join_cols(RHS, value);
+}
+
 // AC voltage source stamp assigner
 void Vs_ACassigner(int node_x, int node_y, double acReal, double acImag, arma::cx_dmat &LHS, arma::cx_dvec &RHS){
     arma::mat real_LHS = arma::real(LHS);
@@ -165,7 +244,7 @@ void Is_assigner_reverse(double node_x, double node_y, double I, arma::vec &RHS)
 }
 
 // Capacitor stamp assigner with backward euler method
-void C_assigner_BE(int node_x, int node_y, double C, double h, arma::mat &LHS, arma::vec &RHS, const arma::vec &pre_solution, int mode)
+void C_assigner_BE(int node_x, int node_y, double C, double h, HybridMatrix &LHS, arma::vec &RHS, const arma::vec &pre_solution, int mode)
 {
     if (node_x == node_y)
     {
@@ -207,10 +286,10 @@ void C_ACassigner(int node_x, int node_y, double C, double omega, arma::cx_dmat 
 }
 
 // Correct Diode stamp assigner (Original Diode_assigner is wrong with the node voltage assignment)
-double Diode_assigner(int node_x, int node_y, double Is, double VT, arma::mat &LHS, arma::vec &RHS,
+double Diode_assigner(int node_x, int node_y, double Is, double VT, HybridMatrix &LHS, arma::vec &RHS,
                       const arma::vec &solution)
 {
-    int maxi = LHS.n_cols;
+    int maxi = LHS.cols();
     int maxj = 1;
 
     double G_eq = 0;
@@ -268,7 +347,7 @@ double Diode_assigner(int node_x, int node_y, double Is, double VT, arma::mat &L
     return Id;
 }
 
-int V_pulse_assigner(int node_x, int node_y, double V_value, arma::mat &LHS, arma::vec &RHS)
+int V_pulse_assigner(int node_x, int node_y, double V_value, HybridMatrix &LHS, arma::vec &RHS)
 {
     arma::vec value(1);
     value = V_value;
@@ -322,7 +401,7 @@ double V_pulse_value(double V1, double V2, double t1, double td, double tr, doub
     return v;
 }
 
-int V_sin_assigner(int node_x, int node_y, double vo, arma::mat &LHS, arma::vec &RHS){
+int V_sin_assigner(int node_x, int node_y, double vo, HybridMatrix &LHS, arma::vec &RHS){
     Vs_assigner(node_x, node_y, vo, LHS, RHS);
     return RHS.n_rows - 1; // Return the index of the assigned voltage source
 }
@@ -343,6 +422,84 @@ double V_sin_value(double vo, double va, double freq, double td, double theta, d
 }
 
 // assigning the matrix stamps for the VCCS
+void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, HybridMatrix &LHS)
+{
+    int maxi = LHS.cols();
+    int maxj = LHS.rows();
+
+    if (node_x == 0)
+    {
+        if (node_cx == 0)
+        {
+            if (node_cy > 0)
+            {
+                LHS.add_stamp(node_y - 1, node_cy - 1, R);
+            }
+        }
+        else if (node_cy == 0)
+        {
+            if (node_cx > 0)
+            {
+                LHS.add_stamp(node_y - 1, node_cx - 1, -R);
+            }
+        }
+        else
+        {
+            LHS.add_stamp(node_y - 1, node_cx - 1, -R);
+            LHS.add_stamp(node_y - 1, node_cy - 1, R);
+        }
+    }
+    else if (node_y == 0)
+    {
+        if (node_cx == 0)
+        {
+            if (node_cy > 0)
+            {
+                LHS.add_stamp(node_x - 1, node_cy - 1, -R);
+            }
+        }
+        else if (node_cy == 0)
+        {
+            if (node_cx > 0)
+            {
+                LHS.add_stamp(node_x - 1, node_cx - 1, R);
+            }
+        }
+        else
+        {
+            LHS.add_stamp(node_x - 1, node_cx - 1, R);
+            LHS.add_stamp(node_x - 1, node_cy - 1, -R);
+        }
+    }
+    else
+    {
+        if (node_cx == 0)
+        {
+            if (node_cy > 0)
+            {
+                LHS.add_stamp(node_x - 1, node_cy - 1, -R);
+                LHS.add_stamp(node_y - 1, node_cy - 1, R);
+            }
+        }
+        else if (node_cy == 0)
+        {
+            if (node_cx > 0)
+            {
+                LHS.add_stamp(node_x - 1, node_cx - 1, R);
+                LHS.add_stamp(node_y - 1, node_cx - 1, -R);
+            }
+        }
+        else
+        {
+            LHS.add_stamp(node_x - 1, node_cx - 1, R);
+            LHS.add_stamp(node_x - 1, node_cy - 1, -R);
+            LHS.add_stamp(node_y - 1, node_cx - 1, -R);
+            LHS.add_stamp(node_y - 1, node_cy - 1, R);
+        }
+    }
+}
+
+// Overload for arma::mat (used in AC analysis)
 void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, arma::mat &LHS)
 {
     int maxi = LHS.n_cols;
@@ -354,20 +511,20 @@ void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, a
         {
             if (node_cy > 0)
             {
-                LHS.row(node_y - 1).col(node_cy - 1) += R;
+                LHS(node_y - 1, node_cy - 1) += R;
             }
         }
         else if (node_cy == 0)
         {
             if (node_cx > 0)
             {
-                LHS.row(node_y - 1).col(node_cx - 1) += -R;
+                LHS(node_y - 1, node_cx - 1) += -R;
             }
         }
         else
         {
-            LHS.row(node_y - 1).col(node_cx - 1) += -R;
-            LHS.row(node_y - 1).col(node_cy - 1) += R;
+            LHS(node_y - 1, node_cx - 1) += -R;
+            LHS(node_y - 1, node_cy - 1) += R;
         }
     }
     else if (node_y == 0)
@@ -376,20 +533,20 @@ void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, a
         {
             if (node_cy > 0)
             {
-                LHS.row(node_x - 1).col(node_cy - 1) += -R;
+                LHS(node_x - 1, node_cy - 1) += -R;
             }
         }
         else if (node_cy == 0)
         {
             if (node_cx > 0)
             {
-                LHS.row(node_x - 1).col(node_cx - 1) += R;
+                LHS(node_x - 1, node_cx - 1) += R;
             }
         }
         else
         {
-            LHS.row(node_x - 1).col(node_cx - 1) += R;
-            LHS.row(node_x - 1).col(node_cy - 1) += -R;
+            LHS(node_x - 1, node_cx - 1) += R;
+            LHS(node_x - 1, node_cy - 1) += -R;
         }
     }
     else
@@ -398,28 +555,58 @@ void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, a
         {
             if (node_cy > 0)
             {
-                LHS.row(node_x - 1).col(node_cy - 1) += -R;
-                LHS.row(node_y - 1).col(node_cy - 1) += R;
+                LHS(node_x - 1, node_cy - 1) += -R;
+                LHS(node_y - 1, node_cy - 1) += R;
             }
         }
         else if (node_cy == 0)
         {
             if (node_cx > 0)
             {
-                LHS.row(node_x - 1).col(node_cx - 1) += R;
-                LHS.row(node_y - 1).col(node_cx - 1) += -R;
+                LHS(node_x - 1, node_cx - 1) += R;
+                LHS(node_y - 1, node_cx - 1) += -R;
             }
         }
         else
         {
-            LHS.row(node_x - 1).col(node_cx - 1) += R;
-            LHS.row(node_x - 1).col(node_cy - 1) += -R;
-            LHS.row(node_y - 1).col(node_cx - 1) += -R;
-            LHS.row(node_y - 1).col(node_cy - 1) += R;
+            LHS(node_x - 1, node_cx - 1) += R;
+            LHS(node_x - 1, node_cy - 1) += -R;
+            LHS(node_y - 1, node_cx - 1) += -R;
+            LHS(node_y - 1, node_cy - 1) += R;
         }
     }
 }
 
+void VCVS_assigner(int node_x, int node_y, int node_cx, int node_cy, double E, HybridMatrix &LHS, arma::vec &RHS){
+    if (node_x == 0 && node_y == 0){
+        throw DeviceException("Error: VCVS cannot have both nodes as ground", "VCVS_assigner");
+    }
+
+    size_t old_rows = LHS.rows();
+    size_t old_cols = LHS.cols();
+
+    // Resize LHS matrix to accommodate the new row and column
+    LHS.resize(old_rows + 1, old_cols + 1);
+    RHS = RHS.resize(RHS.n_elem + 1); // Resize RHS vector to accommodate the new value
+    int row = old_rows; // New row index for the VCVS
+    int col = old_cols; // New column index for the VCVS
+
+    if (node_x > 0){
+        LHS.add_stamp(row, node_x - 1, 1.0);  // Last row, column for node_x
+        LHS.add_stamp(node_x - 1, col, 1.0);  // Last column, row for node_x
+    }
+    if (node_y > 0){
+        LHS.add_stamp(row, node_y - 1, -1.0); // Last row, column for node_y
+        LHS.add_stamp(node_y - 1, col, -1.0); // Last column, row for node_y
+    }
+    if (node_cx > 0){
+        LHS.add_stamp(row, node_cx - 1, -E); // Last row, column for node_cx
+    }
+    if (node_cy > 0){
+        LHS.add_stamp(row, node_cy - 1, E);  // Last row, column for node_cy
+    }
+}
+// Overloaded version for arma::mat (used in AC analysis)
 void VCVS_assigner(int node_x, int node_y, int node_cx, int node_cy, double E, arma::mat &LHS, arma::vec &RHS){
     if (node_x == 0 && node_y == 0){
         throw DeviceException("Error: VCVS cannot have both nodes as ground", "VCVS_assigner");
@@ -444,6 +631,7 @@ void VCVS_assigner(int node_x, int node_y, int node_cx, int node_cy, double E, a
         LHS(row, node_cy - 1) += E;  // Last row, column for node_cy
     }
 }
+
 void VCVS_ACassigner(int node_x, int node_y, int node_cx, int node_cy, double E, arma::cx_dmat &LHS, arma::cx_dvec &RHS){
     arma::mat real_LHS = arma::real(LHS);
     arma::vec real_RHS = arma::real(RHS);
@@ -460,7 +648,7 @@ void VCVS_ACassigner(int node_x, int node_y, int node_cx, int node_cy, double E,
 }
 
 double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node_vb, double W, double L,
-                     const arma::vec &solution, int T_nodes, arma::mat &LHS, arma::vec &RHS, const NMOSModel &nmosModel)
+                     const arma::vec &solution, int T_nodes, HybridMatrix &LHS, arma::vec &RHS, const NMOSModel &nmosModel)
 {   
     // Get the level 1 parameters
     const auto& params = std::get<NMOSParamLV1>(nmosModel.params);
@@ -593,7 +781,7 @@ double NMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node
 }
 
 double PMOS_assigner(int number, int node_vd, int node_vg, int node_vs, int node_vb, double W, double L,
-                     const arma::vec &solution, int T_nodes, arma::mat &LHS, arma::vec &RHS, const PMOSModel &pmosModel)
+                     const arma::vec &solution, int T_nodes, HybridMatrix &LHS, arma::vec &RHS, const PMOSModel &pmosModel)
 {   
     // Get the level 1 parameters
     const auto& params = std::get<PMOSParamLV1>(pmosModel.params);

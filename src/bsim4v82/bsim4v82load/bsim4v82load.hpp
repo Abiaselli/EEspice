@@ -17,7 +17,7 @@
    *                      Ming-Yen Kao         (Ph.D. student, UC Berkeley)     *
    *  Authors: Gary W. Ng, Weidong Liu, Xuemei Xi, Mohan Dunga, Wenwei Yang     *
    *           Ali Niknejad, Chetan Kumar Dabhi, Yogesh Singh Chauhan,          *
-   *           Sayeef Salahuddin, Chenming Hu                                   * 
+   *           Sayeef Salahuddin, Chenming Hu                                   *
    ******************************************************************************/
 #pragma once
 #include "sim_variables.hpp"
@@ -28,6 +28,7 @@
 #include "bsim4v82/bsim4v82NI.hpp"
 #include "bsim4v82calculateStamps.hpp"
 #include "bsim4v82applyStamps.hpp"
+#include "hybrid_matrix.hpp"
 
 #include <cmath>
 #include <armadillo>
@@ -45,7 +46,7 @@ namespace bsim4{
  */
 int
 BSIM4load(const CKTcircuit &ckt, const BSIM4model &model, BSIM4V82 &instance, const SPICECompatible &spice, const arma::vec &presolution,
-    const double CKTtemp, const double CKTgmin, arma::mat &LHS, arma::vec &RHS)
+    const double CKTtemp, const double CKTgmin, HybridMatrix &LHS, arma::vec &RHS)
 {   
     // Calculate all the values needed for the matrices.
     const auto stamps = BSIM4calculateStamps(ckt, model, instance, spice, presolution, CKTtemp, CKTgmin);
