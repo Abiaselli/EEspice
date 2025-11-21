@@ -61,11 +61,21 @@ HybridMatrix branch_ext(const HybridMatrix& M, int node_x, int node_y)
     size_t old_rows = M.rows();
     size_t old_cols = M.cols();
 
-    if (node_x > 0) {
+    // Match the three-case logic from arma::mat version
+    if (node_x == 0) {
+        // Only node_y is non-zero: stamp +1 at node_y
+        result.add_stamp(node_y - 1, old_cols, 1.0);  // Col
+        result.add_stamp(old_rows, node_y - 1, 1.0);  // Row
+    }
+    else if (node_y == 0) {
+        // Only node_x is non-zero: stamp +1 at node_x
+        result.add_stamp(node_x - 1, old_cols, 1.0);  // Col
+        result.add_stamp(old_rows, node_x - 1, 1.0);  // Row
+    }
+    else {
+        // Both nodes non-zero: stamp -1 at node_x, +1 at node_y
         result.add_stamp(node_x - 1, old_cols, -1.0); // Col
         result.add_stamp(old_rows, node_x - 1, -1.0); // Row
-    }
-    if (node_y > 0) {
         result.add_stamp(node_y - 1, old_cols, 1.0);  // Col
         result.add_stamp(old_rows, node_y - 1, 1.0);  // Row
     }
