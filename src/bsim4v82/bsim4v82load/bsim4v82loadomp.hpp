@@ -7,7 +7,7 @@
 #include "bsim4v82/bsim4v82NI.hpp"
 #include "bsim4v82calculateStamps.hpp"
 #include "bsim4v82applyStamps.hpp"
-#include "../../hybrid_matrix.hpp"
+#include "hybrid_matrix.hpp"
 
 #include <cmath>
 #include <armadillo>
