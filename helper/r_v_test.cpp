@@ -129,7 +129,8 @@ void test_R_assigner() {
         R_assigner(0, 0, 1.0, arma_lhs);
 
         total_tests++;
-        if (compare_matrices(hybrid_lhs.to_dense(), arma_lhs, "Ground-to-ground resistor")) {
+        hybrid_lhs.to_dense();
+        if (compare_matrices(hybrid_lhs.get_dense(), arma_lhs, "Ground-to-ground resistor")) {
             passed_tests++;
         }
         std::cout << "\n";
@@ -146,7 +147,8 @@ void test_R_assigner() {
         R_assigner(0, 2, 0.5, arma_lhs);
 
         total_tests++;
-        if (compare_matrices(hybrid_lhs.to_dense(), arma_lhs, "Resistor from ground to node 2")) {
+        hybrid_lhs.to_dense();
+        if (compare_matrices(hybrid_lhs.get_dense(), arma_lhs, "Resistor from ground to node 2")) {
             passed_tests++;
         }
         std::cout << "\n";
@@ -163,7 +165,8 @@ void test_R_assigner() {
         R_assigner(3, 0, 2.0, arma_lhs);
 
         total_tests++;
-        if (compare_matrices(hybrid_lhs.to_dense(), arma_lhs, "Resistor from node 3 to ground")) {
+        hybrid_lhs.to_dense();
+        if (compare_matrices(hybrid_lhs.get_dense(), arma_lhs, "Resistor from node 3 to ground")) {
             passed_tests++;
         }
         std::cout << "\n";
@@ -180,7 +183,8 @@ void test_R_assigner() {
         R_assigner(2, 4, 0.1, arma_lhs);
 
         total_tests++;
-        if (compare_matrices(hybrid_lhs.to_dense(), arma_lhs, "Resistor between node 2 and node 4")) {
+        hybrid_lhs.to_dense();
+        if (compare_matrices(hybrid_lhs.get_dense(), arma_lhs, "Resistor between node 2 and node 4")) {
             passed_tests++;
         }
         std::cout << "\n";
@@ -207,7 +211,8 @@ void test_R_assigner() {
         R_assigner(3, 0, 2.0, arma_lhs);
 
         total_tests++;
-        if (compare_matrices(hybrid_lhs.to_dense(), arma_lhs, "Multiple resistors with accumulation")) {
+        hybrid_lhs.to_dense();
+        if (compare_matrices(hybrid_lhs.get_dense(), arma_lhs, "Multiple resistors with accumulation")) {
             passed_tests++;
         }
         std::cout << "\n";
@@ -224,7 +229,8 @@ void test_R_assigner() {
         R_assigner(1, 3, 1e6, arma_lhs);
 
         total_tests++;
-        if (compare_matrices(hybrid_lhs.to_dense(), arma_lhs, "Large conductance value (1e6)")) {
+        hybrid_lhs.to_dense();
+        if (compare_matrices(hybrid_lhs.get_dense(), arma_lhs, "Large conductance value (1e6)")) {
             passed_tests++;
         }
         std::cout << "\n";
@@ -241,7 +247,8 @@ void test_R_assigner() {
         R_assigner(2, 5, 1e-12, arma_lhs);
 
         total_tests++;
-        if (compare_matrices(hybrid_lhs.to_dense(), arma_lhs, "Small conductance value (1e-12)")) {
+        hybrid_lhs.to_dense();
+        if (compare_matrices(hybrid_lhs.get_dense(), arma_lhs, "Small conductance value (1e-12)")) {
             passed_tests++;
         }
         std::cout << "\n";
@@ -258,7 +265,8 @@ void test_R_assigner() {
         R_assigner(1, 4, -0.5, arma_lhs);
 
         total_tests++;
-        if (compare_matrices(hybrid_lhs.to_dense(), arma_lhs, "Negative conductance")) {
+        hybrid_lhs.to_dense();
+        if (compare_matrices(hybrid_lhs.get_dense(), arma_lhs, "Negative conductance")) {
             passed_tests++;
         }
         std::cout << "\n";
@@ -275,7 +283,8 @@ void test_R_assigner() {
         R_assigner(1, 2, 0.333, arma_lhs);
 
         total_tests++;
-        if (compare_matrices(hybrid_lhs.to_dense(), arma_lhs, "Adjacent nodes resistor")) {
+        hybrid_lhs.to_dense();
+        if (compare_matrices(hybrid_lhs.get_dense(), arma_lhs, "Adjacent nodes resistor")) {
             passed_tests++;
         }
         std::cout << "\n";
@@ -312,7 +321,8 @@ void test_R_assigner() {
         }
 
         total_tests++;
-        if (compare_matrices(hybrid_lhs.to_dense(), arma_lhs, "Complex circuit with 14 resistors")) {
+        hybrid_lhs.to_dense();
+        if (compare_matrices(hybrid_lhs.get_dense(), arma_lhs, "Complex circuit with 14 resistors")) {
             passed_tests++;
         }
         std::cout << "\n";
@@ -350,7 +360,8 @@ void test_Vs_assigner() {
         Vs_assigner(2, 3, 5.0, arma_lhs, arma_rhs);
 
         total_tests++;
-        if (compare_vs_results(hybrid_lhs.to_dense(), arma_lhs, hybrid_rhs, arma_rhs,
+        hybrid_lhs.to_dense();
+        if (compare_vs_results(hybrid_lhs.get_dense(), arma_lhs, hybrid_rhs, arma_rhs,
                               "V-source between nodes 2 and 3")) {
             passed_tests++;
         }
@@ -370,7 +381,8 @@ void test_Vs_assigner() {
         Vs_assigner(2, 0, 3.3, arma_lhs, arma_rhs);
 
         total_tests++;
-        if (compare_vs_results(hybrid_lhs.to_dense(), arma_lhs, hybrid_rhs, arma_rhs,
+        hybrid_lhs.to_dense();
+        if (compare_vs_results(hybrid_lhs.get_dense(), arma_lhs, hybrid_rhs, arma_rhs,
                               "V-source from node 2 to ground")) {
             passed_tests++;
         }
@@ -390,7 +402,8 @@ void test_Vs_assigner() {
         Vs_assigner(0, 2, 1.8, arma_lhs, arma_rhs);
 
         total_tests++;
-        if (compare_vs_results(hybrid_lhs.to_dense(), arma_lhs, hybrid_rhs, arma_rhs,
+        hybrid_lhs.to_dense();
+        if (compare_vs_results(hybrid_lhs.get_dense(), arma_lhs, hybrid_rhs, arma_rhs,
                               "V-source from ground to node 2")) {
             passed_tests++;
         }
@@ -415,7 +428,8 @@ void test_Vs_assigner() {
         Vs_assigner(2, 3, 3.3, arma_lhs, arma_rhs);
 
         total_tests++;
-        if (compare_vs_results(hybrid_lhs.to_dense(), arma_lhs, hybrid_rhs, arma_rhs,
+        hybrid_lhs.to_dense();
+        if (compare_vs_results(hybrid_lhs.get_dense(), arma_lhs, hybrid_rhs, arma_rhs,
                               "Multiple voltage sources")) {
             passed_tests++;
         }
@@ -435,7 +449,8 @@ void test_Vs_assigner() {
         Vs_assigner(2, 1, -5.0, arma_lhs, arma_rhs);
 
         total_tests++;
-        if (compare_vs_results(hybrid_lhs.to_dense(), arma_lhs, hybrid_rhs, arma_rhs,
+        hybrid_lhs.to_dense();
+        if (compare_vs_results(hybrid_lhs.get_dense(), arma_lhs, hybrid_rhs, arma_rhs,
                               "Negative voltage value")) {
             passed_tests++;
         }
@@ -455,7 +470,8 @@ void test_Vs_assigner() {
         Vs_assigner(1, 2, 0.0, arma_lhs, arma_rhs);
 
         total_tests++;
-        if (compare_vs_results(hybrid_lhs.to_dense(), arma_lhs, hybrid_rhs, arma_rhs,
+        hybrid_lhs.to_dense();
+        if (compare_vs_results(hybrid_lhs.get_dense(), arma_lhs, hybrid_rhs, arma_rhs,
                               "Zero voltage value")) {
             passed_tests++;
         }
@@ -475,7 +491,8 @@ void test_Vs_assigner() {
         Vs_assigner(1, 3, 1e6, arma_lhs, arma_rhs);
 
         total_tests++;
-        if (compare_vs_results(hybrid_lhs.to_dense(), arma_lhs, hybrid_rhs, arma_rhs,
+        hybrid_lhs.to_dense();
+        if (compare_vs_results(hybrid_lhs.get_dense(), arma_lhs, hybrid_rhs, arma_rhs,
                               "Large voltage value (1e6)")) {
             passed_tests++;
         }
@@ -495,7 +512,8 @@ void test_Vs_assigner() {
         Vs_assigner(1, 2, 2.5, arma_lhs, arma_rhs);
 
         total_tests++;
-        if (compare_vs_results(hybrid_lhs.to_dense(), arma_lhs, hybrid_rhs, arma_rhs,
+        hybrid_lhs.to_dense();
+        if (compare_vs_results(hybrid_lhs.get_dense(), arma_lhs, hybrid_rhs, arma_rhs,
                               "Adjacent nodes V-source")) {
             passed_tests++;
         }
