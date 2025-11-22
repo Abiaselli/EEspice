@@ -226,18 +226,18 @@ public:
     }
 
     /**
-     * Convert to dense matrix (for compatibility with existing code)
+     * Convert internal representation to dense matrix (in-place conversion)
+     * If already dense, this is a no-op. If sparse, converts to dense and updates flag.
      */
-    arma::mat to_dense() const {
-        return std::visit([](const auto& mat) -> arma::mat {
-            using MatType = std::decay_t<decltype(mat)>;
-
-            if constexpr (std::is_same_v<MatType, arma::sp_mat>) {
-                return arma::mat(mat);
-            } else {
-                return mat;
-            }
-        }, data);
+    void to_dense() {
+        if (is_sparse_matrix) {
+            // Convert sparse to dense in-place
+            arma::sp_mat& sparse_mat = std::get<arma::sp_mat>(data);
+            arma::mat dense_mat(sparse_mat);
+            data = std::move(dense_mat);
+            is_sparse_matrix = false;
+        }
+        // If already dense, do nothing
     }
 
     /**
