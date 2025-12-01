@@ -27,10 +27,12 @@ struct CKTcircuit
     int num_of_states{};                            // Number of dynamic states (capacitors and bsim4v82)
     int T_nodes{};                                  // Total number of nodes excluding ground (Used to create the initial matrix in CKTsetup)
 
-    std::shared_ptr<Matrix> cktmatrix;            // Matrix struct
+    std::shared_ptr<Matrix> cktmatrix;              // Matrix struct
     KLUmatrix cktKLUmatrix;                         // KLU matrix struct
     Circuitmap map;                                 // Circuit and Model Map struct
     bool ckt_loaded{};                              // To check if the circuit is loaded or not
+    bool NIDIDPREORDER = false;                     // Flag to check if KLU preordering has been done
+    bool NISHOULDREORDER = true;                    // Flag to check if KLU should reorder
 
     double CKTtemp{};                               // Actual temperature of CKT, initialzed to 300.15 K 
     double CKTnomTemp = 300.15;                     // Reference temperature 300.15 K
