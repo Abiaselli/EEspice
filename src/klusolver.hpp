@@ -46,9 +46,8 @@ int KLUluFac(KLUmatrix& kluMatrix, double PivRel){
                                 kluMatrix.KLUmatrixNumeric, &kluMatrix.KLUmatrixCommon);
     if (!success) {
         // Refactor failed (pivots unstable due to value changes).
-        if (kluMatrix.KLUmatrixCommon.status == KLU_SINGULAR){
-            KLUreOrder(kluMatrix, PivRel);
-        }
+        // Note: Common.status will likely contain KLU_SINGULAR or similar.
+        KLUreOrder(kluMatrix, PivRel);
     }
     return 0;
 }
