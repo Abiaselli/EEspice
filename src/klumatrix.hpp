@@ -6,8 +6,8 @@ struct KLUmatrix
     klu_l_common KLUmatrixCommon ;                  /* KLU common object */
     klu_l_symbolic *KLUmatrixSymbolic ;             /* KLU symbolic object */
     klu_l_numeric *KLUmatrixNumeric ;               /* KLU numeric object */
-    int *KLUmatrixAp ;                              /* KLU column pointer */
-    int *KLUmatrixAi ;                              /* KLU row pointer */
+    std::int64_t *KLUmatrixAp ;                     /* KLU column pointer */
+    std::int64_t *KLUmatrixAi ;                     /* KLU row pointer */
     double *KLUmatrixAx ;                           /* KLU Real Elements */
     double *KLUmatrixAxComplex ;                    /* KLU Complex Elements */
     bool KLUmatrixIsComplex ;                       /* KLU Matrix Is Complex Flag */
