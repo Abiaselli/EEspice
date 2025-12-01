@@ -34,9 +34,9 @@ void DeviceEvaluation(DCResult &dc, const CKTcircuit &ckt, const DCSimulator &dc
     // Modify matrixes for DC sweep
     // If the source's nodes and are not changed, we can use the same LHS
     // We only need to modify the RHS
-    dcMat.LHS = ckt.cktdematrix->get_init_LHS();
-    dcMat.RHS = ckt.cktdematrix->get_init_RHS();
-    dc.solution = arma::vec(ckt.cktdematrix->RHS.n_rows, arma::fill::none);
+    dcMat.LHS = ckt.cktmatrix->get_init_LHS();
+    dcMat.RHS = ckt.cktmatrix->get_init_RHS();
+    dc.solution = arma::vec(ckt.cktmatrix->RHS.n_rows, arma::fill::none);
 
     for (const auto &vol : ckt.CKTelements.voltageSources){     // TODO: Skip the linear scan and look up the key directly
         if(vol.id_str == dcSim.dcsweep.sourceName){
@@ -62,7 +62,7 @@ arma::vec DC_analysis_once(CKTcircuit &ckt, const DCSimulator &dcSim, DCResult &
     // Initialize the DC analysis
     ckt.spiceCompatible.setFlagsDC();
     DeviceEvaluation(dc, ckt, dcSim, dcMat);
-    arma::vec solution(ckt.cktdematrix->RHS.n_rows, arma::fill::zeros);
+    arma::vec solution(ckt.cktmatrix->RHS.n_rows, arma::fill::zeros);
     // Solve the system
     if(dcSim.non_linear)
     {

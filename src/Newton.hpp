@@ -29,8 +29,8 @@ MNA Dynamic(const CKTcircuit &ckt, const double h, const arma::vec &pre_global_s
 {
     ScopedTimer loadTimer(simTime.matrix_load_time);
     MNA mna;
-    mna.LHS = ckt.cktdematrix->get_init_LHS();
-    mna.RHS = ckt.cktdematrix->get_init_RHS();
+    mna.LHS = ckt.cktmatrix->get_init_LHS();
+    mna.RHS = ckt.cktmatrix->get_init_RHS();
 
     for (const auto &cap : ckt.CKTelements.capacitors)
     {   

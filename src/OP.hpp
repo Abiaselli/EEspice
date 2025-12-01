@@ -13,8 +13,8 @@
 // Function to perform operating point analysis
 arma::vec OperatingPointAnalysis(CKTcircuit &ckt, const Modelmap &modmap, bool non_linear){
     // Get the initial LHS and RHS matrices
-    HybridMatrix init_LHS = ckt.cktdematrix->get_init_LHS();
-    arma::vec init_RHS = ckt.cktdematrix->get_init_RHS();
+    HybridMatrix init_LHS = ckt.cktmatrix->get_init_LHS();
+    arma::vec init_RHS = ckt.cktmatrix->get_init_RHS();
 
     // Solve the linear system to get the operating point
     if(non_linear){

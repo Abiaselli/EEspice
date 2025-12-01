@@ -67,10 +67,10 @@ BatchRunResult simulation_worker(
         // 2. Setup the matrix with the new configuration
         CKTcircuit ckt_template;
         ckt_template.map = cktmap; // Assign the circuit map to the CKTcircuit
-        auto denseMatrixPtr = std::make_shared<DenseMatrix>();
-        CKTsetup(ckt_template, parser, denseMatrixPtr, local_modmap);
+        auto MatrixPtr = std::make_shared<Matrix>();
+        CKTsetup(ckt_template, parser, MatrixPtr, local_modmap);
         CKTload(ckt_template);
-        ckt_template.cktdematrix->set_initmatrix();
+        ckt_template.cktmatrix->set_initmatrix();
 
 
         // 3. Run the appropriate analysis based on the netlist commands
@@ -90,7 +90,7 @@ BatchRunResult simulation_worker(
         } else if (parser.is_ac) {
             run_result.simulation_type = "ac";
             CKTloadAC(ckt_template);
-            ckt_template.cktdematrix->set_init_cxmatrix();
+            ckt_template.cktmatrix->set_init_cxmatrix();
             ac::ACsimulator acSim = ac::ACsetup(parser, ckt_template);
             run_result.results = ac::AC_ops(ckt_template, acSim, local_modmap);
         } else {

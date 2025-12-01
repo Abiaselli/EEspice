@@ -139,8 +139,8 @@ ACsimulator ACsetup(const CircuitParser &parser, const CKTcircuit &ckt){
 void SaveOP(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
     // Make sure the cktstate is updated outside
     // Only BSIM4V82 is supported for now
-    HybridMatrix init_LHS = ckt.cktdematrix->get_init_LHS();
-    arma::vec init_RHS = ckt.cktdematrix->get_init_RHS();
+    HybridMatrix init_LHS = ckt.cktmatrix->get_init_LHS();
+    arma::vec init_RHS = ckt.cktmatrix->get_init_RHS();
 
     for (auto &bsim4 : ckt.CKTelements.bsim4){
         const bsim4::BSIM4model &b4model = *bsim4.bsim4v82Instance.BSIM4modPtr;
@@ -196,8 +196,8 @@ std::vector<ACResult> AC_ops(CKTcircuit &ckt, ACsimulator &acSim, const Modelmap
         ac.omega = 2 * M_PI * freq;
 
         // Update the LHS and RHS matrices
-        acMat.LHS = ckt.cktdematrix->get_init_cxLHS();
-        acMat.RHS = ckt.cktdematrix->get_init_cxRHS();
+        acMat.LHS = ckt.cktmatrix->get_init_cxLHS();
+        acMat.RHS = ckt.cktmatrix->get_init_cxRHS();
         DynamicNonLinear(acMat.LHS, acMat.RHS, ckt, ac.omega, ckt.sim_stats.simTime);
 
         // solve the MNA matrix

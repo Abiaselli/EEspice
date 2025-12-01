@@ -47,12 +47,12 @@ int main(int argc, const char **argv)
             {
                 ScopedTimer setupTimer(ckt.sim_stats.simTime.setup_time); // Time the CKT setup
                 ckt.map = cktmap; // Assign the circuit map to the CKTcircuit
-                auto denseMatrixPtr = std::make_shared<DenseMatrix>();  // Create the DenseMatrix as a shared pointer.
-                denseMatrixPtr->use_sparse = parser.use_sparse;  // Set sparse matrix flag based on netlist directive
-                CKTsetup(ckt, parser, denseMatrixPtr, modmap); // Pass the parser to the ckt and the initialise LHS and RHS matrices
+                auto MatrixPtr = std::make_shared<Matrix>();  // Create the Matrix as a shared pointer.
+                MatrixPtr->use_sparse = parser.use_sparse;  // Set sparse matrix flag based on netlist directive
+                CKTsetup(ckt, parser, MatrixPtr, modmap); // Pass the parser to the ckt and the initialise LHS and RHS matrices
                 CKTload(ckt);
-                ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
-                ckt.sim_stats.MNA_Matrix_size = ckt.cktdematrix->LHS.rows();    // Store the size of MNA matrix to the simulation statistics
+                ckt.cktmatrix->set_initmatrix(); // Set the initial LHS and RHS matrices
+                ckt.sim_stats.MNA_Matrix_size = ckt.cktmatrix->LHS.rows();    // Store the size of MNA matrix to the simulation statistics
 
                 // Check for multithreading from parser
                 if (ckt.CKTmultithreaded){
@@ -83,7 +83,7 @@ int main(int argc, const char **argv)
             else if(parser.is_ac){
                 if(!CKTcheckAC(ckt.CKTelements)){throw SimulationException("Error: No AC sources found!", "CKTcheckAC");}
                 CKTloadAC(ckt);
-                ckt.cktdematrix->set_init_cxmatrix(); // Set the initial complex LHS and RHS matrices for AC analysis
+                ckt.cktmatrix->set_init_cxmatrix(); // Set the initial complex LHS and RHS matrices for AC analysis
                 ac::ACsimulator acSim = ac::ACsetup(parser, ckt);
                 std::vector<ac::ACResult> vec_ac_result = ac::AC_ops(ckt, acSim, modmap);
                 save_csv_ac("ac_solution.csv", ckt, vec_ac_result, ckt.map, acSim.type);

@@ -118,8 +118,8 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_
     ScopedTimer analysisTimer(ckt.sim_stats.simTime.analysis_time); // Time the analysis
     Transient trans_op;
 
-    trans_op.LHS = ckt.cktdematrix->get_init_LHS();
-    trans_op.RHS = ckt.cktdematrix->get_init_RHS();
+    trans_op.LHS = ckt.cktmatrix->get_init_LHS();
+    trans_op.RHS = ckt.cktmatrix->get_init_RHS();
     trans_op.h = 0;
 
     // OPERATING POINT ANALYSIS SYSTEM

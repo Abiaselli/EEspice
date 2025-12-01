@@ -7,9 +7,7 @@
 #include <armadillo>
 #include "hybrid_matrix.hpp"
 
-struct DenseMatrix;
-
-struct DenseMatrix
+struct Matrix
 {
     int Maxi{}; // Size of matrix without branch current
     int Maxj{};

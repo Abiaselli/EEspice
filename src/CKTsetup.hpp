@@ -85,7 +85,7 @@ void CKTloadStatistics(CKTcircuit &ckt){
     }
 }
 
-void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<DenseMatrix> denseMatrixPtr, const Modelmap &modmap)
+void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Matrix> MatrixPtr, const Modelmap &modmap)
 {
     // Careful! getCircuitElements function is const, so it can't be used to modify the elements vector
     // ckt.elements = parser.getCircuitElements();
@@ -113,13 +113,13 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Dens
     ckt.T_nodes = ckt.external_nodes + ckt.internal_nodes;  // Total number of nodes excluding ground
 
     // Size of matrix
-    ckt.cktdematrix = denseMatrixPtr;
-    ckt.cktdematrix->Maxi = ckt.T_nodes;
-    ckt.cktdematrix->Maxj = ckt.cktdematrix->Maxi;
-    ckt.cktdematrix->LHS = HybridMatrix(ckt.cktdematrix->Maxi, ckt.cktdematrix->Maxj, ckt.cktdematrix->use_sparse); // LHS matrix (can be sparse or dense)
-    ckt.cktdematrix->RHS = arma::zeros(ckt.cktdematrix->Maxi, 1);                        // RHS matrix
-    ckt.cktdematrix->LHS_cx = arma::cx_mat(ckt.cktdematrix->Maxi, ckt.cktdematrix->Maxj, arma::fill::zeros); // Complex LHS matrix for AC analysis
-    ckt.cktdematrix->RHS_cx = arma::cx_mat(ckt.cktdematrix->Maxi, 1, arma::fill::zeros);                     // Complex RHS matrix for AC analysis
+    ckt.cktmatrix = MatrixPtr;
+    ckt.cktmatrix->Maxi = ckt.T_nodes;
+    ckt.cktmatrix->Maxj = ckt.cktmatrix->Maxi;
+    ckt.cktmatrix->LHS = HybridMatrix(ckt.cktmatrix->Maxi, ckt.cktmatrix->Maxj, ckt.cktmatrix->use_sparse); // LHS matrix (can be sparse or dense)
+    ckt.cktmatrix->RHS = arma::zeros(ckt.cktmatrix->Maxi, 1);                        // RHS matrix
+    ckt.cktmatrix->LHS_cx = arma::cx_mat(ckt.cktmatrix->Maxi, ckt.cktmatrix->Maxj, arma::fill::zeros); // Complex LHS matrix for AC analysis
+    ckt.cktmatrix->RHS_cx = arma::cx_mat(ckt.cktmatrix->Maxi, 1, arma::fill::zeros);                     // Complex RHS matrix for AC analysis
 
     // Calculate the number of colors for BSIM4 instances if multithreading is enabled
     // Must be done after setting up the instances
@@ -138,12 +138,12 @@ void CKTload(CKTcircuit &ckt)
 
     for (const auto &vol : ckt.CKTelements.voltageSources)
     {
-        Vs_assigner(vol.nodePos, vol.nodeNeg, vol.value, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
-        ckt.map.map_branch_currents.emplace(vol.id_str, static_cast<int>(ckt.cktdematrix->RHS.n_rows - 1)); // Store the branch current index in the map
+        Vs_assigner(vol.nodePos, vol.nodeNeg, vol.value, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS);
+        ckt.map.map_branch_currents.emplace(vol.id_str, static_cast<int>(ckt.cktmatrix->RHS.n_rows - 1)); // Store the branch current index in the map
     }
     for (const auto &cur : ckt.CKTelements.currentSources)
     {
-        Is_assigner(cur.nodePos, cur.nodeNeg, cur.value, ckt.cktdematrix->RHS);
+        Is_assigner(cur.nodePos, cur.nodeNeg, cur.value, ckt.cktmatrix->RHS);
     }
     for (auto &res : ckt.CKTelements.resistors)
     {
@@ -151,7 +151,7 @@ void CKTload(CKTcircuit &ckt)
         {
             res.value = 1.0e-3;
         }
-        R_assigner(res.nodePos, res.nodeNeg, 1.0 / res.value, ckt.cktdematrix->LHS);
+        R_assigner(res.nodePos, res.nodeNeg, 1.0 / res.value, ckt.cktmatrix->LHS);
     }
     for (const auto &cap : ckt.CKTelements.capacitors)
     {
@@ -160,20 +160,20 @@ void CKTload(CKTcircuit &ckt)
     for (auto &pulse : ckt.CKTelements.pulseVoltages)
     {
         ckt.pulse_num++;
-        pulse.RHS_locate = V_pulse_assigner(pulse.nodePos, pulse.nodeNeg, pulse.V1, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
-        ckt.map.map_branch_currents.emplace(pulse.id_str, static_cast<int>(ckt.cktdematrix->RHS.n_rows - 1)); // Store the branch current index in the map
+        pulse.RHS_locate = V_pulse_assigner(pulse.nodePos, pulse.nodeNeg, pulse.V1, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS);
+        ckt.map.map_branch_currents.emplace(pulse.id_str, static_cast<int>(ckt.cktmatrix->RHS.n_rows - 1)); // Store the branch current index in the map
     }
     for (auto &sin : ckt.CKTelements.sinVoltages){
-        sin.RHS_locate = V_sin_assigner(sin.nodePos, sin.nodeNeg, sin.vo, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
+        sin.RHS_locate = V_sin_assigner(sin.nodePos, sin.nodeNeg, sin.vo, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS);
         ckt.map.map_branch_currents.emplace(sin.id_str, sin.RHS_locate);
     }
     for (auto &vccs : ckt.CKTelements.vccs)
     {
-        VCCS_assigner(vccs.node_x, vccs.node_y, vccs.node_cx, vccs.node_cy, vccs.value, ckt.cktdematrix->LHS);
+        VCCS_assigner(vccs.node_x, vccs.node_y, vccs.node_cx, vccs.node_cy, vccs.value, ckt.cktmatrix->LHS);
     }
     for (auto &vcvs : ckt.CKTelements.vcvs){
-        VCVS_assigner(vcvs.node_x, vcvs.node_y, vcvs.node_cx, vcvs.node_cy, vcvs.value, ckt.cktdematrix->LHS, ckt.cktdematrix->RHS);
-        ckt.map.map_branch_currents.emplace(vcvs.id_str, static_cast<int>(ckt.cktdematrix->RHS.n_rows - 1)); // Store the branch current index in the map
+        VCVS_assigner(vcvs.node_x, vcvs.node_y, vcvs.node_cx, vcvs.node_cy, vcvs.value, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS);
+        ckt.map.map_branch_currents.emplace(vcvs.id_str, static_cast<int>(ckt.cktmatrix->RHS.n_rows - 1)); // Store the branch current index in the map
     }
 }
 void CKTloadAC(CKTcircuit &ckt){
@@ -183,8 +183,8 @@ void CKTloadAC(CKTcircuit &ckt){
     // Only the components that change the size of MNA have their own ACassigner function.
     for (const auto &vol : ckt.CKTelements.voltageSources)
     {
-        Vs_ACassigner(vol.nodePos, vol.nodeNeg, vol.acReal, vol.acImag, ckt.cktdematrix->LHS_cx, ckt.cktdematrix->RHS_cx);
-        ckt.map.map_branch_currents.emplace(vol.id_str, static_cast<int>(ckt.cktdematrix->RHS_cx.n_rows - 1));
+        Vs_ACassigner(vol.nodePos, vol.nodeNeg, vol.acReal, vol.acImag, ckt.cktmatrix->LHS_cx, ckt.cktmatrix->RHS_cx);
+        ckt.map.map_branch_currents.emplace(vol.id_str, static_cast<int>(ckt.cktmatrix->RHS_cx.n_rows - 1));
     }
     for (const auto &cur : ckt.CKTelements.currentSources)
     {
@@ -196,27 +196,27 @@ void CKTloadAC(CKTcircuit &ckt){
         {
             res.value = 1.0e-3;
         }
-        arma::mat LHS_real = arma::real(ckt.cktdematrix->LHS_cx);
+        arma::mat LHS_real = arma::real(ckt.cktmatrix->LHS_cx);
         R_assigner(res.nodePos, res.nodeNeg, 1.0 / res.value, LHS_real);
-        ckt.cktdematrix->LHS_cx.set_real(LHS_real);
+        ckt.cktmatrix->LHS_cx.set_real(LHS_real);
     }
     // All sources with no acparameter specified are disabled!!!
     // i.e., voltage sources are shorted and current sources removed from the circuit
     constexpr double Shorted = 0.0;
     for (auto &pulse : ckt.CKTelements.pulseVoltages){
-        Vs_ACassigner(pulse.nodePos, pulse.nodeNeg, Shorted, Shorted, ckt.cktdematrix->LHS_cx, ckt.cktdematrix->RHS_cx);
-        pulse.RHS_locate = ckt.cktdematrix->RHS_cx.n_rows - 1;
-        ckt.map.map_branch_currents.emplace(pulse.id_str, static_cast<int>(ckt.cktdematrix->RHS_cx.n_rows - 1));
+        Vs_ACassigner(pulse.nodePos, pulse.nodeNeg, Shorted, Shorted, ckt.cktmatrix->LHS_cx, ckt.cktmatrix->RHS_cx);
+        pulse.RHS_locate = ckt.cktmatrix->RHS_cx.n_rows - 1;
+        ckt.map.map_branch_currents.emplace(pulse.id_str, static_cast<int>(ckt.cktmatrix->RHS_cx.n_rows - 1));
     }
     for (auto &vccs : ckt.CKTelements.vccs)
     {
-        arma::mat LHS_real = arma::real(ckt.cktdematrix->LHS_cx);
+        arma::mat LHS_real = arma::real(ckt.cktmatrix->LHS_cx);
         VCCS_assigner(vccs.node_x, vccs.node_y, vccs.node_cx, vccs.node_cy, vccs.value, LHS_real);  // Doesn't change the size of MNA
-        ckt.cktdematrix->LHS_cx.set_real(LHS_real);
+        ckt.cktmatrix->LHS_cx.set_real(LHS_real);
     }
     for (auto &vcvs : ckt.CKTelements.vcvs){
-        VCVS_ACassigner(vcvs.node_x, vcvs.node_y, vcvs.node_cx, vcvs.node_cy, vcvs.value, ckt.cktdematrix->LHS_cx, ckt.cktdematrix->RHS_cx);
-        ckt.map.map_branch_currents.emplace(vcvs.id_str, static_cast<int>(ckt.cktdematrix->RHS_cx.n_rows - 1));
+        VCVS_ACassigner(vcvs.node_x, vcvs.node_y, vcvs.node_cx, vcvs.node_cy, vcvs.value, ckt.cktmatrix->LHS_cx, ckt.cktmatrix->RHS_cx);
+        ckt.map.map_branch_currents.emplace(vcvs.id_str, static_cast<int>(ckt.cktmatrix->RHS_cx.n_rows - 1));
     }
 }
 

@@ -13,6 +13,7 @@
 #include "SPICEcompatible.hpp"
 #include "sim_statistics.hpp"
 #include "color.hpp"
+#include "klumatrix.hpp"
 
 
 struct CKTcircuit
@@ -26,7 +27,8 @@ struct CKTcircuit
     int num_of_states{};                            // Number of dynamic states (capacitors and bsim4v82)
     int T_nodes{};                                  // Total number of nodes excluding ground (Used to create the initial matrix in CKTsetup)
 
-    std::shared_ptr<DenseMatrix> cktdematrix;       // Dense matrix struct
+    std::shared_ptr<Matrix> cktmatrix;            // Matrix struct
+    KLUmatrix cktKLUmatrix;                         // KLU matrix struct
     Circuitmap map;                                 // Circuit and Model Map struct
     bool ckt_loaded{};                              // To check if the circuit is loaded or not
 

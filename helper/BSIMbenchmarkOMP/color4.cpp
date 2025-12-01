@@ -219,8 +219,8 @@ int main(int argc, const char **argv){
     auto denseMatrixPtr = std::make_shared<DenseMatrix>();  // Create the DenseMatrix as a shared pointer.
     CKTsetup(ckt, parser, denseMatrixPtr, modmap); // Pass the parser to the ckt and the initialise LHS and RHS matrices
     CKTload(ckt);
-    ckt.cktdematrix->set_initmatrix(); // Set the initial LHS and RHS matrices
-    ckt.sim_stats.MNA_Matrix_size = ckt.cktdematrix->LHS.n_rows;    // Store the size of MNA matrix to the simulation statistics
+    ckt.cktmatrix->set_initmatrix(); // Set the initial LHS and RHS matrices
+    ckt.sim_stats.MNA_Matrix_size = ckt.cktmatrix->LHS.n_rows;    // Store the size of MNA matrix to the simulation statistics
 
     // Check for multithreading from parser
     // if (ckt.CKTmultithreaded){
@@ -230,8 +230,8 @@ int main(int argc, const char **argv){
     // Output coloring results
     std::cout << "Number of colors: " << ckt.sim_stats.num_colors << std::endl;
 
-    auto LHS = ckt.cktdematrix->LHS;
-    auto RHS = ckt.cktdematrix->RHS;
+    auto LHS = ckt.cktmatrix->LHS;
+    auto RHS = ckt.cktmatrix->RHS;
     arma::vec pre_NR_solution = arma::vec(RHS.n_rows, arma::fill::randu);
 
     // Test different thread counts
