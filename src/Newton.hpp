@@ -167,7 +167,7 @@ bool isConverge(const std::vector<arma::vec> &NR_solutions, const CKTcircuit &ck
 }
 
 // Solver for the Newton Raphson method
-arma::vec solveDense(const HybridMatrix &LHS, const arma::vec &RHS, SimulationTime &simTime)
+arma::vec solver(const HybridMatrix &LHS, const arma::vec &RHS, SimulationTime &simTime)
 {
     ScopedTimer solveTimer(simTime.solve_time);
     // HybridMatrix automatically selects between dense and sparse solver
@@ -203,7 +203,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = solveDense(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
+        solution = solver(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
 
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
@@ -236,7 +236,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
             // Solve Ax = b
             // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-            solution = solveDense(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
+            solution = solver(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
 
             NR_iteration_counter += 1;
             NR_solutions.at(NR_iteration_counter) = solution;
@@ -279,7 +279,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const HybridMatrix &init_LHS, co
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = solveDense(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
+        solution = solver(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
         
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
@@ -304,7 +304,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const HybridMatrix &init_LHS, co
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = solveDense(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
+        solution = solver(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
 
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
