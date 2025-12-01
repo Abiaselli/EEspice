@@ -33,6 +33,8 @@ struct CKTcircuit
     bool ckt_loaded{};                              // To check if the circuit is loaded or not
     bool NIDIDPREORDER = false;                     // Flag to check if KLU preordering has been done
     bool NISHOULDREORDER = true;                    // Flag to check if KLU should reorder
+    double CKTpivotAbsTol = 1e-13;                  // KLU pivot absolute tolerance for diagonal preference
+    double CKTpivotRelTol = 1e-3;                   // KLU pivot relative tolerance for diagonal preference
 
     double CKTtemp{};                               // Actual temperature of CKT, initialzed to 300.15 K 
     double CKTnomTemp = 300.15;                     // Reference temperature 300.15 K
