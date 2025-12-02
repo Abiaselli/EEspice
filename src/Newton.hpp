@@ -66,10 +66,13 @@ MNA NonLinear(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
         const PMOSModel pmosModel = modmap.pmosModels.at(pmos.modelName);
         PMOS_assigner(pmos.id, pmos.node_vd, pmos.node_vg, pmos.node_vs, pmos.node_vb, pmos.W, pmos.L, pre_NR_solution, ckt.T_nodes, mna.LHS, mna.RHS, pmosModel);
     }
-    for (auto &bsim4 : ckt.CKTelements.bsim4){
-        const bsim4::BSIM4model &b4model = *bsim4.bsim4v82Instance.BSIM4modPtr;
-        bsim4::BSIM4V82 &b4instance = bsim4.bsim4v82Instance;
-        bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, mna.LHS, mna.RHS);
+    {   
+        ScopedTimer bsim4_timer(ckt.sim_stats.simTime.bsim4_time);
+        for (auto &bsim4 : ckt.CKTelements.bsim4){
+            const bsim4::BSIM4model &b4model = *bsim4.bsim4v82Instance.BSIM4modPtr;
+            bsim4::BSIM4V82 &b4instance = bsim4.bsim4v82Instance;
+            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, mna.LHS, mna.RHS);
+        }
     }
     for (const auto &diode : ckt.CKTelements.diodes){
         Diode_assigner(diode.nodePos, diode.nodeNeg, diode.Is, diode.VT, mna.LHS, mna.RHS, pre_NR_solution);
