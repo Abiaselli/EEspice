@@ -50,7 +50,7 @@ public:
     void setFlagsDC();
     void setFlagsSmallSig();
     void setFlagsAC();
-    void updateStateMachine(bool converged);
+    void updateStateMachine(bool converged, bool &NISHOULDREORDER, int iterno);
 
 private:
     unsigned long CKTmode;
@@ -79,7 +79,7 @@ void SPICECompatible::setFlagsAC(){
     setMode((CKTmode & MODEUIC) | MODEAC);
 }
 
-void SPICECompatible::updateStateMachine(bool converged)
+void SPICECompatible::updateStateMachine(bool converged, bool &NISHOULDREORDER, int iterno)
 {
     if (CKTmode & MODEAC)
     {
@@ -97,6 +97,7 @@ void SPICECompatible::updateStateMachine(bool converged)
     {
         CKTmode = (CKTmode & ~INITF) | MODEINITFIX;
         /*ckt->CKTniState |= NISHOULDREORDER;*/
+        NISHOULDREORDER = true;
     }
     else if (CKTmode & MODEINITFIX)
     {
@@ -109,8 +110,9 @@ void SPICECompatible::updateStateMachine(bool converged)
     }
     else if (CKTmode & MODEINITTRAN)
     {
-        /*if (iterno <= 1)
-            ckt->CKTniState |= NISHOULDREORDER;*/
+        if (iterno <= 1)
+            NISHOULDREORDER = true;
+            /*ckt->CKTniState |= NISHOULDREORDER;*/
         CKTmode = (CKTmode & ~INITF) | MODEINITFLOAT;
     }
     else if (CKTmode & MODEINITPRED)

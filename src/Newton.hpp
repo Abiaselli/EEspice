@@ -189,6 +189,14 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
     std::vector<arma::vec> NR_solutions(ITL4+1);
     NR_solutions[0] = pre_global_solution;
 
+    //  When in MODEINITJCT or in MODEINITTRAN with the first Newton interation,
+    //  we set NISHOULDREORDER to true to force KLU to do factor for better numerical stability.
+    using enum SPICECompatible::SPICEmode;
+    auto CKTmode = ckt.spiceCompatible.getMode();
+    if((CKTmode & MODEINITJCT) || (CKTmode & MODEINITTRAN)) {
+        ckt.NISHOULDREORDER = true;
+    }
+
     init_matrices = Dynamic(ckt, h, pre_global_solution, mode, time_trans, ckt.sim_stats.simTime);
 
     for (int i = 1; i < 3; i++)
@@ -207,11 +215,11 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
-        ckt.spiceCompatible.updateStateMachine(false);
+        ckt.spiceCompatible.updateStateMachine(false, ckt.NISHOULDREORDER, NR_iteration_counter);
     }
 
     isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
-    ckt.spiceCompatible.updateStateMachine(isconverge);
+    ckt.spiceCompatible.updateStateMachine(isconverge, ckt.NISHOULDREORDER, NR_iteration_counter);
 
     while (!isconverge)
     {
@@ -242,7 +250,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
             NR_solutions.at(NR_iteration_counter) = solution;
 
             isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
-            ckt.spiceCompatible.updateStateMachine(isconverge);
+            ckt.spiceCompatible.updateStateMachine(isconverge, ckt.NISHOULDREORDER, NR_iteration_counter);
         }
     }
 
@@ -267,6 +275,14 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const HybridMatrix &init_LHS, co
     std::vector<arma::vec> NR_solutions(ITL4+1);
     NR_solutions[0] = solution;
 
+    //  When in MODEINITJCT or in MODEINITTRAN with the first Newton interation,
+    //  we set NISHOULDREORDER to true to force KLU to do factor for better numerical stability.
+    using enum SPICECompatible::SPICEmode;
+    auto CKTmode = ckt.spiceCompatible.getMode();
+    if((CKTmode & MODEINITJCT) || (CKTmode & MODEINITTRAN)) {
+        ckt.NISHOULDREORDER = true;
+    }
+
     // DC Analysis does not have dynamic elements (capacitors, inductors)!
 
     for (int i = 1; i < 3; i++)
@@ -283,12 +299,11 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const HybridMatrix &init_LHS, co
         
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
-        ckt.spiceCompatible.updateStateMachine(false);
+        ckt.spiceCompatible.updateStateMachine(false, ckt.NISHOULDREORDER, NR_iteration_counter);
     }
 
     isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
-    ckt.spiceCompatible.updateStateMachine(isconverge);
-
+    ckt.spiceCompatible.updateStateMachine(isconverge, ckt.NISHOULDREORDER, NR_iteration_counter);
     while (!isconverge)
     {
         if (NR_iteration_counter >= 100)
@@ -310,7 +325,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const HybridMatrix &init_LHS, co
         NR_solutions.at(NR_iteration_counter) = solution;
 
         isconverge = isConverge(NR_solutions, ckt, NR_iteration_counter);
-        ckt.spiceCompatible.updateStateMachine(isconverge);
+        ckt.spiceCompatible.updateStateMachine(isconverge, ckt.NISHOULDREORDER, NR_iteration_counter);
     }
 
     NR_ITE = NR_iteration_counter;
