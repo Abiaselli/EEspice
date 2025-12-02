@@ -62,6 +62,7 @@ int KLUsolver(arma::sp_mat& LHS, arma::vec& RHS, KLUmatrix& kluMatrix, CKTcircui
     // 1. Cast Pointers
     kluMatrix.KLUmatrixAp = reinterpret_cast<std::int64_t*>(const_cast<arma::uword*>(LHS.col_ptrs));
     kluMatrix.KLUmatrixAi = reinterpret_cast<std::int64_t*>(const_cast<arma::uword*>(LHS.row_indices));
+    kluMatrix.KLUmatrixAx = const_cast<double*>(LHS.values);
 
     // 2. Analyze (Use klu_l_analyze) 
     // Symbolic analyze happens once per matrix

@@ -23,6 +23,7 @@
 #include "bsim4v82/bsim4v82.hpp"
 #include "bsim4v82/bsim4v82load/bsim4v82load.hpp"
 #include "NonLinearMuti.hpp"
+#include "klusolver.hpp"
 
 
 MNA Dynamic(const CKTcircuit &ckt, const double h, const arma::vec &pre_global_solution, const int mode, const double time_trans, SimulationTime &simTime)
@@ -167,11 +168,21 @@ bool isConverge(const std::vector<arma::vec> &NR_solutions, const CKTcircuit &ck
 }
 
 // Solver for the Newton Raphson method
-arma::vec solver(const HybridMatrix &LHS, const arma::vec &RHS, SimulationTime &simTime)
+arma::vec solver(HybridMatrix &LHS, arma::vec &RHS, CKTcircuit &ckt)
 {
-    ScopedTimer solveTimer(simTime.solve_time);
-    // HybridMatrix automatically selects between dense and sparse solver
-    return LHS.solve(RHS);
+    ScopedTimer solveTimer(ckt.sim_stats.simTime.solve_time);
+
+    return LHS.visit([&](auto& mat) -> arma::vec {
+        using MatType = std::decay_t<decltype(mat)>;
+        if constexpr (std::is_same_v<MatType, arma::sp_mat>) {
+            // Use KLU for sparse matrices (modifies RHS in-place)
+            KLUsolver(mat, RHS, ckt.cktKLUmatrix, ckt);
+            return RHS;
+        } else {
+            // Use dense solver
+            return arma::solve(mat, RHS, arma::solve_opts::fast);
+        }
+    });
 }
 
 // Transient Simulation
@@ -211,7 +222,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = solver(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
+        solution = solver(matrices.LHS, matrices.RHS, ckt);
 
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
@@ -224,7 +235,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
     while (!isconverge)
     {
         if (NR_iteration_counter >= ITL4 && mode == 1)
-        {   
+        {
             // Transient simulation convergence failed
             converged = false;
             NR_ITE = NR_iteration_counter;
@@ -244,7 +255,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
             // Solve Ax = b
             // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-            solution = solver(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
+            solution = solver(matrices.LHS, matrices.RHS, ckt);
 
             NR_iteration_counter += 1;
             NR_solutions.at(NR_iteration_counter) = solution;
@@ -295,8 +306,8 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const HybridMatrix &init_LHS, co
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = solver(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
-        
+        solution = solver(matrices.LHS, matrices.RHS, ckt);
+
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
         ckt.spiceCompatible.updateStateMachine(false, ckt.NISHOULDREORDER, NR_iteration_counter);
@@ -319,7 +330,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const HybridMatrix &init_LHS, co
 
         // Solve Ax = b
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = solver(matrices.LHS, matrices.RHS, ckt.sim_stats.simTime);
+        solution = solver(matrices.LHS, matrices.RHS, ckt);
 
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
