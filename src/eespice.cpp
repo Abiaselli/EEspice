@@ -51,7 +51,8 @@ int main(int argc, const char **argv)
                 MatrixPtr->use_sparse = parser.use_sparse;  // Set sparse matrix flag based on netlist directive
                 CKTsetup(ckt, parser, MatrixPtr, modmap); // Pass the parser to the ckt and the initialise LHS and RHS matrices
                 CKTload(ckt);
-                ckt.cktmatrix->set_initmatrix(); // Set the initial LHS and RHS matrices
+                CKTdiscoverPattern(ckt); // Discover and lock sparsity pattern for optimized sparse stamping
+                ckt.cktmatrix->set_initmatrix(); // Set the initial LHS and RHS matrices (AFTER pattern is locked)
                 ckt.sim_stats.MNA_Matrix_size = ckt.cktmatrix->LHS.rows();    // Store the size of MNA matrix to the simulation statistics
 
                 // Check for multithreading from parser

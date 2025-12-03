@@ -227,6 +227,75 @@ void updateDeviceState(CKTcircuit &ckt){
     }
 }
 
+/**
+ * @brief Discovers and locks the sparsity pattern for the LHS matrix
+ *
+ * This function should be called after CKTLoad has established the matrix structure.
+ * It records all positions that will be stamped by dynamic elements (capacitors)
+ * and nonlinear devices (BSIM4, diodes, MOSFETs), then locks the pattern.
+ *
+ * Only effective for sparse matrices - no-op for dense matrices.
+ */
+void CKTdiscoverPattern(CKTcircuit &ckt)
+{
+    if (!ckt.cktmatrix->use_sparse) return;
+    if (ckt.cktmatrix->LHS.is_pattern_locked()) return;
+
+    HybridMatrix &LHS = ckt.cktmatrix->LHS;
+
+    // Record patterns for capacitors (stamped in Dynamic function)
+    for (const auto &cap : ckt.CKTelements.capacitors) {
+        record_2port_pattern(cap.nodePos, cap.nodeNeg, LHS);
+    }
+
+    // Record patterns for BSIM4 devices (stamped in NonLinear function)
+    for (const auto &bsim4 : ckt.CKTelements.bsim4) {
+        bsim4::bsim4RecordPattern(bsim4.bsim4v82Instance, LHS);
+    }
+
+    // Record patterns for diodes (if any)
+    for (const auto &diode : ckt.CKTelements.diodes) {
+        record_2port_pattern(diode.nodePos, diode.nodeNeg, LHS);
+    }
+
+    // Record patterns for Level-1 NMOS
+    // NMOS_assigner stamps: R_assigner for RD, RG, RS, and internal gds + VCCS for gm
+    for (const auto &nmos : ckt.CKTelements.nmos) {
+        int number = nmos.id;
+        int T_nodes = ckt.T_nodes;
+        // RD, RG, RS patterns
+        record_2port_pattern(nmos.node_vd, T_nodes - (3 * number) + 1, LHS);
+        record_2port_pattern(nmos.node_vg, T_nodes - (3 * number) + 2, LHS);
+        record_2port_pattern(T_nodes - (3 * number) + 3, nmos.node_vs, LHS);
+        // gds pattern
+        record_2port_pattern(T_nodes - (3 * number) + 1, T_nodes - (3 * number) + 3, LHS);
+        // gm VCCS pattern
+        record_vccs_pattern(T_nodes - (3 * number) + 1, T_nodes - (3 * number) + 3,
+                           T_nodes - (3 * number) + 2, T_nodes - (3 * number) + 3, LHS);
+    }
+
+    // Record patterns for Level-1 PMOS (similar to NMOS)
+    for (const auto &pmos : ckt.CKTelements.pmos) {
+        int number = pmos.id;
+        int T_nodes = ckt.T_nodes;
+        // RD, RG, RS patterns
+        record_2port_pattern(T_nodes - (3 * number) + 1, pmos.node_vd, LHS);
+        record_2port_pattern(pmos.node_vg, T_nodes - (3 * number) + 2, LHS);
+        record_2port_pattern(pmos.node_vs, T_nodes - (3 * number) + 3, LHS);
+        // gds pattern
+        record_2port_pattern(T_nodes - (3 * number) + 3, T_nodes - (3 * number) + 1, LHS);
+        // gm VCCS pattern
+        record_vccs_pattern(T_nodes - (3 * number) + 3, T_nodes - (3 * number) + 1,
+                           T_nodes - (3 * number) + 3, T_nodes - (3 * number) + 2, LHS);
+    }
+
+    // Lock the pattern and build CSC structure
+    LHS.lock_pattern();
+
+    // Save the current state as baseline (after linear elements are stamped)
+    LHS.save_baseline();
+}
+
 // double CKTterr(double qcap, double ccap, double timestep){
 
 // }

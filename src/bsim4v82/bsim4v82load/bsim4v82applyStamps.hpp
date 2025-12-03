@@ -5,20 +5,31 @@
 
 namespace bsim4 {
 // For safe modification of MNA matrix
-/*  
-    These checks are critical to prevent out-of-bounds access, 
+/*
+    These checks are critical to prevent out-of-bounds access,
     which could lead to runtime errors or undefined behavior, especially
     since negative indices are invalid for Armadillo matrices.
     Each stamp follows this template:
     Stamp(LHS, {rowNode}, {colNode},
-        BSIM4{Row}{Col}, nodeValid, 
+        BSIM4{Row}{Col}, nodeValid,
         BSIM4V82::{ROW_NODE_TYPE}, BSIM4V82::{COL_NODE_TYPE});
 */
+
+// Record position for pattern discovery (no value stamped)
+inline void RecordPosition(HybridMatrix &mat, int row, int col,
+                    const std::array<bool, 12> &BSIM4nodeValid,
+                    BSIM4V82::NodeType row_node, BSIM4V82::NodeType col_node)
+{
+    if (BSIM4nodeValid[row_node] && BSIM4nodeValid[col_node]){
+        mat.record_position(row, col);
+    }
+}
+
 inline void Stamp(HybridMatrix &mat, int row, int col, double val,
                     const std::array<bool, 12> &BSIM4nodeValid, BSIM4V82::NodeType row_node, BSIM4V82::NodeType col_node)
 {
     if (BSIM4nodeValid[row_node] && BSIM4nodeValid[col_node]){
-        mat.add_stamp(row, col, val);
+        mat.add_stamp_indexed(row, col, val);
     }
 }
 inline void StampRHS(arma::vec &vec, int index, double val,
@@ -398,9 +409,108 @@ void bsim4applyStamps(const BSIM4V82 &instance, const BSIM4stamp &s,
         BSIM4V82::G_NODE_PRIME, BSIM4V82::Q_NODE);
     // BSIM4SPqPtr
     Stamp(LHS, sNodePrime, qNode,
-        s.BSIM4SPq, nodeValid, 
+        s.BSIM4SPq, nodeValid,
         BSIM4V82::S_NODE_PRIME, BSIM4V82::Q_NODE);
 
+}
+
+/**
+ * @brief Records all stamp positions for a BSIM4 instance (pattern discovery phase)
+ *
+ * This function records all matrix positions that will be stamped by bsim4applyStamps,
+ * without actually writing any values. Used to build the pre-allocated sparse structure.
+ */
+void bsim4RecordPattern(const BSIM4V82 &instance, HybridMatrix &LHS)
+{
+    auto get_NodeIndex = [](int node) -> int {
+        return node - 1;
+    };
+    const int dNode = get_NodeIndex(instance.BSIM4dNode);
+    const int gNodeExt = get_NodeIndex(instance.BSIM4gNodeExt);
+    const int sNode = get_NodeIndex(instance.BSIM4sNode);
+    const int bNode = get_NodeIndex(instance.BSIM4bNode);
+    const int dNodePrime = get_NodeIndex(instance.BSIM4dNodePrime);
+    const int gNodePrime = get_NodeIndex(instance.BSIM4gNodePrime);
+    const int gNodeMid = get_NodeIndex(instance.BSIM4gNodeMid);
+    const int sNodePrime = get_NodeIndex(instance.BSIM4sNodePrime);
+    const int bNodePrime = get_NodeIndex(instance.BSIM4bNodePrime);
+    const int dbNode = get_NodeIndex(instance.BSIM4dbNode);
+    const int sbNode = get_NodeIndex(instance.BSIM4sbNode);
+    const int qNode = get_NodeIndex(instance.BSIM4qNode);
+
+    const std::array<bool,12> &nodeValid = instance.BSIM4nodeValid;
+
+    // Record all LHS stamp positions (same pattern as bsim4applyStamps)
+    RecordPosition(LHS, dNodePrime, dNode, nodeValid, BSIM4V82::D_NODE_PRIME, BSIM4V82::D_NODE);
+    RecordPosition(LHS, dNodePrime, dNodePrime, nodeValid, BSIM4V82::D_NODE_PRIME, BSIM4V82::D_NODE_PRIME);
+    RecordPosition(LHS, dNodePrime, gNodePrime, nodeValid, BSIM4V82::D_NODE_PRIME, BSIM4V82::G_NODE_PRIME);
+    RecordPosition(LHS, dNodePrime, gNodeMid, nodeValid, BSIM4V82::D_NODE_PRIME, BSIM4V82::G_NODE_MID);
+    RecordPosition(LHS, dNodePrime, sNodePrime, nodeValid, BSIM4V82::D_NODE_PRIME, BSIM4V82::S_NODE_PRIME);
+    RecordPosition(LHS, dNodePrime, bNodePrime, nodeValid, BSIM4V82::D_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
+    RecordPosition(LHS, dNodePrime, dbNode, nodeValid, BSIM4V82::D_NODE_PRIME, BSIM4V82::DB_NODE);
+    RecordPosition(LHS, dNode, dNode, nodeValid, BSIM4V82::D_NODE, BSIM4V82::D_NODE);
+    RecordPosition(LHS, dNode, dNodePrime, nodeValid, BSIM4V82::D_NODE, BSIM4V82::D_NODE_PRIME);
+    RecordPosition(LHS, gNodePrime, dNodePrime, nodeValid, BSIM4V82::G_NODE_PRIME, BSIM4V82::D_NODE_PRIME);
+    RecordPosition(LHS, gNodePrime, gNodePrime, nodeValid, BSIM4V82::G_NODE_PRIME, BSIM4V82::G_NODE_PRIME);
+    RecordPosition(LHS, gNodePrime, gNodeMid, nodeValid, BSIM4V82::G_NODE_PRIME, BSIM4V82::G_NODE_MID);
+    RecordPosition(LHS, gNodePrime, gNodeExt, nodeValid, BSIM4V82::G_NODE_PRIME, BSIM4V82::G_NODE_EXT);
+    RecordPosition(LHS, gNodePrime, sNodePrime, nodeValid, BSIM4V82::G_NODE_PRIME, BSIM4V82::S_NODE_PRIME);
+    RecordPosition(LHS, gNodePrime, bNodePrime, nodeValid, BSIM4V82::G_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
+    RecordPosition(LHS, gNodeMid, dNodePrime, nodeValid, BSIM4V82::G_NODE_MID, BSIM4V82::D_NODE_PRIME);
+    RecordPosition(LHS, gNodeMid, gNodePrime, nodeValid, BSIM4V82::G_NODE_MID, BSIM4V82::G_NODE_PRIME);
+    RecordPosition(LHS, gNodeMid, gNodeMid, nodeValid, BSIM4V82::G_NODE_MID, BSIM4V82::G_NODE_MID);
+    RecordPosition(LHS, gNodeMid, gNodeExt, nodeValid, BSIM4V82::G_NODE_MID, BSIM4V82::G_NODE_EXT);
+    RecordPosition(LHS, gNodeMid, sNodePrime, nodeValid, BSIM4V82::G_NODE_MID, BSIM4V82::S_NODE_PRIME);
+    RecordPosition(LHS, gNodeMid, bNodePrime, nodeValid, BSIM4V82::G_NODE_MID, BSIM4V82::B_NODE_PRIME);
+    RecordPosition(LHS, gNodeExt, dNodePrime, nodeValid, BSIM4V82::G_NODE_EXT, BSIM4V82::D_NODE_PRIME);
+    RecordPosition(LHS, gNodeExt, gNodePrime, nodeValid, BSIM4V82::G_NODE_EXT, BSIM4V82::G_NODE_PRIME);
+    RecordPosition(LHS, gNodeExt, gNodeMid, nodeValid, BSIM4V82::G_NODE_EXT, BSIM4V82::G_NODE_MID);
+    RecordPosition(LHS, gNodeExt, gNodeExt, nodeValid, BSIM4V82::G_NODE_EXT, BSIM4V82::G_NODE_EXT);
+    RecordPosition(LHS, gNodeExt, sNodePrime, nodeValid, BSIM4V82::G_NODE_EXT, BSIM4V82::S_NODE_PRIME);
+    RecordPosition(LHS, gNodeExt, bNodePrime, nodeValid, BSIM4V82::G_NODE_EXT, BSIM4V82::B_NODE_PRIME);
+    RecordPosition(LHS, sNodePrime, dNodePrime, nodeValid, BSIM4V82::S_NODE_PRIME, BSIM4V82::D_NODE_PRIME);
+    RecordPosition(LHS, sNodePrime, gNodePrime, nodeValid, BSIM4V82::S_NODE_PRIME, BSIM4V82::G_NODE_PRIME);
+    RecordPosition(LHS, sNodePrime, gNodeMid, nodeValid, BSIM4V82::S_NODE_PRIME, BSIM4V82::G_NODE_MID);
+    RecordPosition(LHS, sNodePrime, sNode, nodeValid, BSIM4V82::S_NODE_PRIME, BSIM4V82::S_NODE);
+    RecordPosition(LHS, sNodePrime, sNodePrime, nodeValid, BSIM4V82::S_NODE_PRIME, BSIM4V82::S_NODE_PRIME);
+    RecordPosition(LHS, sNodePrime, bNodePrime, nodeValid, BSIM4V82::S_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
+    RecordPosition(LHS, sNodePrime, sbNode, nodeValid, BSIM4V82::S_NODE_PRIME, BSIM4V82::SB_NODE);
+    RecordPosition(LHS, sNode, sNodePrime, nodeValid, BSIM4V82::S_NODE, BSIM4V82::S_NODE_PRIME);
+    RecordPosition(LHS, sNode, sNode, nodeValid, BSIM4V82::S_NODE, BSIM4V82::S_NODE);
+    RecordPosition(LHS, bNodePrime, dNodePrime, nodeValid, BSIM4V82::B_NODE_PRIME, BSIM4V82::D_NODE_PRIME);
+    RecordPosition(LHS, bNodePrime, gNodePrime, nodeValid, BSIM4V82::B_NODE_PRIME, BSIM4V82::G_NODE_PRIME);
+    RecordPosition(LHS, bNodePrime, gNodeMid, nodeValid, BSIM4V82::B_NODE_PRIME, BSIM4V82::G_NODE_MID);
+    RecordPosition(LHS, bNodePrime, sNodePrime, nodeValid, BSIM4V82::B_NODE_PRIME, BSIM4V82::S_NODE_PRIME);
+    RecordPosition(LHS, bNodePrime, dbNode, nodeValid, BSIM4V82::B_NODE_PRIME, BSIM4V82::DB_NODE);
+    RecordPosition(LHS, bNodePrime, bNode, nodeValid, BSIM4V82::B_NODE_PRIME, BSIM4V82::B_NODE);
+    RecordPosition(LHS, bNodePrime, sbNode, nodeValid, BSIM4V82::B_NODE_PRIME, BSIM4V82::SB_NODE);
+    RecordPosition(LHS, bNodePrime, bNodePrime, nodeValid, BSIM4V82::B_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
+    RecordPosition(LHS, dbNode, dNodePrime, nodeValid, BSIM4V82::DB_NODE, BSIM4V82::D_NODE_PRIME);
+    RecordPosition(LHS, dbNode, dbNode, nodeValid, BSIM4V82::DB_NODE, BSIM4V82::DB_NODE);
+    RecordPosition(LHS, dbNode, bNodePrime, nodeValid, BSIM4V82::DB_NODE, BSIM4V82::B_NODE_PRIME);
+    RecordPosition(LHS, dbNode, bNode, nodeValid, BSIM4V82::DB_NODE, BSIM4V82::B_NODE);
+    RecordPosition(LHS, sbNode, sNodePrime, nodeValid, BSIM4V82::SB_NODE, BSIM4V82::S_NODE_PRIME);
+    RecordPosition(LHS, sbNode, bNodePrime, nodeValid, BSIM4V82::SB_NODE, BSIM4V82::B_NODE_PRIME);
+    RecordPosition(LHS, sbNode, bNode, nodeValid, BSIM4V82::SB_NODE, BSIM4V82::B_NODE);
+    RecordPosition(LHS, sbNode, sbNode, nodeValid, BSIM4V82::SB_NODE, BSIM4V82::SB_NODE);
+    RecordPosition(LHS, bNode, dbNode, nodeValid, BSIM4V82::B_NODE, BSIM4V82::DB_NODE);
+    RecordPosition(LHS, bNode, bNodePrime, nodeValid, BSIM4V82::B_NODE, BSIM4V82::B_NODE_PRIME);
+    RecordPosition(LHS, bNode, sbNode, nodeValid, BSIM4V82::B_NODE, BSIM4V82::SB_NODE);
+    RecordPosition(LHS, bNode, bNode, nodeValid, BSIM4V82::B_NODE, BSIM4V82::B_NODE);
+    RecordPosition(LHS, dNode, gNodePrime, nodeValid, BSIM4V82::D_NODE, BSIM4V82::G_NODE_PRIME);
+    RecordPosition(LHS, dNode, sNodePrime, nodeValid, BSIM4V82::D_NODE, BSIM4V82::S_NODE_PRIME);
+    RecordPosition(LHS, dNode, bNodePrime, nodeValid, BSIM4V82::D_NODE, BSIM4V82::B_NODE_PRIME);
+    RecordPosition(LHS, sNode, dNodePrime, nodeValid, BSIM4V82::S_NODE, BSIM4V82::D_NODE_PRIME);
+    RecordPosition(LHS, sNode, gNodePrime, nodeValid, BSIM4V82::S_NODE, BSIM4V82::G_NODE_PRIME);
+    RecordPosition(LHS, sNode, bNodePrime, nodeValid, BSIM4V82::S_NODE, BSIM4V82::B_NODE_PRIME);
+    RecordPosition(LHS, qNode, dNodePrime, nodeValid, BSIM4V82::Q_NODE, BSIM4V82::D_NODE_PRIME);
+    RecordPosition(LHS, qNode, gNodePrime, nodeValid, BSIM4V82::Q_NODE, BSIM4V82::G_NODE_PRIME);
+    RecordPosition(LHS, qNode, sNodePrime, nodeValid, BSIM4V82::Q_NODE, BSIM4V82::S_NODE_PRIME);
+    RecordPosition(LHS, qNode, bNodePrime, nodeValid, BSIM4V82::Q_NODE, BSIM4V82::B_NODE_PRIME);
+    RecordPosition(LHS, qNode, qNode, nodeValid, BSIM4V82::Q_NODE, BSIM4V82::Q_NODE);
+    RecordPosition(LHS, dNodePrime, qNode, nodeValid, BSIM4V82::D_NODE_PRIME, BSIM4V82::Q_NODE);
+    RecordPosition(LHS, gNodePrime, qNode, nodeValid, BSIM4V82::G_NODE_PRIME, BSIM4V82::Q_NODE);
+    RecordPosition(LHS, sNodePrime, qNode, nodeValid, BSIM4V82::S_NODE_PRIME, BSIM4V82::Q_NODE);
 }
 
 } // namespace bsim4

@@ -83,40 +83,111 @@ HybridMatrix branch_ext(const HybridMatrix& M, int node_x, int node_y)
     return result;
 }
 
+// =========================================================================
+// Pattern Recording Functions for Pre-allocated Sparse Structure
+// These record positions without stamping values, used during setup phase
+// =========================================================================
+
+// Record pattern for a 2-port element (resistor, capacitor, conductance)
+void record_2port_pattern(int node_x, int node_y, HybridMatrix &LHS) {
+    if ((node_x == 0) && (node_y == 0)) return;
+
+    if (node_x == 0) {
+        LHS.record_position(node_y - 1, node_y - 1);
+    } else if (node_y == 0) {
+        LHS.record_position(node_x - 1, node_x - 1);
+    } else {
+        LHS.record_position(node_x - 1, node_x - 1);
+        LHS.record_position(node_x - 1, node_y - 1);
+        LHS.record_position(node_y - 1, node_x - 1);
+        LHS.record_position(node_y - 1, node_y - 1);
+    }
+}
+
+// Record pattern for VCCS (4-port element)
+void record_vccs_pattern(int node_x, int node_y, int node_cx, int node_cy, HybridMatrix &LHS) {
+    if (node_x == 0) {
+        if (node_cx == 0) {
+            if (node_cy > 0) LHS.record_position(node_y - 1, node_cy - 1);
+        } else if (node_cy == 0) {
+            if (node_cx > 0) LHS.record_position(node_y - 1, node_cx - 1);
+        } else {
+            LHS.record_position(node_y - 1, node_cx - 1);
+            LHS.record_position(node_y - 1, node_cy - 1);
+        }
+    } else if (node_y == 0) {
+        if (node_cx == 0) {
+            if (node_cy > 0) LHS.record_position(node_x - 1, node_cy - 1);
+        } else if (node_cy == 0) {
+            if (node_cx > 0) LHS.record_position(node_x - 1, node_cx - 1);
+        } else {
+            LHS.record_position(node_x - 1, node_cx - 1);
+            LHS.record_position(node_x - 1, node_cy - 1);
+        }
+    } else {
+        if (node_cx == 0) {
+            if (node_cy > 0) {
+                LHS.record_position(node_x - 1, node_cy - 1);
+                LHS.record_position(node_y - 1, node_cy - 1);
+            }
+        } else if (node_cy == 0) {
+            if (node_cx > 0) {
+                LHS.record_position(node_x - 1, node_cx - 1);
+                LHS.record_position(node_y - 1, node_cx - 1);
+            }
+        } else {
+            LHS.record_position(node_x - 1, node_cx - 1);
+            LHS.record_position(node_x - 1, node_cy - 1);
+            LHS.record_position(node_y - 1, node_cx - 1);
+            LHS.record_position(node_y - 1, node_cy - 1);
+        }
+    }
+}
+
+// Record pattern for branch extension (voltage source, pulse, etc.)
+void record_branch_pattern(int node_x, int node_y, size_t old_rows, size_t old_cols, HybridMatrix &LHS) {
+    if (node_x == 0) {
+        LHS.record_position(node_y - 1, old_cols);
+        LHS.record_position(old_rows, node_y - 1);
+    } else if (node_y == 0) {
+        LHS.record_position(node_x - 1, old_cols);
+        LHS.record_position(old_rows, node_x - 1);
+    } else {
+        LHS.record_position(node_x - 1, old_cols);
+        LHS.record_position(old_rows, node_x - 1);
+        LHS.record_position(node_y - 1, old_cols);
+        LHS.record_position(old_rows, node_y - 1);
+    }
+}
+
+// =========================================================================
+
 // create resistor matrix stamp for HybridMatrix (used in transient/DC analysis)
+// Uses add_stamp_indexed for O(1) access when pattern is locked, falls back to add_stamp otherwise
 void R_assigner(int node_x, int node_y, double G, HybridMatrix &LHS)
 {
-
-    // if(G == 0){
-    //     std::cerr << "Error: Resistor value cannot be zero" << std::endl;
-    //     exit(1);
-    // }
-
     if ((node_x == 0) && (node_y == 0))
     {
-        // x = 0;
         return;
     }
     else
     {
         if (node_x == 0)
         {
-            LHS.add_stamp(node_y - 1, node_y - 1, G);
+            LHS.add_stamp_indexed(node_y - 1, node_y - 1, G);
         }
         else if (node_y == 0)
         {
-            LHS.add_stamp(node_x - 1, node_x - 1, G);
+            LHS.add_stamp_indexed(node_x - 1, node_x - 1, G);
         }
         else
         {
-            LHS.add_stamp(node_x - 1, node_x - 1, G);
-            LHS.add_stamp(node_x - 1, node_y - 1, -G);
-            LHS.add_stamp(node_y - 1, node_x - 1, -G);
-            LHS.add_stamp(node_y - 1, node_y - 1, G);
+            LHS.add_stamp_indexed(node_x - 1, node_x - 1, G);
+            LHS.add_stamp_indexed(node_x - 1, node_y - 1, -G);
+            LHS.add_stamp_indexed(node_y - 1, node_x - 1, -G);
+            LHS.add_stamp_indexed(node_y - 1, node_y - 1, G);
         }
     }
-
-    // RR = RR +1;
 }
 
 // Overloaded version for arma::mat (used in AC analysis with complex matrices)
@@ -420,31 +491,29 @@ double V_sin_value(double vo, double va, double freq, double td, double theta, d
 }
 
 // assigning the matrix stamps for the VCCS
+// Uses add_stamp_indexed for O(1) access when pattern is locked
 void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, HybridMatrix &LHS)
 {
-    int maxi = LHS.cols();
-    int maxj = LHS.rows();
-
     if (node_x == 0)
     {
         if (node_cx == 0)
         {
             if (node_cy > 0)
             {
-                LHS.add_stamp(node_y - 1, node_cy - 1, R);
+                LHS.add_stamp_indexed(node_y - 1, node_cy - 1, R);
             }
         }
         else if (node_cy == 0)
         {
             if (node_cx > 0)
             {
-                LHS.add_stamp(node_y - 1, node_cx - 1, -R);
+                LHS.add_stamp_indexed(node_y - 1, node_cx - 1, -R);
             }
         }
         else
         {
-            LHS.add_stamp(node_y - 1, node_cx - 1, -R);
-            LHS.add_stamp(node_y - 1, node_cy - 1, R);
+            LHS.add_stamp_indexed(node_y - 1, node_cx - 1, -R);
+            LHS.add_stamp_indexed(node_y - 1, node_cy - 1, R);
         }
     }
     else if (node_y == 0)
@@ -453,20 +522,20 @@ void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, H
         {
             if (node_cy > 0)
             {
-                LHS.add_stamp(node_x - 1, node_cy - 1, -R);
+                LHS.add_stamp_indexed(node_x - 1, node_cy - 1, -R);
             }
         }
         else if (node_cy == 0)
         {
             if (node_cx > 0)
             {
-                LHS.add_stamp(node_x - 1, node_cx - 1, R);
+                LHS.add_stamp_indexed(node_x - 1, node_cx - 1, R);
             }
         }
         else
         {
-            LHS.add_stamp(node_x - 1, node_cx - 1, R);
-            LHS.add_stamp(node_x - 1, node_cy - 1, -R);
+            LHS.add_stamp_indexed(node_x - 1, node_cx - 1, R);
+            LHS.add_stamp_indexed(node_x - 1, node_cy - 1, -R);
         }
     }
     else
@@ -475,24 +544,24 @@ void VCCS_assigner(int node_x, int node_y, int node_cx, int node_cy, double R, H
         {
             if (node_cy > 0)
             {
-                LHS.add_stamp(node_x - 1, node_cy - 1, -R);
-                LHS.add_stamp(node_y - 1, node_cy - 1, R);
+                LHS.add_stamp_indexed(node_x - 1, node_cy - 1, -R);
+                LHS.add_stamp_indexed(node_y - 1, node_cy - 1, R);
             }
         }
         else if (node_cy == 0)
         {
             if (node_cx > 0)
             {
-                LHS.add_stamp(node_x - 1, node_cx - 1, R);
-                LHS.add_stamp(node_y - 1, node_cx - 1, -R);
+                LHS.add_stamp_indexed(node_x - 1, node_cx - 1, R);
+                LHS.add_stamp_indexed(node_y - 1, node_cx - 1, -R);
             }
         }
         else
         {
-            LHS.add_stamp(node_x - 1, node_cx - 1, R);
-            LHS.add_stamp(node_x - 1, node_cy - 1, -R);
-            LHS.add_stamp(node_y - 1, node_cx - 1, -R);
-            LHS.add_stamp(node_y - 1, node_cy - 1, R);
+            LHS.add_stamp_indexed(node_x - 1, node_cx - 1, R);
+            LHS.add_stamp_indexed(node_x - 1, node_cy - 1, -R);
+            LHS.add_stamp_indexed(node_y - 1, node_cx - 1, -R);
+            LHS.add_stamp_indexed(node_y - 1, node_cy - 1, R);
         }
     }
 }

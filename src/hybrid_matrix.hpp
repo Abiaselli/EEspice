@@ -5,6 +5,10 @@
 #include <variant>
 #include <concepts>
 #include <type_traits>
+#include <unordered_map>
+#include <vector>
+#include <cstring>
+#include <memory>
 
 /**
  * HybridMatrix: A runtime-selectable matrix wrapper that can hold either
@@ -20,6 +24,24 @@ private:
     bool is_sparse_matrix;
     size_t n_rows;
     size_t n_cols;
+
+    // Pre-allocated sparse structure support
+    // Maps (row<<32|col) to index in CSC values array for O(1) access
+    // Shared pointer to avoid expensive copies during NR iterations
+    std::shared_ptr<std::unordered_map<uint64_t, size_t>> position_map;
+    bool pattern_locked = false;
+    std::vector<double> baseline_values;  // For fast reset via memcpy
+
+    static uint64_t make_key(size_t row, size_t col) {
+        return (static_cast<uint64_t>(row) << 32) | static_cast<uint64_t>(col);
+    }
+
+    // Initialize position_map if needed (lazy initialization)
+    void ensure_position_map() {
+        if (!position_map) {
+            position_map = std::make_shared<std::unordered_map<uint64_t, size_t>>();
+        }
+    }
 
 public:
     /**
@@ -44,10 +66,14 @@ public:
 
     /**
      * Copy constructor
+     * Note: position_map is shared (not deep copied) since pattern never changes after locking
      */
     HybridMatrix(const HybridMatrix& other)
         : data(other.data), is_sparse_matrix(other.is_sparse_matrix),
-          n_rows(other.n_rows), n_cols(other.n_cols) {}
+          n_rows(other.n_rows), n_cols(other.n_cols),
+          position_map(other.position_map),  // Shared pointer - just copies the pointer
+          pattern_locked(other.pattern_locked),
+          baseline_values(other.baseline_values) {}
 
     /**
      * Assignment operator
@@ -58,6 +84,9 @@ public:
             is_sparse_matrix = other.is_sparse_matrix;
             n_rows = other.n_rows;
             n_cols = other.n_cols;
+            position_map = other.position_map;
+            pattern_locked = other.pattern_locked;
+            baseline_values = other.baseline_values;
         }
         return *this;
     }
@@ -365,6 +394,179 @@ public:
                   << " Sparsity: " << sparsity() << "%"
                   << " Memory: " << memory_usage() / 1024 << " KB"
                   << std::endl;
+    }
+
+    // =========================================================================
+    // Pre-allocated Sparse Structure API
+    // =========================================================================
+    // These methods enable O(1) element access for sparse matrices by:
+    // 1. Recording all positions that will be stamped (pattern discovery)
+    // 2. Building CSC structure once with those positions
+    // 3. Using direct pointer access to values array during stamping
+    // =========================================================================
+
+    /**
+     * Check if pattern has been locked
+     */
+    bool is_pattern_locked() const { return pattern_locked; }
+
+    /**
+     * Phase 1: Record a position that will receive stamps
+     * Call this during setup phase to discover sparsity pattern.
+     * No-op if pattern is already locked or matrix is dense.
+     */
+    void record_position(size_t row, size_t col) {
+        if (pattern_locked || !is_sparse_matrix) return;
+        if (row >= n_rows || col >= n_cols) {
+            return;
+        }
+
+        ensure_position_map();
+        uint64_t key = make_key(row, col);
+        if (position_map->find(key) == position_map->end()) {
+            (*position_map)[key] = position_map->size();  // Temporary index
+        }
+    }
+
+    /**
+     * Phase 2: Lock the pattern and build CSC structure
+     * After calling this, no new positions can be recorded.
+     * The sparse matrix is rebuilt with ALL positions (both existing and recorded),
+     * preserving existing values. We use a tiny placeholder value to ensure Armadillo
+     * doesn't filter out positions with zero values.
+     */
+    void lock_pattern() {
+        if (pattern_locked || !is_sparse_matrix) return;
+
+        ensure_position_map();
+
+        // Get reference to current sparse matrix
+        arma::sp_mat& old_sp = std::get<arma::sp_mat>(data);
+
+        // Merge existing non-zero positions with recorded positions
+        // First, add all existing non-zeros to position_map (if not already there)
+        for (arma::sp_mat::const_iterator it = old_sp.begin(); it != old_sp.end(); ++it) {
+            uint64_t key = make_key(it.row(), it.col());
+            if (position_map->find(key) == position_map->end()) {
+                (*position_map)[key] = position_map->size();
+            }
+        }
+
+        if (position_map->empty()) {
+            pattern_locked = true;
+            return;
+        }
+
+        // Build triplets from all positions, preserving existing values
+        // Use a tiny placeholder (1e-300) for positions with zero values
+        // to prevent Armadillo from filtering them out during construction
+        size_t nnz = position_map->size();
+        arma::umat locations(2, nnz);
+        arma::vec values(nnz);
+
+        size_t idx = 0;
+        for (const auto& [key, _] : *position_map) {
+            arma::uword row = static_cast<arma::uword>(key >> 32);
+            arma::uword col = static_cast<arma::uword>(key & 0xFFFFFFFF);
+            locations(0, idx) = row;
+            locations(1, idx) = col;
+            // Preserve existing value, or use tiny placeholder if zero
+            double val = old_sp(row, col);
+            values(idx) = (val != 0.0) ? val : 1e-300;
+            idx++;
+        }
+
+        // Create sparse matrix with structure (sorted by Armadillo)
+        data = arma::sp_mat(locations, values, n_rows, n_cols);
+
+        // Now set the placeholder values back to zero using direct access
+        arma::sp_mat& sp = std::get<arma::sp_mat>(data);
+        double* vals = arma::access::rwp(sp.values);
+        for (size_t i = 0; i < sp.n_nonzero; i++) {
+            if (std::abs(vals[i]) < 1e-290) {
+                vals[i] = 0.0;
+            }
+        }
+
+        // Rebuild position_map with actual CSC indices
+        position_map->clear();
+        for (arma::uword col = 0; col < sp.n_cols; col++) {
+            for (arma::uword i = sp.col_ptrs[col]; i < sp.col_ptrs[col + 1]; i++) {
+                arma::uword row = sp.row_indices[i];
+                (*position_map)[make_key(row, col)] = i;
+            }
+        }
+
+        pattern_locked = true;
+        baseline_values.resize(sp.n_nonzero, 0.0);
+    }
+
+    /**
+     * Phase 3: Fast indexed stamping using pre-computed positions
+     * Falls back to regular add_stamp if pattern not locked or dense.
+     */
+    void add_stamp_indexed(size_t row, size_t col, double value) {
+        if (!pattern_locked || !is_sparse_matrix || !position_map) {
+            add_stamp(row, col, value);
+            return;
+        }
+
+        uint64_t key = make_key(row, col);
+        auto it = position_map->find(key);
+        if (it != position_map->end()) {
+            arma::sp_mat& sp = std::get<arma::sp_mat>(data);
+            double* vals = arma::access::rwp(sp.values);
+            vals[it->second] += value;
+        }
+        // Silently ignore positions not in the pattern (shouldn't happen if setup is correct)
+    }
+
+    /**
+     * Save current values as baseline for fast reset
+     * Call after linear elements have been stamped.
+     */
+    void save_baseline() {
+        if (!is_sparse_matrix) {
+            // For dense matrix, baseline is handled by normal copy
+            return;
+        }
+        if (!pattern_locked) return;
+
+        arma::sp_mat& sp = std::get<arma::sp_mat>(data);
+        if (baseline_values.size() != sp.n_nonzero) {
+            baseline_values.resize(sp.n_nonzero);
+        }
+        std::memcpy(baseline_values.data(), sp.values, sp.n_nonzero * sizeof(double));
+    }
+
+    /**
+     * Fast reset values to baseline using memcpy
+     * Much faster than full matrix copy for sparse matrices.
+     */
+    void reset_to_baseline() {
+        if (!is_sparse_matrix) {
+            // For dense matrix, caller should use normal copy
+            return;
+        }
+        if (!pattern_locked || baseline_values.empty()) return;
+
+        arma::sp_mat& sp = std::get<arma::sp_mat>(data);
+        std::memcpy(arma::access::rwp(sp.values), baseline_values.data(),
+                    sp.n_nonzero * sizeof(double));
+    }
+
+    /**
+     * Check if baseline has been saved
+     */
+    bool has_baseline() const {
+        return !baseline_values.empty();
+    }
+
+    /**
+     * Get number of positions in the pattern
+     */
+    size_t pattern_size() const {
+        return position_map ? position_map->size() : 0;
     }
 };
 
