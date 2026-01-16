@@ -228,8 +228,13 @@ public:
 
     /**
      * Fill matrix with zeros
+     * For locked sparse matrices, preserves CSC structure
      */
     void zeros() {
+        if (is_sparse_matrix && pattern_locked) {
+            zero_values_keep_pattern();
+            return;
+        }
         std::visit([](auto& mat) {
             mat.zeros();
         }, data);
@@ -239,19 +244,40 @@ public:
      * Fill matrix with specific value (only for dense matrices)
      */
     void fill(double value) {
-        std::visit([value](auto& mat) {
+        std::visit([this, value](auto& mat) {
             if constexpr (std::is_same_v<std::decay_t<decltype(mat)>, arma::mat>) {
                 mat.fill(value);
             } else {
                 // For sparse matrices, filling with non-zero values is inefficient
                 // Only allow filling with zero
                 if (std::abs(value) < 1e-15) {
-                    mat.zeros();
+                    if (pattern_locked) {
+                        zero_values_keep_pattern();
+                    } else {
+                        mat.zeros();
+                    }
                 } else {
                     throw std::runtime_error("Cannot fill sparse matrix with non-zero value");
                 }
             }
         }, data);
+    }
+
+    /**
+     * Zero all values while preserving sparse structure (CSC arrays unchanged)
+     * For dense matrices, equivalent to zeros()
+     * For locked sparse matrices, only clears values without destroying pattern
+     */
+    void zero_values_keep_pattern() {
+        if (!is_sparse_matrix) {
+            std::get<arma::mat>(data).zeros();
+            return;
+        }
+
+        arma::sp_mat& sp = std::get<arma::sp_mat>(data);
+        sp.sync();  // Ensure CSC is materialized
+        double* vals = arma::access::rwp(sp.values);
+        std::fill(vals, vals + sp.n_nonzero, 0.0);
     }
 
     /**
