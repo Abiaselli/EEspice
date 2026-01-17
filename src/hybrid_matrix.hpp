@@ -30,7 +30,14 @@ private:
     // Shared pointer to avoid expensive copies during NR iterations
     std::shared_ptr<std::unordered_map<uint64_t, size_t>> position_map;
     bool pattern_locked = false;
-    std::vector<double> baseline_values;  // For fast reset via memcpy
+
+    // Two-level baseline support for efficient NR iteration reset
+    // For sparse matrices: store values arrays for memcpy
+    std::vector<double> baseline_linear;   // State after stamping linear elements
+    std::vector<double> baseline_step;     // State after stamping dynamic elements (capacitors)
+    // For dense matrices: store full matrix copies
+    arma::mat baseline_linear_dense;       // Dense matrix linear baseline
+    arma::mat baseline_step_dense;         // Dense matrix step baseline
 
     static uint64_t make_key(size_t row, size_t col) {
         return (static_cast<uint64_t>(row) << 32) | static_cast<uint64_t>(col);
@@ -73,7 +80,10 @@ public:
           n_rows(other.n_rows), n_cols(other.n_cols),
           position_map(other.position_map),  // Shared pointer - just copies the pointer
           pattern_locked(other.pattern_locked),
-          baseline_values(other.baseline_values) {}
+          baseline_linear(other.baseline_linear),
+          baseline_step(other.baseline_step),
+          baseline_linear_dense(other.baseline_linear_dense),
+          baseline_step_dense(other.baseline_step_dense) {}
 
     /**
      * Assignment operator
@@ -86,7 +96,10 @@ public:
             n_cols = other.n_cols;
             position_map = other.position_map;
             pattern_locked = other.pattern_locked;
-            baseline_values = other.baseline_values;
+            baseline_linear = other.baseline_linear;
+            baseline_step = other.baseline_step;
+            baseline_linear_dense = other.baseline_linear_dense;
+            baseline_step_dense = other.baseline_step_dense;
         }
         return *this;
     }
@@ -524,7 +537,7 @@ public:
         }
 
         pattern_locked = true;
-        baseline_values.resize(sp.n_nonzero, 0.0);
+        baseline_linear.resize(sp.n_nonzero, 0.0);
     }
 
     /**
@@ -547,45 +560,92 @@ public:
         // Silently ignore positions not in the pattern (shouldn't happen if setup is correct)
     }
 
-    /**
-     * Save current values as baseline for fast reset
-     * Call after linear elements have been stamped.
-     */
-    void save_baseline() {
-        if (!is_sparse_matrix) {
-            // For dense matrix, baseline is handled by normal copy
-            return;
-        }
-        if (!pattern_locked) return;
+    // =========================================================================
+    // Two-Level Baseline API for Newton-Raphson Reset Optimization
+    // =========================================================================
+    // Level 1 (Linear baseline): State after stamping static linear elements
+    // Level 2 (Step baseline): State after stamping dynamic elements (capacitors)
+    // =========================================================================
 
-        arma::sp_mat& sp = std::get<arma::sp_mat>(data);
-        if (baseline_values.size() != sp.n_nonzero) {
-            baseline_values.resize(sp.n_nonzero);
+    /**
+     * Save current values as linear baseline
+     * Call after linear elements have been stamped and pattern is locked.
+     */
+    void save_linear_baseline() {
+        if (is_sparse_matrix && pattern_locked) {
+            arma::sp_mat& sp = std::get<arma::sp_mat>(data);
+            baseline_linear.resize(sp.n_nonzero);
+            std::memcpy(baseline_linear.data(), sp.values, sp.n_nonzero * sizeof(double));
+        } else if (!is_sparse_matrix) {
+            baseline_linear_dense = std::get<arma::mat>(data);
         }
-        std::memcpy(baseline_values.data(), sp.values, sp.n_nonzero * sizeof(double));
     }
 
     /**
-     * Fast reset values to baseline using memcpy
-     * Much faster than full matrix copy for sparse matrices.
+     * Reset matrix to linear baseline (state after linear elements stamped)
      */
-    void reset_to_baseline() {
-        if (!is_sparse_matrix) {
-            // For dense matrix, caller should use normal copy
-            return;
+    void reset_to_linear_baseline() {
+        if (is_sparse_matrix && pattern_locked && !baseline_linear.empty()) {
+            arma::sp_mat& sp = std::get<arma::sp_mat>(data);
+            std::memcpy(arma::access::rwp(sp.values), baseline_linear.data(),
+                        sp.n_nonzero * sizeof(double));
+        } else if (!is_sparse_matrix && baseline_linear_dense.n_elem > 0) {
+            std::get<arma::mat>(data) = baseline_linear_dense;
         }
-        if (!pattern_locked || baseline_values.empty()) return;
-
-        arma::sp_mat& sp = std::get<arma::sp_mat>(data);
-        std::memcpy(arma::access::rwp(sp.values), baseline_values.data(),
-                    sp.n_nonzero * sizeof(double));
     }
 
     /**
-     * Check if baseline has been saved
+     * Save current values as step baseline
+     * Call after stamping dynamic elements (capacitors) at start of each time step.
      */
-    bool has_baseline() const {
-        return !baseline_values.empty();
+    void save_step_baseline() {
+        if (is_sparse_matrix && pattern_locked) {
+            arma::sp_mat& sp = std::get<arma::sp_mat>(data);
+            baseline_step.resize(sp.n_nonzero);
+            std::memcpy(baseline_step.data(), sp.values, sp.n_nonzero * sizeof(double));
+        } else if (!is_sparse_matrix) {
+            baseline_step_dense = std::get<arma::mat>(data);
+        }
+    }
+
+    /**
+     * Reset matrix to step baseline (state after dynamic elements stamped)
+     * Used at the start of each NR iteration.
+     */
+    void reset_to_step_baseline() {
+        if (is_sparse_matrix && pattern_locked && !baseline_step.empty()) {
+            arma::sp_mat& sp = std::get<arma::sp_mat>(data);
+            std::memcpy(arma::access::rwp(sp.values), baseline_step.data(),
+                        sp.n_nonzero * sizeof(double));
+        } else if (!is_sparse_matrix && baseline_step_dense.n_elem > 0) {
+            std::get<arma::mat>(data) = baseline_step_dense;
+        }
+    }
+
+    /**
+     * Initialize step baseline from linear baseline
+     * Used for DC analysis where step baseline == linear baseline
+     */
+    void copy_linear_to_step_baseline() {
+        if (is_sparse_matrix) {
+            baseline_step = baseline_linear;
+        } else {
+            baseline_step_dense = baseline_linear_dense;
+        }
+    }
+
+    /**
+     * Check if linear baseline has been saved
+     */
+    bool has_linear_baseline() const {
+        return !baseline_linear.empty() || baseline_linear_dense.n_elem > 0;
+    }
+
+    /**
+     * Check if step baseline has been saved
+     */
+    bool has_step_baseline() const {
+        return !baseline_step.empty() || baseline_step_dense.n_elem > 0;
     }
 
     /**

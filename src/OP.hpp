@@ -12,17 +12,17 @@
 
 // Function to perform operating point analysis
 arma::vec OperatingPointAnalysis(CKTcircuit &ckt, const Modelmap &modmap, bool non_linear){
-    // Get the initial LHS and RHS matrices
-    HybridMatrix init_LHS = ckt.cktmatrix->get_init_LHS();
-    arma::vec init_RHS = ckt.cktmatrix->get_init_RHS();
-
     // Solve the linear system to get the operating point
+    // Baselines are already saved in CKTdiscoverPattern
     if(non_linear){
         // If the circuit is non-linear, use the Newton-Raphson method
-        return NewtonRaphson_system(ckt, init_LHS, init_RHS, modmap);
+        // Step baseline == linear baseline for DC/OP (set in CKTdiscoverPattern)
+        return NewtonRaphson_system(ckt, modmap);
     } else {
-        // If the circuit is linear, use the HybridMatrix solve method
-        return init_LHS.solve(init_RHS);
+        // If the circuit is linear, reset to linear baseline and use solver()
+        ckt.cktmatrix->LHS.reset_to_linear_baseline();
+        ckt.cktmatrix->reset_to_linear_baseline_RHS();
+        return solver(ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, ckt);
     }
 
     // Todo: Add gmin stepping and stepping sources...

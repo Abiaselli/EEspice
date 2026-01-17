@@ -22,25 +22,47 @@ struct Matrix
     int n_cols{};
     bool use_sparse{false}; // Flag to determine if sparse matrices should be used
 
-    void set_initmatrix()
-    {
-        init_LHS = LHS;
-        init_RHS = RHS;
-        n_rows = LHS.rows();
-        n_cols = LHS.cols();
+    // =========================================================================
+    // Two-Level RHS Baseline Support for Newton-Raphson Reset Optimization
+    // =========================================================================
+
+    /** Save current RHS as linear baseline */
+    void save_linear_baseline_RHS() {
+        baseline_linear_RHS = RHS;
     }
+
+    /** Reset RHS to linear baseline */
+    void reset_to_linear_baseline_RHS() {
+        if (baseline_linear_RHS.n_elem > 0) {
+            RHS = baseline_linear_RHS;
+        }
+    }
+
+    /** Save current RHS as step baseline */
+    void save_step_baseline_RHS() {
+        baseline_step_RHS = RHS;
+    }
+
+    /** Reset RHS to step baseline */
+    void reset_to_step_baseline_RHS() {
+        if (baseline_step_RHS.n_elem > 0) {
+            RHS = baseline_step_RHS;
+        }
+    }
+
+    /** Initialize step baseline from linear baseline */
+    void copy_linear_to_step_baseline_RHS() {
+        baseline_step_RHS = baseline_linear_RHS;
+    }
+
+    // =========================================================================
+    // AC Analysis Support (unchanged)
+    // =========================================================================
+
     void set_init_cxmatrix()
     {
         init_cxLHS = LHS_cx;
         init_cxRHS = RHS_cx;
-    }
-    HybridMatrix get_init_LHS() const
-    {
-        return init_LHS;
-    }
-    arma::vec get_init_RHS() const
-    {
-        return init_RHS;
     }
     arma::cx_dmat get_init_cxLHS() const
     {
@@ -52,9 +74,12 @@ struct Matrix
     }
 
 private:
-    HybridMatrix init_LHS; // The initial LHS and RHS values to be used in the NR-algorithm
-    arma::vec init_RHS;
-    arma::cx_dmat init_cxLHS;   // The initial complex LHS and RHS values to be used in the NR-algorithm for AC analysis
+    // RHS baselines for two-level reset
+    arma::vec baseline_linear_RHS;
+    arma::vec baseline_step_RHS;
+
+    // Complex matrices for AC analysis
+    arma::cx_dmat init_cxLHS;
     arma::cx_dvec init_cxRHS;
 };
 

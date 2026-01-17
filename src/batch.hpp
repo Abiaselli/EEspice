@@ -70,7 +70,7 @@ BatchRunResult simulation_worker(
         auto MatrixPtr = std::make_shared<Matrix>();
         CKTsetup(ckt_template, parser, MatrixPtr, local_modmap);
         CKTload(ckt_template);
-        ckt_template.cktmatrix->set_initmatrix();
+        CKTdiscoverPattern(ckt_template); // Discover pattern, lock it, and save baselines
 
 
         // 3. Run the appropriate analysis based on the netlist commands

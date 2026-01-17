@@ -139,13 +139,17 @@ ACsimulator ACsetup(const CircuitParser &parser, const CKTcircuit &ckt){
 void SaveOP(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
     // Make sure the cktstate is updated outside
     // Only BSIM4V82 is supported for now
-    HybridMatrix init_LHS = ckt.cktmatrix->get_init_LHS();
-    arma::vec init_RHS = ckt.cktmatrix->get_init_RHS();
+    // Reset to linear baseline to get clean matrices for BSIM4load
+    ckt.cktmatrix->LHS.reset_to_linear_baseline();
+    ckt.cktmatrix->reset_to_linear_baseline_RHS();
 
     for (auto &bsim4 : ckt.CKTelements.bsim4){
         const bsim4::BSIM4model &b4model = *bsim4.bsim4v82Instance.BSIM4modPtr;
         bsim4::BSIM4V82 &b4instance = bsim4.bsim4v82Instance;
-        bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, init_LHS, init_RHS);
+        // Use ckt.cktmatrix->LHS and RHS directly
+        // Note: The matrices modified here are not used for AC analysis
+        // (AC uses complex LHS_cx/RHS_cx), so modifications are harmless
+        bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS);
     }
 }
 

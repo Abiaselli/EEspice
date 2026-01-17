@@ -282,7 +282,7 @@ single_Truncation_error single_LTE_divided_diff(const single_timestep &single_h,
 
 single_timestep single_solution_solver(const double &h, const Transient &trans, CKTcircuit &ckt, const TransientSimulator &trans_sim,
                                         const Modelmap &modmap){
-    
+
     single_timestep single_h;
     single_h.h = h;
     single_h.t = trans_sim.vec_trans.back().time_trans + h;
@@ -295,9 +295,10 @@ single_timestep single_solution_solver(const double &h, const Transient &trans, 
         }
     }
     else{
-        MNA matrices;
-        matrices = Dynamic(ckt, h, trans_sim.vec_trans.back().solution, trans.mode, single_h.t, ckt.sim_stats.simTime);
-        single_h.solution = solver(matrices.LHS, matrices.RHS, ckt);
+        // Dynamic() resets to linear baseline, stamps capacitors, saves step baseline
+        // It works directly on ckt.cktmatrix
+        Dynamic(ckt, h, trans_sim.vec_trans.back().solution, trans.mode, single_h.t, ckt.sim_stats.simTime);
+        single_h.solution = solver(ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, ckt);
         single_h.CapState = get_cap_state(ckt, single_h.solution, single_h.h, trans_sim.vec_trans);
     }
 

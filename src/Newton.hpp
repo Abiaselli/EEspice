@@ -26,58 +26,81 @@
 #include "klusolver.hpp"
 
 
-MNA Dynamic(const CKTcircuit &ckt, const double h, const arma::vec &pre_global_solution, const int mode, const double time_trans, SimulationTime &simTime)
+/**
+ * @brief Stamps dynamic elements (capacitors, time-varying sources) into the circuit matrices
+ *
+ * This function resets to linear baseline, stamps dynamic elements directly into
+ * ckt.cktmatrix->LHS and RHS, then saves the step baseline for NR iterations.
+ * Works for both dense and sparse matrices via the two-level baseline API.
+ */
+void Dynamic(CKTcircuit &ckt, const double h, const arma::vec &pre_global_solution, const int mode, const double time_trans, SimulationTime &simTime)
 {
     ScopedTimer loadTimer(simTime.matrix_load_time);
-    MNA mna;
-    mna.LHS = ckt.cktmatrix->get_init_LHS();
-    mna.RHS = ckt.cktmatrix->get_init_RHS();
 
+    // Reset to linear baseline (state after static linear elements stamped)
+    ckt.cktmatrix->LHS.reset_to_linear_baseline();
+    ckt.cktmatrix->reset_to_linear_baseline_RHS();
+
+    // Stamp capacitors directly into ckt.cktmatrix->LHS and RHS
     for (const auto &cap : ckt.CKTelements.capacitors)
-    {   
+    {
         // Linear Capacitor
-        C_assigner_BE(cap.nodePos, cap.nodeNeg, cap.value, h, mna.LHS, mna.RHS, pre_global_solution, mode);
+        C_assigner_BE(cap.nodePos, cap.nodeNeg, cap.value, h, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, pre_global_solution, mode);
     }
+
+    // Stamp pulse voltage sources
     for (const auto &pulse : ckt.CKTelements.pulseVoltages)
     {
         double val_pulse = V_pulse_value(pulse.V1, pulse.V2, time_trans, pulse.td, pulse.tr, pulse.tf, pulse.pw, pulse.per);
-        mna.RHS(pulse.RHS_locate) += (val_pulse - pulse.V1);
+        ckt.cktmatrix->RHS(pulse.RHS_locate) += (val_pulse - pulse.V1);
     }
+
+    // Stamp sinusoidal voltage sources
     for (const auto &sin : ckt.CKTelements.sinVoltages){
         double val_sin = V_sin_value(sin.vo, sin.va, sin.freq, sin.td, sin.theta, sin.phase_rad, time_trans);
-        mna.RHS(sin.RHS_locate) += (val_sin - sin.vo);
+        ckt.cktmatrix->RHS(sin.RHS_locate) += (val_sin - sin.vo);
     }
-    return mna;
+
+    // Save step baseline (state after dynamic elements stamped, before nonlinear)
+    ckt.cktmatrix->LHS.save_step_baseline();
+    ckt.cktmatrix->save_step_baseline_RHS();
 }
 
-MNA NonLinear(CKTcircuit &ckt, const arma::vec &pre_NR_solution, 
-    const MNA &matrixes, const Modelmap &modmap, double h)
+/**
+ * @brief Stamps nonlinear devices into the circuit matrices
+ *
+ * This function resets to step baseline (state after dynamic elements stamped),
+ * then stamps nonlinear devices directly into ckt.cktmatrix->LHS and RHS.
+ * Works for both dense and sparse matrices via the two-level baseline API.
+ */
+void NonLinear(CKTcircuit &ckt, const arma::vec &pre_NR_solution, const Modelmap &modmap, double h)
 {
     ScopedTimer loadTimer(ckt.sim_stats.simTime.matrix_load_time);
-    MNA mna;
-    mna.LHS = matrixes.LHS;
-    mna.RHS = matrixes.RHS;
 
+    // Reset to step baseline (state after dynamic elements, before nonlinear)
+    ckt.cktmatrix->LHS.reset_to_step_baseline();
+    ckt.cktmatrix->reset_to_step_baseline_RHS();
+
+    // Stamp nonlinear devices directly into ckt.cktmatrix->LHS and RHS
     for (const auto &nmos : ckt.CKTelements.nmos){
         const NMOSModel nmosModel = modmap.nmosModels.at(nmos.modelName);
-        NMOS_assigner(nmos.id, nmos.node_vd, nmos.node_vg, nmos.node_vs, nmos.node_vb, nmos.W, nmos.L, pre_NR_solution, ckt.T_nodes, mna.LHS, mna.RHS, nmosModel);
+        NMOS_assigner(nmos.id, nmos.node_vd, nmos.node_vg, nmos.node_vs, nmos.node_vb, nmos.W, nmos.L, pre_NR_solution, ckt.T_nodes, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, nmosModel);
     }
     for (const auto &pmos : ckt.CKTelements.pmos){
         const PMOSModel pmosModel = modmap.pmosModels.at(pmos.modelName);
-        PMOS_assigner(pmos.id, pmos.node_vd, pmos.node_vg, pmos.node_vs, pmos.node_vb, pmos.W, pmos.L, pre_NR_solution, ckt.T_nodes, mna.LHS, mna.RHS, pmosModel);
+        PMOS_assigner(pmos.id, pmos.node_vd, pmos.node_vg, pmos.node_vs, pmos.node_vb, pmos.W, pmos.L, pre_NR_solution, ckt.T_nodes, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, pmosModel);
     }
-    {   
+    {
         ScopedTimer bsim4_timer(ckt.sim_stats.simTime.bsim4_time);
         for (auto &bsim4 : ckt.CKTelements.bsim4){
             const bsim4::BSIM4model &b4model = *bsim4.bsim4v82Instance.BSIM4modPtr;
             bsim4::BSIM4V82 &b4instance = bsim4.bsim4v82Instance;
-            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, mna.LHS, mna.RHS);
+            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS);
         }
     }
     for (const auto &diode : ckt.CKTelements.diodes){
-        Diode_assigner(diode.nodePos, diode.nodeNeg, diode.Is, diode.VT, mna.LHS, mna.RHS, pre_NR_solution);
+        Diode_assigner(diode.nodePos, diode.nodeNeg, diode.Is, diode.VT, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, pre_NR_solution);
     }
-    return mna;
 }
 
 bool isConverge(const std::vector<arma::vec> &NR_solutions, const CKTcircuit &ckt, const int &NR_iteration_counter)
@@ -190,15 +213,13 @@ arma::vec solver(HybridMatrix &LHS, arma::vec &RHS, CKTcircuit &ckt)
 
 // Transient Simulation
 // Newton Raphson system solver for non-linear and dynamic elements
-arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode, const double time_trans, 
+arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode, const double time_trans,
     const arma::vec &pre_global_solution, const Modelmap &modmap)
-{   
+{
     ScopedTimer NRTimer(ckt.sim_stats.simTime.newton_time);
     int NR_iteration_counter = 0;
     bool isconverge = false;
     arma::vec solution = pre_global_solution;
-    MNA init_matrices;
-    MNA matrices;
 
     std::vector<arma::vec> NR_solutions(ITL4+1);
     NR_solutions[0] = pre_global_solution;
@@ -211,21 +232,21 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
         ckt.NISHOULDREORDER = true;
     }
 
-    init_matrices = Dynamic(ckt, h, pre_global_solution, mode, time_trans, ckt.sim_stats.simTime);
+    // Dynamic() resets to linear baseline, stamps capacitors, saves step baseline
+    Dynamic(ckt, h, pre_global_solution, mode, time_trans, ckt.sim_stats.simTime);
 
     for (int i = 1; i < 3; i++)
-    {   
+    {
+        // NonLinear() resets to step baseline, then stamps nonlinear devices
         if (ckt.CKTmultithreaded) {
-            matrices = NonLinearMutithreaded(ckt, solution, init_matrices, modmap, h);
+            NonLinearMutithreaded(ckt, solution, modmap, h);
         } else {
-            matrices = NonLinear(ckt, solution, init_matrices, modmap, h);
+            NonLinear(ckt, solution, modmap, h);
         }
-        // const arma::mat &LHS = matrices.LHS;
-        // const arma::mat &RHS = matrices.RHS;
 
-        // Solve Ax = b
+        // Solve Ax = b using the matrices in ckt.cktmatrix
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = solver(matrices.LHS, matrices.RHS, ckt);
+        solution = solver(ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, ckt);
 
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
@@ -250,15 +271,16 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
             throw ConvergenceException("Transient Simulation did not converge at the op analysis!", "TRANSIENT_OP_CONVERGENCE");
         }
         else {
+            // NonLinear() resets to step baseline, then stamps nonlinear devices
             if (ckt.CKTmultithreaded) {
-                matrices = NonLinearMutithreaded(ckt, solution, init_matrices, modmap, h);
+                NonLinearMutithreaded(ckt, solution, modmap, h);
             } else {
-                matrices = NonLinear(ckt, solution, init_matrices, modmap, h);
+                NonLinear(ckt, solution, modmap, h);
             }
 
-            // Solve Ax = b
+            // Solve Ax = b using the matrices in ckt.cktmatrix
             // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-            solution = solver(matrices.LHS, matrices.RHS, ckt);
+            solution = solver(ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, ckt);
 
             NR_iteration_counter += 1;
             NR_solutions.at(NR_iteration_counter) = solution;
@@ -277,14 +299,13 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
 
 
 // DC Analysis
-arma::vec NewtonRaphson_system(CKTcircuit &ckt, const HybridMatrix &init_LHS, const arma::vec &init_RHS, const Modelmap &modmap)
-{   
+// Step baseline was initialized from linear baseline in CKTdiscoverPattern
+arma::vec NewtonRaphson_system(CKTcircuit &ckt, const Modelmap &modmap)
+{
     ScopedTimer NRTimer(ckt.sim_stats.simTime.newton_time);
     int NR_iteration_counter = 0;
     bool isconverge = false;
-    arma::vec solution(init_RHS.n_rows, arma::fill::zeros);
-    MNA init_matrices = {init_LHS, init_RHS};
-    MNA matrices;
+    arma::vec solution(ckt.cktmatrix->RHS.n_rows, arma::fill::zeros);
 
     std::vector<arma::vec> NR_solutions(ITL4+1);
     NR_solutions[0] = solution;
@@ -298,18 +319,20 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const HybridMatrix &init_LHS, co
     }
 
     // DC Analysis does not have dynamic elements (capacitors, inductors)!
+    // Step baseline == linear baseline (set in CKTdiscoverPattern)
 
     for (int i = 1; i < 3; i++)
     {
+        // NonLinear() resets to step baseline (== linear baseline for DC), then stamps nonlinear devices
         if (ckt.CKTmultithreaded) {
-            matrices = NonLinearMutithreaded(ckt, solution, init_matrices, modmap, 0.0);
+            NonLinearMutithreaded(ckt, solution, modmap, 0.0);
         } else {
-            matrices = NonLinear(ckt, solution, init_matrices, modmap, 0.0);
+            NonLinear(ckt, solution, modmap, 0.0);
         }
 
-        // Solve Ax = b
+        // Solve Ax = b using the matrices in ckt.cktmatrix
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = solver(matrices.LHS, matrices.RHS, ckt);
+        solution = solver(ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, ckt);
 
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;
@@ -325,15 +348,16 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const HybridMatrix &init_LHS, co
             throw ConvergenceException("DC Analysis did not converge!", "DC_CONVERGENCE");
         }
 
+        // NonLinear() resets to step baseline, then stamps nonlinear devices
         if (ckt.CKTmultithreaded) {
-            matrices = NonLinearMutithreaded(ckt, solution, init_matrices, modmap, 0.0);
+            NonLinearMutithreaded(ckt, solution, modmap, 0.0);
         } else {
-            matrices = NonLinear(ckt, solution, init_matrices, modmap, 0.0);
+            NonLinear(ckt, solution, modmap, 0.0);
         }
 
-        // Solve Ax = b
+        // Solve Ax = b using the matrices in ckt.cktmatrix
         // J(v) * x(k+1) = [J(v)]x(k) - f(x(k))
-        solution = solver(matrices.LHS, matrices.RHS, ckt);
+        solution = solver(ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, ckt);
 
         NR_iteration_counter += 1;
         NR_solutions.at(NR_iteration_counter) = solution;

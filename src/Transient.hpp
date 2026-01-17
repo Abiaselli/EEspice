@@ -114,12 +114,12 @@ Transient Varibale_TimeStep(CKTcircuit &ckt, TransientSimulator &trans_sim, cons
 }
 
 std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_sim, const Modelmap modmap)
-{   
+{
     ScopedTimer analysisTimer(ckt.sim_stats.simTime.analysis_time); // Time the analysis
     Transient trans_op;
 
-    trans_op.LHS = ckt.cktmatrix->get_init_LHS();
-    trans_op.RHS = ckt.cktmatrix->get_init_RHS();
+    // LHS and RHS are stored in ckt.cktmatrix with baseline reset mechanism
+    // No need to copy to trans_op - OperatingPointAnalysis uses ckt.cktmatrix directly
     trans_op.h = 0;
 
     // OPERATING POINT ANALYSIS SYSTEM
