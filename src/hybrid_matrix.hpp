@@ -39,6 +39,10 @@ private:
     arma::mat baseline_linear_dense;       // Dense matrix linear baseline
     arma::mat baseline_step_dense;         // Dense matrix step baseline
 
+    // Explicit validity flags - don't infer from buffer size
+    bool linear_baseline_valid = false;
+    bool step_baseline_valid = false;
+
     static uint64_t make_key(size_t row, size_t col) {
         return (static_cast<uint64_t>(row) << 32) | static_cast<uint64_t>(col);
     }
@@ -83,7 +87,9 @@ public:
           baseline_linear(other.baseline_linear),
           baseline_step(other.baseline_step),
           baseline_linear_dense(other.baseline_linear_dense),
-          baseline_step_dense(other.baseline_step_dense) {}
+          baseline_step_dense(other.baseline_step_dense),
+          linear_baseline_valid(other.linear_baseline_valid),
+          step_baseline_valid(other.step_baseline_valid) {}
 
     /**
      * Assignment operator
@@ -100,6 +106,8 @@ public:
             baseline_step = other.baseline_step;
             baseline_linear_dense = other.baseline_linear_dense;
             baseline_step_dense = other.baseline_step_dense;
+            linear_baseline_valid = other.linear_baseline_valid;
+            step_baseline_valid = other.step_baseline_valid;
         }
         return *this;
     }
@@ -579,17 +587,18 @@ public:
         } else if (!is_sparse_matrix) {
             baseline_linear_dense = std::get<arma::mat>(data);
         }
+        linear_baseline_valid = true;
     }
 
     /**
      * Reset matrix to linear baseline (state after linear elements stamped)
      */
     void reset_to_linear_baseline() {
-        if (is_sparse_matrix && pattern_locked && !baseline_linear.empty()) {
+        if (is_sparse_matrix && pattern_locked && linear_baseline_valid) {
             arma::sp_mat& sp = std::get<arma::sp_mat>(data);
             std::memcpy(arma::access::rwp(sp.values), baseline_linear.data(),
                         sp.n_nonzero * sizeof(double));
-        } else if (!is_sparse_matrix && baseline_linear_dense.n_elem > 0) {
+        } else if (!is_sparse_matrix && linear_baseline_valid) {
             std::get<arma::mat>(data) = baseline_linear_dense;
         }
     }
@@ -606,6 +615,7 @@ public:
         } else if (!is_sparse_matrix) {
             baseline_step_dense = std::get<arma::mat>(data);
         }
+        step_baseline_valid = true;
     }
 
     /**
@@ -613,11 +623,11 @@ public:
      * Used at the start of each NR iteration.
      */
     void reset_to_step_baseline() {
-        if (is_sparse_matrix && pattern_locked && !baseline_step.empty()) {
+        if (is_sparse_matrix && pattern_locked && step_baseline_valid) {
             arma::sp_mat& sp = std::get<arma::sp_mat>(data);
             std::memcpy(arma::access::rwp(sp.values), baseline_step.data(),
                         sp.n_nonzero * sizeof(double));
-        } else if (!is_sparse_matrix && baseline_step_dense.n_elem > 0) {
+        } else if (!is_sparse_matrix && step_baseline_valid) {
             std::get<arma::mat>(data) = baseline_step_dense;
         }
     }
@@ -632,20 +642,21 @@ public:
         } else {
             baseline_step_dense = baseline_linear_dense;
         }
+        step_baseline_valid = linear_baseline_valid;
     }
 
     /**
      * Check if linear baseline has been saved
      */
     bool has_linear_baseline() const {
-        return !baseline_linear.empty() || baseline_linear_dense.n_elem > 0;
+        return linear_baseline_valid;
     }
 
     /**
      * Check if step baseline has been saved
      */
     bool has_step_baseline() const {
-        return !baseline_step.empty() || baseline_step_dense.n_elem > 0;
+        return step_baseline_valid;
     }
 
     /**

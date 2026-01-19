@@ -29,11 +29,12 @@ struct Matrix
     /** Save current RHS as linear baseline */
     void save_linear_baseline_RHS() {
         baseline_linear_RHS = RHS;
+        baseline_linear_rhs_valid = true;
     }
 
     /** Reset RHS to linear baseline */
     void reset_to_linear_baseline_RHS() {
-        if (baseline_linear_RHS.n_elem > 0) {
+        if (baseline_linear_rhs_valid) {
             RHS = baseline_linear_RHS;
         }
     }
@@ -41,11 +42,12 @@ struct Matrix
     /** Save current RHS as step baseline */
     void save_step_baseline_RHS() {
         baseline_step_RHS = RHS;
+        baseline_step_rhs_valid = true;
     }
 
     /** Reset RHS to step baseline */
     void reset_to_step_baseline_RHS() {
-        if (baseline_step_RHS.n_elem > 0) {
+        if (baseline_step_rhs_valid) {
             RHS = baseline_step_RHS;
         }
     }
@@ -53,7 +55,14 @@ struct Matrix
     /** Initialize step baseline from linear baseline */
     void copy_linear_to_step_baseline_RHS() {
         baseline_step_RHS = baseline_linear_RHS;
+        baseline_step_rhs_valid = baseline_linear_rhs_valid;
     }
+
+    /** Check if linear baseline RHS has been saved */
+    bool has_linear_baseline_RHS() const { return baseline_linear_rhs_valid; }
+
+    /** Check if step baseline RHS has been saved */
+    bool has_step_baseline_RHS() const { return baseline_step_rhs_valid; }
 
     // =========================================================================
     // AC Analysis Support (unchanged)
@@ -77,6 +86,10 @@ private:
     // RHS baselines for two-level reset
     arma::vec baseline_linear_RHS;
     arma::vec baseline_step_RHS;
+
+    // Explicit validity flags for RHS baselines
+    bool baseline_linear_rhs_valid = false;
+    bool baseline_step_rhs_valid = false;
 
     // Complex matrices for AC analysis
     arma::cx_dmat init_cxLHS;
