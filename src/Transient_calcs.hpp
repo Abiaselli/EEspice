@@ -63,8 +63,6 @@ struct Transient
     int mode{};
     int trans_count{};
     arma::vec solution;
-    HybridMatrix LHS;  // Can be dense or sparse matrix
-    arma::vec RHS;
     CapacitanceState CapState; // Capacitance state (including cap, bsim4, etc.)
 
 };
