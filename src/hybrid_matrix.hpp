@@ -479,8 +479,7 @@ public:
      * Phase 2: Lock the pattern and build CSC structure
      * After calling this, no new positions can be recorded.
      * The sparse matrix is rebuilt with ALL positions (both existing and recorded),
-     * preserving existing values. We use a tiny placeholder value to ensure Armadillo
-     * doesn't filter out positions with zero values.
+     * preserving existing values. Uses check_for_zeros=false to retain zero entries.
      */
     void lock_pattern() {
         if (pattern_locked || !is_sparse_matrix) return;
@@ -505,8 +504,7 @@ public:
         }
 
         // Build triplets from all positions, preserving existing values
-        // Use a tiny placeholder (1e-300) for positions with zero values
-        // to prevent Armadillo from filtering them out during construction
+        // check_for_zeros=false retains zero-valued positions in CSC structure
         size_t nnz = position_map->size();
         arma::umat locations(2, nnz);
         arma::vec values(nnz);
@@ -517,25 +515,16 @@ public:
             arma::uword col = static_cast<arma::uword>(key & 0xFFFFFFFF);
             locations(0, idx) = row;
             locations(1, idx) = col;
-            // Preserve existing value, or use tiny placeholder if zero
-            double val = old_sp(row, col);
-            values(idx) = (val != 0.0) ? val : 1e-300;
+            values(idx) = old_sp(row, col);
             idx++;
         }
 
         // Create sparse matrix with structure (sorted by Armadillo)
-        data = arma::sp_mat(locations, values, n_rows, n_cols);
-
-        // Now set the placeholder values back to zero using direct access
-        arma::sp_mat& sp = std::get<arma::sp_mat>(data);
-        double* vals = arma::access::rwp(sp.values);
-        for (size_t i = 0; i < sp.n_nonzero; i++) {
-            if (std::abs(vals[i]) < 1e-290) {
-                vals[i] = 0.0;
-            }
-        }
+        // sort_locations=true, check_for_zeros=false to retain zero entries
+        data = arma::sp_mat(locations, values, n_rows, n_cols, true, false);
 
         // Rebuild position_map with actual CSC indices
+        arma::sp_mat& sp = std::get<arma::sp_mat>(data);
         position_map->clear();
         for (arma::uword col = 0; col < sp.n_cols; col++) {
             for (arma::uword i = sp.col_ptrs[col]; i < sp.col_ptrs[col + 1]; i++) {
