@@ -143,7 +143,41 @@ LoadOMPTiming loadompColor3(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
         auto end_apply = std::chrono::high_resolution_clock::now();
         timing.apply_stamps_time = std::chrono::duration<double>(end_apply - start_apply).count();
     }
-    
+
+    return timing;
+}
+
+LoadOMPTiming loadompColor4(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
+                      HybridMatrix &LHS, arma::vec &RHS,
+                      const BSIM4Coloring &coloring)
+{
+    LoadOMPTiming timing{0.0, 0.0};
+
+    if (!ckt.CKTelements.bsim4.empty()) {
+        // Graph coloring
+        const auto& color_groups = coloring.getColorGroups();
+
+        // Fused calculation and application (timed together)
+        auto start_fused = std::chrono::high_resolution_clock::now();
+        for (const auto& group : color_groups) {
+            // All instances in this group can be processed in parallel
+            #pragma omp parallel for
+            for (size_t idx = 0; idx < group.size(); ++idx) {
+                size_t i = group[idx];
+                const bsim4::BSIM4model &b4model = *ckt.CKTelements.bsim4[i].bsim4v82Instance.BSIM4modPtr;
+                bsim4::BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
+                // Fused: Calculate stamp and apply immediately
+                const bsim4::BSIM4stamp stamp = bsim4::BSIM4calculateStamps(ckt, b4model, instance,
+                                                     ckt.spiceCompatible, pre_NR_solution,
+                                                     ckt.CKTtemp, ckt.CKTgmin);
+                bsim4::bsim4applyStamps(instance, stamp, LHS, RHS);
+            }
+        }
+        auto end_fused = std::chrono::high_resolution_clock::now();
+        // Report fused time in apply_stamps_time (parallel_calc_time = 0 since no separate phase)
+        timing.apply_stamps_time = std::chrono::duration<double>(end_fused - start_fused).count();
+    }
+
     return timing;
 }
 
