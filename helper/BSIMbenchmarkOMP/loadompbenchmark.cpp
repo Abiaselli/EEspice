@@ -159,8 +159,8 @@ int main(){
         LOG_OUTPUT("Benchmarking single-threaded execution...\n");
         auto start = std::chrono::high_resolution_clock::now();
         for (int iter = 0; iter < num_iterations; ++iter) {
-            LHS.zeros();
-            RHS.zeros();
+            // LHS.zeros();
+            // RHS.zeros();
             loadsingle(ckt, pre_NR_solution, LHS, RHS);
         }
         auto end = std::chrono::high_resolution_clock::now();
@@ -188,8 +188,8 @@ int main(){
 
             start = std::chrono::high_resolution_clock::now();
             for (int iter = 0; iter < num_iterations; ++iter) {
-                LHS.zeros();
-                RHS.zeros();
+                // LHS.zeros();
+                // RHS.zeros();
                 LoadOMPTiming timing = loadomp(ckt, pre_NR_solution, LHS, RHS, stamps);
                 total_calc_time += timing.parallel_calc_time;
                 total_apply_time += timing.apply_stamps_time;

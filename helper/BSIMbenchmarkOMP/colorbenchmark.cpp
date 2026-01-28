@@ -15,8 +15,10 @@
 // EEspice includes
 #include "CKT.hpp"
 #include "global.hpp"
+#include "hybrid_matrix.hpp"
 #include "bsim4v82/bsim4v82setup.hpp"
 #include "bsim4v82/bsim4v82temp.hpp"
+#include "bsim4v82/bsim4v82load/bsim4v82applyStamps.hpp"
 
 // Benchmarking includes
 #include "color.hpp"
@@ -129,6 +131,9 @@ int main(){
     LOG_OUTPUT("OpenMP max threads: " << omp_get_max_threads() << "\n");
     LOG_OUTPUT("Output will be logged to: coloring_benchmark_log.txt\n\n");
 
+    // Matrix type to test: true for sparse (with O(1) indexed stamping), false for dense
+    bool use_sparse = true;
+
     // Instance counts to test
     std::vector<size_t> instance_counts = {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
 
@@ -191,7 +196,11 @@ int main(){
         LOG_OUTPUT("\n\n");
 
         // Allocate solution vectors for this instance count
-        arma::mat LHS = arma::mat(num_instances * 4, num_instances * 4, arma::fill::randu);
+        HybridMatrix LHS(num_instances * 4, num_instances * 4, use_sparse);
+        // For dense mode, seed with random values to match original behavior
+        if (!use_sparse) {
+            LHS.get_dense().randu();
+        }
         arma::vec RHS = arma::vec(num_instances * 4, arma::fill::randu);
         arma::vec pre_NR_solution = arma::vec(num_instances * 4, arma::fill::randu);
         std::vector<bsim4::BSIM4stamp> stamps(num_instances);
@@ -200,6 +209,14 @@ int main(){
         LOG_OUTPUT("Running warm-up...\n");
         CKTcircuit warmup_ckt;
         warmup_ckt.CKTelements.bsim4 = CreateBSIM4Instances(bsim4model, num_instances, node_distribution_sequence[0]);
+        // Pattern discovery for sparse matrices (one-time setup for warm-up circuit)
+        if (use_sparse) {
+            for (auto &b4 : warmup_ckt.CKTelements.bsim4) {
+                bsim4::bsim4RecordPattern(b4.bsim4v82Instance, LHS);
+            }
+            LHS.lock_pattern();
+            LOG_OUTPUT("Sparse matrix pattern locked: " << LHS.pattern_size() << " non-zeros\n");
+        }
         loadsingle(warmup_ckt, pre_NR_solution, LHS, RHS);
         LOG_OUTPUT("Warm-up complete.\n\n");
 
@@ -217,6 +234,15 @@ int main(){
             // Create circuit with specified node distribution count
             CKTcircuit ckt;
             ckt.CKTelements.bsim4 = CreateBSIM4Instances(bsim4model, num_instances, node_distribution_count);
+
+            // Pattern discovery for sparse matrices (recreate for new node distribution)
+            if (use_sparse) {
+                LHS = HybridMatrix(num_instances * 4, num_instances * 4, use_sparse);
+                for (auto &b4 : ckt.CKTelements.bsim4) {
+                    bsim4::bsim4RecordPattern(b4.bsim4v82Instance, LHS);
+                }
+                LHS.lock_pattern();
+            }
 
             // Compute graph coloring
             LOG_OUTPUT("Computing graph coloring...\n");
