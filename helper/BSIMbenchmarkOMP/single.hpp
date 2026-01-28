@@ -3,6 +3,9 @@
 #include "hybrid_matrix.hpp"
 #include "bsim4v82/bsim4v82load/bsim4v82load.hpp"
 
+void calsingle(CKTcircuit &ckt, const arma::vec &pre_NR_solution, HybridMatrix &LHS, arma::vec &RHS, std::vector<bsim4::BSIM4stamp> &stamps);
+void loadsingle(CKTcircuit &ckt, const arma::vec &pre_NR_solution, HybridMatrix &LHS, arma::vec &RHS);
+
 /**
  * @brief Calculate BSIM4 device stamps in a single-threaded manner.
  * 
