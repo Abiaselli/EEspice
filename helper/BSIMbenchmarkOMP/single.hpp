@@ -1,5 +1,6 @@
 #pragma once
 #include "CKT.hpp"
+#include "hybrid_matrix.hpp"
 #include "bsim4v82/bsim4v82load/bsim4v82load.hpp"
 
 /**
@@ -15,7 +16,7 @@
  * @param RHS Right-hand side vector (unused in this benchmark variant)
  * @param stamps Output vector of calculated BSIM4 stamps (size must match device count)
  */
-void calsingle(CKTcircuit &ckt, const arma::vec &pre_NR_solution, arma::mat &LHS, arma::vec &RHS, std::vector<bsim4::BSIM4stamp> &stamps){
+void calsingle(CKTcircuit &ckt, const arma::vec &pre_NR_solution, HybridMatrix &LHS, arma::vec &RHS, std::vector<bsim4::BSIM4stamp> &stamps){
     if (!ckt.CKTelements.bsim4.empty()) {
         const size_t num_devices = ckt.CKTelements.bsim4.size();
 
@@ -46,7 +47,7 @@ void calsingle(CKTcircuit &ckt, const arma::vec &pre_NR_solution, arma::mat &LHS
  * @param LHS Left-hand side matrix to which device stamps will be applied
  * @param RHS Right-hand side vector to which device contributions will be applied
  */
-void loadsingle(CKTcircuit &ckt, const arma::vec &pre_NR_solution, arma::mat &LHS, arma::vec &RHS){
+void loadsingle(CKTcircuit &ckt, const arma::vec &pre_NR_solution, HybridMatrix &LHS, arma::vec &RHS){
     if (!ckt.CKTelements.bsim4.empty()) {
         const size_t num_devices = ckt.CKTelements.bsim4.size();
 

@@ -14,8 +14,10 @@
 // EEspice includes
 #include "CKT.hpp"
 #include "global.hpp"
+#include "hybrid_matrix.hpp"
 #include "bsim4v82/bsim4v82setup.hpp"
 #include "bsim4v82/bsim4v82temp.hpp"
+#include "bsim4v82/bsim4v82load/bsim4v82applyStamps.hpp"
 
 // Benchmarking includes
 #include "loadomp.hpp"
@@ -93,6 +95,9 @@ int main(){
     // Thread counts to test
     std::vector<int> thread_counts = {1, 2, 4, 8, 16, 24, 32, 48, 64, 96, 128};
 
+    // Matrix type to test: true for sparse (with O(1) indexed stamping), false for dense
+    bool use_sparse = true;
+
     // Create BSIM4 model (shared across all tests)
     auto bsim4model = CreateBSIM4Model();
 
@@ -123,7 +128,11 @@ int main(){
         LOG_OUTPUT("Iterations per test: " << num_iterations << "\n\n");
 
         // Allocate solution vectors for this instance count
-        arma::mat LHS = arma::mat(num_instances * 4, num_instances * 4, arma::fill::randu);
+        HybridMatrix LHS(num_instances * 4, num_instances * 4, use_sparse);
+        // For dense mode, seed with random values to match original behavior
+        if (!use_sparse) {
+            LHS.get_dense().randu();
+        }
         arma::vec RHS = arma::vec(num_instances * 4, arma::fill::randu);
         arma::vec pre_NR_solution = arma::vec(num_instances * 4, arma::fill::randu);
         std::vector<bsim4::BSIM4stamp> stamps(num_instances);
@@ -131,6 +140,15 @@ int main(){
         // Create circuit with instances
         CKTcircuit ckt;
         ckt.CKTelements.bsim4 = CreateBSIM4Instances(bsim4model, num_instances);
+
+        // Pattern discovery for sparse matrices (one-time setup)
+        if (use_sparse) {
+            for (auto &b4 : ckt.CKTelements.bsim4) {
+                bsim4::bsim4RecordPattern(b4.bsim4v82Instance, LHS);
+            }
+            LHS.lock_pattern();
+            LOG_OUTPUT("Sparse matrix pattern locked: " << LHS.pattern_size() << " non-zeros\n");
+        }
 
         // Warm-up run to initialize caches
         LOG_OUTPUT("Running warm-up...\n");
@@ -141,6 +159,8 @@ int main(){
         LOG_OUTPUT("Benchmarking single-threaded execution...\n");
         auto start = std::chrono::high_resolution_clock::now();
         for (int iter = 0; iter < num_iterations; ++iter) {
+            LHS.zeros();
+            RHS.zeros();
             loadsingle(ckt, pre_NR_solution, LHS, RHS);
         }
         auto end = std::chrono::high_resolution_clock::now();
@@ -168,6 +188,8 @@ int main(){
 
             start = std::chrono::high_resolution_clock::now();
             for (int iter = 0; iter < num_iterations; ++iter) {
+                LHS.zeros();
+                RHS.zeros();
                 LoadOMPTiming timing = loadomp(ckt, pre_NR_solution, LHS, RHS, stamps);
                 total_calc_time += timing.parallel_calc_time;
                 total_apply_time += timing.apply_stamps_time;

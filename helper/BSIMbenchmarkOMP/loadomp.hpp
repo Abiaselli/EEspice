@@ -1,5 +1,6 @@
 #pragma once
 #include "CKT.hpp"
+#include "hybrid_matrix.hpp"
 #include "bsim4v82/bsim4v82load/bsim4v82calculateStamps.hpp"
 #include "bsim4v82/bsim4v82load/bsim4v82applyStamps.hpp"
 #include <omp.h>
@@ -20,7 +21,7 @@
  * @param stamps Output vector of calculated BSIM4 stamps (size must match device count).
  * @return LoadOMPTiming structure containing timing breakdown
  */
-LoadOMPTiming loadomp(CKTcircuit &ckt, const arma::vec &pre_NR_solution, arma::mat &LHS, arma::vec &RHS, std::vector<bsim4::BSIM4stamp> &stamps){
+LoadOMPTiming loadomp(CKTcircuit &ckt, const arma::vec &pre_NR_solution, HybridMatrix &LHS, arma::vec &RHS, std::vector<bsim4::BSIM4stamp> &stamps){
     LoadOMPTiming timing{0.0, 0.0};
 
     // Parallel BSIM4: compute stamps in parallel using OpenMP (one device per thread)
