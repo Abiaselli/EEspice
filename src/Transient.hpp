@@ -147,11 +147,17 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_
     }
     ARMA_PRINT(trans_op.solution, "The OP analysis (include internal nodes) of the circuit is: ");
 
-    updateDeviceState(ckt);
-    history_trans_update(trans_op, trans_sim);
+    {
+        ScopedTimer t(ckt.sim_stats.simTime.update_device_time);
+        updateDeviceState(ckt);
+    }
+    {
+        ScopedTimer t(ckt.sim_stats.simTime.history_update_time);
+        history_trans_update(trans_op, trans_sim);
+    }
 
     /*-----------------------------------------------------------*/
-    //                Transient simulation start                   
+    //                Transient simulation start
     /*-----------------------------------------------------------*/
     auto tstart_trans = std::chrono::high_resolution_clock::now();
     std::cout << "transient simulation start" << std::endl;
@@ -176,15 +182,26 @@ std::vector<Transient> Transient_ops(CKTcircuit &ckt, TransientSimulator &trans_
         if (trans_sim.trans_config.timestep_control == false)
         {
            Transient trans = Fixed_TimeStep(ckt, trans_sim, modmap);
-           history_trans_update(trans, trans_sim);
-           updateDeviceState(ckt); // Copy state0 to state1
-            
+           {
+               ScopedTimer t(ckt.sim_stats.simTime.history_update_time);
+               history_trans_update(trans, trans_sim);
+           }
+           {
+               ScopedTimer t(ckt.sim_stats.simTime.update_device_time);
+               updateDeviceState(ckt); // Copy state0 to state1
+           }
         }
         // time step control: varibale time step
         else{
             Transient trans = Varibale_TimeStep(ckt, trans_sim, modmap);
-            history_trans_update(trans, trans_sim);
-            updateDeviceState(ckt); // Copy state0 to state1
+            {
+                ScopedTimer t(ckt.sim_stats.simTime.history_update_time);
+                history_trans_update(trans, trans_sim);
+            }
+            {
+                ScopedTimer t(ckt.sim_stats.simTime.update_device_time);
+                updateDeviceState(ckt); // Copy state0 to state1
+            }
         }
 
     } while (trans_sim.vec_trans.back().time_trans < trans_sim.trans_config.t_end && trans_sim.trans_end == false);

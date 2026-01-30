@@ -52,10 +52,18 @@ inline void SimulationStatistics::printStatistics() const {
     std::cout << "  Parse time:         " << formatDuration(simTime.parse_time.total()) << "\n";
     std::cout << "  Setup time:         " << formatDuration(simTime.setup_time.total()) << "\n";
     std::cout << "  Analysis time:      " << formatDuration(simTime.analysis_time.total()) << "\n";
+    std::cout << "  Newton method:      " << formatDuration(simTime.newton_time.total()) << "\n";
     std::cout << "  Matrix loading:     " << formatDuration(simTime.matrix_load_time.total()) << "\n";
     std::cout << "  Solver time:        " << formatDuration(simTime.solve_time.total()) << "\n";
-    std::cout << "  Newton method:      " << formatDuration(simTime.newton_time.total()) << "\n";
     std::cout << "  BSIM4 evaluation:   " << formatDuration(simTime.bsim4_time.total()) << "\n";
+
+    // Non-Newton profiling times
+    std::cout << "\nNon-Newton Code Profiling:\n";
+    std::cout << "  get_cap_state:      " << formatDuration(simTime.get_cap_state_time.total()) << "\n";
+    std::cout << "  LTE calculation:    " << formatDuration(simTime.lte_calc_time.total()) << "\n";
+    std::cout << "  updateDeviceState:  " << formatDuration(simTime.update_device_time.total()) << "\n";
+    std::cout << "  history_update:     " << formatDuration(simTime.history_update_time.total()) << "\n";
+    std::cout << "  NIcomCof:           " << formatDuration(simTime.nicomcof_time.total()) << "\n";
 
     // Iteration and matrix information
     std::cout << "\nSimulation Details:\n";

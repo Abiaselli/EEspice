@@ -13,6 +13,7 @@
 #include "Transient_calcs.hpp"
 #include "integrate.hpp"
 #include "eemath.hpp"
+#include "XB_timer.hpp"
 
 struct single_timestep
 {
@@ -291,6 +292,7 @@ single_timestep single_solution_solver(const double &h, const Transient &trans, 
     if(trans_sim.trans_config.non_linear){
         single_h.solution = NewtonRaphson_system(ckt, h, trans.mode, single_h.t, trans_sim.vec_trans.back().solution, modmap);
         if(NR_ITE < ITL4){
+            ScopedTimer t(ckt.sim_stats.simTime.get_cap_state_time);
             single_h.CapState = get_cap_state(ckt, single_h.solution, single_h.h, trans_sim.vec_trans);
         }
     }
@@ -299,17 +301,23 @@ single_timestep single_solution_solver(const double &h, const Transient &trans, 
         // It works directly on ckt.cktmatrix
         Dynamic(ckt, h, trans_sim.vec_trans.back().solution, trans.mode, single_h.t, ckt.sim_stats.simTime);
         single_h.solution = solver(ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, ckt);
-        single_h.CapState = get_cap_state(ckt, single_h.solution, single_h.h, trans_sim.vec_trans);
+        {
+            ScopedTimer t(ckt.sim_stats.simTime.get_cap_state_time);
+            single_h.CapState = get_cap_state(ckt, single_h.solution, single_h.h, trans_sim.vec_trans);
+        }
     }
 
     return single_h;
 }
 
 bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &single_h,
-                        double &temp_h, const TransientSimulator &trans_sim, const CKTcircuit &ckt){
+                        double &temp_h, const TransientSimulator &trans_sim, CKTcircuit &ckt){
     if(converged){
 
-       LTE = single_LTE_ngspice(single_h, trans_sim.vec_trans, ckt);
+       {
+           ScopedTimer t(ckt.sim_stats.simTime.lte_calc_time);
+           LTE = single_LTE_ngspice(single_h, trans_sim.vec_trans, ckt);
+       }
 
        if(LTE.h_bound.empty()){
            throw SimulationException("Error in single_LTE_check function: h_bound is empty!", "SINGLE_LTE_CHECK");
@@ -353,7 +361,10 @@ single_timestep single_next_h(const Transient &trans, CKTcircuit &ckt, const Tra
     single_Truncation_error LTE;
 
     do{
-        NIcomCof(ckt, temp_h); // Calculate the timestep-dependent terms used in the numerical integration
+        {
+            ScopedTimer t(ckt.sim_stats.simTime.nicomcof_time);
+            NIcomCof(ckt, temp_h); // Calculate the timestep-dependent terms used in the numerical integration
+        }
         single_h = single_solution_solver(temp_h, trans, ckt, trans_sim, modmap);
 
         total_timepoint += 1;

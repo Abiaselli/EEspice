@@ -90,4 +90,10 @@ struct SimulationTime{
     XB_Timer solve_time;        // solver time
     XB_Timer newton_time;       // Newton's method time
     XB_Timer bsim4_time;        // BSIM4 device evaluation time
+    // Profiling timers for non-Newton code
+    XB_Timer get_cap_state_time;     // get_cap_state() time
+    XB_Timer lte_calc_time;          // single_LTE_ngspice() time
+    XB_Timer update_device_time;     // updateDeviceState() time
+    XB_Timer history_update_time;    // history_trans_update() time
+    XB_Timer nicomcof_time;          // NIcomCof() time
 };
