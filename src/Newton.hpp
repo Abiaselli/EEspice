@@ -24,6 +24,7 @@
 #include "bsim4v82/bsim4v82load/bsim4v82load.hpp"
 #include "NonLinearMuti.hpp"
 #include "klusolver.hpp"
+#include "NIcomCof.hpp"
 
 
 /**
