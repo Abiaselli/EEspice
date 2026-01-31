@@ -95,6 +95,9 @@ void NonLinear(CKTcircuit &ckt, const arma::vec &pre_NR_solution, const Modelmap
         for (auto &bsim4 : ckt.CKTelements.bsim4){
             const bsim4::BSIM4model &b4model = *bsim4.bsim4v82Instance.BSIM4modPtr;
             bsim4::BSIM4V82 &b4instance = bsim4.bsim4v82Instance;
+            if (std::abs(ckt.CKTag[0] - 1.0/h) > 1e-6 * (1.0/h)) {
+                std::cout << "CKTag mismatch: CKTag0=" << ckt.CKTag[0] << " 1/h=" << 1.0/h << "\n";
+            }
             bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS);
         }
     }
@@ -217,6 +220,7 @@ arma::vec NewtonRaphson_system(CKTcircuit &ckt, const double &h, const int &mode
     const arma::vec &pre_global_solution, const Modelmap &modmap)
 {
     ScopedTimer NRTimer(ckt.sim_stats.simTime.newton_time);
+    NIcomCof(ckt, h);   // Compute integration coefficients for timestep h
     int NR_iteration_counter = 0;
     bool isconverge = false;
     arma::vec solution = pre_global_solution;

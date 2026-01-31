@@ -117,6 +117,7 @@ NIcomCof(CKTcircuit &ckt, double h)
     // int i,j,k;          /* generic loop indicies */
     // double arg;
     // double arg1;
+    ScopedTimer t(ckt.sim_stats.simTime.nicomcof_time);
 
     /*  this routine calculates the timestep-dependent terms used in the
      *  numerical integration.

@@ -361,10 +361,6 @@ single_timestep single_next_h(const Transient &trans, CKTcircuit &ckt, const Tra
     single_Truncation_error LTE;
 
     do{
-        {
-            ScopedTimer t(ckt.sim_stats.simTime.nicomcof_time);
-            NIcomCof(ckt, temp_h); // Calculate the timestep-dependent terms used in the numerical integration
-        }
         single_h = single_solution_solver(temp_h, trans, ckt, trans_sim, modmap);
 
         total_timepoint += 1;
