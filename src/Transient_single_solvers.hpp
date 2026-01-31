@@ -145,11 +145,13 @@ single_Truncation_error single_LTE_ngspice(const single_timestep &single_h, cons
         std::vector<double> qvals(DIVorder + 1);
         std::vector<double> deltas(DIVorder);
         for (unsigned j = 0; j < DIVorder; ++j) {
-            qvals[j]  = vec_trans[start_idx + j].CapState.CapCharge[i];
-            deltas[j] = vec_trans[start_idx + j + 1].h;
+            qvals[j] = vec_trans[start_idx + j].CapState.CapCharge[i];
+            if (j + 1 < DIVorder) {
+                deltas[j] = vec_trans[start_idx + j + 1].h;
+            }
         }
-        qvals[DIVorder]        = single_h.CapState.CapCharge[i];
-        deltas[DIVorder - 1]   = single_h.h;
+        qvals[DIVorder]      = single_h.CapState.CapCharge[i];
+        deltas[DIVorder - 1] = single_h.h;
 
         // 5) in-place divided differences to get (order+1)th diff
         for (int level = DIVorder; level > 0; --level) {
@@ -258,7 +260,9 @@ single_Truncation_error single_LTE_divided_diff(const single_timestep &single_h,
             // qValues[0..DIVorder-1] from history
             qValues[j] = vec_trans[start_idx + j].CapState.CapCharge[i];
             // hValues[0..DIVorder-2] from history steps
-            hValues[j] = vec_trans[start_idx + j + 1].h;
+            if (j + 1 < DIVorder) {
+                hValues[j] = vec_trans[start_idx + j + 1].h;
+            }
         }
         // last entries
         qValues[DIVorder]   = single_h.CapState.CapCharge[i];
