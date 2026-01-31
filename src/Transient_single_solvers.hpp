@@ -8,6 +8,7 @@
 #include <vector>
 #include <algorithm>
 #include <array>
+#include <optional>
 
 #include "sim_variables.hpp"
 #include "Transient_calcs.hpp"
@@ -351,9 +352,19 @@ bool single_LTE_check(single_Truncation_error &LTE, const single_timestep &singl
     }
 }
 
-single_timestep single_next_h(const Transient &trans, CKTcircuit &ckt, const TransientSimulator &trans_sim, const Modelmap &modmap){
+single_timestep single_next_h(const Transient &trans, CKTcircuit &ckt, const TransientSimulator &trans_sim,
+                              const Modelmap &modmap, std::optional<double> next_breakpoint = std::nullopt){
 
     double temp_h = trans_sim.vec_trans.back().next_h;                     // The temporary time step for this function
+    double last_time = trans_sim.vec_trans.back().time_trans;
+
+    // Clamp to breakpoint if one exists (clamp before solving, not after)
+    if (next_breakpoint.has_value()) {
+        double dist_to_bp = next_breakpoint.value() - last_time;
+        if (temp_h > dist_to_bp) {
+            temp_h = dist_to_bp;
+        }
+    }
 
     bool LTE_check= false;
 

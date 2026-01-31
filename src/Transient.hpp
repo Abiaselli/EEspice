@@ -47,66 +47,44 @@ Transient Varibale_TimeStep(CKTcircuit &ckt, TransientSimulator &trans_sim, cons
     else
     {
         // Just to prevent single_next_h from directly using time_trans as the time_trans of the previous timestep (not recommended).
-        trans.time_trans = trans_sim.vec_trans.back().time_trans; 
+        trans.time_trans = trans_sim.vec_trans.back().time_trans;
+        double last_time = trans_sim.vec_trans.back().time_trans;
 
-        single_timestep single_h = single_next_h(trans, ckt, trans_sim, modmap);
-        
-        // The current time of the transient simulation. Use to compare with the breakpoints!
-        double current_time = single_h.h + trans_sim.vec_trans.back().time_trans;
-
-        /*  If the time difference between the previous simulation time point and the breakpoint is less than 10*hmin,
-            it will be counted as 1 time point and no additional breakpoint simulation will be performed.*/
-        if (trans_sim.breakpoints.empty() == false && trans_sim.breakpoints.front() - trans_sim.vec_trans.back().time_trans < 10 * trans_sim.trans_config.h_MIN)
-        {
+        // Check if breakpoint is too close (within 10*h_MIN) — skip it
+        if (!trans_sim.breakpoints.empty() &&
+            trans_sim.breakpoints.front() - last_time < 10 * trans_sim.trans_config.h_MIN) {
             trans_sim.breakpoints.pop_front();
-            if (trans_sim.breakpoints.empty())
-            {
+            if (trans_sim.breakpoints.empty()) {
                 trans_sim.trans_end = true;
             }
         }
 
-        if (trans_sim.breakpoints.empty() == false && current_time > trans_sim.breakpoints.front())
-        {
-            Transient breakpoints_trans;
-            breakpoints_trans.mode = 1; // 0 to do OP analysis, 1 to do transient simulation
+        // Pass breakpoint to single_next_h for clamping (clamp before solving, not after)
+        std::optional<double> next_bp = std::nullopt;
+        if (!trans_sim.breakpoints.empty()) {
+            next_bp = trans_sim.breakpoints.front();
+        }
 
-            std::cout << "The time step is too large, back to breakpoint" << std::endl;
-            breakpoints_trans.time_trans = trans_sim.breakpoints.front();
-            breakpoints_trans.h = breakpoints_trans.time_trans - trans_sim.vec_trans.back().time_trans;
+        single_timestep single_h = single_next_h(trans, ckt, trans_sim, modmap, next_bp);
 
-            breakpoints_trans.solution = NewtonRaphson_system(ckt, breakpoints_trans.h, 1, breakpoints_trans.time_trans, trans_sim.vec_trans.back().solution, modmap);
+        double current_time = single_h.h + last_time;
 
-            breakpoints_trans.CapState = get_cap_state(ckt, breakpoints_trans.solution, breakpoints_trans.h, trans_sim.vec_trans);
-
-            breakpoints_trans.trans_count = trans_sim.vec_trans.back().trans_count + 1;
-            breakpoints_trans.next_h = breakpoints_trans.h;
-            
-            std::cout << "time step: " << breakpoints_trans.h << std::endl;
-            std::cout << "time_trans: " << breakpoints_trans.time_trans << std::endl;
-
+        // Pop breakpoint if we landed on it (within 10*h_MIN, consistent with check above)
+        if (!trans_sim.breakpoints.empty() &&
+            trans_sim.breakpoints.front() - current_time < 10 * trans_sim.trans_config.h_MIN) {
             trans_sim.breakpoints.pop_front();
-            trans = std::move(breakpoints_trans);
-        }
-
-        else
-        {
-            if (trans_sim.breakpoints.empty() == false && current_time == trans_sim.breakpoints.front())
-            {
-                trans_sim.breakpoints.pop_front();
-                if (trans_sim.breakpoints.empty())
-                {
-                    trans_sim.trans_end = true;
-                }
+            if (trans_sim.breakpoints.empty()) {
+                trans_sim.trans_end = true;
             }
-
-            // trans has already been updated in the multi_next_h function
-            trans.h = single_h.h;
-            trans.time_trans = trans_sim.vec_trans.back().time_trans + trans.h;
-            trans.next_h = single_h.next_h;                          // Sometimes temp_h(next_h) sometimes is 2 * single_h.h!
-            trans.solution = std::move(single_h.solution);
-            trans.CapState = std::move(single_h.CapState);
-            trans.trans_count = trans_sim.vec_trans.back().trans_count + 1;
         }
+
+        // Update trans struct
+        trans.h = single_h.h;
+        trans.time_trans = current_time;
+        trans.next_h = single_h.next_h;
+        trans.solution = std::move(single_h.solution);
+        trans.CapState = std::move(single_h.CapState);
+        trans.trans_count = trans_sim.vec_trans.back().trans_count + 1;
     }
 
     return trans;
