@@ -91,6 +91,8 @@ CapacitanceState get_cap_state(const CKTcircuit &ckt, const arma::vec &solution,
         if(bsim4.bsim4v82Instance.BSIM4rbodyMod){
             CapCharge.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qbs]));
             CapCurrent.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qbs+1]));
+            CapCharge.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qbd]));
+            CapCurrent.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qbd+1]));
         }
         if(bsim4.bsim4v82Instance.BSIM4rgateMod == 3){
             CapCharge.push_back(std::abs(bsim4.bsim4v82Instance.BSIM4states0[bsim4::BSIM4qgmid]));
