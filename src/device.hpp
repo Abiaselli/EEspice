@@ -430,44 +430,90 @@ int V_pulse_assigner(int node_x, int node_y, double V_value, HybridMatrix &LHS, 
     return RHS.n_rows - 1;
 }
 
-double V_pulse_value(double V1, double V2, double t1, double td, double tr, double tf, double tpw, double tper)
+/**
+ * @brief Computes PULSE voltage value matching ngspice v44 behavior
+ *
+ * Key difference from old implementation: subtract TD BEFORE applying fmod,
+ * which prevents spurious resets at t = N*PER when TD != 0.
+ *
+ * @param V1 Initial voltage level
+ * @param V2 Pulsed voltage level
+ * @param time Simulation time
+ * @param TD Delay time
+ * @param TR Rise time (0 means use CKTstep)
+ * @param TF Fall time (0 means use CKTstep)
+ * @param PW Pulse width (0 means use CKTfinalTime)
+ * @param PER Period (0 means use CKTfinalTime)
+ * @param param8 NP (number of pulses) or PHASE (degrees) depending on phase_mode
+ * @param phase_mode If true, param8 is PHASE; otherwise NP
+ * @param CKTstep User-requested timestep from .tran
+ * @param CKTfinalTime Final simulation time
+ * @return Voltage value at the given time
+ */
+double V_pulse_value(double V1, double V2, double time,
+                     double TD, double TR, double TF, double PW, double PER,
+                     double param8, bool phase_mode,
+                     double CKTstep, double CKTfinalTime)
 {
-    double v{};
-    t1 = fmod(t1, tper);
-    if (tper < tr + tpw + tf)
-    {
-        throw DeviceException("Period is incorrect", "V_pulse_value");
+    // Apply ngspice defaults: treat 0 as "use default"
+    if (TR == 0.0) TR = CKTstep;
+    if (TF == 0.0) TF = CKTstep;
+    if (PW == 0.0) PW = CKTfinalTime;
+    if (PER == 0.0) PER = CKTfinalTime;
+
+    double tmax = 1e99;  // Effectively unlimited
+
+    // Step 1: Shift time by delay TD (ngspice: time -= TD)
+    time -= TD;
+
+    // Step 2: Handle 8th parameter (PHASE or NP)
+    if (phase_mode) {
+        // PHASE mode (ngspice xs compatibility)
+        // Exact ngspice algorithm - do NOT reinterpret signs
+        double phase = param8 / 360.0;
+        phase = std::fmod(phase, 1.0);
+        double deltat = phase * PER;
+        while (deltat > 0.0) {
+            deltat -= PER;
+        }
+        time += deltat;
+    } else if (param8 > 0.0) {
+        // NP mode: limit number of pulses
+        tmax = param8 * PER;
+    }
+    // param8 == 0 or omitted: unlimited pulses (tmax stays 1e99)
+
+    // Step 3: Check NP limit (only in non-phase mode)
+    if (!phase_mode && time > tmax) {
+        return V1;
     }
 
-    if (t1 < 0)
-    {
-        throw DeviceException("Simulation time in pulse voltage is wrong", "V_pulse_value");
+    // Step 4: Apply periodicity ONLY if time > PER
+    if (time > PER) {
+        double basetime = PER * std::floor(time / PER);
+        time -= basetime;
     }
-    else if (t1 >= 0 && t1 < td)
-    {
-        v = V1;
+
+    // Step 5: Waveform evaluation (exact ngspice comparisons)
+    if (time <= 0.0 || time >= TR + PW + TF) {
+        return V1;
+    } else if (time >= TR && time <= TR + PW) {
+        return V2;
+    } else if (time > 0.0 && time < TR) {
+        return V1 + (V2 - V1) * time / TR;
+    } else {
+        // time > TR + PW && time < TR + PW + TF (fall region)
+        return V2 + (V1 - V2) * (time - (TR + PW)) / TF;
     }
-    else if (t1 >= td && t1 < td + tr)
-    {
-        v = V1 + (V2 - V1) * (t1 - td) / tr;
-    }
-    else if (t1 >= td + tr && t1 < td + tr + tpw)
-    {
-        v = V2;
-    }
-    else if (t1 >= td + tr + tpw && t1 < td + tr + tpw + tf)
-    {
-        v = V2 + (V1 - V2) * (t1 - td - tr - tpw) / tf;
-    }
-    else if (t1 >= td + tr + tpw + tf && t1 < tper)
-    {
-        v = V1;
-    }
-    else
-    {
-        throw DeviceException("Pulse voltage Error", "V_pulse_value");
-    }
-    return v;
+}
+
+// Legacy overload for backward compatibility (uses old signature)
+double V_pulse_value(double V1, double V2, double time,
+                     double TD, double TR, double TF, double PW, double PER)
+{
+    // Call the new function with param8=0 (unlimited pulses), phase_mode=false,
+    // and use small defaults for CKTstep (edge case handling)
+    return V_pulse_value(V1, V2, time, TD, TR, TF, PW, PER, 0.0, false, 1e-9, 1e99);
 }
 
 int V_sin_assigner(int node_x, int node_y, double vo, HybridMatrix &LHS, arma::vec &RHS){

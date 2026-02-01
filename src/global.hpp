@@ -28,7 +28,7 @@ struct VoltageSource
 };
 
 struct Pulsevoltage
-{   
+{
     std::string id_str;
     int id{};
     std::string nodePos_str, nodeNeg_str;
@@ -40,6 +40,7 @@ struct Pulsevoltage
     double tf{};
     double pw{};
     double per{};
+    double param8{};    // NP (number of pulses) or PHASE (degrees) depending on mode
 
     int RHS_locate{};   // RHS index (starts from 0)
 };

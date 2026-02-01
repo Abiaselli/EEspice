@@ -49,6 +49,7 @@ struct CircuitParser
     bool acct = false;        // If true, will print the statistics of the simulation
     bool multithreaded = false; // If true, will use multithreading for simulation
     int num_threads = 1;      // Number of threads to use if multithreading is enabled
+    bool pulse_phase_mode = false; // If true, 8th PULSE param is PHASE not NP (ngspice xs mode)
 
     // Parser Timer
     XB_Timer parseTimer;
@@ -302,6 +303,10 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 {
                     parser.acct = true;
                 }
+                else if (option_lower == "pulsephase")
+                {
+                    parser.pulse_phase_mode = true;
+                }
                 else
                 {
                     std::cerr << "Warning: Unknown .options parameter: " << option_token << std::endl;
@@ -330,7 +335,11 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
 
                 // Split the pulseParamsString into individual parameters
                 std::istringstream pulseParamsStream(pulseParamsString);
-                std::string v1, v2, td, tr, tf, pw, per;
+                std::vector<std::string> params;
+                std::string param;
+                while (pulseParamsStream >> param) {
+                    params.push_back(param);
+                }
 
                 pv.id_str = id_str;
                 pv.id = v_id;
@@ -339,15 +348,15 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 pv.nodePos = convertToNode(v_nodePos_str, cktmap.map_nodes);
                 pv.nodeNeg = convertToNode(v_nodeNeg_str, cktmap.map_nodes);
 
-                pulseParamsStream >> v1 >> v2 >> td >> tr >> tf >> pw >> per;
-
-                pv.V1 = convertToValue(v1);
-                pv.V2 = convertToValue(v2);
-                pv.td = convertToValue(td);
-                pv.tr = convertToValue(tr);
-                pv.tf = convertToValue(tf);
-                pv.pw = convertToValue(pw);
-                pv.per = convertToValue(per);
+                // Parse with defaults of 0 (actual ngspice defaults applied later in V_pulse_value)
+                pv.V1 = params.size() > 0 ? convertToValue(params[0]) : 0.0;
+                pv.V2 = params.size() > 1 ? convertToValue(params[1]) : 0.0;
+                pv.td = params.size() > 2 ? convertToValue(params[2]) : 0.0;
+                pv.tr = params.size() > 3 ? convertToValue(params[3]) : 0.0;
+                pv.tf = params.size() > 4 ? convertToValue(params[4]) : 0.0;
+                pv.pw = params.size() > 5 ? convertToValue(params[5]) : 0.0;
+                pv.per = params.size() > 6 ? convertToValue(params[6]) : 0.0;
+                pv.param8 = params.size() > 7 ? convertToValue(params[7]) : 0.0;
 
                 parser.elements.pulseVoltages.emplace_back(pv);
             }

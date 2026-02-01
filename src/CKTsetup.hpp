@@ -91,7 +91,9 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Matr
     // ckt.elements = parser.getCircuitElements();
     ckt.CKTelements = parser.elements;
     ckt.CKTtemp = 300.15;                                   // Initial temperature of the circuit
-    ckt.CKTfinalTime = parser.double_t_end;                 // Final time for simulation
+    ckt.CKTfinalTime = parser.double_t_end;                 // Final time for simulation (TSTOP)
+    ckt.CKTstep = parser.double_init_h;                     // User-requested step from .tran (TSTEP)
+    ckt.CKTpulsePhaseMode = parser.pulse_phase_mode;        // PULSE phase mode (ngspice xs compatibility)
     ckt.spiceCompatible.setMode(0);                         // Initialize the CKTmode to 0
     ckt.CKTintegrateMethod = BACKWARD_EULER;                // Set the integration method to Backward Euler
     ckt.CKTorder = 1;                                       // Set the order of the integration method to 1

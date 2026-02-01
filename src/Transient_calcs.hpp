@@ -152,14 +152,20 @@ TransientSimulator Transsetup(const CircuitParser &parser, const CKTcircuit &ckt
 }
 
 /*
-    1. Start of rise time: t=td. This is when the voltage begins to transition from V1 to V2​.
-    2. End of rise time: t=td+tr. This is when the voltage finishes transitioning to V2​.
-    3. Start of fall time: t=td+tr+tpw. This is when the voltage begins to transition back to V1
-    4​. End of fall time: t=td+tr+tpw+tf. This is when the voltage finishes transitioning back to V1​.
+    Generates breakpoints for transient simulation matching ngspice v44 behavior.
+
+    Breakpoints are generated at waveform transition points:
+    1. Start of rise time: t=TD_eff. This is when the voltage begins to transition from V1 to V2​.
+    2. End of rise time: t=TD_eff+TR. This is when the voltage finishes transitioning to V2​.
+    3. Start of fall time: t=TD_eff+TR+PW. This is when the voltage begins to transition back to V1
+    4​. End of fall time: t=TD_eff+TR+PW+TF. This is when the voltage finishes transitioning back to V1​.
+
+    Key difference from old implementation: properly handles phase mode and NP (number of pulses)
+    by computing an effective TD that accounts for phase shift, and limiting breakpoints
+    to the number of pulses specified.
 */
 std::deque<double> get_breakpoints(const CKTcircuit &ckt, const TransientSimulator &trans_sim)
 {
-
     std::deque<double> breakpoints;
 
     if (ckt.CKTelements.pulseVoltages.empty())
@@ -167,53 +173,86 @@ std::deque<double> get_breakpoints(const CKTcircuit &ckt, const TransientSimulat
         return breakpoints;
     }
 
-    for (const auto &pulse : ckt.CKTelements.pulseVoltages){
-        for(double cycle_start = 0; cycle_start < trans_sim.trans_config.t_end; cycle_start += pulse.per){
+    for (const auto &pulse : ckt.CKTelements.pulseVoltages) {
+        // Apply ngspice defaults: treat 0 as "use default"
+        double TR = (pulse.tr == 0.0) ? ckt.CKTstep : pulse.tr;
+        double TF = (pulse.tf == 0.0) ? ckt.CKTstep : pulse.tf;
+        double PW = (pulse.pw == 0.0) ? ckt.CKTfinalTime : pulse.pw;
+        double PER = (pulse.per == 0.0) ? ckt.CKTfinalTime : pulse.per;
+        double TD = pulse.td;
 
+        // Calculate effective TD for phase mode
+        double TD_eff = TD;
+        if (ckt.CKTpulsePhaseMode && pulse.param8 != 0.0) {
+            double phase = pulse.param8 / 360.0;
+            phase = std::fmod(phase, 1.0);
+            double deltat = phase * PER;
+            while (deltat > 0.0) deltat -= PER;
+            TD_eff = TD - deltat;  // Note: deltat <= 0, so TD_eff >= TD
+        }
+
+        // Calculate tmax for NP mode
+        double tmax = trans_sim.trans_config.t_end;
+        if (!ckt.CKTpulsePhaseMode && pulse.param8 > 0.0) {
+            tmax = std::min(tmax, TD + pulse.param8 * PER);
+        }
+
+        // Generate breakpoints for each period
+        for (double cycle_start = 0.0; ; cycle_start += PER) {
             double cycle_times[] = {
-                pulse.td + cycle_start, 
-                pulse.td + pulse.tr + cycle_start, 
-                pulse.td + pulse.tr + pulse.pw + cycle_start, 
-                pulse.td + pulse.tr + pulse.pw + pulse.tf + cycle_start
+                TD_eff + cycle_start,                    // Start of rise
+                TD_eff + TR + cycle_start,               // End of rise / start of high
+                TD_eff + TR + PW + cycle_start,          // End of high / start of fall
+                TD_eff + TR + PW + TF + cycle_start      // End of fall
             };
 
-            for(double t : cycle_times){
-                if(t <= trans_sim.trans_config.t_end){
+            bool any_valid = false;
+            for (double t : cycle_times) {
+                if (t > 0.0 && t <= tmax) {
                     breakpoints.push_back(t);
+                    any_valid = true;
                 }
             }
-            
+
+            // Stop if all breakpoints exceed tmax or t_end
+            if (cycle_times[0] > tmax || cycle_times[0] > trans_sim.trans_config.t_end) {
+                break;
+            }
+        }
+
+        // Add tmax as final breakpoint for NP mode
+        if (!ckt.CKTpulsePhaseMode && pulse.param8 > 0.0) {
+            double np_end = TD + pulse.param8 * PER;
+            if (np_end > 0.0 && np_end <= trans_sim.trans_config.t_end) {
+                breakpoints.push_back(np_end);
+            }
         }
     }
 
     std::sort(breakpoints.begin(), breakpoints.end());
 
-    if (breakpoints.at(0) == 0)
-    {
+    // Remove t=0 if present
+    if (!breakpoints.empty() && breakpoints.front() == 0.0) {
         breakpoints.pop_front();
     }
 
-    if (breakpoints.back() != trans_sim.trans_config.t_end)
-    {
+    // Ensure t_end is included
+    if (breakpoints.empty() || breakpoints.back() != trans_sim.trans_config.t_end) {
         breakpoints.push_back(trans_sim.trans_config.t_end);
     }
 
-    // Ensure the difference between consecutive breakpoints is at least 1e-13
-    std::deque<double> filtered_breakpoints;
-
-    if (!breakpoints.empty())
-    {
-        filtered_breakpoints.push_back(breakpoints.front());
-        for (size_t i = 1; i < breakpoints.size(); ++i)
-        {
-            if (breakpoints.at(i) - filtered_breakpoints.back() >= 1e-13)
-            {
-                filtered_breakpoints.push_back(breakpoints[i]);
+    // Remove duplicates and ensure minimum spacing
+    std::deque<double> filtered;
+    if (!breakpoints.empty()) {
+        filtered.push_back(breakpoints.front());
+        for (size_t i = 1; i < breakpoints.size(); ++i) {
+            if (breakpoints[i] - filtered.back() >= 1e-13) {
+                filtered.push_back(breakpoints[i]);
             }
         }
     }
 
-    return filtered_breakpoints;
+    return filtered;
 }
 
 // Assigning the stamp matrices for dynamic and non-linear components and update the LHS and RHS matrices

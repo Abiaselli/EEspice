@@ -52,7 +52,12 @@ void Dynamic(CKTcircuit &ckt, const double h, const arma::vec &pre_global_soluti
     // Stamp pulse voltage sources
     for (const auto &pulse : ckt.CKTelements.pulseVoltages)
     {
-        double val_pulse = V_pulse_value(pulse.V1, pulse.V2, time_trans, pulse.td, pulse.tr, pulse.tf, pulse.pw, pulse.per);
+        double val_pulse = V_pulse_value(
+            pulse.V1, pulse.V2, time_trans,
+            pulse.td, pulse.tr, pulse.tf, pulse.pw, pulse.per,
+            pulse.param8, ckt.CKTpulsePhaseMode,
+            ckt.CKTstep, ckt.CKTfinalTime
+        );
         ckt.cktmatrix->RHS(pulse.RHS_locate) += (val_pulse - pulse.V1);
     }
 
