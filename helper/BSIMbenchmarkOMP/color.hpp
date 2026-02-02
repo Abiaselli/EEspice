@@ -147,12 +147,10 @@ LoadOMPTiming loadompColor3(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
     return timing;
 }
 
-LoadOMPTiming loadompColor4(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
+void loadompColor4(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
                       HybridMatrix &LHS, arma::vec &RHS,
                       const BSIM4Coloring &coloring)
 {
-    LoadOMPTiming timing{0.0, 0.0};
-
     if (!ckt.CKTelements.bsim4.empty()) {
         // Graph coloring
         const auto& color_groups = coloring.getColorGroups();
@@ -173,11 +171,6 @@ LoadOMPTiming loadompColor4(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
                 bsim4::bsim4applyStamps(instance, stamp, LHS, RHS);
             }
         }
-        auto end_fused = std::chrono::high_resolution_clock::now();
-        // Report fused time in apply_stamps_time (parallel_calc_time = 0 since no separate phase)
-        timing.apply_stamps_time = std::chrono::duration<double>(end_fused - start_fused).count();
     }
-
-    return timing;
 }
 
