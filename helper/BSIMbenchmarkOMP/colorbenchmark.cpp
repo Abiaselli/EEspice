@@ -23,6 +23,7 @@
 // Benchmarking includes
 #include "color.hpp"
 #include "single.hpp"
+#include "loadomp.hpp"
 
 
 // Removed global num_instances - now variable in main loop
@@ -145,6 +146,7 @@ int main(){
 
     // Storage for detailed results (one row per test configuration)
     struct BenchmarkResult {
+        std::string method;           // "loadomp" or "loadompColor4"
         size_t num_instances;
         int num_iterations;
         int node_distribution_count;
@@ -271,11 +273,13 @@ int main(){
                       << single_time.count() << " seconds\n\n");
 
             // Test different thread counts
-            double best_speedup = 0;
-            int best_threads = 1;
+            double best_speedup_color = 0;
+            int best_threads_color = 1;
+            double best_speedup_omp = 0;
+            int best_threads_omp = 1;
 
-            LOG_OUTPUT("Testing different thread counts:\n");
-            LOG_OUTPUT("--------------------------------\n");
+            LOG_OUTPUT("Testing loadompColor4 (graph coloring method):\n");
+            LOG_OUTPUT("----------------------------------------------\n");
 
             for (int num_threads : thread_counts) {
                 if (num_threads > omp_get_num_procs()) {
@@ -289,7 +293,7 @@ int main(){
 
                 start = std::chrono::high_resolution_clock::now();
                 for (int iter = 0; iter < num_iterations; ++iter) {
-                    LoadOMPTiming timing = loadompColor(ckt, pre_NR_solution, LHS, RHS, stamps, coloring);
+                    LoadOMPTiming timing = loadompColor4(ckt, pre_NR_solution, LHS, RHS, coloring);
                     total_calc_time += timing.parallel_calc_time;
                     total_apply_time += timing.apply_stamps_time;
                 }
@@ -301,7 +305,7 @@ int main(){
                 double total_loadomp_time = total_calc_time + total_apply_time;
                 double apply_percentage = (total_apply_time / total_loadomp_time) * 100.0;
 
-                LOG_OUTPUT("Parallel (" << std::setw(3) << num_threads << " threads): "
+                LOG_OUTPUT("Color4  (" << std::setw(3) << num_threads << " threads): "
                           << std::fixed << std::setprecision(6) << parallel_time.count()
                           << " s  |  Speedup: " << std::setprecision(2) << std::setw(5) << speedup
                           << "x  |  Eff: " << std::setprecision(1) << std::setw(4) << efficiency << "%"
@@ -311,6 +315,7 @@ int main(){
 
                 // Store result for this configuration
                 all_results.push_back({
+                    "loadompColor4",                  // Method
                     num_instances,                    // NumInstances
                     num_iterations,                   // NumIterations
                     node_distribution_count,          // NodeDistributionCount
@@ -327,14 +332,76 @@ int main(){
                     efficiency                        // Efficiency_pct
                 });
 
-                if (speedup > best_speedup) {
-                    best_speedup = speedup;
-                    best_threads = num_threads;
+                if (speedup > best_speedup_color) {
+                    best_speedup_color = speedup;
+                    best_threads_color = num_threads;
                 }
             }
 
-            LOG_OUTPUT("\nBest result: " << best_threads << " threads with "
-                      << std::fixed << std::setprecision(2) << best_speedup << "x speedup\n");
+            LOG_OUTPUT("\nTesting loadomp (compute-parallel, stamp-serial baseline):\n");
+            LOG_OUTPUT("-----------------------------------------------------------\n");
+
+            for (int num_threads : thread_counts) {
+                if (num_threads > omp_get_num_procs()) {
+                    continue; // Skip silently
+                }
+
+                omp_set_num_threads(num_threads);
+
+                double total_calc_time_omp = 0.0;
+                double total_apply_time_omp = 0.0;
+
+                start = std::chrono::high_resolution_clock::now();
+                for (int iter = 0; iter < num_iterations; ++iter) {
+                    LoadOMPTiming timing_omp = loadomp(ckt, pre_NR_solution, LHS, RHS, stamps);
+                    total_calc_time_omp += timing_omp.parallel_calc_time;
+                    total_apply_time_omp += timing_omp.apply_stamps_time;
+                }
+                end = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double> parallel_time_omp = end - start;
+
+                double speedup_omp = single_time.count() / parallel_time_omp.count();
+                double efficiency_omp = (speedup_omp / num_threads) * 100.0;
+                double total_loadomp_time_omp = total_calc_time_omp + total_apply_time_omp;
+                double apply_percentage_omp = (total_apply_time_omp / total_loadomp_time_omp) * 100.0;
+
+                LOG_OUTPUT("loadomp (" << std::setw(3) << num_threads << " threads): "
+                          << std::fixed << std::setprecision(6) << parallel_time_omp.count()
+                          << " s  |  Speedup: " << std::setprecision(2) << std::setw(5) << speedup_omp
+                          << "x  |  Eff: " << std::setprecision(1) << std::setw(4) << efficiency_omp << "%"
+                          << "  |  applyStamps: " << std::setprecision(1) << std::setw(4) << apply_percentage_omp << "%\n");
+                std::cout.flush();
+                if (log_file.is_open()) { log_file.flush(); }
+
+                // Store result for loadomp (coloring time = 0, colors = N/A represented as 0)
+                all_results.push_back({
+                    "loadomp",                        // Method
+                    num_instances,                    // NumInstances
+                    num_iterations,                   // NumIterations
+                    node_distribution_count,          // NodeDistributionCount
+                    0,                                // TargetColors (N/A for loadomp)
+                    0,                                // ActualColors (N/A for loadomp)
+                    0.0,                              // ColoringTime_s (N/A for loadomp)
+                    single_time.count(),              // SingleThreadTime_s
+                    num_threads,                      // NumThreads
+                    parallel_time_omp.count(),        // ParallelTime_s
+                    total_calc_time_omp,              // ParallelCalcTime_s
+                    total_apply_time_omp,             // ParallelApplyTime_s
+                    apply_percentage_omp,             // ApplyStamps_pct
+                    speedup_omp,                      // Speedup
+                    efficiency_omp                    // Efficiency_pct
+                });
+
+                if (speedup_omp > best_speedup_omp) {
+                    best_speedup_omp = speedup_omp;
+                    best_threads_omp = num_threads;
+                }
+            }
+
+            LOG_OUTPUT("\nBest loadompColor4: " << best_threads_color << " threads with "
+                      << std::fixed << std::setprecision(2) << best_speedup_color << "x speedup\n");
+            LOG_OUTPUT("Best loadomp:       " << best_threads_omp << " threads with "
+                      << std::fixed << std::setprecision(2) << best_speedup_omp << "x speedup\n");
         }
     }
 
@@ -351,13 +418,14 @@ int main(){
     }
 
     // Write CSV header
-    csv_file << "NumInstances,NumIterations,NodeDistributionCount,TargetColors,ActualColors,ColoringTime_s,"
+    csv_file << "Method,NumInstances,NumIterations,NodeDistributionCount,TargetColors,ActualColors,ColoringTime_s,"
              << "SingleThreadTime_s,NumThreads,ParallelTime_s,ParallelCalcTime_s,"
              << "ParallelApplyTime_s,ApplyStamps_pct,Speedup,Efficiency_pct\n";
 
     // Write all results
     for (const auto& r : all_results) {
-        csv_file << r.num_instances << ","
+        csv_file << r.method << ","
+                 << r.num_instances << ","
                  << r.num_iterations << ","
                  << r.node_distribution_count << ","
                  << r.target_colors << ","
@@ -377,27 +445,30 @@ int main(){
     LOG_OUTPUT("Results written to: coloring_benchmark_results.csv\n");
     LOG_OUTPUT("Total result rows: " << all_results.size() << "\n");
 
-    // Print brief summary grouped by color count ranges
+    // Print brief summary grouped by method and instance count
     LOG_OUTPUT("\n");
     LOG_OUTPUT("================================================================================\n");
-    LOG_OUTPUT("SUMMARY - Best Speedups by Instance Count and Color Range\n");
+    LOG_OUTPUT("SUMMARY - Best Speedups by Method and Instance Count\n");
     LOG_OUTPUT("================================================================================\n");
+
+    // Summary for loadompColor4 (grouped by color ranges)
+    LOG_OUTPUT("\nloadompColor4 (graph coloring method):\n");
     LOG_OUTPUT("Instances | Color Range | Best Speedups (1-10 colors | 11-50 | 51-100 | 100+)\n");
     LOG_OUTPUT("----------|-------------|----------------------------------------------------\n");
 
-    // Group results by instance count and color ranges
+    // Group results by instance count and color ranges for loadompColor4
     for (size_t num_inst : instance_counts) {
         std::map<std::string, double> best_speedups;
         std::map<std::string, int> color_counts;
-        
+
         // Define color ranges
         std::vector<std::pair<int, int>> ranges = {{1, 10}, {11, 50}, {51, 100}, {101, INT_MAX}};
-        
+
         for (const auto& r : all_results) {
-            if (r.num_instances == num_inst) {
+            if (r.num_instances == num_inst && r.method == "loadompColor4") {
                 for (const auto& range : ranges) {
                     if (r.actual_colors >= range.first && r.actual_colors <= range.second) {
-                        std::string key = std::to_string(range.first) + "-" + 
+                        std::string key = std::to_string(range.first) + "-" +
                                         (range.second == INT_MAX ? "max" : std::to_string(range.second));
                         if (best_speedups.find(key) == best_speedups.end() || r.speedup > best_speedups[key]) {
                             best_speedups[key] = r.speedup;
@@ -411,12 +482,12 @@ int main(){
 
         LOG_OUTPUT(std::setw(9) << num_inst << " | ");
         LOG_OUTPUT(std::setw(11) << "1-" + std::to_string(num_inst/2) << " | ");
-        
+
         for (const auto& range : ranges) {
-            std::string key = std::to_string(range.first) + "-" + 
+            std::string key = std::to_string(range.first) + "-" +
                             (range.second == INT_MAX ? "max" : std::to_string(range.second));
             if (best_speedups.find(key) != best_speedups.end()) {
-                LOG_OUTPUT(std::fixed << std::setprecision(2) << std::setw(4) 
+                LOG_OUTPUT(std::fixed << std::setprecision(2) << std::setw(4)
                           << best_speedups[key] << "x(" << color_counts[key] << "c) | ");
             } else {
                 LOG_OUTPUT("    N/A     | ");
@@ -424,8 +495,33 @@ int main(){
         }
         LOG_OUTPUT("\n");
     }
+
+    // Summary for loadomp (baseline - no coloring)
+    LOG_OUTPUT("\nloadomp (compute-parallel, stamp-serial baseline):\n");
+    LOG_OUTPUT("Instances | Best Speedup | Best Threads\n");
+    LOG_OUTPUT("----------|--------------|-------------\n");
+
+    for (size_t num_inst : instance_counts) {
+        double best_speedup = 0;
+        int best_threads = 1;
+
+        for (const auto& r : all_results) {
+            if (r.num_instances == num_inst && r.method == "loadomp") {
+                if (r.speedup > best_speedup) {
+                    best_speedup = r.speedup;
+                    best_threads = r.num_threads;
+                }
+            }
+        }
+
+        LOG_OUTPUT(std::setw(9) << num_inst << " | ");
+        LOG_OUTPUT(std::fixed << std::setprecision(2) << std::setw(12) << best_speedup << "x | ");
+        LOG_OUTPUT(std::setw(11) << best_threads << "\n");
+    }
+
     LOG_OUTPUT("================================================================================\n");
-    LOG_OUTPUT("Note: Numbers in parentheses show actual color count for that best speedup\n");
+    LOG_OUTPUT("Note: loadompColor4 numbers in parentheses show actual color count for best speedup\n");
+    LOG_OUTPUT("      loadomp has serial stamp application, so coloring is not applicable\n");
 
     // Close log file
     if (log_file.is_open()) {
