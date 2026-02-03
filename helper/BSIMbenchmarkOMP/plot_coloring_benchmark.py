@@ -28,6 +28,21 @@ NODE_DISTRIBUTION = 39
 METHODS = ["loadomp", "loadompColor2"]
 TITLE = "Stamping becomes the bottleneck (and coloring fixes it)"
 
+# Figure R2 configuration
+R2_NUM_INSTANCES = 1000
+R2_NODE_DISTRIBUTIONS = [
+    {"node_dist": 1000, "label": "(a) Low conflict", "subtitle": "ActualColors = 1"},
+    {"node_dist": 39, "label": "(b) Moderate conflict", "subtitle": "ActualColors = 26"},
+    {"node_dist": 3, "label": "(c) High conflict", "subtitle": "ActualColors = 334"},
+]
+R2_METHODS = ["loadomp", "loadompColor2", "loadompColor4"]
+
+METHOD_STYLES = {
+    "loadomp": {"color": "#E45756", "marker": "s", "label": "loadomp"},
+    "loadompColor2": {"color": "#4C78A8", "marker": "o", "label": "loadompColor2"},
+    "loadompColor4": {"color": "#72B7B2", "marker": "^", "label": "loadompColor4"},
+}
+
 
 def parse_float(value: str) -> float:
     if value is None:
@@ -101,6 +116,20 @@ def filter_rows(rows: List[Dict[str, object]], method: str) -> List[Dict[str, ob
     return filtered
 
 
+def filter_rows_r2(
+    rows: List[Dict[str, object]], method: str, node_distribution: int
+) -> List[Dict[str, object]]:
+    """Filter rows for Figure R2 by method and NodeDistributionCount."""
+    return [
+        r
+        for r in rows
+        if r["Method"] == method
+        and r["NumInstances"] == R2_NUM_INSTANCES
+        and r["NodeDistributionCount"] == node_distribution
+        and not is_nan(r["Speedup"])
+    ]
+
+
 def plot_figure_r1(rows_by_method: Dict[str, List[Dict[str, object]]], out_path: Path) -> None:
     fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
 
@@ -132,9 +161,53 @@ def plot_figure_r1(rows_by_method: Dict[str, List[Dict[str, object]]], out_path:
     plt.close(fig)
 
 
+def plot_figure_r2(rows: List[Dict[str, object]], out_path: Path) -> None:
+    fig, axes = plt.subplots(1, 3, figsize=(14, 4.5))
+
+    for ax, config in zip(axes, R2_NODE_DISTRIBUTIONS):
+        node_dist = config["node_dist"]
+        label = config["label"]
+        subtitle = config["subtitle"]
+
+        for method in R2_METHODS:
+            style = METHOD_STYLES[method]
+            filtered = filter_rows_r2(rows, method, node_dist)
+            if not filtered:
+                continue
+            rows_sorted = sorted(filtered, key=lambda r: r["NumThreads"])
+            threads = [r["NumThreads"] for r in rows_sorted]
+            speedups = [r["Speedup"] for r in rows_sorted]
+
+            ax.plot(
+                threads,
+                speedups,
+                marker=style["marker"],
+                color=style["color"],
+                label=style["label"],
+                linewidth=1.5,
+                markersize=5,
+            )
+
+        ax.set_title(f"{label}\n{subtitle}", fontsize=10)
+        ax.set_xlabel("Threads")
+        ax.set_ylabel("Speedup")
+        ax.set_xscale("log", base=2)
+        ax.set_xticks([2, 4, 8, 16, 32, 64, 128])
+        ax.set_xticklabels(["2", "4", "8", "16", "32", "64", "128"])
+        ax.set_ylim(bottom=0)
+        ax.grid(True, alpha=0.3)
+
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", ncol=3, bbox_to_anchor=(0.5, 1.02))
+
+    fig.tight_layout(rect=[0, 0, 1, 0.93])
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Plot Figure R1 (stacked calc/stamp per iteration)."
+        description="Plot benchmark figures (R1: stacked calc/stamp, R2: speedup vs threads)."
     )
     parser.add_argument(
         "--out-dir",
@@ -146,6 +219,12 @@ def parse_args() -> argparse.Namespace:
         choices=["png", "pdf"],
         default="pdf",
         help="Image format.",
+    )
+    parser.add_argument(
+        "--figure",
+        choices=["r1", "r2", "all"],
+        default="all",
+        help="Which figure(s) to generate.",
     )
     return parser.parse_args()
 
@@ -160,17 +239,28 @@ def main() -> int:
         raise FileNotFoundError(f"CSV not found: {csv_path}")
 
     rows = load_rows(csv_path)
-    rows_by_method = {method: filter_rows(rows, method) for method in METHODS}
 
-    out_name = f"figure_r1_stamping_bottleneck.{args.format}"
-    out_path = out_dir / out_name
-    plot_figure_r1(rows_by_method, out_path)
+    if args.figure in ("r1", "all"):
+        rows_by_method = {method: filter_rows(rows, method) for method in METHODS}
+        out_name = f"figure_r1_stamping_bottleneck.{args.format}"
+        out_path = out_dir / out_name
+        plot_figure_r1(rows_by_method, out_path)
+        print(
+            "Figure R1: "
+            f"NumInstances={NUM_INSTANCES}, NodeDistributionCount={NODE_DISTRIBUTION} -> "
+            f"{out_path}"
+        )
 
-    print(
-        "Figure R1: "
-        f"NumInstances={NUM_INSTANCES}, NodeDistributionCount={NODE_DISTRIBUTION} -> "
-        f"{out_path}"
-    )
+    if args.figure in ("r2", "all"):
+        out_name = f"figure_r2_speedup_vs_threads.{args.format}"
+        out_path = out_dir / out_name
+        plot_figure_r2(rows, out_path)
+        print(
+            "Figure R2: "
+            f"NumInstances={R2_NUM_INSTANCES}, "
+            f"NodeDistributions={[c['node_dist'] for c in R2_NODE_DISTRIBUTIONS]} -> "
+            f"{out_path}"
+        )
 
     return 0
 
