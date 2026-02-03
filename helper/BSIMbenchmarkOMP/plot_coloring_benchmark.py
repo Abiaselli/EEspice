@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 SCRIPT_DIR = Path(__file__).parent
 DATASET_FILE = SCRIPT_DIR / "coloring_benchmark_results.csv"
+DATASET_FILE_10K = SCRIPT_DIR / "coloring_benchmark_results10k.csv"
 NUM_INSTANCES = 1000
 NODE_DISTRIBUTION = 39
 METHODS = ["loadomp", "loadompColor2"]
@@ -36,6 +37,15 @@ R2_NODE_DISTRIBUTIONS = [
     {"node_dist": 3, "label": "(c) High conflict", "subtitle": "ActualColors = 334"},
 ]
 R2_METHODS = ["loadomp", "loadompColor2", "loadompColor4"]
+
+# Figure R3 configuration
+R3_NUM_THREADS = 64  # Fixed thread count
+R3_METHODS = ["loadomp", "loadompColor2", "loadompColor4"]
+R3_SUBPLOTS = [
+    {"num_instances": 100, "label": "(a) 100 instances"},
+    {"num_instances": 1000, "label": "(b) 1000 instances"},
+    {"num_instances": 10000, "label": "(c) 10000 instances"},
+]
 
 METHOD_STYLES = {
     "loadomp": {"color": "#E45756", "marker": "s", "label": "loadomp"},
@@ -130,6 +140,27 @@ def filter_rows_r2(
     ]
 
 
+def filter_rows_r3(
+    rows: List[Dict[str, object]], method: str, num_threads: int, num_instances: int
+) -> List[Dict[str, object]]:
+    """Filter rows for Figure R3: fixed instance count and thread count."""
+    return [
+        r
+        for r in rows
+        if r["Method"] == method
+        and r["NumInstances"] == num_instances
+        and r["NumThreads"] == num_threads
+        and not is_nan(r["Speedup"])
+    ]
+
+
+def compute_effective_colors(row: Dict[str, object]) -> int:
+    """Compute effective colors: ActualColors if > 0, else ceil(NumInstances/NodeDistributionCount)."""
+    if row["ActualColors"] > 0:
+        return row["ActualColors"]
+    return math.ceil(row["NumInstances"] / row["NodeDistributionCount"])
+
+
 def plot_figure_r1(rows_by_method: Dict[str, List[Dict[str, object]]], out_path: Path) -> None:
     fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
 
@@ -195,7 +226,6 @@ def plot_figure_r2(rows: List[Dict[str, object]], out_path: Path) -> None:
         ax.set_xticks([2, 4, 8, 16, 32, 64, 128])
         ax.set_xticklabels(["2", "4", "8", "16", "32", "64", "128"])
         ax.set_ylim(bottom=0)
-        ax.grid(True, alpha=0.3)
 
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="upper center", ncol=3, bbox_to_anchor=(0.5, 1.02))
@@ -205,9 +235,64 @@ def plot_figure_r2(rows: List[Dict[str, object]], out_path: Path) -> None:
     plt.close(fig)
 
 
+def plot_figure_r3(
+    rows: List[Dict[str, object]], rows_10k: List[Dict[str, object]], out_path: Path
+) -> None:
+    """
+    Figure R3: Speedup vs EffectiveColors at fixed thread count.
+    Three subplots for different instance counts (100, 1000, 10000).
+    """
+    fig, axes = plt.subplots(1, 3, figsize=(14, 4.5))
+
+    for ax, config in zip(axes, R3_SUBPLOTS):
+        num_instances = config["num_instances"]
+        label = config["label"]
+
+        # Select appropriate data source
+        source_rows = rows_10k if num_instances == 10000 else rows
+
+        for method in R3_METHODS:
+            method_rows = filter_rows_r3(source_rows, method, R3_NUM_THREADS, num_instances)
+            if not method_rows:
+                continue
+
+            # Compute effective colors and sort
+            data = [(compute_effective_colors(r), r["Speedup"]) for r in method_rows]
+            data.sort(key=lambda x: x[0])
+
+            colors_list = [d[0] for d in data]
+            speedups = [d[1] for d in data]
+
+            style = METHOD_STYLES[method]
+            ax.plot(
+                colors_list,
+                speedups,
+                marker=style["marker"],
+                color=style["color"],
+                label=style["label"],
+                linewidth=1.5,
+                markersize=5,
+            )
+
+        ax.set_xscale("log")
+        ax.set_xlabel("Effective Colors")
+        ax.set_ylabel("Speedup")
+        ax.set_title(label)
+        ax.set_ylim(bottom=0)
+        ax.grid(True, alpha=0.3)
+
+    # Shared legend at top
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", ncol=3, bbox_to_anchor=(0.5, 1.02))
+
+    fig.tight_layout(rect=[0, 0, 1, 0.93])
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Plot benchmark figures (R1: stacked calc/stamp, R2: speedup vs threads)."
+        description="Plot benchmark figures (R1: stacked calc/stamp, R2: speedup vs threads, R3: speedup vs colors)."
     )
     parser.add_argument(
         "--out-dir",
@@ -222,7 +307,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--figure",
-        choices=["r1", "r2", "all"],
+        choices=["r1", "r2", "r3", "all"],
         default="all",
         help="Which figure(s) to generate.",
     )
@@ -259,6 +344,23 @@ def main() -> int:
             "Figure R2: "
             f"NumInstances={R2_NUM_INSTANCES}, "
             f"NodeDistributions={[c['node_dist'] for c in R2_NODE_DISTRIBUTIONS]} -> "
+            f"{out_path}"
+        )
+
+    if args.figure in ("r3", "all"):
+        # Load 10k dataset for R3
+        csv_path_10k = DATASET_FILE_10K
+        if not csv_path_10k.exists():
+            raise FileNotFoundError(f"CSV not found: {csv_path_10k}")
+        rows_10k = load_rows(csv_path_10k)
+
+        out_name = f"figure_r3_speedup_vs_colors.{args.format}"
+        out_path = out_dir / out_name
+        plot_figure_r3(rows, rows_10k, out_path)
+        print(
+            "Figure R3: "
+            f"NumInstances={[c['num_instances'] for c in R3_SUBPLOTS]}, "
+            f"NumThreads={R3_NUM_THREADS} -> "
             f"{out_path}"
         )
 
