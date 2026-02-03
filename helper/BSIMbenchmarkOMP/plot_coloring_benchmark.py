@@ -26,7 +26,7 @@ DATASET_FILE = SCRIPT_DIR / "coloring_benchmark_results.csv"
 DATASET_FILE_10K = SCRIPT_DIR / "coloring_benchmark_results10k.csv"
 NUM_INSTANCES = 1000
 NODE_DISTRIBUTION = 39
-METHODS = ["loadomp", "loadompColor2"]
+METHODS = ["loadomp", "loadompColor"]
 TITLE = "Stamping becomes the bottleneck (and coloring fixes it)"
 
 # Figure R2 configuration
@@ -36,11 +36,11 @@ R2_NODE_DISTRIBUTIONS = [
     {"node_dist": 39, "label": "(b) Moderate conflict", "subtitle": "ActualColors = 26"},
     {"node_dist": 3, "label": "(c) High conflict", "subtitle": "ActualColors = 334"},
 ]
-R2_METHODS = ["loadomp", "loadompColor2", "loadompColor4"]
+R2_METHODS = ["loadomp", "loadompColor", "loadompColorFused"]
 
 # Figure R3 configuration
 R3_NUM_THREADS = 64  # Fixed thread count
-R3_METHODS = ["loadomp", "loadompColor2", "loadompColor4"]
+R3_METHODS = ["loadomp", "loadompColor", "loadompColorFused"]
 R3_SUBPLOTS = [
     {"num_instances": 100, "label": "(a) 100 instances"},
     {"num_instances": 1000, "label": "(b) 1000 instances"},
@@ -49,8 +49,8 @@ R3_SUBPLOTS = [
 
 METHOD_STYLES = {
     "loadomp": {"color": "#E45756", "marker": "s", "label": "loadomp"},
-    "loadompColor2": {"color": "#4C78A8", "marker": "o", "label": "loadompColor2"},
-    "loadompColor4": {"color": "#72B7B2", "marker": "^", "label": "loadompColor4"},
+    "loadompColor": {"color": "#4C78A8", "marker": "o", "label": "loadompColor"},
+    "loadompColorFused": {"color": "#72B7B2", "marker": "^", "label": "loadompColorFused"},
 }
 
 
