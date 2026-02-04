@@ -32,9 +32,9 @@ TITLE = "Stamping becomes the bottleneck (and coloring fixes it)"
 # Figure R2 configuration
 R2_NUM_INSTANCES = 1000
 R2_NODE_DISTRIBUTIONS = [
-    {"node_dist": 1000, "label": "(a) Low conflict", "subtitle": "ActualColors = 1"},
-    {"node_dist": 39, "label": "(b) Moderate conflict", "subtitle": "ActualColors = 26"},
-    {"node_dist": 3, "label": "(c) High conflict", "subtitle": "ActualColors = 334"},
+    {"node_dist": 1000, "label": "(a) Low conflict"},  # Keep hard-coded for low conflict
+    {"node_dist_selector": "moderate", "label": "(b) Moderate conflict"},
+    {"node_dist_selector": "min", "label": "(c) High conflict"},
 ]
 R2_METHODS = ["loadomp", "loadompColor", "loadompColorFused"]
 
@@ -269,9 +269,17 @@ def plot_figure_r2(rows: List[Dict[str, object]], out_path: Path) -> None:
     fig, axes = plt.subplots(1, 3, figsize=(14, 4.5))
 
     for ax, config in zip(axes, R2_NODE_DISTRIBUTIONS):
-        node_dist = config["node_dist"]
         label = config["label"]
-        subtitle = config["subtitle"]
+
+        # Resolve node_dist: use hard-coded value or dynamic selector
+        if "node_dist" in config:
+            node_dist = config["node_dist"]
+        else:
+            selector = config["node_dist_selector"]
+            node_dist = get_node_dist_for_conflict_level(rows, R2_NUM_INSTANCES, selector)
+
+        # Track ActualColors to compute subtitle dynamically
+        actual_colors_set = set()
 
         for method in R2_METHODS:
             style = METHOD_STYLES[method]
@@ -282,6 +290,10 @@ def plot_figure_r2(rows: List[Dict[str, object]], out_path: Path) -> None:
             threads = [r["NumThreads"] for r in rows_sorted]
             speedups = [r["Speedup"] for r in rows_sorted]
 
+            # Collect ActualColors from filtered data
+            for r in filtered:
+                actual_colors_set.add(r["ActualColors"])
+
             ax.plot(
                 threads,
                 speedups,
@@ -291,6 +303,13 @@ def plot_figure_r2(rows: List[Dict[str, object]], out_path: Path) -> None:
                 linewidth=1.5,
                 markersize=5,
             )
+
+        # Compute subtitle from actual data
+        if actual_colors_set:
+            actual_colors_val = max(actual_colors_set)  # Use max if multiple values
+            subtitle = f"ActualColors = {actual_colors_val}"
+        else:
+            subtitle = ""
 
         ax.set_title(f"{label}\n{subtitle}", fontsize=10)
         ax.set_xlabel("Threads")
@@ -512,10 +531,13 @@ def main() -> int:
         out_name = f"figure_r2_speedup_vs_threads.{args.format}"
         out_path = out_dir / out_name
         plot_figure_r2(rows, out_path)
+        node_dist_info = [
+            c.get("node_dist") or c.get("node_dist_selector") for c in R2_NODE_DISTRIBUTIONS
+        ]
         print(
             "Figure R2: "
             f"NumInstances={R2_NUM_INSTANCES}, "
-            f"NodeDistributions={[c['node_dist'] for c in R2_NODE_DISTRIBUTIONS]} -> "
+            f"NodeDistributions={node_dist_info} -> "
             f"{out_path}"
         )
 
