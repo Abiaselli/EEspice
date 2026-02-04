@@ -47,6 +47,16 @@ R3_SUBPLOTS = [
     {"num_instances": 10000, "label": "(c) 10000 instances"},
 ]
 
+# Figure R4 configuration
+R4_METHODS = ["loadomp", "loadompColor", "loadompColorFused"]
+R4_CONFLICT_LEVELS = [
+    {"level": "low", "label": "Low conflict", "node_dist_selector": "equal"},
+    {"level": "moderate", "label": "Moderate conflict", "node_dist_selector": "moderate"},
+    {"level": "high", "label": "High conflict", "node_dist_selector": "min"},  # smallest available
+]
+R4_NUM_INSTANCES = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000,
+                    2000, 4000, 6000, 8000, 10000]
+
 METHOD_STYLES = {
     "loadomp": {"color": "#E45756", "marker": "s", "label": "loadomp"},
     "loadompColor": {"color": "#4C78A8", "marker": "o", "label": "loadompColor"},
@@ -150,6 +160,69 @@ def filter_rows_r3(
         if r["Method"] == method
         and r["NumInstances"] == num_instances
         and r["NumThreads"] == num_threads
+        and not is_nan(r["Speedup"])
+    ]
+
+
+def get_available_node_dists(
+    rows: List[Dict[str, object]], num_instances: int, method: str = None
+) -> List[int]:
+    """Get all unique NodeDistributionCount values for a given NumInstances and optional method."""
+    return sorted(set(
+        r["NodeDistributionCount"]
+        for r in rows
+        if r["NumInstances"] == num_instances
+        and (method is None or r["Method"] == method)
+    ))
+
+
+def get_node_dist_for_conflict_level(
+    rows: List[Dict[str, object]], num_instances: int, selector: object, method: str = None
+) -> int:
+    """
+    Select appropriate NodeDistributionCount based on conflict level.
+    - "equal": Returns NumInstances (low conflict, ~1 color)
+    - "moderate": Returns closest available value around 40 (~N/40 effective colors)
+    - "min": Returns smallest available NodeDistributionCount (~N/3 colors)
+    - int: Returns that specific value (e.g., 3 for high conflict)
+    """
+    available = get_available_node_dists(rows, num_instances, method)
+    if not available:
+        return -1
+
+    if selector == "equal":
+        # Low conflict: NodeDistributionCount = NumInstances
+        if num_instances in available:
+            return num_instances
+        return max(available)  # fallback to largest
+    elif selector == "moderate":
+        # Moderate conflict: target around 40 (~N/40 effective colors)
+        target = 40
+        closest = min(available, key=lambda x: abs(x - target))
+        return closest
+    elif selector == "min":
+        # High conflict: smallest available NodeDistributionCount
+        return min(available)
+    elif isinstance(selector, int):
+        # High conflict: specific value (e.g., 3)
+        if selector in available:
+            return selector
+        # Fallback to closest available
+        closest = min(available, key=lambda x: abs(x - selector))
+        return closest
+    return available[0]
+
+
+def filter_rows_r4(
+    rows: List[Dict[str, object]], method: str, num_instances: int, node_distribution: int
+) -> List[Dict[str, object]]:
+    """Filter rows for Figure R4 by method, num_instances, and node_distribution."""
+    return [
+        r
+        for r in rows
+        if r["Method"] == method
+        and r["NumInstances"] == num_instances
+        and r["NodeDistributionCount"] == node_distribution
         and not is_nan(r["Speedup"])
     ]
 
@@ -290,9 +363,109 @@ def plot_figure_r3(
     plt.close(fig)
 
 
+def plot_figure_r4(
+    rows: List[Dict[str, object]], rows_10k: List[Dict[str, object]], out_path: Path
+) -> None:
+    """
+    Figure R4: 3×3 grid showing Speedup vs Threads.
+    Rows: Methods (loadomp, loadompColor, loadompColorFused)
+    Columns: Conflict levels (low, moderate, high)
+    Lines: Different NumInstances values with color gradient.
+    """
+    import matplotlib.cm as cm
+
+    # Each subplot has independent y-axis for best data visualization
+    fig, axes = plt.subplots(3, 3, figsize=(16, 12), sharex=True)
+
+    # Combine data from both sources
+    all_rows = rows + rows_10k
+
+    # Create color map for NumInstances values with shared norm for consistency
+    num_instances_list = R4_NUM_INSTANCES
+    cmap = cm.viridis
+    norm = plt.Normalize(vmin=min(num_instances_list), vmax=max(num_instances_list))
+
+    for row_idx, method in enumerate(R4_METHODS):
+        for col_idx, conflict_config in enumerate(R4_CONFLICT_LEVELS):
+            ax = axes[row_idx, col_idx]
+            selector = conflict_config["node_dist_selector"]
+
+            for num_instances in num_instances_list:
+                # Get appropriate node distribution for this conflict level (method-aware)
+                node_dist = get_node_dist_for_conflict_level(
+                    all_rows, num_instances, selector, method=method
+                )
+                if node_dist < 0:
+                    continue
+
+                filtered = filter_rows_r4(all_rows, method, num_instances, node_dist)
+                if not filtered:
+                    continue
+
+                rows_sorted = sorted(filtered, key=lambda r: r["NumThreads"])
+                threads = [r["NumThreads"] for r in rows_sorted]
+                speedups = [r["Speedup"] for r in rows_sorted]
+
+                ax.plot(
+                    threads,
+                    speedups,
+                    marker="o",
+                    color=cmap(norm(num_instances)),
+                    linewidth=1.2,
+                    markersize=4,
+                    alpha=0.8,
+                )
+
+            # Set column titles only on top row
+            if row_idx == 0:
+                ax.set_title(f"{conflict_config['label']}", fontsize=11)
+
+            # Set x-axis label only on bottom row
+            if row_idx == 2:
+                ax.set_xlabel("Threads")
+
+            # Set y-axis label only on left column
+            if col_idx == 0:
+                ax.set_ylabel("Speedup")
+
+            ax.set_xscale("log", base=2)
+            ax.set_xticks([1, 2, 4, 8, 16, 32, 64, 128])
+            ax.set_xticklabels(["1", "2", "4", "8", "16", "32", "64", "128"])
+
+    # Adjust layout for row labels on left and colorbar on right
+    fig.subplots_adjust(left=0.14, right=0.88)
+
+    # Add row labels (method names) dynamically based on subplot positions
+    for row_idx, method in enumerate(R4_METHODS):
+        pos = axes[row_idx, 0].get_position()
+        y_center = 0.5 * (pos.y0 + pos.y1)
+        x_text = pos.x0 - 0.06
+        fig.text(
+            x_text,
+            y_center,
+            method,
+            fontsize=11,
+            fontweight="bold",
+            rotation=90,
+            va="center",
+            ha="center",
+        )
+
+    # Create colorbar for NumInstances on the right side (using same norm as lines)
+    cbar_ax = fig.add_axes([0.91, 0.15, 0.02, 0.7])  # [left, bottom, width, height]
+    sm = cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm.set_array([])
+    cbar = fig.colorbar(sm, cax=cbar_ax, orientation="vertical")
+    cbar.set_label("NumInstances", fontsize=10)
+
+    fig.suptitle("Speedup vs Threads (by Method and Conflict Level)", fontsize=14, y=0.98)
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Plot benchmark figures (R1: stacked calc/stamp, R2: speedup vs threads, R3: speedup vs colors)."
+        description="Plot benchmark figures (R1: stacked calc/stamp, R2: speedup vs threads, R3: speedup vs colors, R4: speedup grid)."
     )
     parser.add_argument(
         "--out-dir",
@@ -307,7 +480,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--figure",
-        choices=["r1", "r2", "r3", "all"],
+        choices=["r1", "r2", "r3", "r4", "all"],
         default="all",
         help="Which figure(s) to generate.",
     )
@@ -361,6 +534,23 @@ def main() -> int:
             "Figure R3: "
             f"NumInstances={[c['num_instances'] for c in R3_SUBPLOTS]}, "
             f"NumThreads={R3_NUM_THREADS} -> "
+            f"{out_path}"
+        )
+
+    if args.figure in ("r4", "all"):
+        # Load 10k dataset for R4
+        csv_path_10k = DATASET_FILE_10K
+        if not csv_path_10k.exists():
+            raise FileNotFoundError(f"CSV not found: {csv_path_10k}")
+        rows_10k = load_rows(csv_path_10k)
+
+        out_name = f"figure_r4_speedup_grid.{args.format}"
+        out_path = out_dir / out_name
+        plot_figure_r4(rows, rows_10k, out_path)
+        print(
+            "Figure R4: "
+            f"3x3 grid (Methods x Conflict Levels), "
+            f"NumInstances={R4_NUM_INSTANCES} -> "
             f"{out_path}"
         )
 
