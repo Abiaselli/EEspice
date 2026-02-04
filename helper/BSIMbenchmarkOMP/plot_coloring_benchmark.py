@@ -347,11 +347,11 @@ def plot_figure_r3(
                 markersize=5,
             )
 
-        ax.set_xscale("log")
         ax.set_xlabel("Effective Colors")
         ax.set_ylabel("Speedup")
         ax.set_title(label)
-        ax.set_ylim(bottom=0)
+        ax.set_xscale("log")
+        ax.set_yscale("log", base=2)
 
     # Shared legend at top
     handles, labels = axes[0].get_legend_handles_labels()
