@@ -352,7 +352,6 @@ def plot_figure_r3(
         ax.set_ylabel("Speedup")
         ax.set_title(label)
         ax.set_ylim(bottom=0)
-        ax.grid(True, alpha=0.3)
 
     # Shared legend at top
     handles, labels = axes[0].get_legend_handles_labels()
