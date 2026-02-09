@@ -1,0 +1,2065 @@
+* 64-bit Ripple Carry Adder - Generated Netlist
+* Models
+.model NMOS nmos (level=14 version=4.8.2)
+.model PMOS pmos (level=14 version=4.8.2)
+
+* Simulation flags
+.options acct
+.options num_threads=64
+.sparse
+
+Vdd VDD 0 1.8
+M1 VDD A0 N_bit0_1 VDD PMOS l=1u w=4u
+M2 N_bit0_1 B0 N_bit0_cbar VDD PMOS l=1u w=4u
+M3 VDD A0 N_bit0_2 VDD PMOS l=1u w=4u
+M4 N_bit0_2 Ci N_bit0_cbar VDD PMOS l=1u w=4u
+M5 VDD B0 N_bit0_2 VDD PMOS l=1u w=4u
+M6 VDD N_bit0_cbar C0 VDD PMOS l=1u w=2u
+M25 C0 N_bit0_cbar 0 0 NMOS l=1u w=1u
+M20 N_bit0_9 B0 0 0 NMOS l=1u w=2u
+M21 N_bit0_9 A0 0 0 NMOS l=1u w=2u
+M22 N_bit0_10 A0 0 0 NMOS l=1u w=2u
+M23 N_bit0_cbar B0 N_bit0_10 0 NMOS l=1u w=2u
+M24 N_bit0_cbar Ci N_bit0_9 0 NMOS l=1u w=2u
+M7 VDD A0 N_bit0_3 VDD PMOS l=1u w=4u
+M8 VDD B0 N_bit0_3 VDD PMOS l=1u w=4u
+M9 VDD Ci N_bit0_3 VDD PMOS l=1u w=4u
+M10 VDD A0 N_bit0_4 VDD PMOS l=1u w=8u
+M11 N_bit0_4 B0 N_bit0_5 VDD PMOS l=1u w=8u
+M12 N_bit0_5 Ci N_bit0_sumbar VDD PMOS l=1u w=8u
+M26 N_bit0_3 N_bit0_cbar N_bit0_sumbar VDD PMOS l=1u w=4u
+M13 N_bit0_sumbar Ci N_bit0_6 0 NMOS l=1u w=8u
+M14 N_bit0_6 B0 N_bit0_7 0 NMOS l=1u w=8u
+M15 N_bit0_7 A0 0 0 NMOS l=1u w=8u
+M16 N_bit0_8 Ci 0 0 NMOS l=1u w=2u
+M17 N_bit0_8 B0 0 0 NMOS l=1u w=2u
+M18 N_bit0_8 A0 0 0 NMOS l=1u w=2u
+M19 N_bit0_sumbar N_bit0_cbar N_bit0_8 0 NMOS l=1u w=2u
+M27 VDD N_bit0_sumbar SUM0 VDD PMOS l=1u w=2u
+M28 SUM0 N_bit0_sumbar 0 0 NMOS l=1u w=1u
+C0_sum SUM0 0 1p
+C0_co C0 0 1p
+M29 VDD A1 N_bit1_1 VDD PMOS l=1u w=4u
+M30 N_bit1_1 B1 N_bit1_cbar VDD PMOS l=1u w=4u
+M31 VDD A1 N_bit1_2 VDD PMOS l=1u w=4u
+M32 N_bit1_2 C0 N_bit1_cbar VDD PMOS l=1u w=4u
+M33 VDD B1 N_bit1_2 VDD PMOS l=1u w=4u
+M34 VDD N_bit1_cbar C1 VDD PMOS l=1u w=2u
+M53 C1 N_bit1_cbar 0 0 NMOS l=1u w=1u
+M48 N_bit1_9 B1 0 0 NMOS l=1u w=2u
+M49 N_bit1_9 A1 0 0 NMOS l=1u w=2u
+M50 N_bit1_10 A1 0 0 NMOS l=1u w=2u
+M51 N_bit1_cbar B1 N_bit1_10 0 NMOS l=1u w=2u
+M52 N_bit1_cbar C0 N_bit1_9 0 NMOS l=1u w=2u
+M35 VDD A1 N_bit1_3 VDD PMOS l=1u w=4u
+M36 VDD B1 N_bit1_3 VDD PMOS l=1u w=4u
+M37 VDD C0 N_bit1_3 VDD PMOS l=1u w=4u
+M38 VDD A1 N_bit1_4 VDD PMOS l=1u w=8u
+M39 N_bit1_4 B1 N_bit1_5 VDD PMOS l=1u w=8u
+M40 N_bit1_5 C0 N_bit1_sumbar VDD PMOS l=1u w=8u
+M54 N_bit1_3 N_bit1_cbar N_bit1_sumbar VDD PMOS l=1u w=4u
+M41 N_bit1_sumbar C0 N_bit1_6 0 NMOS l=1u w=8u
+M42 N_bit1_6 B1 N_bit1_7 0 NMOS l=1u w=8u
+M43 N_bit1_7 A1 0 0 NMOS l=1u w=8u
+M44 N_bit1_8 C0 0 0 NMOS l=1u w=2u
+M45 N_bit1_8 B1 0 0 NMOS l=1u w=2u
+M46 N_bit1_8 A1 0 0 NMOS l=1u w=2u
+M47 N_bit1_sumbar N_bit1_cbar N_bit1_8 0 NMOS l=1u w=2u
+M55 VDD N_bit1_sumbar SUM1 VDD PMOS l=1u w=2u
+M56 SUM1 N_bit1_sumbar 0 0 NMOS l=1u w=1u
+C1_sum SUM1 0 1p
+C1_co C1 0 1p
+M57 VDD A2 N_bit2_1 VDD PMOS l=1u w=4u
+M58 N_bit2_1 B2 N_bit2_cbar VDD PMOS l=1u w=4u
+M59 VDD A2 N_bit2_2 VDD PMOS l=1u w=4u
+M60 N_bit2_2 C1 N_bit2_cbar VDD PMOS l=1u w=4u
+M61 VDD B2 N_bit2_2 VDD PMOS l=1u w=4u
+M62 VDD N_bit2_cbar C2 VDD PMOS l=1u w=2u
+M81 C2 N_bit2_cbar 0 0 NMOS l=1u w=1u
+M76 N_bit2_9 B2 0 0 NMOS l=1u w=2u
+M77 N_bit2_9 A2 0 0 NMOS l=1u w=2u
+M78 N_bit2_10 A2 0 0 NMOS l=1u w=2u
+M79 N_bit2_cbar B2 N_bit2_10 0 NMOS l=1u w=2u
+M80 N_bit2_cbar C1 N_bit2_9 0 NMOS l=1u w=2u
+M63 VDD A2 N_bit2_3 VDD PMOS l=1u w=4u
+M64 VDD B2 N_bit2_3 VDD PMOS l=1u w=4u
+M65 VDD C1 N_bit2_3 VDD PMOS l=1u w=4u
+M66 VDD A2 N_bit2_4 VDD PMOS l=1u w=8u
+M67 N_bit2_4 B2 N_bit2_5 VDD PMOS l=1u w=8u
+M68 N_bit2_5 C1 N_bit2_sumbar VDD PMOS l=1u w=8u
+M82 N_bit2_3 N_bit2_cbar N_bit2_sumbar VDD PMOS l=1u w=4u
+M69 N_bit2_sumbar C1 N_bit2_6 0 NMOS l=1u w=8u
+M70 N_bit2_6 B2 N_bit2_7 0 NMOS l=1u w=8u
+M71 N_bit2_7 A2 0 0 NMOS l=1u w=8u
+M72 N_bit2_8 C1 0 0 NMOS l=1u w=2u
+M73 N_bit2_8 B2 0 0 NMOS l=1u w=2u
+M74 N_bit2_8 A2 0 0 NMOS l=1u w=2u
+M75 N_bit2_sumbar N_bit2_cbar N_bit2_8 0 NMOS l=1u w=2u
+M83 VDD N_bit2_sumbar SUM2 VDD PMOS l=1u w=2u
+M84 SUM2 N_bit2_sumbar 0 0 NMOS l=1u w=1u
+C2_sum SUM2 0 1p
+C2_co C2 0 1p
+M85 VDD A3 N_bit3_1 VDD PMOS l=1u w=4u
+M86 N_bit3_1 B3 N_bit3_cbar VDD PMOS l=1u w=4u
+M87 VDD A3 N_bit3_2 VDD PMOS l=1u w=4u
+M88 N_bit3_2 C2 N_bit3_cbar VDD PMOS l=1u w=4u
+M89 VDD B3 N_bit3_2 VDD PMOS l=1u w=4u
+M90 VDD N_bit3_cbar C3 VDD PMOS l=1u w=2u
+M109 C3 N_bit3_cbar 0 0 NMOS l=1u w=1u
+M104 N_bit3_9 B3 0 0 NMOS l=1u w=2u
+M105 N_bit3_9 A3 0 0 NMOS l=1u w=2u
+M106 N_bit3_10 A3 0 0 NMOS l=1u w=2u
+M107 N_bit3_cbar B3 N_bit3_10 0 NMOS l=1u w=2u
+M108 N_bit3_cbar C2 N_bit3_9 0 NMOS l=1u w=2u
+M91 VDD A3 N_bit3_3 VDD PMOS l=1u w=4u
+M92 VDD B3 N_bit3_3 VDD PMOS l=1u w=4u
+M93 VDD C2 N_bit3_3 VDD PMOS l=1u w=4u
+M94 VDD A3 N_bit3_4 VDD PMOS l=1u w=8u
+M95 N_bit3_4 B3 N_bit3_5 VDD PMOS l=1u w=8u
+M96 N_bit3_5 C2 N_bit3_sumbar VDD PMOS l=1u w=8u
+M110 N_bit3_3 N_bit3_cbar N_bit3_sumbar VDD PMOS l=1u w=4u
+M97 N_bit3_sumbar C2 N_bit3_6 0 NMOS l=1u w=8u
+M98 N_bit3_6 B3 N_bit3_7 0 NMOS l=1u w=8u
+M99 N_bit3_7 A3 0 0 NMOS l=1u w=8u
+M100 N_bit3_8 C2 0 0 NMOS l=1u w=2u
+M101 N_bit3_8 B3 0 0 NMOS l=1u w=2u
+M102 N_bit3_8 A3 0 0 NMOS l=1u w=2u
+M103 N_bit3_sumbar N_bit3_cbar N_bit3_8 0 NMOS l=1u w=2u
+M111 VDD N_bit3_sumbar SUM3 VDD PMOS l=1u w=2u
+M112 SUM3 N_bit3_sumbar 0 0 NMOS l=1u w=1u
+C3_sum SUM3 0 1p
+C3_co C3 0 1p
+M113 VDD A4 N_bit4_1 VDD PMOS l=1u w=4u
+M114 N_bit4_1 B4 N_bit4_cbar VDD PMOS l=1u w=4u
+M115 VDD A4 N_bit4_2 VDD PMOS l=1u w=4u
+M116 N_bit4_2 C3 N_bit4_cbar VDD PMOS l=1u w=4u
+M117 VDD B4 N_bit4_2 VDD PMOS l=1u w=4u
+M118 VDD N_bit4_cbar C4 VDD PMOS l=1u w=2u
+M137 C4 N_bit4_cbar 0 0 NMOS l=1u w=1u
+M132 N_bit4_9 B4 0 0 NMOS l=1u w=2u
+M133 N_bit4_9 A4 0 0 NMOS l=1u w=2u
+M134 N_bit4_10 A4 0 0 NMOS l=1u w=2u
+M135 N_bit4_cbar B4 N_bit4_10 0 NMOS l=1u w=2u
+M136 N_bit4_cbar C3 N_bit4_9 0 NMOS l=1u w=2u
+M119 VDD A4 N_bit4_3 VDD PMOS l=1u w=4u
+M120 VDD B4 N_bit4_3 VDD PMOS l=1u w=4u
+M121 VDD C3 N_bit4_3 VDD PMOS l=1u w=4u
+M122 VDD A4 N_bit4_4 VDD PMOS l=1u w=8u
+M123 N_bit4_4 B4 N_bit4_5 VDD PMOS l=1u w=8u
+M124 N_bit4_5 C3 N_bit4_sumbar VDD PMOS l=1u w=8u
+M138 N_bit4_3 N_bit4_cbar N_bit4_sumbar VDD PMOS l=1u w=4u
+M125 N_bit4_sumbar C3 N_bit4_6 0 NMOS l=1u w=8u
+M126 N_bit4_6 B4 N_bit4_7 0 NMOS l=1u w=8u
+M127 N_bit4_7 A4 0 0 NMOS l=1u w=8u
+M128 N_bit4_8 C3 0 0 NMOS l=1u w=2u
+M129 N_bit4_8 B4 0 0 NMOS l=1u w=2u
+M130 N_bit4_8 A4 0 0 NMOS l=1u w=2u
+M131 N_bit4_sumbar N_bit4_cbar N_bit4_8 0 NMOS l=1u w=2u
+M139 VDD N_bit4_sumbar SUM4 VDD PMOS l=1u w=2u
+M140 SUM4 N_bit4_sumbar 0 0 NMOS l=1u w=1u
+C4_sum SUM4 0 1p
+C4_co C4 0 1p
+M141 VDD A5 N_bit5_1 VDD PMOS l=1u w=4u
+M142 N_bit5_1 B5 N_bit5_cbar VDD PMOS l=1u w=4u
+M143 VDD A5 N_bit5_2 VDD PMOS l=1u w=4u
+M144 N_bit5_2 C4 N_bit5_cbar VDD PMOS l=1u w=4u
+M145 VDD B5 N_bit5_2 VDD PMOS l=1u w=4u
+M146 VDD N_bit5_cbar C5 VDD PMOS l=1u w=2u
+M165 C5 N_bit5_cbar 0 0 NMOS l=1u w=1u
+M160 N_bit5_9 B5 0 0 NMOS l=1u w=2u
+M161 N_bit5_9 A5 0 0 NMOS l=1u w=2u
+M162 N_bit5_10 A5 0 0 NMOS l=1u w=2u
+M163 N_bit5_cbar B5 N_bit5_10 0 NMOS l=1u w=2u
+M164 N_bit5_cbar C4 N_bit5_9 0 NMOS l=1u w=2u
+M147 VDD A5 N_bit5_3 VDD PMOS l=1u w=4u
+M148 VDD B5 N_bit5_3 VDD PMOS l=1u w=4u
+M149 VDD C4 N_bit5_3 VDD PMOS l=1u w=4u
+M150 VDD A5 N_bit5_4 VDD PMOS l=1u w=8u
+M151 N_bit5_4 B5 N_bit5_5 VDD PMOS l=1u w=8u
+M152 N_bit5_5 C4 N_bit5_sumbar VDD PMOS l=1u w=8u
+M166 N_bit5_3 N_bit5_cbar N_bit5_sumbar VDD PMOS l=1u w=4u
+M153 N_bit5_sumbar C4 N_bit5_6 0 NMOS l=1u w=8u
+M154 N_bit5_6 B5 N_bit5_7 0 NMOS l=1u w=8u
+M155 N_bit5_7 A5 0 0 NMOS l=1u w=8u
+M156 N_bit5_8 C4 0 0 NMOS l=1u w=2u
+M157 N_bit5_8 B5 0 0 NMOS l=1u w=2u
+M158 N_bit5_8 A5 0 0 NMOS l=1u w=2u
+M159 N_bit5_sumbar N_bit5_cbar N_bit5_8 0 NMOS l=1u w=2u
+M167 VDD N_bit5_sumbar SUM5 VDD PMOS l=1u w=2u
+M168 SUM5 N_bit5_sumbar 0 0 NMOS l=1u w=1u
+C5_sum SUM5 0 1p
+C5_co C5 0 1p
+M169 VDD A6 N_bit6_1 VDD PMOS l=1u w=4u
+M170 N_bit6_1 B6 N_bit6_cbar VDD PMOS l=1u w=4u
+M171 VDD A6 N_bit6_2 VDD PMOS l=1u w=4u
+M172 N_bit6_2 C5 N_bit6_cbar VDD PMOS l=1u w=4u
+M173 VDD B6 N_bit6_2 VDD PMOS l=1u w=4u
+M174 VDD N_bit6_cbar C6 VDD PMOS l=1u w=2u
+M193 C6 N_bit6_cbar 0 0 NMOS l=1u w=1u
+M188 N_bit6_9 B6 0 0 NMOS l=1u w=2u
+M189 N_bit6_9 A6 0 0 NMOS l=1u w=2u
+M190 N_bit6_10 A6 0 0 NMOS l=1u w=2u
+M191 N_bit6_cbar B6 N_bit6_10 0 NMOS l=1u w=2u
+M192 N_bit6_cbar C5 N_bit6_9 0 NMOS l=1u w=2u
+M175 VDD A6 N_bit6_3 VDD PMOS l=1u w=4u
+M176 VDD B6 N_bit6_3 VDD PMOS l=1u w=4u
+M177 VDD C5 N_bit6_3 VDD PMOS l=1u w=4u
+M178 VDD A6 N_bit6_4 VDD PMOS l=1u w=8u
+M179 N_bit6_4 B6 N_bit6_5 VDD PMOS l=1u w=8u
+M180 N_bit6_5 C5 N_bit6_sumbar VDD PMOS l=1u w=8u
+M194 N_bit6_3 N_bit6_cbar N_bit6_sumbar VDD PMOS l=1u w=4u
+M181 N_bit6_sumbar C5 N_bit6_6 0 NMOS l=1u w=8u
+M182 N_bit6_6 B6 N_bit6_7 0 NMOS l=1u w=8u
+M183 N_bit6_7 A6 0 0 NMOS l=1u w=8u
+M184 N_bit6_8 C5 0 0 NMOS l=1u w=2u
+M185 N_bit6_8 B6 0 0 NMOS l=1u w=2u
+M186 N_bit6_8 A6 0 0 NMOS l=1u w=2u
+M187 N_bit6_sumbar N_bit6_cbar N_bit6_8 0 NMOS l=1u w=2u
+M195 VDD N_bit6_sumbar SUM6 VDD PMOS l=1u w=2u
+M196 SUM6 N_bit6_sumbar 0 0 NMOS l=1u w=1u
+C6_sum SUM6 0 1p
+C6_co C6 0 1p
+M197 VDD A7 N_bit7_1 VDD PMOS l=1u w=4u
+M198 N_bit7_1 B7 N_bit7_cbar VDD PMOS l=1u w=4u
+M199 VDD A7 N_bit7_2 VDD PMOS l=1u w=4u
+M200 N_bit7_2 C6 N_bit7_cbar VDD PMOS l=1u w=4u
+M201 VDD B7 N_bit7_2 VDD PMOS l=1u w=4u
+M202 VDD N_bit7_cbar C7 VDD PMOS l=1u w=2u
+M221 C7 N_bit7_cbar 0 0 NMOS l=1u w=1u
+M216 N_bit7_9 B7 0 0 NMOS l=1u w=2u
+M217 N_bit7_9 A7 0 0 NMOS l=1u w=2u
+M218 N_bit7_10 A7 0 0 NMOS l=1u w=2u
+M219 N_bit7_cbar B7 N_bit7_10 0 NMOS l=1u w=2u
+M220 N_bit7_cbar C6 N_bit7_9 0 NMOS l=1u w=2u
+M203 VDD A7 N_bit7_3 VDD PMOS l=1u w=4u
+M204 VDD B7 N_bit7_3 VDD PMOS l=1u w=4u
+M205 VDD C6 N_bit7_3 VDD PMOS l=1u w=4u
+M206 VDD A7 N_bit7_4 VDD PMOS l=1u w=8u
+M207 N_bit7_4 B7 N_bit7_5 VDD PMOS l=1u w=8u
+M208 N_bit7_5 C6 N_bit7_sumbar VDD PMOS l=1u w=8u
+M222 N_bit7_3 N_bit7_cbar N_bit7_sumbar VDD PMOS l=1u w=4u
+M209 N_bit7_sumbar C6 N_bit7_6 0 NMOS l=1u w=8u
+M210 N_bit7_6 B7 N_bit7_7 0 NMOS l=1u w=8u
+M211 N_bit7_7 A7 0 0 NMOS l=1u w=8u
+M212 N_bit7_8 C6 0 0 NMOS l=1u w=2u
+M213 N_bit7_8 B7 0 0 NMOS l=1u w=2u
+M214 N_bit7_8 A7 0 0 NMOS l=1u w=2u
+M215 N_bit7_sumbar N_bit7_cbar N_bit7_8 0 NMOS l=1u w=2u
+M223 VDD N_bit7_sumbar SUM7 VDD PMOS l=1u w=2u
+M224 SUM7 N_bit7_sumbar 0 0 NMOS l=1u w=1u
+C7_sum SUM7 0 1p
+C7_co C7 0 1p
+M225 VDD A8 N_bit8_1 VDD PMOS l=1u w=4u
+M226 N_bit8_1 B8 N_bit8_cbar VDD PMOS l=1u w=4u
+M227 VDD A8 N_bit8_2 VDD PMOS l=1u w=4u
+M228 N_bit8_2 C7 N_bit8_cbar VDD PMOS l=1u w=4u
+M229 VDD B8 N_bit8_2 VDD PMOS l=1u w=4u
+M230 VDD N_bit8_cbar C8 VDD PMOS l=1u w=2u
+M249 C8 N_bit8_cbar 0 0 NMOS l=1u w=1u
+M244 N_bit8_9 B8 0 0 NMOS l=1u w=2u
+M245 N_bit8_9 A8 0 0 NMOS l=1u w=2u
+M246 N_bit8_10 A8 0 0 NMOS l=1u w=2u
+M247 N_bit8_cbar B8 N_bit8_10 0 NMOS l=1u w=2u
+M248 N_bit8_cbar C7 N_bit8_9 0 NMOS l=1u w=2u
+M231 VDD A8 N_bit8_3 VDD PMOS l=1u w=4u
+M232 VDD B8 N_bit8_3 VDD PMOS l=1u w=4u
+M233 VDD C7 N_bit8_3 VDD PMOS l=1u w=4u
+M234 VDD A8 N_bit8_4 VDD PMOS l=1u w=8u
+M235 N_bit8_4 B8 N_bit8_5 VDD PMOS l=1u w=8u
+M236 N_bit8_5 C7 N_bit8_sumbar VDD PMOS l=1u w=8u
+M250 N_bit8_3 N_bit8_cbar N_bit8_sumbar VDD PMOS l=1u w=4u
+M237 N_bit8_sumbar C7 N_bit8_6 0 NMOS l=1u w=8u
+M238 N_bit8_6 B8 N_bit8_7 0 NMOS l=1u w=8u
+M239 N_bit8_7 A8 0 0 NMOS l=1u w=8u
+M240 N_bit8_8 C7 0 0 NMOS l=1u w=2u
+M241 N_bit8_8 B8 0 0 NMOS l=1u w=2u
+M242 N_bit8_8 A8 0 0 NMOS l=1u w=2u
+M243 N_bit8_sumbar N_bit8_cbar N_bit8_8 0 NMOS l=1u w=2u
+M251 VDD N_bit8_sumbar SUM8 VDD PMOS l=1u w=2u
+M252 SUM8 N_bit8_sumbar 0 0 NMOS l=1u w=1u
+C8_sum SUM8 0 1p
+C8_co C8 0 1p
+M253 VDD A9 N_bit9_1 VDD PMOS l=1u w=4u
+M254 N_bit9_1 B9 N_bit9_cbar VDD PMOS l=1u w=4u
+M255 VDD A9 N_bit9_2 VDD PMOS l=1u w=4u
+M256 N_bit9_2 C8 N_bit9_cbar VDD PMOS l=1u w=4u
+M257 VDD B9 N_bit9_2 VDD PMOS l=1u w=4u
+M258 VDD N_bit9_cbar C9 VDD PMOS l=1u w=2u
+M277 C9 N_bit9_cbar 0 0 NMOS l=1u w=1u
+M272 N_bit9_9 B9 0 0 NMOS l=1u w=2u
+M273 N_bit9_9 A9 0 0 NMOS l=1u w=2u
+M274 N_bit9_10 A9 0 0 NMOS l=1u w=2u
+M275 N_bit9_cbar B9 N_bit9_10 0 NMOS l=1u w=2u
+M276 N_bit9_cbar C8 N_bit9_9 0 NMOS l=1u w=2u
+M259 VDD A9 N_bit9_3 VDD PMOS l=1u w=4u
+M260 VDD B9 N_bit9_3 VDD PMOS l=1u w=4u
+M261 VDD C8 N_bit9_3 VDD PMOS l=1u w=4u
+M262 VDD A9 N_bit9_4 VDD PMOS l=1u w=8u
+M263 N_bit9_4 B9 N_bit9_5 VDD PMOS l=1u w=8u
+M264 N_bit9_5 C8 N_bit9_sumbar VDD PMOS l=1u w=8u
+M278 N_bit9_3 N_bit9_cbar N_bit9_sumbar VDD PMOS l=1u w=4u
+M265 N_bit9_sumbar C8 N_bit9_6 0 NMOS l=1u w=8u
+M266 N_bit9_6 B9 N_bit9_7 0 NMOS l=1u w=8u
+M267 N_bit9_7 A9 0 0 NMOS l=1u w=8u
+M268 N_bit9_8 C8 0 0 NMOS l=1u w=2u
+M269 N_bit9_8 B9 0 0 NMOS l=1u w=2u
+M270 N_bit9_8 A9 0 0 NMOS l=1u w=2u
+M271 N_bit9_sumbar N_bit9_cbar N_bit9_8 0 NMOS l=1u w=2u
+M279 VDD N_bit9_sumbar SUM9 VDD PMOS l=1u w=2u
+M280 SUM9 N_bit9_sumbar 0 0 NMOS l=1u w=1u
+C9_sum SUM9 0 1p
+C9_co C9 0 1p
+M281 VDD A10 N_bit10_1 VDD PMOS l=1u w=4u
+M282 N_bit10_1 B10 N_bit10_cbar VDD PMOS l=1u w=4u
+M283 VDD A10 N_bit10_2 VDD PMOS l=1u w=4u
+M284 N_bit10_2 C9 N_bit10_cbar VDD PMOS l=1u w=4u
+M285 VDD B10 N_bit10_2 VDD PMOS l=1u w=4u
+M286 VDD N_bit10_cbar C10 VDD PMOS l=1u w=2u
+M305 C10 N_bit10_cbar 0 0 NMOS l=1u w=1u
+M300 N_bit10_9 B10 0 0 NMOS l=1u w=2u
+M301 N_bit10_9 A10 0 0 NMOS l=1u w=2u
+M302 N_bit10_10 A10 0 0 NMOS l=1u w=2u
+M303 N_bit10_cbar B10 N_bit10_10 0 NMOS l=1u w=2u
+M304 N_bit10_cbar C9 N_bit10_9 0 NMOS l=1u w=2u
+M287 VDD A10 N_bit10_3 VDD PMOS l=1u w=4u
+M288 VDD B10 N_bit10_3 VDD PMOS l=1u w=4u
+M289 VDD C9 N_bit10_3 VDD PMOS l=1u w=4u
+M290 VDD A10 N_bit10_4 VDD PMOS l=1u w=8u
+M291 N_bit10_4 B10 N_bit10_5 VDD PMOS l=1u w=8u
+M292 N_bit10_5 C9 N_bit10_sumbar VDD PMOS l=1u w=8u
+M306 N_bit10_3 N_bit10_cbar N_bit10_sumbar VDD PMOS l=1u w=4u
+M293 N_bit10_sumbar C9 N_bit10_6 0 NMOS l=1u w=8u
+M294 N_bit10_6 B10 N_bit10_7 0 NMOS l=1u w=8u
+M295 N_bit10_7 A10 0 0 NMOS l=1u w=8u
+M296 N_bit10_8 C9 0 0 NMOS l=1u w=2u
+M297 N_bit10_8 B10 0 0 NMOS l=1u w=2u
+M298 N_bit10_8 A10 0 0 NMOS l=1u w=2u
+M299 N_bit10_sumbar N_bit10_cbar N_bit10_8 0 NMOS l=1u w=2u
+M307 VDD N_bit10_sumbar SUM10 VDD PMOS l=1u w=2u
+M308 SUM10 N_bit10_sumbar 0 0 NMOS l=1u w=1u
+C10_sum SUM10 0 1p
+C10_co C10 0 1p
+M309 VDD A11 N_bit11_1 VDD PMOS l=1u w=4u
+M310 N_bit11_1 B11 N_bit11_cbar VDD PMOS l=1u w=4u
+M311 VDD A11 N_bit11_2 VDD PMOS l=1u w=4u
+M312 N_bit11_2 C10 N_bit11_cbar VDD PMOS l=1u w=4u
+M313 VDD B11 N_bit11_2 VDD PMOS l=1u w=4u
+M314 VDD N_bit11_cbar C11 VDD PMOS l=1u w=2u
+M333 C11 N_bit11_cbar 0 0 NMOS l=1u w=1u
+M328 N_bit11_9 B11 0 0 NMOS l=1u w=2u
+M329 N_bit11_9 A11 0 0 NMOS l=1u w=2u
+M330 N_bit11_10 A11 0 0 NMOS l=1u w=2u
+M331 N_bit11_cbar B11 N_bit11_10 0 NMOS l=1u w=2u
+M332 N_bit11_cbar C10 N_bit11_9 0 NMOS l=1u w=2u
+M315 VDD A11 N_bit11_3 VDD PMOS l=1u w=4u
+M316 VDD B11 N_bit11_3 VDD PMOS l=1u w=4u
+M317 VDD C10 N_bit11_3 VDD PMOS l=1u w=4u
+M318 VDD A11 N_bit11_4 VDD PMOS l=1u w=8u
+M319 N_bit11_4 B11 N_bit11_5 VDD PMOS l=1u w=8u
+M320 N_bit11_5 C10 N_bit11_sumbar VDD PMOS l=1u w=8u
+M334 N_bit11_3 N_bit11_cbar N_bit11_sumbar VDD PMOS l=1u w=4u
+M321 N_bit11_sumbar C10 N_bit11_6 0 NMOS l=1u w=8u
+M322 N_bit11_6 B11 N_bit11_7 0 NMOS l=1u w=8u
+M323 N_bit11_7 A11 0 0 NMOS l=1u w=8u
+M324 N_bit11_8 C10 0 0 NMOS l=1u w=2u
+M325 N_bit11_8 B11 0 0 NMOS l=1u w=2u
+M326 N_bit11_8 A11 0 0 NMOS l=1u w=2u
+M327 N_bit11_sumbar N_bit11_cbar N_bit11_8 0 NMOS l=1u w=2u
+M335 VDD N_bit11_sumbar SUM11 VDD PMOS l=1u w=2u
+M336 SUM11 N_bit11_sumbar 0 0 NMOS l=1u w=1u
+C11_sum SUM11 0 1p
+C11_co C11 0 1p
+M337 VDD A12 N_bit12_1 VDD PMOS l=1u w=4u
+M338 N_bit12_1 B12 N_bit12_cbar VDD PMOS l=1u w=4u
+M339 VDD A12 N_bit12_2 VDD PMOS l=1u w=4u
+M340 N_bit12_2 C11 N_bit12_cbar VDD PMOS l=1u w=4u
+M341 VDD B12 N_bit12_2 VDD PMOS l=1u w=4u
+M342 VDD N_bit12_cbar C12 VDD PMOS l=1u w=2u
+M361 C12 N_bit12_cbar 0 0 NMOS l=1u w=1u
+M356 N_bit12_9 B12 0 0 NMOS l=1u w=2u
+M357 N_bit12_9 A12 0 0 NMOS l=1u w=2u
+M358 N_bit12_10 A12 0 0 NMOS l=1u w=2u
+M359 N_bit12_cbar B12 N_bit12_10 0 NMOS l=1u w=2u
+M360 N_bit12_cbar C11 N_bit12_9 0 NMOS l=1u w=2u
+M343 VDD A12 N_bit12_3 VDD PMOS l=1u w=4u
+M344 VDD B12 N_bit12_3 VDD PMOS l=1u w=4u
+M345 VDD C11 N_bit12_3 VDD PMOS l=1u w=4u
+M346 VDD A12 N_bit12_4 VDD PMOS l=1u w=8u
+M347 N_bit12_4 B12 N_bit12_5 VDD PMOS l=1u w=8u
+M348 N_bit12_5 C11 N_bit12_sumbar VDD PMOS l=1u w=8u
+M362 N_bit12_3 N_bit12_cbar N_bit12_sumbar VDD PMOS l=1u w=4u
+M349 N_bit12_sumbar C11 N_bit12_6 0 NMOS l=1u w=8u
+M350 N_bit12_6 B12 N_bit12_7 0 NMOS l=1u w=8u
+M351 N_bit12_7 A12 0 0 NMOS l=1u w=8u
+M352 N_bit12_8 C11 0 0 NMOS l=1u w=2u
+M353 N_bit12_8 B12 0 0 NMOS l=1u w=2u
+M354 N_bit12_8 A12 0 0 NMOS l=1u w=2u
+M355 N_bit12_sumbar N_bit12_cbar N_bit12_8 0 NMOS l=1u w=2u
+M363 VDD N_bit12_sumbar SUM12 VDD PMOS l=1u w=2u
+M364 SUM12 N_bit12_sumbar 0 0 NMOS l=1u w=1u
+C12_sum SUM12 0 1p
+C12_co C12 0 1p
+M365 VDD A13 N_bit13_1 VDD PMOS l=1u w=4u
+M366 N_bit13_1 B13 N_bit13_cbar VDD PMOS l=1u w=4u
+M367 VDD A13 N_bit13_2 VDD PMOS l=1u w=4u
+M368 N_bit13_2 C12 N_bit13_cbar VDD PMOS l=1u w=4u
+M369 VDD B13 N_bit13_2 VDD PMOS l=1u w=4u
+M370 VDD N_bit13_cbar C13 VDD PMOS l=1u w=2u
+M389 C13 N_bit13_cbar 0 0 NMOS l=1u w=1u
+M384 N_bit13_9 B13 0 0 NMOS l=1u w=2u
+M385 N_bit13_9 A13 0 0 NMOS l=1u w=2u
+M386 N_bit13_10 A13 0 0 NMOS l=1u w=2u
+M387 N_bit13_cbar B13 N_bit13_10 0 NMOS l=1u w=2u
+M388 N_bit13_cbar C12 N_bit13_9 0 NMOS l=1u w=2u
+M371 VDD A13 N_bit13_3 VDD PMOS l=1u w=4u
+M372 VDD B13 N_bit13_3 VDD PMOS l=1u w=4u
+M373 VDD C12 N_bit13_3 VDD PMOS l=1u w=4u
+M374 VDD A13 N_bit13_4 VDD PMOS l=1u w=8u
+M375 N_bit13_4 B13 N_bit13_5 VDD PMOS l=1u w=8u
+M376 N_bit13_5 C12 N_bit13_sumbar VDD PMOS l=1u w=8u
+M390 N_bit13_3 N_bit13_cbar N_bit13_sumbar VDD PMOS l=1u w=4u
+M377 N_bit13_sumbar C12 N_bit13_6 0 NMOS l=1u w=8u
+M378 N_bit13_6 B13 N_bit13_7 0 NMOS l=1u w=8u
+M379 N_bit13_7 A13 0 0 NMOS l=1u w=8u
+M380 N_bit13_8 C12 0 0 NMOS l=1u w=2u
+M381 N_bit13_8 B13 0 0 NMOS l=1u w=2u
+M382 N_bit13_8 A13 0 0 NMOS l=1u w=2u
+M383 N_bit13_sumbar N_bit13_cbar N_bit13_8 0 NMOS l=1u w=2u
+M391 VDD N_bit13_sumbar SUM13 VDD PMOS l=1u w=2u
+M392 SUM13 N_bit13_sumbar 0 0 NMOS l=1u w=1u
+C13_sum SUM13 0 1p
+C13_co C13 0 1p
+M393 VDD A14 N_bit14_1 VDD PMOS l=1u w=4u
+M394 N_bit14_1 B14 N_bit14_cbar VDD PMOS l=1u w=4u
+M395 VDD A14 N_bit14_2 VDD PMOS l=1u w=4u
+M396 N_bit14_2 C13 N_bit14_cbar VDD PMOS l=1u w=4u
+M397 VDD B14 N_bit14_2 VDD PMOS l=1u w=4u
+M398 VDD N_bit14_cbar C14 VDD PMOS l=1u w=2u
+M417 C14 N_bit14_cbar 0 0 NMOS l=1u w=1u
+M412 N_bit14_9 B14 0 0 NMOS l=1u w=2u
+M413 N_bit14_9 A14 0 0 NMOS l=1u w=2u
+M414 N_bit14_10 A14 0 0 NMOS l=1u w=2u
+M415 N_bit14_cbar B14 N_bit14_10 0 NMOS l=1u w=2u
+M416 N_bit14_cbar C13 N_bit14_9 0 NMOS l=1u w=2u
+M399 VDD A14 N_bit14_3 VDD PMOS l=1u w=4u
+M400 VDD B14 N_bit14_3 VDD PMOS l=1u w=4u
+M401 VDD C13 N_bit14_3 VDD PMOS l=1u w=4u
+M402 VDD A14 N_bit14_4 VDD PMOS l=1u w=8u
+M403 N_bit14_4 B14 N_bit14_5 VDD PMOS l=1u w=8u
+M404 N_bit14_5 C13 N_bit14_sumbar VDD PMOS l=1u w=8u
+M418 N_bit14_3 N_bit14_cbar N_bit14_sumbar VDD PMOS l=1u w=4u
+M405 N_bit14_sumbar C13 N_bit14_6 0 NMOS l=1u w=8u
+M406 N_bit14_6 B14 N_bit14_7 0 NMOS l=1u w=8u
+M407 N_bit14_7 A14 0 0 NMOS l=1u w=8u
+M408 N_bit14_8 C13 0 0 NMOS l=1u w=2u
+M409 N_bit14_8 B14 0 0 NMOS l=1u w=2u
+M410 N_bit14_8 A14 0 0 NMOS l=1u w=2u
+M411 N_bit14_sumbar N_bit14_cbar N_bit14_8 0 NMOS l=1u w=2u
+M419 VDD N_bit14_sumbar SUM14 VDD PMOS l=1u w=2u
+M420 SUM14 N_bit14_sumbar 0 0 NMOS l=1u w=1u
+C14_sum SUM14 0 1p
+C14_co C14 0 1p
+M421 VDD A15 N_bit15_1 VDD PMOS l=1u w=4u
+M422 N_bit15_1 B15 N_bit15_cbar VDD PMOS l=1u w=4u
+M423 VDD A15 N_bit15_2 VDD PMOS l=1u w=4u
+M424 N_bit15_2 C14 N_bit15_cbar VDD PMOS l=1u w=4u
+M425 VDD B15 N_bit15_2 VDD PMOS l=1u w=4u
+M426 VDD N_bit15_cbar C15 VDD PMOS l=1u w=2u
+M445 C15 N_bit15_cbar 0 0 NMOS l=1u w=1u
+M440 N_bit15_9 B15 0 0 NMOS l=1u w=2u
+M441 N_bit15_9 A15 0 0 NMOS l=1u w=2u
+M442 N_bit15_10 A15 0 0 NMOS l=1u w=2u
+M443 N_bit15_cbar B15 N_bit15_10 0 NMOS l=1u w=2u
+M444 N_bit15_cbar C14 N_bit15_9 0 NMOS l=1u w=2u
+M427 VDD A15 N_bit15_3 VDD PMOS l=1u w=4u
+M428 VDD B15 N_bit15_3 VDD PMOS l=1u w=4u
+M429 VDD C14 N_bit15_3 VDD PMOS l=1u w=4u
+M430 VDD A15 N_bit15_4 VDD PMOS l=1u w=8u
+M431 N_bit15_4 B15 N_bit15_5 VDD PMOS l=1u w=8u
+M432 N_bit15_5 C14 N_bit15_sumbar VDD PMOS l=1u w=8u
+M446 N_bit15_3 N_bit15_cbar N_bit15_sumbar VDD PMOS l=1u w=4u
+M433 N_bit15_sumbar C14 N_bit15_6 0 NMOS l=1u w=8u
+M434 N_bit15_6 B15 N_bit15_7 0 NMOS l=1u w=8u
+M435 N_bit15_7 A15 0 0 NMOS l=1u w=8u
+M436 N_bit15_8 C14 0 0 NMOS l=1u w=2u
+M437 N_bit15_8 B15 0 0 NMOS l=1u w=2u
+M438 N_bit15_8 A15 0 0 NMOS l=1u w=2u
+M439 N_bit15_sumbar N_bit15_cbar N_bit15_8 0 NMOS l=1u w=2u
+M447 VDD N_bit15_sumbar SUM15 VDD PMOS l=1u w=2u
+M448 SUM15 N_bit15_sumbar 0 0 NMOS l=1u w=1u
+C15_sum SUM15 0 1p
+C15_co C15 0 1p
+M449 VDD A16 N_bit16_1 VDD PMOS l=1u w=4u
+M450 N_bit16_1 B16 N_bit16_cbar VDD PMOS l=1u w=4u
+M451 VDD A16 N_bit16_2 VDD PMOS l=1u w=4u
+M452 N_bit16_2 C15 N_bit16_cbar VDD PMOS l=1u w=4u
+M453 VDD B16 N_bit16_2 VDD PMOS l=1u w=4u
+M454 VDD N_bit16_cbar C16 VDD PMOS l=1u w=2u
+M473 C16 N_bit16_cbar 0 0 NMOS l=1u w=1u
+M468 N_bit16_9 B16 0 0 NMOS l=1u w=2u
+M469 N_bit16_9 A16 0 0 NMOS l=1u w=2u
+M470 N_bit16_10 A16 0 0 NMOS l=1u w=2u
+M471 N_bit16_cbar B16 N_bit16_10 0 NMOS l=1u w=2u
+M472 N_bit16_cbar C15 N_bit16_9 0 NMOS l=1u w=2u
+M455 VDD A16 N_bit16_3 VDD PMOS l=1u w=4u
+M456 VDD B16 N_bit16_3 VDD PMOS l=1u w=4u
+M457 VDD C15 N_bit16_3 VDD PMOS l=1u w=4u
+M458 VDD A16 N_bit16_4 VDD PMOS l=1u w=8u
+M459 N_bit16_4 B16 N_bit16_5 VDD PMOS l=1u w=8u
+M460 N_bit16_5 C15 N_bit16_sumbar VDD PMOS l=1u w=8u
+M474 N_bit16_3 N_bit16_cbar N_bit16_sumbar VDD PMOS l=1u w=4u
+M461 N_bit16_sumbar C15 N_bit16_6 0 NMOS l=1u w=8u
+M462 N_bit16_6 B16 N_bit16_7 0 NMOS l=1u w=8u
+M463 N_bit16_7 A16 0 0 NMOS l=1u w=8u
+M464 N_bit16_8 C15 0 0 NMOS l=1u w=2u
+M465 N_bit16_8 B16 0 0 NMOS l=1u w=2u
+M466 N_bit16_8 A16 0 0 NMOS l=1u w=2u
+M467 N_bit16_sumbar N_bit16_cbar N_bit16_8 0 NMOS l=1u w=2u
+M475 VDD N_bit16_sumbar SUM16 VDD PMOS l=1u w=2u
+M476 SUM16 N_bit16_sumbar 0 0 NMOS l=1u w=1u
+C16_sum SUM16 0 1p
+C16_co C16 0 1p
+M477 VDD A17 N_bit17_1 VDD PMOS l=1u w=4u
+M478 N_bit17_1 B17 N_bit17_cbar VDD PMOS l=1u w=4u
+M479 VDD A17 N_bit17_2 VDD PMOS l=1u w=4u
+M480 N_bit17_2 C16 N_bit17_cbar VDD PMOS l=1u w=4u
+M481 VDD B17 N_bit17_2 VDD PMOS l=1u w=4u
+M482 VDD N_bit17_cbar C17 VDD PMOS l=1u w=2u
+M501 C17 N_bit17_cbar 0 0 NMOS l=1u w=1u
+M496 N_bit17_9 B17 0 0 NMOS l=1u w=2u
+M497 N_bit17_9 A17 0 0 NMOS l=1u w=2u
+M498 N_bit17_10 A17 0 0 NMOS l=1u w=2u
+M499 N_bit17_cbar B17 N_bit17_10 0 NMOS l=1u w=2u
+M500 N_bit17_cbar C16 N_bit17_9 0 NMOS l=1u w=2u
+M483 VDD A17 N_bit17_3 VDD PMOS l=1u w=4u
+M484 VDD B17 N_bit17_3 VDD PMOS l=1u w=4u
+M485 VDD C16 N_bit17_3 VDD PMOS l=1u w=4u
+M486 VDD A17 N_bit17_4 VDD PMOS l=1u w=8u
+M487 N_bit17_4 B17 N_bit17_5 VDD PMOS l=1u w=8u
+M488 N_bit17_5 C16 N_bit17_sumbar VDD PMOS l=1u w=8u
+M502 N_bit17_3 N_bit17_cbar N_bit17_sumbar VDD PMOS l=1u w=4u
+M489 N_bit17_sumbar C16 N_bit17_6 0 NMOS l=1u w=8u
+M490 N_bit17_6 B17 N_bit17_7 0 NMOS l=1u w=8u
+M491 N_bit17_7 A17 0 0 NMOS l=1u w=8u
+M492 N_bit17_8 C16 0 0 NMOS l=1u w=2u
+M493 N_bit17_8 B17 0 0 NMOS l=1u w=2u
+M494 N_bit17_8 A17 0 0 NMOS l=1u w=2u
+M495 N_bit17_sumbar N_bit17_cbar N_bit17_8 0 NMOS l=1u w=2u
+M503 VDD N_bit17_sumbar SUM17 VDD PMOS l=1u w=2u
+M504 SUM17 N_bit17_sumbar 0 0 NMOS l=1u w=1u
+C17_sum SUM17 0 1p
+C17_co C17 0 1p
+M505 VDD A18 N_bit18_1 VDD PMOS l=1u w=4u
+M506 N_bit18_1 B18 N_bit18_cbar VDD PMOS l=1u w=4u
+M507 VDD A18 N_bit18_2 VDD PMOS l=1u w=4u
+M508 N_bit18_2 C17 N_bit18_cbar VDD PMOS l=1u w=4u
+M509 VDD B18 N_bit18_2 VDD PMOS l=1u w=4u
+M510 VDD N_bit18_cbar C18 VDD PMOS l=1u w=2u
+M529 C18 N_bit18_cbar 0 0 NMOS l=1u w=1u
+M524 N_bit18_9 B18 0 0 NMOS l=1u w=2u
+M525 N_bit18_9 A18 0 0 NMOS l=1u w=2u
+M526 N_bit18_10 A18 0 0 NMOS l=1u w=2u
+M527 N_bit18_cbar B18 N_bit18_10 0 NMOS l=1u w=2u
+M528 N_bit18_cbar C17 N_bit18_9 0 NMOS l=1u w=2u
+M511 VDD A18 N_bit18_3 VDD PMOS l=1u w=4u
+M512 VDD B18 N_bit18_3 VDD PMOS l=1u w=4u
+M513 VDD C17 N_bit18_3 VDD PMOS l=1u w=4u
+M514 VDD A18 N_bit18_4 VDD PMOS l=1u w=8u
+M515 N_bit18_4 B18 N_bit18_5 VDD PMOS l=1u w=8u
+M516 N_bit18_5 C17 N_bit18_sumbar VDD PMOS l=1u w=8u
+M530 N_bit18_3 N_bit18_cbar N_bit18_sumbar VDD PMOS l=1u w=4u
+M517 N_bit18_sumbar C17 N_bit18_6 0 NMOS l=1u w=8u
+M518 N_bit18_6 B18 N_bit18_7 0 NMOS l=1u w=8u
+M519 N_bit18_7 A18 0 0 NMOS l=1u w=8u
+M520 N_bit18_8 C17 0 0 NMOS l=1u w=2u
+M521 N_bit18_8 B18 0 0 NMOS l=1u w=2u
+M522 N_bit18_8 A18 0 0 NMOS l=1u w=2u
+M523 N_bit18_sumbar N_bit18_cbar N_bit18_8 0 NMOS l=1u w=2u
+M531 VDD N_bit18_sumbar SUM18 VDD PMOS l=1u w=2u
+M532 SUM18 N_bit18_sumbar 0 0 NMOS l=1u w=1u
+C18_sum SUM18 0 1p
+C18_co C18 0 1p
+M533 VDD A19 N_bit19_1 VDD PMOS l=1u w=4u
+M534 N_bit19_1 B19 N_bit19_cbar VDD PMOS l=1u w=4u
+M535 VDD A19 N_bit19_2 VDD PMOS l=1u w=4u
+M536 N_bit19_2 C18 N_bit19_cbar VDD PMOS l=1u w=4u
+M537 VDD B19 N_bit19_2 VDD PMOS l=1u w=4u
+M538 VDD N_bit19_cbar C19 VDD PMOS l=1u w=2u
+M557 C19 N_bit19_cbar 0 0 NMOS l=1u w=1u
+M552 N_bit19_9 B19 0 0 NMOS l=1u w=2u
+M553 N_bit19_9 A19 0 0 NMOS l=1u w=2u
+M554 N_bit19_10 A19 0 0 NMOS l=1u w=2u
+M555 N_bit19_cbar B19 N_bit19_10 0 NMOS l=1u w=2u
+M556 N_bit19_cbar C18 N_bit19_9 0 NMOS l=1u w=2u
+M539 VDD A19 N_bit19_3 VDD PMOS l=1u w=4u
+M540 VDD B19 N_bit19_3 VDD PMOS l=1u w=4u
+M541 VDD C18 N_bit19_3 VDD PMOS l=1u w=4u
+M542 VDD A19 N_bit19_4 VDD PMOS l=1u w=8u
+M543 N_bit19_4 B19 N_bit19_5 VDD PMOS l=1u w=8u
+M544 N_bit19_5 C18 N_bit19_sumbar VDD PMOS l=1u w=8u
+M558 N_bit19_3 N_bit19_cbar N_bit19_sumbar VDD PMOS l=1u w=4u
+M545 N_bit19_sumbar C18 N_bit19_6 0 NMOS l=1u w=8u
+M546 N_bit19_6 B19 N_bit19_7 0 NMOS l=1u w=8u
+M547 N_bit19_7 A19 0 0 NMOS l=1u w=8u
+M548 N_bit19_8 C18 0 0 NMOS l=1u w=2u
+M549 N_bit19_8 B19 0 0 NMOS l=1u w=2u
+M550 N_bit19_8 A19 0 0 NMOS l=1u w=2u
+M551 N_bit19_sumbar N_bit19_cbar N_bit19_8 0 NMOS l=1u w=2u
+M559 VDD N_bit19_sumbar SUM19 VDD PMOS l=1u w=2u
+M560 SUM19 N_bit19_sumbar 0 0 NMOS l=1u w=1u
+C19_sum SUM19 0 1p
+C19_co C19 0 1p
+M561 VDD A20 N_bit20_1 VDD PMOS l=1u w=4u
+M562 N_bit20_1 B20 N_bit20_cbar VDD PMOS l=1u w=4u
+M563 VDD A20 N_bit20_2 VDD PMOS l=1u w=4u
+M564 N_bit20_2 C19 N_bit20_cbar VDD PMOS l=1u w=4u
+M565 VDD B20 N_bit20_2 VDD PMOS l=1u w=4u
+M566 VDD N_bit20_cbar C20 VDD PMOS l=1u w=2u
+M585 C20 N_bit20_cbar 0 0 NMOS l=1u w=1u
+M580 N_bit20_9 B20 0 0 NMOS l=1u w=2u
+M581 N_bit20_9 A20 0 0 NMOS l=1u w=2u
+M582 N_bit20_10 A20 0 0 NMOS l=1u w=2u
+M583 N_bit20_cbar B20 N_bit20_10 0 NMOS l=1u w=2u
+M584 N_bit20_cbar C19 N_bit20_9 0 NMOS l=1u w=2u
+M567 VDD A20 N_bit20_3 VDD PMOS l=1u w=4u
+M568 VDD B20 N_bit20_3 VDD PMOS l=1u w=4u
+M569 VDD C19 N_bit20_3 VDD PMOS l=1u w=4u
+M570 VDD A20 N_bit20_4 VDD PMOS l=1u w=8u
+M571 N_bit20_4 B20 N_bit20_5 VDD PMOS l=1u w=8u
+M572 N_bit20_5 C19 N_bit20_sumbar VDD PMOS l=1u w=8u
+M586 N_bit20_3 N_bit20_cbar N_bit20_sumbar VDD PMOS l=1u w=4u
+M573 N_bit20_sumbar C19 N_bit20_6 0 NMOS l=1u w=8u
+M574 N_bit20_6 B20 N_bit20_7 0 NMOS l=1u w=8u
+M575 N_bit20_7 A20 0 0 NMOS l=1u w=8u
+M576 N_bit20_8 C19 0 0 NMOS l=1u w=2u
+M577 N_bit20_8 B20 0 0 NMOS l=1u w=2u
+M578 N_bit20_8 A20 0 0 NMOS l=1u w=2u
+M579 N_bit20_sumbar N_bit20_cbar N_bit20_8 0 NMOS l=1u w=2u
+M587 VDD N_bit20_sumbar SUM20 VDD PMOS l=1u w=2u
+M588 SUM20 N_bit20_sumbar 0 0 NMOS l=1u w=1u
+C20_sum SUM20 0 1p
+C20_co C20 0 1p
+M589 VDD A21 N_bit21_1 VDD PMOS l=1u w=4u
+M590 N_bit21_1 B21 N_bit21_cbar VDD PMOS l=1u w=4u
+M591 VDD A21 N_bit21_2 VDD PMOS l=1u w=4u
+M592 N_bit21_2 C20 N_bit21_cbar VDD PMOS l=1u w=4u
+M593 VDD B21 N_bit21_2 VDD PMOS l=1u w=4u
+M594 VDD N_bit21_cbar C21 VDD PMOS l=1u w=2u
+M613 C21 N_bit21_cbar 0 0 NMOS l=1u w=1u
+M608 N_bit21_9 B21 0 0 NMOS l=1u w=2u
+M609 N_bit21_9 A21 0 0 NMOS l=1u w=2u
+M610 N_bit21_10 A21 0 0 NMOS l=1u w=2u
+M611 N_bit21_cbar B21 N_bit21_10 0 NMOS l=1u w=2u
+M612 N_bit21_cbar C20 N_bit21_9 0 NMOS l=1u w=2u
+M595 VDD A21 N_bit21_3 VDD PMOS l=1u w=4u
+M596 VDD B21 N_bit21_3 VDD PMOS l=1u w=4u
+M597 VDD C20 N_bit21_3 VDD PMOS l=1u w=4u
+M598 VDD A21 N_bit21_4 VDD PMOS l=1u w=8u
+M599 N_bit21_4 B21 N_bit21_5 VDD PMOS l=1u w=8u
+M600 N_bit21_5 C20 N_bit21_sumbar VDD PMOS l=1u w=8u
+M614 N_bit21_3 N_bit21_cbar N_bit21_sumbar VDD PMOS l=1u w=4u
+M601 N_bit21_sumbar C20 N_bit21_6 0 NMOS l=1u w=8u
+M602 N_bit21_6 B21 N_bit21_7 0 NMOS l=1u w=8u
+M603 N_bit21_7 A21 0 0 NMOS l=1u w=8u
+M604 N_bit21_8 C20 0 0 NMOS l=1u w=2u
+M605 N_bit21_8 B21 0 0 NMOS l=1u w=2u
+M606 N_bit21_8 A21 0 0 NMOS l=1u w=2u
+M607 N_bit21_sumbar N_bit21_cbar N_bit21_8 0 NMOS l=1u w=2u
+M615 VDD N_bit21_sumbar SUM21 VDD PMOS l=1u w=2u
+M616 SUM21 N_bit21_sumbar 0 0 NMOS l=1u w=1u
+C21_sum SUM21 0 1p
+C21_co C21 0 1p
+M617 VDD A22 N_bit22_1 VDD PMOS l=1u w=4u
+M618 N_bit22_1 B22 N_bit22_cbar VDD PMOS l=1u w=4u
+M619 VDD A22 N_bit22_2 VDD PMOS l=1u w=4u
+M620 N_bit22_2 C21 N_bit22_cbar VDD PMOS l=1u w=4u
+M621 VDD B22 N_bit22_2 VDD PMOS l=1u w=4u
+M622 VDD N_bit22_cbar C22 VDD PMOS l=1u w=2u
+M641 C22 N_bit22_cbar 0 0 NMOS l=1u w=1u
+M636 N_bit22_9 B22 0 0 NMOS l=1u w=2u
+M637 N_bit22_9 A22 0 0 NMOS l=1u w=2u
+M638 N_bit22_10 A22 0 0 NMOS l=1u w=2u
+M639 N_bit22_cbar B22 N_bit22_10 0 NMOS l=1u w=2u
+M640 N_bit22_cbar C21 N_bit22_9 0 NMOS l=1u w=2u
+M623 VDD A22 N_bit22_3 VDD PMOS l=1u w=4u
+M624 VDD B22 N_bit22_3 VDD PMOS l=1u w=4u
+M625 VDD C21 N_bit22_3 VDD PMOS l=1u w=4u
+M626 VDD A22 N_bit22_4 VDD PMOS l=1u w=8u
+M627 N_bit22_4 B22 N_bit22_5 VDD PMOS l=1u w=8u
+M628 N_bit22_5 C21 N_bit22_sumbar VDD PMOS l=1u w=8u
+M642 N_bit22_3 N_bit22_cbar N_bit22_sumbar VDD PMOS l=1u w=4u
+M629 N_bit22_sumbar C21 N_bit22_6 0 NMOS l=1u w=8u
+M630 N_bit22_6 B22 N_bit22_7 0 NMOS l=1u w=8u
+M631 N_bit22_7 A22 0 0 NMOS l=1u w=8u
+M632 N_bit22_8 C21 0 0 NMOS l=1u w=2u
+M633 N_bit22_8 B22 0 0 NMOS l=1u w=2u
+M634 N_bit22_8 A22 0 0 NMOS l=1u w=2u
+M635 N_bit22_sumbar N_bit22_cbar N_bit22_8 0 NMOS l=1u w=2u
+M643 VDD N_bit22_sumbar SUM22 VDD PMOS l=1u w=2u
+M644 SUM22 N_bit22_sumbar 0 0 NMOS l=1u w=1u
+C22_sum SUM22 0 1p
+C22_co C22 0 1p
+M645 VDD A23 N_bit23_1 VDD PMOS l=1u w=4u
+M646 N_bit23_1 B23 N_bit23_cbar VDD PMOS l=1u w=4u
+M647 VDD A23 N_bit23_2 VDD PMOS l=1u w=4u
+M648 N_bit23_2 C22 N_bit23_cbar VDD PMOS l=1u w=4u
+M649 VDD B23 N_bit23_2 VDD PMOS l=1u w=4u
+M650 VDD N_bit23_cbar C23 VDD PMOS l=1u w=2u
+M669 C23 N_bit23_cbar 0 0 NMOS l=1u w=1u
+M664 N_bit23_9 B23 0 0 NMOS l=1u w=2u
+M665 N_bit23_9 A23 0 0 NMOS l=1u w=2u
+M666 N_bit23_10 A23 0 0 NMOS l=1u w=2u
+M667 N_bit23_cbar B23 N_bit23_10 0 NMOS l=1u w=2u
+M668 N_bit23_cbar C22 N_bit23_9 0 NMOS l=1u w=2u
+M651 VDD A23 N_bit23_3 VDD PMOS l=1u w=4u
+M652 VDD B23 N_bit23_3 VDD PMOS l=1u w=4u
+M653 VDD C22 N_bit23_3 VDD PMOS l=1u w=4u
+M654 VDD A23 N_bit23_4 VDD PMOS l=1u w=8u
+M655 N_bit23_4 B23 N_bit23_5 VDD PMOS l=1u w=8u
+M656 N_bit23_5 C22 N_bit23_sumbar VDD PMOS l=1u w=8u
+M670 N_bit23_3 N_bit23_cbar N_bit23_sumbar VDD PMOS l=1u w=4u
+M657 N_bit23_sumbar C22 N_bit23_6 0 NMOS l=1u w=8u
+M658 N_bit23_6 B23 N_bit23_7 0 NMOS l=1u w=8u
+M659 N_bit23_7 A23 0 0 NMOS l=1u w=8u
+M660 N_bit23_8 C22 0 0 NMOS l=1u w=2u
+M661 N_bit23_8 B23 0 0 NMOS l=1u w=2u
+M662 N_bit23_8 A23 0 0 NMOS l=1u w=2u
+M663 N_bit23_sumbar N_bit23_cbar N_bit23_8 0 NMOS l=1u w=2u
+M671 VDD N_bit23_sumbar SUM23 VDD PMOS l=1u w=2u
+M672 SUM23 N_bit23_sumbar 0 0 NMOS l=1u w=1u
+C23_sum SUM23 0 1p
+C23_co C23 0 1p
+M673 VDD A24 N_bit24_1 VDD PMOS l=1u w=4u
+M674 N_bit24_1 B24 N_bit24_cbar VDD PMOS l=1u w=4u
+M675 VDD A24 N_bit24_2 VDD PMOS l=1u w=4u
+M676 N_bit24_2 C23 N_bit24_cbar VDD PMOS l=1u w=4u
+M677 VDD B24 N_bit24_2 VDD PMOS l=1u w=4u
+M678 VDD N_bit24_cbar C24 VDD PMOS l=1u w=2u
+M697 C24 N_bit24_cbar 0 0 NMOS l=1u w=1u
+M692 N_bit24_9 B24 0 0 NMOS l=1u w=2u
+M693 N_bit24_9 A24 0 0 NMOS l=1u w=2u
+M694 N_bit24_10 A24 0 0 NMOS l=1u w=2u
+M695 N_bit24_cbar B24 N_bit24_10 0 NMOS l=1u w=2u
+M696 N_bit24_cbar C23 N_bit24_9 0 NMOS l=1u w=2u
+M679 VDD A24 N_bit24_3 VDD PMOS l=1u w=4u
+M680 VDD B24 N_bit24_3 VDD PMOS l=1u w=4u
+M681 VDD C23 N_bit24_3 VDD PMOS l=1u w=4u
+M682 VDD A24 N_bit24_4 VDD PMOS l=1u w=8u
+M683 N_bit24_4 B24 N_bit24_5 VDD PMOS l=1u w=8u
+M684 N_bit24_5 C23 N_bit24_sumbar VDD PMOS l=1u w=8u
+M698 N_bit24_3 N_bit24_cbar N_bit24_sumbar VDD PMOS l=1u w=4u
+M685 N_bit24_sumbar C23 N_bit24_6 0 NMOS l=1u w=8u
+M686 N_bit24_6 B24 N_bit24_7 0 NMOS l=1u w=8u
+M687 N_bit24_7 A24 0 0 NMOS l=1u w=8u
+M688 N_bit24_8 C23 0 0 NMOS l=1u w=2u
+M689 N_bit24_8 B24 0 0 NMOS l=1u w=2u
+M690 N_bit24_8 A24 0 0 NMOS l=1u w=2u
+M691 N_bit24_sumbar N_bit24_cbar N_bit24_8 0 NMOS l=1u w=2u
+M699 VDD N_bit24_sumbar SUM24 VDD PMOS l=1u w=2u
+M700 SUM24 N_bit24_sumbar 0 0 NMOS l=1u w=1u
+C24_sum SUM24 0 1p
+C24_co C24 0 1p
+M701 VDD A25 N_bit25_1 VDD PMOS l=1u w=4u
+M702 N_bit25_1 B25 N_bit25_cbar VDD PMOS l=1u w=4u
+M703 VDD A25 N_bit25_2 VDD PMOS l=1u w=4u
+M704 N_bit25_2 C24 N_bit25_cbar VDD PMOS l=1u w=4u
+M705 VDD B25 N_bit25_2 VDD PMOS l=1u w=4u
+M706 VDD N_bit25_cbar C25 VDD PMOS l=1u w=2u
+M725 C25 N_bit25_cbar 0 0 NMOS l=1u w=1u
+M720 N_bit25_9 B25 0 0 NMOS l=1u w=2u
+M721 N_bit25_9 A25 0 0 NMOS l=1u w=2u
+M722 N_bit25_10 A25 0 0 NMOS l=1u w=2u
+M723 N_bit25_cbar B25 N_bit25_10 0 NMOS l=1u w=2u
+M724 N_bit25_cbar C24 N_bit25_9 0 NMOS l=1u w=2u
+M707 VDD A25 N_bit25_3 VDD PMOS l=1u w=4u
+M708 VDD B25 N_bit25_3 VDD PMOS l=1u w=4u
+M709 VDD C24 N_bit25_3 VDD PMOS l=1u w=4u
+M710 VDD A25 N_bit25_4 VDD PMOS l=1u w=8u
+M711 N_bit25_4 B25 N_bit25_5 VDD PMOS l=1u w=8u
+M712 N_bit25_5 C24 N_bit25_sumbar VDD PMOS l=1u w=8u
+M726 N_bit25_3 N_bit25_cbar N_bit25_sumbar VDD PMOS l=1u w=4u
+M713 N_bit25_sumbar C24 N_bit25_6 0 NMOS l=1u w=8u
+M714 N_bit25_6 B25 N_bit25_7 0 NMOS l=1u w=8u
+M715 N_bit25_7 A25 0 0 NMOS l=1u w=8u
+M716 N_bit25_8 C24 0 0 NMOS l=1u w=2u
+M717 N_bit25_8 B25 0 0 NMOS l=1u w=2u
+M718 N_bit25_8 A25 0 0 NMOS l=1u w=2u
+M719 N_bit25_sumbar N_bit25_cbar N_bit25_8 0 NMOS l=1u w=2u
+M727 VDD N_bit25_sumbar SUM25 VDD PMOS l=1u w=2u
+M728 SUM25 N_bit25_sumbar 0 0 NMOS l=1u w=1u
+C25_sum SUM25 0 1p
+C25_co C25 0 1p
+M729 VDD A26 N_bit26_1 VDD PMOS l=1u w=4u
+M730 N_bit26_1 B26 N_bit26_cbar VDD PMOS l=1u w=4u
+M731 VDD A26 N_bit26_2 VDD PMOS l=1u w=4u
+M732 N_bit26_2 C25 N_bit26_cbar VDD PMOS l=1u w=4u
+M733 VDD B26 N_bit26_2 VDD PMOS l=1u w=4u
+M734 VDD N_bit26_cbar C26 VDD PMOS l=1u w=2u
+M753 C26 N_bit26_cbar 0 0 NMOS l=1u w=1u
+M748 N_bit26_9 B26 0 0 NMOS l=1u w=2u
+M749 N_bit26_9 A26 0 0 NMOS l=1u w=2u
+M750 N_bit26_10 A26 0 0 NMOS l=1u w=2u
+M751 N_bit26_cbar B26 N_bit26_10 0 NMOS l=1u w=2u
+M752 N_bit26_cbar C25 N_bit26_9 0 NMOS l=1u w=2u
+M735 VDD A26 N_bit26_3 VDD PMOS l=1u w=4u
+M736 VDD B26 N_bit26_3 VDD PMOS l=1u w=4u
+M737 VDD C25 N_bit26_3 VDD PMOS l=1u w=4u
+M738 VDD A26 N_bit26_4 VDD PMOS l=1u w=8u
+M739 N_bit26_4 B26 N_bit26_5 VDD PMOS l=1u w=8u
+M740 N_bit26_5 C25 N_bit26_sumbar VDD PMOS l=1u w=8u
+M754 N_bit26_3 N_bit26_cbar N_bit26_sumbar VDD PMOS l=1u w=4u
+M741 N_bit26_sumbar C25 N_bit26_6 0 NMOS l=1u w=8u
+M742 N_bit26_6 B26 N_bit26_7 0 NMOS l=1u w=8u
+M743 N_bit26_7 A26 0 0 NMOS l=1u w=8u
+M744 N_bit26_8 C25 0 0 NMOS l=1u w=2u
+M745 N_bit26_8 B26 0 0 NMOS l=1u w=2u
+M746 N_bit26_8 A26 0 0 NMOS l=1u w=2u
+M747 N_bit26_sumbar N_bit26_cbar N_bit26_8 0 NMOS l=1u w=2u
+M755 VDD N_bit26_sumbar SUM26 VDD PMOS l=1u w=2u
+M756 SUM26 N_bit26_sumbar 0 0 NMOS l=1u w=1u
+C26_sum SUM26 0 1p
+C26_co C26 0 1p
+M757 VDD A27 N_bit27_1 VDD PMOS l=1u w=4u
+M758 N_bit27_1 B27 N_bit27_cbar VDD PMOS l=1u w=4u
+M759 VDD A27 N_bit27_2 VDD PMOS l=1u w=4u
+M760 N_bit27_2 C26 N_bit27_cbar VDD PMOS l=1u w=4u
+M761 VDD B27 N_bit27_2 VDD PMOS l=1u w=4u
+M762 VDD N_bit27_cbar C27 VDD PMOS l=1u w=2u
+M781 C27 N_bit27_cbar 0 0 NMOS l=1u w=1u
+M776 N_bit27_9 B27 0 0 NMOS l=1u w=2u
+M777 N_bit27_9 A27 0 0 NMOS l=1u w=2u
+M778 N_bit27_10 A27 0 0 NMOS l=1u w=2u
+M779 N_bit27_cbar B27 N_bit27_10 0 NMOS l=1u w=2u
+M780 N_bit27_cbar C26 N_bit27_9 0 NMOS l=1u w=2u
+M763 VDD A27 N_bit27_3 VDD PMOS l=1u w=4u
+M764 VDD B27 N_bit27_3 VDD PMOS l=1u w=4u
+M765 VDD C26 N_bit27_3 VDD PMOS l=1u w=4u
+M766 VDD A27 N_bit27_4 VDD PMOS l=1u w=8u
+M767 N_bit27_4 B27 N_bit27_5 VDD PMOS l=1u w=8u
+M768 N_bit27_5 C26 N_bit27_sumbar VDD PMOS l=1u w=8u
+M782 N_bit27_3 N_bit27_cbar N_bit27_sumbar VDD PMOS l=1u w=4u
+M769 N_bit27_sumbar C26 N_bit27_6 0 NMOS l=1u w=8u
+M770 N_bit27_6 B27 N_bit27_7 0 NMOS l=1u w=8u
+M771 N_bit27_7 A27 0 0 NMOS l=1u w=8u
+M772 N_bit27_8 C26 0 0 NMOS l=1u w=2u
+M773 N_bit27_8 B27 0 0 NMOS l=1u w=2u
+M774 N_bit27_8 A27 0 0 NMOS l=1u w=2u
+M775 N_bit27_sumbar N_bit27_cbar N_bit27_8 0 NMOS l=1u w=2u
+M783 VDD N_bit27_sumbar SUM27 VDD PMOS l=1u w=2u
+M784 SUM27 N_bit27_sumbar 0 0 NMOS l=1u w=1u
+C27_sum SUM27 0 1p
+C27_co C27 0 1p
+M785 VDD A28 N_bit28_1 VDD PMOS l=1u w=4u
+M786 N_bit28_1 B28 N_bit28_cbar VDD PMOS l=1u w=4u
+M787 VDD A28 N_bit28_2 VDD PMOS l=1u w=4u
+M788 N_bit28_2 C27 N_bit28_cbar VDD PMOS l=1u w=4u
+M789 VDD B28 N_bit28_2 VDD PMOS l=1u w=4u
+M790 VDD N_bit28_cbar C28 VDD PMOS l=1u w=2u
+M809 C28 N_bit28_cbar 0 0 NMOS l=1u w=1u
+M804 N_bit28_9 B28 0 0 NMOS l=1u w=2u
+M805 N_bit28_9 A28 0 0 NMOS l=1u w=2u
+M806 N_bit28_10 A28 0 0 NMOS l=1u w=2u
+M807 N_bit28_cbar B28 N_bit28_10 0 NMOS l=1u w=2u
+M808 N_bit28_cbar C27 N_bit28_9 0 NMOS l=1u w=2u
+M791 VDD A28 N_bit28_3 VDD PMOS l=1u w=4u
+M792 VDD B28 N_bit28_3 VDD PMOS l=1u w=4u
+M793 VDD C27 N_bit28_3 VDD PMOS l=1u w=4u
+M794 VDD A28 N_bit28_4 VDD PMOS l=1u w=8u
+M795 N_bit28_4 B28 N_bit28_5 VDD PMOS l=1u w=8u
+M796 N_bit28_5 C27 N_bit28_sumbar VDD PMOS l=1u w=8u
+M810 N_bit28_3 N_bit28_cbar N_bit28_sumbar VDD PMOS l=1u w=4u
+M797 N_bit28_sumbar C27 N_bit28_6 0 NMOS l=1u w=8u
+M798 N_bit28_6 B28 N_bit28_7 0 NMOS l=1u w=8u
+M799 N_bit28_7 A28 0 0 NMOS l=1u w=8u
+M800 N_bit28_8 C27 0 0 NMOS l=1u w=2u
+M801 N_bit28_8 B28 0 0 NMOS l=1u w=2u
+M802 N_bit28_8 A28 0 0 NMOS l=1u w=2u
+M803 N_bit28_sumbar N_bit28_cbar N_bit28_8 0 NMOS l=1u w=2u
+M811 VDD N_bit28_sumbar SUM28 VDD PMOS l=1u w=2u
+M812 SUM28 N_bit28_sumbar 0 0 NMOS l=1u w=1u
+C28_sum SUM28 0 1p
+C28_co C28 0 1p
+M813 VDD A29 N_bit29_1 VDD PMOS l=1u w=4u
+M814 N_bit29_1 B29 N_bit29_cbar VDD PMOS l=1u w=4u
+M815 VDD A29 N_bit29_2 VDD PMOS l=1u w=4u
+M816 N_bit29_2 C28 N_bit29_cbar VDD PMOS l=1u w=4u
+M817 VDD B29 N_bit29_2 VDD PMOS l=1u w=4u
+M818 VDD N_bit29_cbar C29 VDD PMOS l=1u w=2u
+M837 C29 N_bit29_cbar 0 0 NMOS l=1u w=1u
+M832 N_bit29_9 B29 0 0 NMOS l=1u w=2u
+M833 N_bit29_9 A29 0 0 NMOS l=1u w=2u
+M834 N_bit29_10 A29 0 0 NMOS l=1u w=2u
+M835 N_bit29_cbar B29 N_bit29_10 0 NMOS l=1u w=2u
+M836 N_bit29_cbar C28 N_bit29_9 0 NMOS l=1u w=2u
+M819 VDD A29 N_bit29_3 VDD PMOS l=1u w=4u
+M820 VDD B29 N_bit29_3 VDD PMOS l=1u w=4u
+M821 VDD C28 N_bit29_3 VDD PMOS l=1u w=4u
+M822 VDD A29 N_bit29_4 VDD PMOS l=1u w=8u
+M823 N_bit29_4 B29 N_bit29_5 VDD PMOS l=1u w=8u
+M824 N_bit29_5 C28 N_bit29_sumbar VDD PMOS l=1u w=8u
+M838 N_bit29_3 N_bit29_cbar N_bit29_sumbar VDD PMOS l=1u w=4u
+M825 N_bit29_sumbar C28 N_bit29_6 0 NMOS l=1u w=8u
+M826 N_bit29_6 B29 N_bit29_7 0 NMOS l=1u w=8u
+M827 N_bit29_7 A29 0 0 NMOS l=1u w=8u
+M828 N_bit29_8 C28 0 0 NMOS l=1u w=2u
+M829 N_bit29_8 B29 0 0 NMOS l=1u w=2u
+M830 N_bit29_8 A29 0 0 NMOS l=1u w=2u
+M831 N_bit29_sumbar N_bit29_cbar N_bit29_8 0 NMOS l=1u w=2u
+M839 VDD N_bit29_sumbar SUM29 VDD PMOS l=1u w=2u
+M840 SUM29 N_bit29_sumbar 0 0 NMOS l=1u w=1u
+C29_sum SUM29 0 1p
+C29_co C29 0 1p
+M841 VDD A30 N_bit30_1 VDD PMOS l=1u w=4u
+M842 N_bit30_1 B30 N_bit30_cbar VDD PMOS l=1u w=4u
+M843 VDD A30 N_bit30_2 VDD PMOS l=1u w=4u
+M844 N_bit30_2 C29 N_bit30_cbar VDD PMOS l=1u w=4u
+M845 VDD B30 N_bit30_2 VDD PMOS l=1u w=4u
+M846 VDD N_bit30_cbar C30 VDD PMOS l=1u w=2u
+M865 C30 N_bit30_cbar 0 0 NMOS l=1u w=1u
+M860 N_bit30_9 B30 0 0 NMOS l=1u w=2u
+M861 N_bit30_9 A30 0 0 NMOS l=1u w=2u
+M862 N_bit30_10 A30 0 0 NMOS l=1u w=2u
+M863 N_bit30_cbar B30 N_bit30_10 0 NMOS l=1u w=2u
+M864 N_bit30_cbar C29 N_bit30_9 0 NMOS l=1u w=2u
+M847 VDD A30 N_bit30_3 VDD PMOS l=1u w=4u
+M848 VDD B30 N_bit30_3 VDD PMOS l=1u w=4u
+M849 VDD C29 N_bit30_3 VDD PMOS l=1u w=4u
+M850 VDD A30 N_bit30_4 VDD PMOS l=1u w=8u
+M851 N_bit30_4 B30 N_bit30_5 VDD PMOS l=1u w=8u
+M852 N_bit30_5 C29 N_bit30_sumbar VDD PMOS l=1u w=8u
+M866 N_bit30_3 N_bit30_cbar N_bit30_sumbar VDD PMOS l=1u w=4u
+M853 N_bit30_sumbar C29 N_bit30_6 0 NMOS l=1u w=8u
+M854 N_bit30_6 B30 N_bit30_7 0 NMOS l=1u w=8u
+M855 N_bit30_7 A30 0 0 NMOS l=1u w=8u
+M856 N_bit30_8 C29 0 0 NMOS l=1u w=2u
+M857 N_bit30_8 B30 0 0 NMOS l=1u w=2u
+M858 N_bit30_8 A30 0 0 NMOS l=1u w=2u
+M859 N_bit30_sumbar N_bit30_cbar N_bit30_8 0 NMOS l=1u w=2u
+M867 VDD N_bit30_sumbar SUM30 VDD PMOS l=1u w=2u
+M868 SUM30 N_bit30_sumbar 0 0 NMOS l=1u w=1u
+C30_sum SUM30 0 1p
+C30_co C30 0 1p
+M869 VDD A31 N_bit31_1 VDD PMOS l=1u w=4u
+M870 N_bit31_1 B31 N_bit31_cbar VDD PMOS l=1u w=4u
+M871 VDD A31 N_bit31_2 VDD PMOS l=1u w=4u
+M872 N_bit31_2 C30 N_bit31_cbar VDD PMOS l=1u w=4u
+M873 VDD B31 N_bit31_2 VDD PMOS l=1u w=4u
+M874 VDD N_bit31_cbar C31 VDD PMOS l=1u w=2u
+M893 C31 N_bit31_cbar 0 0 NMOS l=1u w=1u
+M888 N_bit31_9 B31 0 0 NMOS l=1u w=2u
+M889 N_bit31_9 A31 0 0 NMOS l=1u w=2u
+M890 N_bit31_10 A31 0 0 NMOS l=1u w=2u
+M891 N_bit31_cbar B31 N_bit31_10 0 NMOS l=1u w=2u
+M892 N_bit31_cbar C30 N_bit31_9 0 NMOS l=1u w=2u
+M875 VDD A31 N_bit31_3 VDD PMOS l=1u w=4u
+M876 VDD B31 N_bit31_3 VDD PMOS l=1u w=4u
+M877 VDD C30 N_bit31_3 VDD PMOS l=1u w=4u
+M878 VDD A31 N_bit31_4 VDD PMOS l=1u w=8u
+M879 N_bit31_4 B31 N_bit31_5 VDD PMOS l=1u w=8u
+M880 N_bit31_5 C30 N_bit31_sumbar VDD PMOS l=1u w=8u
+M894 N_bit31_3 N_bit31_cbar N_bit31_sumbar VDD PMOS l=1u w=4u
+M881 N_bit31_sumbar C30 N_bit31_6 0 NMOS l=1u w=8u
+M882 N_bit31_6 B31 N_bit31_7 0 NMOS l=1u w=8u
+M883 N_bit31_7 A31 0 0 NMOS l=1u w=8u
+M884 N_bit31_8 C30 0 0 NMOS l=1u w=2u
+M885 N_bit31_8 B31 0 0 NMOS l=1u w=2u
+M886 N_bit31_8 A31 0 0 NMOS l=1u w=2u
+M887 N_bit31_sumbar N_bit31_cbar N_bit31_8 0 NMOS l=1u w=2u
+M895 VDD N_bit31_sumbar SUM31 VDD PMOS l=1u w=2u
+M896 SUM31 N_bit31_sumbar 0 0 NMOS l=1u w=1u
+C31_sum SUM31 0 1p
+C31_co C31 0 1p
+M897 VDD A32 N_bit32_1 VDD PMOS l=1u w=4u
+M898 N_bit32_1 B32 N_bit32_cbar VDD PMOS l=1u w=4u
+M899 VDD A32 N_bit32_2 VDD PMOS l=1u w=4u
+M900 N_bit32_2 C31 N_bit32_cbar VDD PMOS l=1u w=4u
+M901 VDD B32 N_bit32_2 VDD PMOS l=1u w=4u
+M902 VDD N_bit32_cbar C32 VDD PMOS l=1u w=2u
+M921 C32 N_bit32_cbar 0 0 NMOS l=1u w=1u
+M916 N_bit32_9 B32 0 0 NMOS l=1u w=2u
+M917 N_bit32_9 A32 0 0 NMOS l=1u w=2u
+M918 N_bit32_10 A32 0 0 NMOS l=1u w=2u
+M919 N_bit32_cbar B32 N_bit32_10 0 NMOS l=1u w=2u
+M920 N_bit32_cbar C31 N_bit32_9 0 NMOS l=1u w=2u
+M903 VDD A32 N_bit32_3 VDD PMOS l=1u w=4u
+M904 VDD B32 N_bit32_3 VDD PMOS l=1u w=4u
+M905 VDD C31 N_bit32_3 VDD PMOS l=1u w=4u
+M906 VDD A32 N_bit32_4 VDD PMOS l=1u w=8u
+M907 N_bit32_4 B32 N_bit32_5 VDD PMOS l=1u w=8u
+M908 N_bit32_5 C31 N_bit32_sumbar VDD PMOS l=1u w=8u
+M922 N_bit32_3 N_bit32_cbar N_bit32_sumbar VDD PMOS l=1u w=4u
+M909 N_bit32_sumbar C31 N_bit32_6 0 NMOS l=1u w=8u
+M910 N_bit32_6 B32 N_bit32_7 0 NMOS l=1u w=8u
+M911 N_bit32_7 A32 0 0 NMOS l=1u w=8u
+M912 N_bit32_8 C31 0 0 NMOS l=1u w=2u
+M913 N_bit32_8 B32 0 0 NMOS l=1u w=2u
+M914 N_bit32_8 A32 0 0 NMOS l=1u w=2u
+M915 N_bit32_sumbar N_bit32_cbar N_bit32_8 0 NMOS l=1u w=2u
+M923 VDD N_bit32_sumbar SUM32 VDD PMOS l=1u w=2u
+M924 SUM32 N_bit32_sumbar 0 0 NMOS l=1u w=1u
+C32_sum SUM32 0 1p
+C32_co C32 0 1p
+M925 VDD A33 N_bit33_1 VDD PMOS l=1u w=4u
+M926 N_bit33_1 B33 N_bit33_cbar VDD PMOS l=1u w=4u
+M927 VDD A33 N_bit33_2 VDD PMOS l=1u w=4u
+M928 N_bit33_2 C32 N_bit33_cbar VDD PMOS l=1u w=4u
+M929 VDD B33 N_bit33_2 VDD PMOS l=1u w=4u
+M930 VDD N_bit33_cbar C33 VDD PMOS l=1u w=2u
+M949 C33 N_bit33_cbar 0 0 NMOS l=1u w=1u
+M944 N_bit33_9 B33 0 0 NMOS l=1u w=2u
+M945 N_bit33_9 A33 0 0 NMOS l=1u w=2u
+M946 N_bit33_10 A33 0 0 NMOS l=1u w=2u
+M947 N_bit33_cbar B33 N_bit33_10 0 NMOS l=1u w=2u
+M948 N_bit33_cbar C32 N_bit33_9 0 NMOS l=1u w=2u
+M931 VDD A33 N_bit33_3 VDD PMOS l=1u w=4u
+M932 VDD B33 N_bit33_3 VDD PMOS l=1u w=4u
+M933 VDD C32 N_bit33_3 VDD PMOS l=1u w=4u
+M934 VDD A33 N_bit33_4 VDD PMOS l=1u w=8u
+M935 N_bit33_4 B33 N_bit33_5 VDD PMOS l=1u w=8u
+M936 N_bit33_5 C32 N_bit33_sumbar VDD PMOS l=1u w=8u
+M950 N_bit33_3 N_bit33_cbar N_bit33_sumbar VDD PMOS l=1u w=4u
+M937 N_bit33_sumbar C32 N_bit33_6 0 NMOS l=1u w=8u
+M938 N_bit33_6 B33 N_bit33_7 0 NMOS l=1u w=8u
+M939 N_bit33_7 A33 0 0 NMOS l=1u w=8u
+M940 N_bit33_8 C32 0 0 NMOS l=1u w=2u
+M941 N_bit33_8 B33 0 0 NMOS l=1u w=2u
+M942 N_bit33_8 A33 0 0 NMOS l=1u w=2u
+M943 N_bit33_sumbar N_bit33_cbar N_bit33_8 0 NMOS l=1u w=2u
+M951 VDD N_bit33_sumbar SUM33 VDD PMOS l=1u w=2u
+M952 SUM33 N_bit33_sumbar 0 0 NMOS l=1u w=1u
+C33_sum SUM33 0 1p
+C33_co C33 0 1p
+M953 VDD A34 N_bit34_1 VDD PMOS l=1u w=4u
+M954 N_bit34_1 B34 N_bit34_cbar VDD PMOS l=1u w=4u
+M955 VDD A34 N_bit34_2 VDD PMOS l=1u w=4u
+M956 N_bit34_2 C33 N_bit34_cbar VDD PMOS l=1u w=4u
+M957 VDD B34 N_bit34_2 VDD PMOS l=1u w=4u
+M958 VDD N_bit34_cbar C34 VDD PMOS l=1u w=2u
+M977 C34 N_bit34_cbar 0 0 NMOS l=1u w=1u
+M972 N_bit34_9 B34 0 0 NMOS l=1u w=2u
+M973 N_bit34_9 A34 0 0 NMOS l=1u w=2u
+M974 N_bit34_10 A34 0 0 NMOS l=1u w=2u
+M975 N_bit34_cbar B34 N_bit34_10 0 NMOS l=1u w=2u
+M976 N_bit34_cbar C33 N_bit34_9 0 NMOS l=1u w=2u
+M959 VDD A34 N_bit34_3 VDD PMOS l=1u w=4u
+M960 VDD B34 N_bit34_3 VDD PMOS l=1u w=4u
+M961 VDD C33 N_bit34_3 VDD PMOS l=1u w=4u
+M962 VDD A34 N_bit34_4 VDD PMOS l=1u w=8u
+M963 N_bit34_4 B34 N_bit34_5 VDD PMOS l=1u w=8u
+M964 N_bit34_5 C33 N_bit34_sumbar VDD PMOS l=1u w=8u
+M978 N_bit34_3 N_bit34_cbar N_bit34_sumbar VDD PMOS l=1u w=4u
+M965 N_bit34_sumbar C33 N_bit34_6 0 NMOS l=1u w=8u
+M966 N_bit34_6 B34 N_bit34_7 0 NMOS l=1u w=8u
+M967 N_bit34_7 A34 0 0 NMOS l=1u w=8u
+M968 N_bit34_8 C33 0 0 NMOS l=1u w=2u
+M969 N_bit34_8 B34 0 0 NMOS l=1u w=2u
+M970 N_bit34_8 A34 0 0 NMOS l=1u w=2u
+M971 N_bit34_sumbar N_bit34_cbar N_bit34_8 0 NMOS l=1u w=2u
+M979 VDD N_bit34_sumbar SUM34 VDD PMOS l=1u w=2u
+M980 SUM34 N_bit34_sumbar 0 0 NMOS l=1u w=1u
+C34_sum SUM34 0 1p
+C34_co C34 0 1p
+M981 VDD A35 N_bit35_1 VDD PMOS l=1u w=4u
+M982 N_bit35_1 B35 N_bit35_cbar VDD PMOS l=1u w=4u
+M983 VDD A35 N_bit35_2 VDD PMOS l=1u w=4u
+M984 N_bit35_2 C34 N_bit35_cbar VDD PMOS l=1u w=4u
+M985 VDD B35 N_bit35_2 VDD PMOS l=1u w=4u
+M986 VDD N_bit35_cbar C35 VDD PMOS l=1u w=2u
+M1005 C35 N_bit35_cbar 0 0 NMOS l=1u w=1u
+M1000 N_bit35_9 B35 0 0 NMOS l=1u w=2u
+M1001 N_bit35_9 A35 0 0 NMOS l=1u w=2u
+M1002 N_bit35_10 A35 0 0 NMOS l=1u w=2u
+M1003 N_bit35_cbar B35 N_bit35_10 0 NMOS l=1u w=2u
+M1004 N_bit35_cbar C34 N_bit35_9 0 NMOS l=1u w=2u
+M987 VDD A35 N_bit35_3 VDD PMOS l=1u w=4u
+M988 VDD B35 N_bit35_3 VDD PMOS l=1u w=4u
+M989 VDD C34 N_bit35_3 VDD PMOS l=1u w=4u
+M990 VDD A35 N_bit35_4 VDD PMOS l=1u w=8u
+M991 N_bit35_4 B35 N_bit35_5 VDD PMOS l=1u w=8u
+M992 N_bit35_5 C34 N_bit35_sumbar VDD PMOS l=1u w=8u
+M1006 N_bit35_3 N_bit35_cbar N_bit35_sumbar VDD PMOS l=1u w=4u
+M993 N_bit35_sumbar C34 N_bit35_6 0 NMOS l=1u w=8u
+M994 N_bit35_6 B35 N_bit35_7 0 NMOS l=1u w=8u
+M995 N_bit35_7 A35 0 0 NMOS l=1u w=8u
+M996 N_bit35_8 C34 0 0 NMOS l=1u w=2u
+M997 N_bit35_8 B35 0 0 NMOS l=1u w=2u
+M998 N_bit35_8 A35 0 0 NMOS l=1u w=2u
+M999 N_bit35_sumbar N_bit35_cbar N_bit35_8 0 NMOS l=1u w=2u
+M1007 VDD N_bit35_sumbar SUM35 VDD PMOS l=1u w=2u
+M1008 SUM35 N_bit35_sumbar 0 0 NMOS l=1u w=1u
+C35_sum SUM35 0 1p
+C35_co C35 0 1p
+M1009 VDD A36 N_bit36_1 VDD PMOS l=1u w=4u
+M1010 N_bit36_1 B36 N_bit36_cbar VDD PMOS l=1u w=4u
+M1011 VDD A36 N_bit36_2 VDD PMOS l=1u w=4u
+M1012 N_bit36_2 C35 N_bit36_cbar VDD PMOS l=1u w=4u
+M1013 VDD B36 N_bit36_2 VDD PMOS l=1u w=4u
+M1014 VDD N_bit36_cbar C36 VDD PMOS l=1u w=2u
+M1033 C36 N_bit36_cbar 0 0 NMOS l=1u w=1u
+M1028 N_bit36_9 B36 0 0 NMOS l=1u w=2u
+M1029 N_bit36_9 A36 0 0 NMOS l=1u w=2u
+M1030 N_bit36_10 A36 0 0 NMOS l=1u w=2u
+M1031 N_bit36_cbar B36 N_bit36_10 0 NMOS l=1u w=2u
+M1032 N_bit36_cbar C35 N_bit36_9 0 NMOS l=1u w=2u
+M1015 VDD A36 N_bit36_3 VDD PMOS l=1u w=4u
+M1016 VDD B36 N_bit36_3 VDD PMOS l=1u w=4u
+M1017 VDD C35 N_bit36_3 VDD PMOS l=1u w=4u
+M1018 VDD A36 N_bit36_4 VDD PMOS l=1u w=8u
+M1019 N_bit36_4 B36 N_bit36_5 VDD PMOS l=1u w=8u
+M1020 N_bit36_5 C35 N_bit36_sumbar VDD PMOS l=1u w=8u
+M1034 N_bit36_3 N_bit36_cbar N_bit36_sumbar VDD PMOS l=1u w=4u
+M1021 N_bit36_sumbar C35 N_bit36_6 0 NMOS l=1u w=8u
+M1022 N_bit36_6 B36 N_bit36_7 0 NMOS l=1u w=8u
+M1023 N_bit36_7 A36 0 0 NMOS l=1u w=8u
+M1024 N_bit36_8 C35 0 0 NMOS l=1u w=2u
+M1025 N_bit36_8 B36 0 0 NMOS l=1u w=2u
+M1026 N_bit36_8 A36 0 0 NMOS l=1u w=2u
+M1027 N_bit36_sumbar N_bit36_cbar N_bit36_8 0 NMOS l=1u w=2u
+M1035 VDD N_bit36_sumbar SUM36 VDD PMOS l=1u w=2u
+M1036 SUM36 N_bit36_sumbar 0 0 NMOS l=1u w=1u
+C36_sum SUM36 0 1p
+C36_co C36 0 1p
+M1037 VDD A37 N_bit37_1 VDD PMOS l=1u w=4u
+M1038 N_bit37_1 B37 N_bit37_cbar VDD PMOS l=1u w=4u
+M1039 VDD A37 N_bit37_2 VDD PMOS l=1u w=4u
+M1040 N_bit37_2 C36 N_bit37_cbar VDD PMOS l=1u w=4u
+M1041 VDD B37 N_bit37_2 VDD PMOS l=1u w=4u
+M1042 VDD N_bit37_cbar C37 VDD PMOS l=1u w=2u
+M1061 C37 N_bit37_cbar 0 0 NMOS l=1u w=1u
+M1056 N_bit37_9 B37 0 0 NMOS l=1u w=2u
+M1057 N_bit37_9 A37 0 0 NMOS l=1u w=2u
+M1058 N_bit37_10 A37 0 0 NMOS l=1u w=2u
+M1059 N_bit37_cbar B37 N_bit37_10 0 NMOS l=1u w=2u
+M1060 N_bit37_cbar C36 N_bit37_9 0 NMOS l=1u w=2u
+M1043 VDD A37 N_bit37_3 VDD PMOS l=1u w=4u
+M1044 VDD B37 N_bit37_3 VDD PMOS l=1u w=4u
+M1045 VDD C36 N_bit37_3 VDD PMOS l=1u w=4u
+M1046 VDD A37 N_bit37_4 VDD PMOS l=1u w=8u
+M1047 N_bit37_4 B37 N_bit37_5 VDD PMOS l=1u w=8u
+M1048 N_bit37_5 C36 N_bit37_sumbar VDD PMOS l=1u w=8u
+M1062 N_bit37_3 N_bit37_cbar N_bit37_sumbar VDD PMOS l=1u w=4u
+M1049 N_bit37_sumbar C36 N_bit37_6 0 NMOS l=1u w=8u
+M1050 N_bit37_6 B37 N_bit37_7 0 NMOS l=1u w=8u
+M1051 N_bit37_7 A37 0 0 NMOS l=1u w=8u
+M1052 N_bit37_8 C36 0 0 NMOS l=1u w=2u
+M1053 N_bit37_8 B37 0 0 NMOS l=1u w=2u
+M1054 N_bit37_8 A37 0 0 NMOS l=1u w=2u
+M1055 N_bit37_sumbar N_bit37_cbar N_bit37_8 0 NMOS l=1u w=2u
+M1063 VDD N_bit37_sumbar SUM37 VDD PMOS l=1u w=2u
+M1064 SUM37 N_bit37_sumbar 0 0 NMOS l=1u w=1u
+C37_sum SUM37 0 1p
+C37_co C37 0 1p
+M1065 VDD A38 N_bit38_1 VDD PMOS l=1u w=4u
+M1066 N_bit38_1 B38 N_bit38_cbar VDD PMOS l=1u w=4u
+M1067 VDD A38 N_bit38_2 VDD PMOS l=1u w=4u
+M1068 N_bit38_2 C37 N_bit38_cbar VDD PMOS l=1u w=4u
+M1069 VDD B38 N_bit38_2 VDD PMOS l=1u w=4u
+M1070 VDD N_bit38_cbar C38 VDD PMOS l=1u w=2u
+M1089 C38 N_bit38_cbar 0 0 NMOS l=1u w=1u
+M1084 N_bit38_9 B38 0 0 NMOS l=1u w=2u
+M1085 N_bit38_9 A38 0 0 NMOS l=1u w=2u
+M1086 N_bit38_10 A38 0 0 NMOS l=1u w=2u
+M1087 N_bit38_cbar B38 N_bit38_10 0 NMOS l=1u w=2u
+M1088 N_bit38_cbar C37 N_bit38_9 0 NMOS l=1u w=2u
+M1071 VDD A38 N_bit38_3 VDD PMOS l=1u w=4u
+M1072 VDD B38 N_bit38_3 VDD PMOS l=1u w=4u
+M1073 VDD C37 N_bit38_3 VDD PMOS l=1u w=4u
+M1074 VDD A38 N_bit38_4 VDD PMOS l=1u w=8u
+M1075 N_bit38_4 B38 N_bit38_5 VDD PMOS l=1u w=8u
+M1076 N_bit38_5 C37 N_bit38_sumbar VDD PMOS l=1u w=8u
+M1090 N_bit38_3 N_bit38_cbar N_bit38_sumbar VDD PMOS l=1u w=4u
+M1077 N_bit38_sumbar C37 N_bit38_6 0 NMOS l=1u w=8u
+M1078 N_bit38_6 B38 N_bit38_7 0 NMOS l=1u w=8u
+M1079 N_bit38_7 A38 0 0 NMOS l=1u w=8u
+M1080 N_bit38_8 C37 0 0 NMOS l=1u w=2u
+M1081 N_bit38_8 B38 0 0 NMOS l=1u w=2u
+M1082 N_bit38_8 A38 0 0 NMOS l=1u w=2u
+M1083 N_bit38_sumbar N_bit38_cbar N_bit38_8 0 NMOS l=1u w=2u
+M1091 VDD N_bit38_sumbar SUM38 VDD PMOS l=1u w=2u
+M1092 SUM38 N_bit38_sumbar 0 0 NMOS l=1u w=1u
+C38_sum SUM38 0 1p
+C38_co C38 0 1p
+M1093 VDD A39 N_bit39_1 VDD PMOS l=1u w=4u
+M1094 N_bit39_1 B39 N_bit39_cbar VDD PMOS l=1u w=4u
+M1095 VDD A39 N_bit39_2 VDD PMOS l=1u w=4u
+M1096 N_bit39_2 C38 N_bit39_cbar VDD PMOS l=1u w=4u
+M1097 VDD B39 N_bit39_2 VDD PMOS l=1u w=4u
+M1098 VDD N_bit39_cbar C39 VDD PMOS l=1u w=2u
+M1117 C39 N_bit39_cbar 0 0 NMOS l=1u w=1u
+M1112 N_bit39_9 B39 0 0 NMOS l=1u w=2u
+M1113 N_bit39_9 A39 0 0 NMOS l=1u w=2u
+M1114 N_bit39_10 A39 0 0 NMOS l=1u w=2u
+M1115 N_bit39_cbar B39 N_bit39_10 0 NMOS l=1u w=2u
+M1116 N_bit39_cbar C38 N_bit39_9 0 NMOS l=1u w=2u
+M1099 VDD A39 N_bit39_3 VDD PMOS l=1u w=4u
+M1100 VDD B39 N_bit39_3 VDD PMOS l=1u w=4u
+M1101 VDD C38 N_bit39_3 VDD PMOS l=1u w=4u
+M1102 VDD A39 N_bit39_4 VDD PMOS l=1u w=8u
+M1103 N_bit39_4 B39 N_bit39_5 VDD PMOS l=1u w=8u
+M1104 N_bit39_5 C38 N_bit39_sumbar VDD PMOS l=1u w=8u
+M1118 N_bit39_3 N_bit39_cbar N_bit39_sumbar VDD PMOS l=1u w=4u
+M1105 N_bit39_sumbar C38 N_bit39_6 0 NMOS l=1u w=8u
+M1106 N_bit39_6 B39 N_bit39_7 0 NMOS l=1u w=8u
+M1107 N_bit39_7 A39 0 0 NMOS l=1u w=8u
+M1108 N_bit39_8 C38 0 0 NMOS l=1u w=2u
+M1109 N_bit39_8 B39 0 0 NMOS l=1u w=2u
+M1110 N_bit39_8 A39 0 0 NMOS l=1u w=2u
+M1111 N_bit39_sumbar N_bit39_cbar N_bit39_8 0 NMOS l=1u w=2u
+M1119 VDD N_bit39_sumbar SUM39 VDD PMOS l=1u w=2u
+M1120 SUM39 N_bit39_sumbar 0 0 NMOS l=1u w=1u
+C39_sum SUM39 0 1p
+C39_co C39 0 1p
+M1121 VDD A40 N_bit40_1 VDD PMOS l=1u w=4u
+M1122 N_bit40_1 B40 N_bit40_cbar VDD PMOS l=1u w=4u
+M1123 VDD A40 N_bit40_2 VDD PMOS l=1u w=4u
+M1124 N_bit40_2 C39 N_bit40_cbar VDD PMOS l=1u w=4u
+M1125 VDD B40 N_bit40_2 VDD PMOS l=1u w=4u
+M1126 VDD N_bit40_cbar C40 VDD PMOS l=1u w=2u
+M1145 C40 N_bit40_cbar 0 0 NMOS l=1u w=1u
+M1140 N_bit40_9 B40 0 0 NMOS l=1u w=2u
+M1141 N_bit40_9 A40 0 0 NMOS l=1u w=2u
+M1142 N_bit40_10 A40 0 0 NMOS l=1u w=2u
+M1143 N_bit40_cbar B40 N_bit40_10 0 NMOS l=1u w=2u
+M1144 N_bit40_cbar C39 N_bit40_9 0 NMOS l=1u w=2u
+M1127 VDD A40 N_bit40_3 VDD PMOS l=1u w=4u
+M1128 VDD B40 N_bit40_3 VDD PMOS l=1u w=4u
+M1129 VDD C39 N_bit40_3 VDD PMOS l=1u w=4u
+M1130 VDD A40 N_bit40_4 VDD PMOS l=1u w=8u
+M1131 N_bit40_4 B40 N_bit40_5 VDD PMOS l=1u w=8u
+M1132 N_bit40_5 C39 N_bit40_sumbar VDD PMOS l=1u w=8u
+M1146 N_bit40_3 N_bit40_cbar N_bit40_sumbar VDD PMOS l=1u w=4u
+M1133 N_bit40_sumbar C39 N_bit40_6 0 NMOS l=1u w=8u
+M1134 N_bit40_6 B40 N_bit40_7 0 NMOS l=1u w=8u
+M1135 N_bit40_7 A40 0 0 NMOS l=1u w=8u
+M1136 N_bit40_8 C39 0 0 NMOS l=1u w=2u
+M1137 N_bit40_8 B40 0 0 NMOS l=1u w=2u
+M1138 N_bit40_8 A40 0 0 NMOS l=1u w=2u
+M1139 N_bit40_sumbar N_bit40_cbar N_bit40_8 0 NMOS l=1u w=2u
+M1147 VDD N_bit40_sumbar SUM40 VDD PMOS l=1u w=2u
+M1148 SUM40 N_bit40_sumbar 0 0 NMOS l=1u w=1u
+C40_sum SUM40 0 1p
+C40_co C40 0 1p
+M1149 VDD A41 N_bit41_1 VDD PMOS l=1u w=4u
+M1150 N_bit41_1 B41 N_bit41_cbar VDD PMOS l=1u w=4u
+M1151 VDD A41 N_bit41_2 VDD PMOS l=1u w=4u
+M1152 N_bit41_2 C40 N_bit41_cbar VDD PMOS l=1u w=4u
+M1153 VDD B41 N_bit41_2 VDD PMOS l=1u w=4u
+M1154 VDD N_bit41_cbar C41 VDD PMOS l=1u w=2u
+M1173 C41 N_bit41_cbar 0 0 NMOS l=1u w=1u
+M1168 N_bit41_9 B41 0 0 NMOS l=1u w=2u
+M1169 N_bit41_9 A41 0 0 NMOS l=1u w=2u
+M1170 N_bit41_10 A41 0 0 NMOS l=1u w=2u
+M1171 N_bit41_cbar B41 N_bit41_10 0 NMOS l=1u w=2u
+M1172 N_bit41_cbar C40 N_bit41_9 0 NMOS l=1u w=2u
+M1155 VDD A41 N_bit41_3 VDD PMOS l=1u w=4u
+M1156 VDD B41 N_bit41_3 VDD PMOS l=1u w=4u
+M1157 VDD C40 N_bit41_3 VDD PMOS l=1u w=4u
+M1158 VDD A41 N_bit41_4 VDD PMOS l=1u w=8u
+M1159 N_bit41_4 B41 N_bit41_5 VDD PMOS l=1u w=8u
+M1160 N_bit41_5 C40 N_bit41_sumbar VDD PMOS l=1u w=8u
+M1174 N_bit41_3 N_bit41_cbar N_bit41_sumbar VDD PMOS l=1u w=4u
+M1161 N_bit41_sumbar C40 N_bit41_6 0 NMOS l=1u w=8u
+M1162 N_bit41_6 B41 N_bit41_7 0 NMOS l=1u w=8u
+M1163 N_bit41_7 A41 0 0 NMOS l=1u w=8u
+M1164 N_bit41_8 C40 0 0 NMOS l=1u w=2u
+M1165 N_bit41_8 B41 0 0 NMOS l=1u w=2u
+M1166 N_bit41_8 A41 0 0 NMOS l=1u w=2u
+M1167 N_bit41_sumbar N_bit41_cbar N_bit41_8 0 NMOS l=1u w=2u
+M1175 VDD N_bit41_sumbar SUM41 VDD PMOS l=1u w=2u
+M1176 SUM41 N_bit41_sumbar 0 0 NMOS l=1u w=1u
+C41_sum SUM41 0 1p
+C41_co C41 0 1p
+M1177 VDD A42 N_bit42_1 VDD PMOS l=1u w=4u
+M1178 N_bit42_1 B42 N_bit42_cbar VDD PMOS l=1u w=4u
+M1179 VDD A42 N_bit42_2 VDD PMOS l=1u w=4u
+M1180 N_bit42_2 C41 N_bit42_cbar VDD PMOS l=1u w=4u
+M1181 VDD B42 N_bit42_2 VDD PMOS l=1u w=4u
+M1182 VDD N_bit42_cbar C42 VDD PMOS l=1u w=2u
+M1201 C42 N_bit42_cbar 0 0 NMOS l=1u w=1u
+M1196 N_bit42_9 B42 0 0 NMOS l=1u w=2u
+M1197 N_bit42_9 A42 0 0 NMOS l=1u w=2u
+M1198 N_bit42_10 A42 0 0 NMOS l=1u w=2u
+M1199 N_bit42_cbar B42 N_bit42_10 0 NMOS l=1u w=2u
+M1200 N_bit42_cbar C41 N_bit42_9 0 NMOS l=1u w=2u
+M1183 VDD A42 N_bit42_3 VDD PMOS l=1u w=4u
+M1184 VDD B42 N_bit42_3 VDD PMOS l=1u w=4u
+M1185 VDD C41 N_bit42_3 VDD PMOS l=1u w=4u
+M1186 VDD A42 N_bit42_4 VDD PMOS l=1u w=8u
+M1187 N_bit42_4 B42 N_bit42_5 VDD PMOS l=1u w=8u
+M1188 N_bit42_5 C41 N_bit42_sumbar VDD PMOS l=1u w=8u
+M1202 N_bit42_3 N_bit42_cbar N_bit42_sumbar VDD PMOS l=1u w=4u
+M1189 N_bit42_sumbar C41 N_bit42_6 0 NMOS l=1u w=8u
+M1190 N_bit42_6 B42 N_bit42_7 0 NMOS l=1u w=8u
+M1191 N_bit42_7 A42 0 0 NMOS l=1u w=8u
+M1192 N_bit42_8 C41 0 0 NMOS l=1u w=2u
+M1193 N_bit42_8 B42 0 0 NMOS l=1u w=2u
+M1194 N_bit42_8 A42 0 0 NMOS l=1u w=2u
+M1195 N_bit42_sumbar N_bit42_cbar N_bit42_8 0 NMOS l=1u w=2u
+M1203 VDD N_bit42_sumbar SUM42 VDD PMOS l=1u w=2u
+M1204 SUM42 N_bit42_sumbar 0 0 NMOS l=1u w=1u
+C42_sum SUM42 0 1p
+C42_co C42 0 1p
+M1205 VDD A43 N_bit43_1 VDD PMOS l=1u w=4u
+M1206 N_bit43_1 B43 N_bit43_cbar VDD PMOS l=1u w=4u
+M1207 VDD A43 N_bit43_2 VDD PMOS l=1u w=4u
+M1208 N_bit43_2 C42 N_bit43_cbar VDD PMOS l=1u w=4u
+M1209 VDD B43 N_bit43_2 VDD PMOS l=1u w=4u
+M1210 VDD N_bit43_cbar C43 VDD PMOS l=1u w=2u
+M1229 C43 N_bit43_cbar 0 0 NMOS l=1u w=1u
+M1224 N_bit43_9 B43 0 0 NMOS l=1u w=2u
+M1225 N_bit43_9 A43 0 0 NMOS l=1u w=2u
+M1226 N_bit43_10 A43 0 0 NMOS l=1u w=2u
+M1227 N_bit43_cbar B43 N_bit43_10 0 NMOS l=1u w=2u
+M1228 N_bit43_cbar C42 N_bit43_9 0 NMOS l=1u w=2u
+M1211 VDD A43 N_bit43_3 VDD PMOS l=1u w=4u
+M1212 VDD B43 N_bit43_3 VDD PMOS l=1u w=4u
+M1213 VDD C42 N_bit43_3 VDD PMOS l=1u w=4u
+M1214 VDD A43 N_bit43_4 VDD PMOS l=1u w=8u
+M1215 N_bit43_4 B43 N_bit43_5 VDD PMOS l=1u w=8u
+M1216 N_bit43_5 C42 N_bit43_sumbar VDD PMOS l=1u w=8u
+M1230 N_bit43_3 N_bit43_cbar N_bit43_sumbar VDD PMOS l=1u w=4u
+M1217 N_bit43_sumbar C42 N_bit43_6 0 NMOS l=1u w=8u
+M1218 N_bit43_6 B43 N_bit43_7 0 NMOS l=1u w=8u
+M1219 N_bit43_7 A43 0 0 NMOS l=1u w=8u
+M1220 N_bit43_8 C42 0 0 NMOS l=1u w=2u
+M1221 N_bit43_8 B43 0 0 NMOS l=1u w=2u
+M1222 N_bit43_8 A43 0 0 NMOS l=1u w=2u
+M1223 N_bit43_sumbar N_bit43_cbar N_bit43_8 0 NMOS l=1u w=2u
+M1231 VDD N_bit43_sumbar SUM43 VDD PMOS l=1u w=2u
+M1232 SUM43 N_bit43_sumbar 0 0 NMOS l=1u w=1u
+C43_sum SUM43 0 1p
+C43_co C43 0 1p
+M1233 VDD A44 N_bit44_1 VDD PMOS l=1u w=4u
+M1234 N_bit44_1 B44 N_bit44_cbar VDD PMOS l=1u w=4u
+M1235 VDD A44 N_bit44_2 VDD PMOS l=1u w=4u
+M1236 N_bit44_2 C43 N_bit44_cbar VDD PMOS l=1u w=4u
+M1237 VDD B44 N_bit44_2 VDD PMOS l=1u w=4u
+M1238 VDD N_bit44_cbar C44 VDD PMOS l=1u w=2u
+M1257 C44 N_bit44_cbar 0 0 NMOS l=1u w=1u
+M1252 N_bit44_9 B44 0 0 NMOS l=1u w=2u
+M1253 N_bit44_9 A44 0 0 NMOS l=1u w=2u
+M1254 N_bit44_10 A44 0 0 NMOS l=1u w=2u
+M1255 N_bit44_cbar B44 N_bit44_10 0 NMOS l=1u w=2u
+M1256 N_bit44_cbar C43 N_bit44_9 0 NMOS l=1u w=2u
+M1239 VDD A44 N_bit44_3 VDD PMOS l=1u w=4u
+M1240 VDD B44 N_bit44_3 VDD PMOS l=1u w=4u
+M1241 VDD C43 N_bit44_3 VDD PMOS l=1u w=4u
+M1242 VDD A44 N_bit44_4 VDD PMOS l=1u w=8u
+M1243 N_bit44_4 B44 N_bit44_5 VDD PMOS l=1u w=8u
+M1244 N_bit44_5 C43 N_bit44_sumbar VDD PMOS l=1u w=8u
+M1258 N_bit44_3 N_bit44_cbar N_bit44_sumbar VDD PMOS l=1u w=4u
+M1245 N_bit44_sumbar C43 N_bit44_6 0 NMOS l=1u w=8u
+M1246 N_bit44_6 B44 N_bit44_7 0 NMOS l=1u w=8u
+M1247 N_bit44_7 A44 0 0 NMOS l=1u w=8u
+M1248 N_bit44_8 C43 0 0 NMOS l=1u w=2u
+M1249 N_bit44_8 B44 0 0 NMOS l=1u w=2u
+M1250 N_bit44_8 A44 0 0 NMOS l=1u w=2u
+M1251 N_bit44_sumbar N_bit44_cbar N_bit44_8 0 NMOS l=1u w=2u
+M1259 VDD N_bit44_sumbar SUM44 VDD PMOS l=1u w=2u
+M1260 SUM44 N_bit44_sumbar 0 0 NMOS l=1u w=1u
+C44_sum SUM44 0 1p
+C44_co C44 0 1p
+M1261 VDD A45 N_bit45_1 VDD PMOS l=1u w=4u
+M1262 N_bit45_1 B45 N_bit45_cbar VDD PMOS l=1u w=4u
+M1263 VDD A45 N_bit45_2 VDD PMOS l=1u w=4u
+M1264 N_bit45_2 C44 N_bit45_cbar VDD PMOS l=1u w=4u
+M1265 VDD B45 N_bit45_2 VDD PMOS l=1u w=4u
+M1266 VDD N_bit45_cbar C45 VDD PMOS l=1u w=2u
+M1285 C45 N_bit45_cbar 0 0 NMOS l=1u w=1u
+M1280 N_bit45_9 B45 0 0 NMOS l=1u w=2u
+M1281 N_bit45_9 A45 0 0 NMOS l=1u w=2u
+M1282 N_bit45_10 A45 0 0 NMOS l=1u w=2u
+M1283 N_bit45_cbar B45 N_bit45_10 0 NMOS l=1u w=2u
+M1284 N_bit45_cbar C44 N_bit45_9 0 NMOS l=1u w=2u
+M1267 VDD A45 N_bit45_3 VDD PMOS l=1u w=4u
+M1268 VDD B45 N_bit45_3 VDD PMOS l=1u w=4u
+M1269 VDD C44 N_bit45_3 VDD PMOS l=1u w=4u
+M1270 VDD A45 N_bit45_4 VDD PMOS l=1u w=8u
+M1271 N_bit45_4 B45 N_bit45_5 VDD PMOS l=1u w=8u
+M1272 N_bit45_5 C44 N_bit45_sumbar VDD PMOS l=1u w=8u
+M1286 N_bit45_3 N_bit45_cbar N_bit45_sumbar VDD PMOS l=1u w=4u
+M1273 N_bit45_sumbar C44 N_bit45_6 0 NMOS l=1u w=8u
+M1274 N_bit45_6 B45 N_bit45_7 0 NMOS l=1u w=8u
+M1275 N_bit45_7 A45 0 0 NMOS l=1u w=8u
+M1276 N_bit45_8 C44 0 0 NMOS l=1u w=2u
+M1277 N_bit45_8 B45 0 0 NMOS l=1u w=2u
+M1278 N_bit45_8 A45 0 0 NMOS l=1u w=2u
+M1279 N_bit45_sumbar N_bit45_cbar N_bit45_8 0 NMOS l=1u w=2u
+M1287 VDD N_bit45_sumbar SUM45 VDD PMOS l=1u w=2u
+M1288 SUM45 N_bit45_sumbar 0 0 NMOS l=1u w=1u
+C45_sum SUM45 0 1p
+C45_co C45 0 1p
+M1289 VDD A46 N_bit46_1 VDD PMOS l=1u w=4u
+M1290 N_bit46_1 B46 N_bit46_cbar VDD PMOS l=1u w=4u
+M1291 VDD A46 N_bit46_2 VDD PMOS l=1u w=4u
+M1292 N_bit46_2 C45 N_bit46_cbar VDD PMOS l=1u w=4u
+M1293 VDD B46 N_bit46_2 VDD PMOS l=1u w=4u
+M1294 VDD N_bit46_cbar C46 VDD PMOS l=1u w=2u
+M1313 C46 N_bit46_cbar 0 0 NMOS l=1u w=1u
+M1308 N_bit46_9 B46 0 0 NMOS l=1u w=2u
+M1309 N_bit46_9 A46 0 0 NMOS l=1u w=2u
+M1310 N_bit46_10 A46 0 0 NMOS l=1u w=2u
+M1311 N_bit46_cbar B46 N_bit46_10 0 NMOS l=1u w=2u
+M1312 N_bit46_cbar C45 N_bit46_9 0 NMOS l=1u w=2u
+M1295 VDD A46 N_bit46_3 VDD PMOS l=1u w=4u
+M1296 VDD B46 N_bit46_3 VDD PMOS l=1u w=4u
+M1297 VDD C45 N_bit46_3 VDD PMOS l=1u w=4u
+M1298 VDD A46 N_bit46_4 VDD PMOS l=1u w=8u
+M1299 N_bit46_4 B46 N_bit46_5 VDD PMOS l=1u w=8u
+M1300 N_bit46_5 C45 N_bit46_sumbar VDD PMOS l=1u w=8u
+M1314 N_bit46_3 N_bit46_cbar N_bit46_sumbar VDD PMOS l=1u w=4u
+M1301 N_bit46_sumbar C45 N_bit46_6 0 NMOS l=1u w=8u
+M1302 N_bit46_6 B46 N_bit46_7 0 NMOS l=1u w=8u
+M1303 N_bit46_7 A46 0 0 NMOS l=1u w=8u
+M1304 N_bit46_8 C45 0 0 NMOS l=1u w=2u
+M1305 N_bit46_8 B46 0 0 NMOS l=1u w=2u
+M1306 N_bit46_8 A46 0 0 NMOS l=1u w=2u
+M1307 N_bit46_sumbar N_bit46_cbar N_bit46_8 0 NMOS l=1u w=2u
+M1315 VDD N_bit46_sumbar SUM46 VDD PMOS l=1u w=2u
+M1316 SUM46 N_bit46_sumbar 0 0 NMOS l=1u w=1u
+C46_sum SUM46 0 1p
+C46_co C46 0 1p
+M1317 VDD A47 N_bit47_1 VDD PMOS l=1u w=4u
+M1318 N_bit47_1 B47 N_bit47_cbar VDD PMOS l=1u w=4u
+M1319 VDD A47 N_bit47_2 VDD PMOS l=1u w=4u
+M1320 N_bit47_2 C46 N_bit47_cbar VDD PMOS l=1u w=4u
+M1321 VDD B47 N_bit47_2 VDD PMOS l=1u w=4u
+M1322 VDD N_bit47_cbar C47 VDD PMOS l=1u w=2u
+M1341 C47 N_bit47_cbar 0 0 NMOS l=1u w=1u
+M1336 N_bit47_9 B47 0 0 NMOS l=1u w=2u
+M1337 N_bit47_9 A47 0 0 NMOS l=1u w=2u
+M1338 N_bit47_10 A47 0 0 NMOS l=1u w=2u
+M1339 N_bit47_cbar B47 N_bit47_10 0 NMOS l=1u w=2u
+M1340 N_bit47_cbar C46 N_bit47_9 0 NMOS l=1u w=2u
+M1323 VDD A47 N_bit47_3 VDD PMOS l=1u w=4u
+M1324 VDD B47 N_bit47_3 VDD PMOS l=1u w=4u
+M1325 VDD C46 N_bit47_3 VDD PMOS l=1u w=4u
+M1326 VDD A47 N_bit47_4 VDD PMOS l=1u w=8u
+M1327 N_bit47_4 B47 N_bit47_5 VDD PMOS l=1u w=8u
+M1328 N_bit47_5 C46 N_bit47_sumbar VDD PMOS l=1u w=8u
+M1342 N_bit47_3 N_bit47_cbar N_bit47_sumbar VDD PMOS l=1u w=4u
+M1329 N_bit47_sumbar C46 N_bit47_6 0 NMOS l=1u w=8u
+M1330 N_bit47_6 B47 N_bit47_7 0 NMOS l=1u w=8u
+M1331 N_bit47_7 A47 0 0 NMOS l=1u w=8u
+M1332 N_bit47_8 C46 0 0 NMOS l=1u w=2u
+M1333 N_bit47_8 B47 0 0 NMOS l=1u w=2u
+M1334 N_bit47_8 A47 0 0 NMOS l=1u w=2u
+M1335 N_bit47_sumbar N_bit47_cbar N_bit47_8 0 NMOS l=1u w=2u
+M1343 VDD N_bit47_sumbar SUM47 VDD PMOS l=1u w=2u
+M1344 SUM47 N_bit47_sumbar 0 0 NMOS l=1u w=1u
+C47_sum SUM47 0 1p
+C47_co C47 0 1p
+M1345 VDD A48 N_bit48_1 VDD PMOS l=1u w=4u
+M1346 N_bit48_1 B48 N_bit48_cbar VDD PMOS l=1u w=4u
+M1347 VDD A48 N_bit48_2 VDD PMOS l=1u w=4u
+M1348 N_bit48_2 C47 N_bit48_cbar VDD PMOS l=1u w=4u
+M1349 VDD B48 N_bit48_2 VDD PMOS l=1u w=4u
+M1350 VDD N_bit48_cbar C48 VDD PMOS l=1u w=2u
+M1369 C48 N_bit48_cbar 0 0 NMOS l=1u w=1u
+M1364 N_bit48_9 B48 0 0 NMOS l=1u w=2u
+M1365 N_bit48_9 A48 0 0 NMOS l=1u w=2u
+M1366 N_bit48_10 A48 0 0 NMOS l=1u w=2u
+M1367 N_bit48_cbar B48 N_bit48_10 0 NMOS l=1u w=2u
+M1368 N_bit48_cbar C47 N_bit48_9 0 NMOS l=1u w=2u
+M1351 VDD A48 N_bit48_3 VDD PMOS l=1u w=4u
+M1352 VDD B48 N_bit48_3 VDD PMOS l=1u w=4u
+M1353 VDD C47 N_bit48_3 VDD PMOS l=1u w=4u
+M1354 VDD A48 N_bit48_4 VDD PMOS l=1u w=8u
+M1355 N_bit48_4 B48 N_bit48_5 VDD PMOS l=1u w=8u
+M1356 N_bit48_5 C47 N_bit48_sumbar VDD PMOS l=1u w=8u
+M1370 N_bit48_3 N_bit48_cbar N_bit48_sumbar VDD PMOS l=1u w=4u
+M1357 N_bit48_sumbar C47 N_bit48_6 0 NMOS l=1u w=8u
+M1358 N_bit48_6 B48 N_bit48_7 0 NMOS l=1u w=8u
+M1359 N_bit48_7 A48 0 0 NMOS l=1u w=8u
+M1360 N_bit48_8 C47 0 0 NMOS l=1u w=2u
+M1361 N_bit48_8 B48 0 0 NMOS l=1u w=2u
+M1362 N_bit48_8 A48 0 0 NMOS l=1u w=2u
+M1363 N_bit48_sumbar N_bit48_cbar N_bit48_8 0 NMOS l=1u w=2u
+M1371 VDD N_bit48_sumbar SUM48 VDD PMOS l=1u w=2u
+M1372 SUM48 N_bit48_sumbar 0 0 NMOS l=1u w=1u
+C48_sum SUM48 0 1p
+C48_co C48 0 1p
+M1373 VDD A49 N_bit49_1 VDD PMOS l=1u w=4u
+M1374 N_bit49_1 B49 N_bit49_cbar VDD PMOS l=1u w=4u
+M1375 VDD A49 N_bit49_2 VDD PMOS l=1u w=4u
+M1376 N_bit49_2 C48 N_bit49_cbar VDD PMOS l=1u w=4u
+M1377 VDD B49 N_bit49_2 VDD PMOS l=1u w=4u
+M1378 VDD N_bit49_cbar C49 VDD PMOS l=1u w=2u
+M1397 C49 N_bit49_cbar 0 0 NMOS l=1u w=1u
+M1392 N_bit49_9 B49 0 0 NMOS l=1u w=2u
+M1393 N_bit49_9 A49 0 0 NMOS l=1u w=2u
+M1394 N_bit49_10 A49 0 0 NMOS l=1u w=2u
+M1395 N_bit49_cbar B49 N_bit49_10 0 NMOS l=1u w=2u
+M1396 N_bit49_cbar C48 N_bit49_9 0 NMOS l=1u w=2u
+M1379 VDD A49 N_bit49_3 VDD PMOS l=1u w=4u
+M1380 VDD B49 N_bit49_3 VDD PMOS l=1u w=4u
+M1381 VDD C48 N_bit49_3 VDD PMOS l=1u w=4u
+M1382 VDD A49 N_bit49_4 VDD PMOS l=1u w=8u
+M1383 N_bit49_4 B49 N_bit49_5 VDD PMOS l=1u w=8u
+M1384 N_bit49_5 C48 N_bit49_sumbar VDD PMOS l=1u w=8u
+M1398 N_bit49_3 N_bit49_cbar N_bit49_sumbar VDD PMOS l=1u w=4u
+M1385 N_bit49_sumbar C48 N_bit49_6 0 NMOS l=1u w=8u
+M1386 N_bit49_6 B49 N_bit49_7 0 NMOS l=1u w=8u
+M1387 N_bit49_7 A49 0 0 NMOS l=1u w=8u
+M1388 N_bit49_8 C48 0 0 NMOS l=1u w=2u
+M1389 N_bit49_8 B49 0 0 NMOS l=1u w=2u
+M1390 N_bit49_8 A49 0 0 NMOS l=1u w=2u
+M1391 N_bit49_sumbar N_bit49_cbar N_bit49_8 0 NMOS l=1u w=2u
+M1399 VDD N_bit49_sumbar SUM49 VDD PMOS l=1u w=2u
+M1400 SUM49 N_bit49_sumbar 0 0 NMOS l=1u w=1u
+C49_sum SUM49 0 1p
+C49_co C49 0 1p
+M1401 VDD A50 N_bit50_1 VDD PMOS l=1u w=4u
+M1402 N_bit50_1 B50 N_bit50_cbar VDD PMOS l=1u w=4u
+M1403 VDD A50 N_bit50_2 VDD PMOS l=1u w=4u
+M1404 N_bit50_2 C49 N_bit50_cbar VDD PMOS l=1u w=4u
+M1405 VDD B50 N_bit50_2 VDD PMOS l=1u w=4u
+M1406 VDD N_bit50_cbar C50 VDD PMOS l=1u w=2u
+M1425 C50 N_bit50_cbar 0 0 NMOS l=1u w=1u
+M1420 N_bit50_9 B50 0 0 NMOS l=1u w=2u
+M1421 N_bit50_9 A50 0 0 NMOS l=1u w=2u
+M1422 N_bit50_10 A50 0 0 NMOS l=1u w=2u
+M1423 N_bit50_cbar B50 N_bit50_10 0 NMOS l=1u w=2u
+M1424 N_bit50_cbar C49 N_bit50_9 0 NMOS l=1u w=2u
+M1407 VDD A50 N_bit50_3 VDD PMOS l=1u w=4u
+M1408 VDD B50 N_bit50_3 VDD PMOS l=1u w=4u
+M1409 VDD C49 N_bit50_3 VDD PMOS l=1u w=4u
+M1410 VDD A50 N_bit50_4 VDD PMOS l=1u w=8u
+M1411 N_bit50_4 B50 N_bit50_5 VDD PMOS l=1u w=8u
+M1412 N_bit50_5 C49 N_bit50_sumbar VDD PMOS l=1u w=8u
+M1426 N_bit50_3 N_bit50_cbar N_bit50_sumbar VDD PMOS l=1u w=4u
+M1413 N_bit50_sumbar C49 N_bit50_6 0 NMOS l=1u w=8u
+M1414 N_bit50_6 B50 N_bit50_7 0 NMOS l=1u w=8u
+M1415 N_bit50_7 A50 0 0 NMOS l=1u w=8u
+M1416 N_bit50_8 C49 0 0 NMOS l=1u w=2u
+M1417 N_bit50_8 B50 0 0 NMOS l=1u w=2u
+M1418 N_bit50_8 A50 0 0 NMOS l=1u w=2u
+M1419 N_bit50_sumbar N_bit50_cbar N_bit50_8 0 NMOS l=1u w=2u
+M1427 VDD N_bit50_sumbar SUM50 VDD PMOS l=1u w=2u
+M1428 SUM50 N_bit50_sumbar 0 0 NMOS l=1u w=1u
+C50_sum SUM50 0 1p
+C50_co C50 0 1p
+M1429 VDD A51 N_bit51_1 VDD PMOS l=1u w=4u
+M1430 N_bit51_1 B51 N_bit51_cbar VDD PMOS l=1u w=4u
+M1431 VDD A51 N_bit51_2 VDD PMOS l=1u w=4u
+M1432 N_bit51_2 C50 N_bit51_cbar VDD PMOS l=1u w=4u
+M1433 VDD B51 N_bit51_2 VDD PMOS l=1u w=4u
+M1434 VDD N_bit51_cbar C51 VDD PMOS l=1u w=2u
+M1453 C51 N_bit51_cbar 0 0 NMOS l=1u w=1u
+M1448 N_bit51_9 B51 0 0 NMOS l=1u w=2u
+M1449 N_bit51_9 A51 0 0 NMOS l=1u w=2u
+M1450 N_bit51_10 A51 0 0 NMOS l=1u w=2u
+M1451 N_bit51_cbar B51 N_bit51_10 0 NMOS l=1u w=2u
+M1452 N_bit51_cbar C50 N_bit51_9 0 NMOS l=1u w=2u
+M1435 VDD A51 N_bit51_3 VDD PMOS l=1u w=4u
+M1436 VDD B51 N_bit51_3 VDD PMOS l=1u w=4u
+M1437 VDD C50 N_bit51_3 VDD PMOS l=1u w=4u
+M1438 VDD A51 N_bit51_4 VDD PMOS l=1u w=8u
+M1439 N_bit51_4 B51 N_bit51_5 VDD PMOS l=1u w=8u
+M1440 N_bit51_5 C50 N_bit51_sumbar VDD PMOS l=1u w=8u
+M1454 N_bit51_3 N_bit51_cbar N_bit51_sumbar VDD PMOS l=1u w=4u
+M1441 N_bit51_sumbar C50 N_bit51_6 0 NMOS l=1u w=8u
+M1442 N_bit51_6 B51 N_bit51_7 0 NMOS l=1u w=8u
+M1443 N_bit51_7 A51 0 0 NMOS l=1u w=8u
+M1444 N_bit51_8 C50 0 0 NMOS l=1u w=2u
+M1445 N_bit51_8 B51 0 0 NMOS l=1u w=2u
+M1446 N_bit51_8 A51 0 0 NMOS l=1u w=2u
+M1447 N_bit51_sumbar N_bit51_cbar N_bit51_8 0 NMOS l=1u w=2u
+M1455 VDD N_bit51_sumbar SUM51 VDD PMOS l=1u w=2u
+M1456 SUM51 N_bit51_sumbar 0 0 NMOS l=1u w=1u
+C51_sum SUM51 0 1p
+C51_co C51 0 1p
+M1457 VDD A52 N_bit52_1 VDD PMOS l=1u w=4u
+M1458 N_bit52_1 B52 N_bit52_cbar VDD PMOS l=1u w=4u
+M1459 VDD A52 N_bit52_2 VDD PMOS l=1u w=4u
+M1460 N_bit52_2 C51 N_bit52_cbar VDD PMOS l=1u w=4u
+M1461 VDD B52 N_bit52_2 VDD PMOS l=1u w=4u
+M1462 VDD N_bit52_cbar C52 VDD PMOS l=1u w=2u
+M1481 C52 N_bit52_cbar 0 0 NMOS l=1u w=1u
+M1476 N_bit52_9 B52 0 0 NMOS l=1u w=2u
+M1477 N_bit52_9 A52 0 0 NMOS l=1u w=2u
+M1478 N_bit52_10 A52 0 0 NMOS l=1u w=2u
+M1479 N_bit52_cbar B52 N_bit52_10 0 NMOS l=1u w=2u
+M1480 N_bit52_cbar C51 N_bit52_9 0 NMOS l=1u w=2u
+M1463 VDD A52 N_bit52_3 VDD PMOS l=1u w=4u
+M1464 VDD B52 N_bit52_3 VDD PMOS l=1u w=4u
+M1465 VDD C51 N_bit52_3 VDD PMOS l=1u w=4u
+M1466 VDD A52 N_bit52_4 VDD PMOS l=1u w=8u
+M1467 N_bit52_4 B52 N_bit52_5 VDD PMOS l=1u w=8u
+M1468 N_bit52_5 C51 N_bit52_sumbar VDD PMOS l=1u w=8u
+M1482 N_bit52_3 N_bit52_cbar N_bit52_sumbar VDD PMOS l=1u w=4u
+M1469 N_bit52_sumbar C51 N_bit52_6 0 NMOS l=1u w=8u
+M1470 N_bit52_6 B52 N_bit52_7 0 NMOS l=1u w=8u
+M1471 N_bit52_7 A52 0 0 NMOS l=1u w=8u
+M1472 N_bit52_8 C51 0 0 NMOS l=1u w=2u
+M1473 N_bit52_8 B52 0 0 NMOS l=1u w=2u
+M1474 N_bit52_8 A52 0 0 NMOS l=1u w=2u
+M1475 N_bit52_sumbar N_bit52_cbar N_bit52_8 0 NMOS l=1u w=2u
+M1483 VDD N_bit52_sumbar SUM52 VDD PMOS l=1u w=2u
+M1484 SUM52 N_bit52_sumbar 0 0 NMOS l=1u w=1u
+C52_sum SUM52 0 1p
+C52_co C52 0 1p
+M1485 VDD A53 N_bit53_1 VDD PMOS l=1u w=4u
+M1486 N_bit53_1 B53 N_bit53_cbar VDD PMOS l=1u w=4u
+M1487 VDD A53 N_bit53_2 VDD PMOS l=1u w=4u
+M1488 N_bit53_2 C52 N_bit53_cbar VDD PMOS l=1u w=4u
+M1489 VDD B53 N_bit53_2 VDD PMOS l=1u w=4u
+M1490 VDD N_bit53_cbar C53 VDD PMOS l=1u w=2u
+M1509 C53 N_bit53_cbar 0 0 NMOS l=1u w=1u
+M1504 N_bit53_9 B53 0 0 NMOS l=1u w=2u
+M1505 N_bit53_9 A53 0 0 NMOS l=1u w=2u
+M1506 N_bit53_10 A53 0 0 NMOS l=1u w=2u
+M1507 N_bit53_cbar B53 N_bit53_10 0 NMOS l=1u w=2u
+M1508 N_bit53_cbar C52 N_bit53_9 0 NMOS l=1u w=2u
+M1491 VDD A53 N_bit53_3 VDD PMOS l=1u w=4u
+M1492 VDD B53 N_bit53_3 VDD PMOS l=1u w=4u
+M1493 VDD C52 N_bit53_3 VDD PMOS l=1u w=4u
+M1494 VDD A53 N_bit53_4 VDD PMOS l=1u w=8u
+M1495 N_bit53_4 B53 N_bit53_5 VDD PMOS l=1u w=8u
+M1496 N_bit53_5 C52 N_bit53_sumbar VDD PMOS l=1u w=8u
+M1510 N_bit53_3 N_bit53_cbar N_bit53_sumbar VDD PMOS l=1u w=4u
+M1497 N_bit53_sumbar C52 N_bit53_6 0 NMOS l=1u w=8u
+M1498 N_bit53_6 B53 N_bit53_7 0 NMOS l=1u w=8u
+M1499 N_bit53_7 A53 0 0 NMOS l=1u w=8u
+M1500 N_bit53_8 C52 0 0 NMOS l=1u w=2u
+M1501 N_bit53_8 B53 0 0 NMOS l=1u w=2u
+M1502 N_bit53_8 A53 0 0 NMOS l=1u w=2u
+M1503 N_bit53_sumbar N_bit53_cbar N_bit53_8 0 NMOS l=1u w=2u
+M1511 VDD N_bit53_sumbar SUM53 VDD PMOS l=1u w=2u
+M1512 SUM53 N_bit53_sumbar 0 0 NMOS l=1u w=1u
+C53_sum SUM53 0 1p
+C53_co C53 0 1p
+M1513 VDD A54 N_bit54_1 VDD PMOS l=1u w=4u
+M1514 N_bit54_1 B54 N_bit54_cbar VDD PMOS l=1u w=4u
+M1515 VDD A54 N_bit54_2 VDD PMOS l=1u w=4u
+M1516 N_bit54_2 C53 N_bit54_cbar VDD PMOS l=1u w=4u
+M1517 VDD B54 N_bit54_2 VDD PMOS l=1u w=4u
+M1518 VDD N_bit54_cbar C54 VDD PMOS l=1u w=2u
+M1537 C54 N_bit54_cbar 0 0 NMOS l=1u w=1u
+M1532 N_bit54_9 B54 0 0 NMOS l=1u w=2u
+M1533 N_bit54_9 A54 0 0 NMOS l=1u w=2u
+M1534 N_bit54_10 A54 0 0 NMOS l=1u w=2u
+M1535 N_bit54_cbar B54 N_bit54_10 0 NMOS l=1u w=2u
+M1536 N_bit54_cbar C53 N_bit54_9 0 NMOS l=1u w=2u
+M1519 VDD A54 N_bit54_3 VDD PMOS l=1u w=4u
+M1520 VDD B54 N_bit54_3 VDD PMOS l=1u w=4u
+M1521 VDD C53 N_bit54_3 VDD PMOS l=1u w=4u
+M1522 VDD A54 N_bit54_4 VDD PMOS l=1u w=8u
+M1523 N_bit54_4 B54 N_bit54_5 VDD PMOS l=1u w=8u
+M1524 N_bit54_5 C53 N_bit54_sumbar VDD PMOS l=1u w=8u
+M1538 N_bit54_3 N_bit54_cbar N_bit54_sumbar VDD PMOS l=1u w=4u
+M1525 N_bit54_sumbar C53 N_bit54_6 0 NMOS l=1u w=8u
+M1526 N_bit54_6 B54 N_bit54_7 0 NMOS l=1u w=8u
+M1527 N_bit54_7 A54 0 0 NMOS l=1u w=8u
+M1528 N_bit54_8 C53 0 0 NMOS l=1u w=2u
+M1529 N_bit54_8 B54 0 0 NMOS l=1u w=2u
+M1530 N_bit54_8 A54 0 0 NMOS l=1u w=2u
+M1531 N_bit54_sumbar N_bit54_cbar N_bit54_8 0 NMOS l=1u w=2u
+M1539 VDD N_bit54_sumbar SUM54 VDD PMOS l=1u w=2u
+M1540 SUM54 N_bit54_sumbar 0 0 NMOS l=1u w=1u
+C54_sum SUM54 0 1p
+C54_co C54 0 1p
+M1541 VDD A55 N_bit55_1 VDD PMOS l=1u w=4u
+M1542 N_bit55_1 B55 N_bit55_cbar VDD PMOS l=1u w=4u
+M1543 VDD A55 N_bit55_2 VDD PMOS l=1u w=4u
+M1544 N_bit55_2 C54 N_bit55_cbar VDD PMOS l=1u w=4u
+M1545 VDD B55 N_bit55_2 VDD PMOS l=1u w=4u
+M1546 VDD N_bit55_cbar C55 VDD PMOS l=1u w=2u
+M1565 C55 N_bit55_cbar 0 0 NMOS l=1u w=1u
+M1560 N_bit55_9 B55 0 0 NMOS l=1u w=2u
+M1561 N_bit55_9 A55 0 0 NMOS l=1u w=2u
+M1562 N_bit55_10 A55 0 0 NMOS l=1u w=2u
+M1563 N_bit55_cbar B55 N_bit55_10 0 NMOS l=1u w=2u
+M1564 N_bit55_cbar C54 N_bit55_9 0 NMOS l=1u w=2u
+M1547 VDD A55 N_bit55_3 VDD PMOS l=1u w=4u
+M1548 VDD B55 N_bit55_3 VDD PMOS l=1u w=4u
+M1549 VDD C54 N_bit55_3 VDD PMOS l=1u w=4u
+M1550 VDD A55 N_bit55_4 VDD PMOS l=1u w=8u
+M1551 N_bit55_4 B55 N_bit55_5 VDD PMOS l=1u w=8u
+M1552 N_bit55_5 C54 N_bit55_sumbar VDD PMOS l=1u w=8u
+M1566 N_bit55_3 N_bit55_cbar N_bit55_sumbar VDD PMOS l=1u w=4u
+M1553 N_bit55_sumbar C54 N_bit55_6 0 NMOS l=1u w=8u
+M1554 N_bit55_6 B55 N_bit55_7 0 NMOS l=1u w=8u
+M1555 N_bit55_7 A55 0 0 NMOS l=1u w=8u
+M1556 N_bit55_8 C54 0 0 NMOS l=1u w=2u
+M1557 N_bit55_8 B55 0 0 NMOS l=1u w=2u
+M1558 N_bit55_8 A55 0 0 NMOS l=1u w=2u
+M1559 N_bit55_sumbar N_bit55_cbar N_bit55_8 0 NMOS l=1u w=2u
+M1567 VDD N_bit55_sumbar SUM55 VDD PMOS l=1u w=2u
+M1568 SUM55 N_bit55_sumbar 0 0 NMOS l=1u w=1u
+C55_sum SUM55 0 1p
+C55_co C55 0 1p
+M1569 VDD A56 N_bit56_1 VDD PMOS l=1u w=4u
+M1570 N_bit56_1 B56 N_bit56_cbar VDD PMOS l=1u w=4u
+M1571 VDD A56 N_bit56_2 VDD PMOS l=1u w=4u
+M1572 N_bit56_2 C55 N_bit56_cbar VDD PMOS l=1u w=4u
+M1573 VDD B56 N_bit56_2 VDD PMOS l=1u w=4u
+M1574 VDD N_bit56_cbar C56 VDD PMOS l=1u w=2u
+M1593 C56 N_bit56_cbar 0 0 NMOS l=1u w=1u
+M1588 N_bit56_9 B56 0 0 NMOS l=1u w=2u
+M1589 N_bit56_9 A56 0 0 NMOS l=1u w=2u
+M1590 N_bit56_10 A56 0 0 NMOS l=1u w=2u
+M1591 N_bit56_cbar B56 N_bit56_10 0 NMOS l=1u w=2u
+M1592 N_bit56_cbar C55 N_bit56_9 0 NMOS l=1u w=2u
+M1575 VDD A56 N_bit56_3 VDD PMOS l=1u w=4u
+M1576 VDD B56 N_bit56_3 VDD PMOS l=1u w=4u
+M1577 VDD C55 N_bit56_3 VDD PMOS l=1u w=4u
+M1578 VDD A56 N_bit56_4 VDD PMOS l=1u w=8u
+M1579 N_bit56_4 B56 N_bit56_5 VDD PMOS l=1u w=8u
+M1580 N_bit56_5 C55 N_bit56_sumbar VDD PMOS l=1u w=8u
+M1594 N_bit56_3 N_bit56_cbar N_bit56_sumbar VDD PMOS l=1u w=4u
+M1581 N_bit56_sumbar C55 N_bit56_6 0 NMOS l=1u w=8u
+M1582 N_bit56_6 B56 N_bit56_7 0 NMOS l=1u w=8u
+M1583 N_bit56_7 A56 0 0 NMOS l=1u w=8u
+M1584 N_bit56_8 C55 0 0 NMOS l=1u w=2u
+M1585 N_bit56_8 B56 0 0 NMOS l=1u w=2u
+M1586 N_bit56_8 A56 0 0 NMOS l=1u w=2u
+M1587 N_bit56_sumbar N_bit56_cbar N_bit56_8 0 NMOS l=1u w=2u
+M1595 VDD N_bit56_sumbar SUM56 VDD PMOS l=1u w=2u
+M1596 SUM56 N_bit56_sumbar 0 0 NMOS l=1u w=1u
+C56_sum SUM56 0 1p
+C56_co C56 0 1p
+M1597 VDD A57 N_bit57_1 VDD PMOS l=1u w=4u
+M1598 N_bit57_1 B57 N_bit57_cbar VDD PMOS l=1u w=4u
+M1599 VDD A57 N_bit57_2 VDD PMOS l=1u w=4u
+M1600 N_bit57_2 C56 N_bit57_cbar VDD PMOS l=1u w=4u
+M1601 VDD B57 N_bit57_2 VDD PMOS l=1u w=4u
+M1602 VDD N_bit57_cbar C57 VDD PMOS l=1u w=2u
+M1621 C57 N_bit57_cbar 0 0 NMOS l=1u w=1u
+M1616 N_bit57_9 B57 0 0 NMOS l=1u w=2u
+M1617 N_bit57_9 A57 0 0 NMOS l=1u w=2u
+M1618 N_bit57_10 A57 0 0 NMOS l=1u w=2u
+M1619 N_bit57_cbar B57 N_bit57_10 0 NMOS l=1u w=2u
+M1620 N_bit57_cbar C56 N_bit57_9 0 NMOS l=1u w=2u
+M1603 VDD A57 N_bit57_3 VDD PMOS l=1u w=4u
+M1604 VDD B57 N_bit57_3 VDD PMOS l=1u w=4u
+M1605 VDD C56 N_bit57_3 VDD PMOS l=1u w=4u
+M1606 VDD A57 N_bit57_4 VDD PMOS l=1u w=8u
+M1607 N_bit57_4 B57 N_bit57_5 VDD PMOS l=1u w=8u
+M1608 N_bit57_5 C56 N_bit57_sumbar VDD PMOS l=1u w=8u
+M1622 N_bit57_3 N_bit57_cbar N_bit57_sumbar VDD PMOS l=1u w=4u
+M1609 N_bit57_sumbar C56 N_bit57_6 0 NMOS l=1u w=8u
+M1610 N_bit57_6 B57 N_bit57_7 0 NMOS l=1u w=8u
+M1611 N_bit57_7 A57 0 0 NMOS l=1u w=8u
+M1612 N_bit57_8 C56 0 0 NMOS l=1u w=2u
+M1613 N_bit57_8 B57 0 0 NMOS l=1u w=2u
+M1614 N_bit57_8 A57 0 0 NMOS l=1u w=2u
+M1615 N_bit57_sumbar N_bit57_cbar N_bit57_8 0 NMOS l=1u w=2u
+M1623 VDD N_bit57_sumbar SUM57 VDD PMOS l=1u w=2u
+M1624 SUM57 N_bit57_sumbar 0 0 NMOS l=1u w=1u
+C57_sum SUM57 0 1p
+C57_co C57 0 1p
+M1625 VDD A58 N_bit58_1 VDD PMOS l=1u w=4u
+M1626 N_bit58_1 B58 N_bit58_cbar VDD PMOS l=1u w=4u
+M1627 VDD A58 N_bit58_2 VDD PMOS l=1u w=4u
+M1628 N_bit58_2 C57 N_bit58_cbar VDD PMOS l=1u w=4u
+M1629 VDD B58 N_bit58_2 VDD PMOS l=1u w=4u
+M1630 VDD N_bit58_cbar C58 VDD PMOS l=1u w=2u
+M1649 C58 N_bit58_cbar 0 0 NMOS l=1u w=1u
+M1644 N_bit58_9 B58 0 0 NMOS l=1u w=2u
+M1645 N_bit58_9 A58 0 0 NMOS l=1u w=2u
+M1646 N_bit58_10 A58 0 0 NMOS l=1u w=2u
+M1647 N_bit58_cbar B58 N_bit58_10 0 NMOS l=1u w=2u
+M1648 N_bit58_cbar C57 N_bit58_9 0 NMOS l=1u w=2u
+M1631 VDD A58 N_bit58_3 VDD PMOS l=1u w=4u
+M1632 VDD B58 N_bit58_3 VDD PMOS l=1u w=4u
+M1633 VDD C57 N_bit58_3 VDD PMOS l=1u w=4u
+M1634 VDD A58 N_bit58_4 VDD PMOS l=1u w=8u
+M1635 N_bit58_4 B58 N_bit58_5 VDD PMOS l=1u w=8u
+M1636 N_bit58_5 C57 N_bit58_sumbar VDD PMOS l=1u w=8u
+M1650 N_bit58_3 N_bit58_cbar N_bit58_sumbar VDD PMOS l=1u w=4u
+M1637 N_bit58_sumbar C57 N_bit58_6 0 NMOS l=1u w=8u
+M1638 N_bit58_6 B58 N_bit58_7 0 NMOS l=1u w=8u
+M1639 N_bit58_7 A58 0 0 NMOS l=1u w=8u
+M1640 N_bit58_8 C57 0 0 NMOS l=1u w=2u
+M1641 N_bit58_8 B58 0 0 NMOS l=1u w=2u
+M1642 N_bit58_8 A58 0 0 NMOS l=1u w=2u
+M1643 N_bit58_sumbar N_bit58_cbar N_bit58_8 0 NMOS l=1u w=2u
+M1651 VDD N_bit58_sumbar SUM58 VDD PMOS l=1u w=2u
+M1652 SUM58 N_bit58_sumbar 0 0 NMOS l=1u w=1u
+C58_sum SUM58 0 1p
+C58_co C58 0 1p
+M1653 VDD A59 N_bit59_1 VDD PMOS l=1u w=4u
+M1654 N_bit59_1 B59 N_bit59_cbar VDD PMOS l=1u w=4u
+M1655 VDD A59 N_bit59_2 VDD PMOS l=1u w=4u
+M1656 N_bit59_2 C58 N_bit59_cbar VDD PMOS l=1u w=4u
+M1657 VDD B59 N_bit59_2 VDD PMOS l=1u w=4u
+M1658 VDD N_bit59_cbar C59 VDD PMOS l=1u w=2u
+M1677 C59 N_bit59_cbar 0 0 NMOS l=1u w=1u
+M1672 N_bit59_9 B59 0 0 NMOS l=1u w=2u
+M1673 N_bit59_9 A59 0 0 NMOS l=1u w=2u
+M1674 N_bit59_10 A59 0 0 NMOS l=1u w=2u
+M1675 N_bit59_cbar B59 N_bit59_10 0 NMOS l=1u w=2u
+M1676 N_bit59_cbar C58 N_bit59_9 0 NMOS l=1u w=2u
+M1659 VDD A59 N_bit59_3 VDD PMOS l=1u w=4u
+M1660 VDD B59 N_bit59_3 VDD PMOS l=1u w=4u
+M1661 VDD C58 N_bit59_3 VDD PMOS l=1u w=4u
+M1662 VDD A59 N_bit59_4 VDD PMOS l=1u w=8u
+M1663 N_bit59_4 B59 N_bit59_5 VDD PMOS l=1u w=8u
+M1664 N_bit59_5 C58 N_bit59_sumbar VDD PMOS l=1u w=8u
+M1678 N_bit59_3 N_bit59_cbar N_bit59_sumbar VDD PMOS l=1u w=4u
+M1665 N_bit59_sumbar C58 N_bit59_6 0 NMOS l=1u w=8u
+M1666 N_bit59_6 B59 N_bit59_7 0 NMOS l=1u w=8u
+M1667 N_bit59_7 A59 0 0 NMOS l=1u w=8u
+M1668 N_bit59_8 C58 0 0 NMOS l=1u w=2u
+M1669 N_bit59_8 B59 0 0 NMOS l=1u w=2u
+M1670 N_bit59_8 A59 0 0 NMOS l=1u w=2u
+M1671 N_bit59_sumbar N_bit59_cbar N_bit59_8 0 NMOS l=1u w=2u
+M1679 VDD N_bit59_sumbar SUM59 VDD PMOS l=1u w=2u
+M1680 SUM59 N_bit59_sumbar 0 0 NMOS l=1u w=1u
+C59_sum SUM59 0 1p
+C59_co C59 0 1p
+M1681 VDD A60 N_bit60_1 VDD PMOS l=1u w=4u
+M1682 N_bit60_1 B60 N_bit60_cbar VDD PMOS l=1u w=4u
+M1683 VDD A60 N_bit60_2 VDD PMOS l=1u w=4u
+M1684 N_bit60_2 C59 N_bit60_cbar VDD PMOS l=1u w=4u
+M1685 VDD B60 N_bit60_2 VDD PMOS l=1u w=4u
+M1686 VDD N_bit60_cbar C60 VDD PMOS l=1u w=2u
+M1705 C60 N_bit60_cbar 0 0 NMOS l=1u w=1u
+M1700 N_bit60_9 B60 0 0 NMOS l=1u w=2u
+M1701 N_bit60_9 A60 0 0 NMOS l=1u w=2u
+M1702 N_bit60_10 A60 0 0 NMOS l=1u w=2u
+M1703 N_bit60_cbar B60 N_bit60_10 0 NMOS l=1u w=2u
+M1704 N_bit60_cbar C59 N_bit60_9 0 NMOS l=1u w=2u
+M1687 VDD A60 N_bit60_3 VDD PMOS l=1u w=4u
+M1688 VDD B60 N_bit60_3 VDD PMOS l=1u w=4u
+M1689 VDD C59 N_bit60_3 VDD PMOS l=1u w=4u
+M1690 VDD A60 N_bit60_4 VDD PMOS l=1u w=8u
+M1691 N_bit60_4 B60 N_bit60_5 VDD PMOS l=1u w=8u
+M1692 N_bit60_5 C59 N_bit60_sumbar VDD PMOS l=1u w=8u
+M1706 N_bit60_3 N_bit60_cbar N_bit60_sumbar VDD PMOS l=1u w=4u
+M1693 N_bit60_sumbar C59 N_bit60_6 0 NMOS l=1u w=8u
+M1694 N_bit60_6 B60 N_bit60_7 0 NMOS l=1u w=8u
+M1695 N_bit60_7 A60 0 0 NMOS l=1u w=8u
+M1696 N_bit60_8 C59 0 0 NMOS l=1u w=2u
+M1697 N_bit60_8 B60 0 0 NMOS l=1u w=2u
+M1698 N_bit60_8 A60 0 0 NMOS l=1u w=2u
+M1699 N_bit60_sumbar N_bit60_cbar N_bit60_8 0 NMOS l=1u w=2u
+M1707 VDD N_bit60_sumbar SUM60 VDD PMOS l=1u w=2u
+M1708 SUM60 N_bit60_sumbar 0 0 NMOS l=1u w=1u
+C60_sum SUM60 0 1p
+C60_co C60 0 1p
+M1709 VDD A61 N_bit61_1 VDD PMOS l=1u w=4u
+M1710 N_bit61_1 B61 N_bit61_cbar VDD PMOS l=1u w=4u
+M1711 VDD A61 N_bit61_2 VDD PMOS l=1u w=4u
+M1712 N_bit61_2 C60 N_bit61_cbar VDD PMOS l=1u w=4u
+M1713 VDD B61 N_bit61_2 VDD PMOS l=1u w=4u
+M1714 VDD N_bit61_cbar C61 VDD PMOS l=1u w=2u
+M1733 C61 N_bit61_cbar 0 0 NMOS l=1u w=1u
+M1728 N_bit61_9 B61 0 0 NMOS l=1u w=2u
+M1729 N_bit61_9 A61 0 0 NMOS l=1u w=2u
+M1730 N_bit61_10 A61 0 0 NMOS l=1u w=2u
+M1731 N_bit61_cbar B61 N_bit61_10 0 NMOS l=1u w=2u
+M1732 N_bit61_cbar C60 N_bit61_9 0 NMOS l=1u w=2u
+M1715 VDD A61 N_bit61_3 VDD PMOS l=1u w=4u
+M1716 VDD B61 N_bit61_3 VDD PMOS l=1u w=4u
+M1717 VDD C60 N_bit61_3 VDD PMOS l=1u w=4u
+M1718 VDD A61 N_bit61_4 VDD PMOS l=1u w=8u
+M1719 N_bit61_4 B61 N_bit61_5 VDD PMOS l=1u w=8u
+M1720 N_bit61_5 C60 N_bit61_sumbar VDD PMOS l=1u w=8u
+M1734 N_bit61_3 N_bit61_cbar N_bit61_sumbar VDD PMOS l=1u w=4u
+M1721 N_bit61_sumbar C60 N_bit61_6 0 NMOS l=1u w=8u
+M1722 N_bit61_6 B61 N_bit61_7 0 NMOS l=1u w=8u
+M1723 N_bit61_7 A61 0 0 NMOS l=1u w=8u
+M1724 N_bit61_8 C60 0 0 NMOS l=1u w=2u
+M1725 N_bit61_8 B61 0 0 NMOS l=1u w=2u
+M1726 N_bit61_8 A61 0 0 NMOS l=1u w=2u
+M1727 N_bit61_sumbar N_bit61_cbar N_bit61_8 0 NMOS l=1u w=2u
+M1735 VDD N_bit61_sumbar SUM61 VDD PMOS l=1u w=2u
+M1736 SUM61 N_bit61_sumbar 0 0 NMOS l=1u w=1u
+C61_sum SUM61 0 1p
+C61_co C61 0 1p
+M1737 VDD A62 N_bit62_1 VDD PMOS l=1u w=4u
+M1738 N_bit62_1 B62 N_bit62_cbar VDD PMOS l=1u w=4u
+M1739 VDD A62 N_bit62_2 VDD PMOS l=1u w=4u
+M1740 N_bit62_2 C61 N_bit62_cbar VDD PMOS l=1u w=4u
+M1741 VDD B62 N_bit62_2 VDD PMOS l=1u w=4u
+M1742 VDD N_bit62_cbar C62 VDD PMOS l=1u w=2u
+M1761 C62 N_bit62_cbar 0 0 NMOS l=1u w=1u
+M1756 N_bit62_9 B62 0 0 NMOS l=1u w=2u
+M1757 N_bit62_9 A62 0 0 NMOS l=1u w=2u
+M1758 N_bit62_10 A62 0 0 NMOS l=1u w=2u
+M1759 N_bit62_cbar B62 N_bit62_10 0 NMOS l=1u w=2u
+M1760 N_bit62_cbar C61 N_bit62_9 0 NMOS l=1u w=2u
+M1743 VDD A62 N_bit62_3 VDD PMOS l=1u w=4u
+M1744 VDD B62 N_bit62_3 VDD PMOS l=1u w=4u
+M1745 VDD C61 N_bit62_3 VDD PMOS l=1u w=4u
+M1746 VDD A62 N_bit62_4 VDD PMOS l=1u w=8u
+M1747 N_bit62_4 B62 N_bit62_5 VDD PMOS l=1u w=8u
+M1748 N_bit62_5 C61 N_bit62_sumbar VDD PMOS l=1u w=8u
+M1762 N_bit62_3 N_bit62_cbar N_bit62_sumbar VDD PMOS l=1u w=4u
+M1749 N_bit62_sumbar C61 N_bit62_6 0 NMOS l=1u w=8u
+M1750 N_bit62_6 B62 N_bit62_7 0 NMOS l=1u w=8u
+M1751 N_bit62_7 A62 0 0 NMOS l=1u w=8u
+M1752 N_bit62_8 C61 0 0 NMOS l=1u w=2u
+M1753 N_bit62_8 B62 0 0 NMOS l=1u w=2u
+M1754 N_bit62_8 A62 0 0 NMOS l=1u w=2u
+M1755 N_bit62_sumbar N_bit62_cbar N_bit62_8 0 NMOS l=1u w=2u
+M1763 VDD N_bit62_sumbar SUM62 VDD PMOS l=1u w=2u
+M1764 SUM62 N_bit62_sumbar 0 0 NMOS l=1u w=1u
+C62_sum SUM62 0 1p
+C62_co C62 0 1p
+M1765 VDD A63 N_bit63_1 VDD PMOS l=1u w=4u
+M1766 N_bit63_1 B63 N_bit63_cbar VDD PMOS l=1u w=4u
+M1767 VDD A63 N_bit63_2 VDD PMOS l=1u w=4u
+M1768 N_bit63_2 C62 N_bit63_cbar VDD PMOS l=1u w=4u
+M1769 VDD B63 N_bit63_2 VDD PMOS l=1u w=4u
+M1770 VDD N_bit63_cbar C63 VDD PMOS l=1u w=2u
+M1789 C63 N_bit63_cbar 0 0 NMOS l=1u w=1u
+M1784 N_bit63_9 B63 0 0 NMOS l=1u w=2u
+M1785 N_bit63_9 A63 0 0 NMOS l=1u w=2u
+M1786 N_bit63_10 A63 0 0 NMOS l=1u w=2u
+M1787 N_bit63_cbar B63 N_bit63_10 0 NMOS l=1u w=2u
+M1788 N_bit63_cbar C62 N_bit63_9 0 NMOS l=1u w=2u
+M1771 VDD A63 N_bit63_3 VDD PMOS l=1u w=4u
+M1772 VDD B63 N_bit63_3 VDD PMOS l=1u w=4u
+M1773 VDD C62 N_bit63_3 VDD PMOS l=1u w=4u
+M1774 VDD A63 N_bit63_4 VDD PMOS l=1u w=8u
+M1775 N_bit63_4 B63 N_bit63_5 VDD PMOS l=1u w=8u
+M1776 N_bit63_5 C62 N_bit63_sumbar VDD PMOS l=1u w=8u
+M1790 N_bit63_3 N_bit63_cbar N_bit63_sumbar VDD PMOS l=1u w=4u
+M1777 N_bit63_sumbar C62 N_bit63_6 0 NMOS l=1u w=8u
+M1778 N_bit63_6 B63 N_bit63_7 0 NMOS l=1u w=8u
+M1779 N_bit63_7 A63 0 0 NMOS l=1u w=8u
+M1780 N_bit63_8 C62 0 0 NMOS l=1u w=2u
+M1781 N_bit63_8 B63 0 0 NMOS l=1u w=2u
+M1782 N_bit63_8 A63 0 0 NMOS l=1u w=2u
+M1783 N_bit63_sumbar N_bit63_cbar N_bit63_8 0 NMOS l=1u w=2u
+M1791 VDD N_bit63_sumbar SUM63 VDD PMOS l=1u w=2u
+M1792 SUM63 N_bit63_sumbar 0 0 NMOS l=1u w=1u
+C63_sum SUM63 0 1p
+C63_co C63 0 1p
+
+* DC Voltage Sources for Inputs
+V_Ci Ci 0 0
+V_A0 A0 0 1.8
+V_B0 B0 0 1.8
+V_A1 A1 0 0
+V_B1 B1 0 0
+V_A2 A2 0 0
+V_B2 B2 0 0
+V_A3 A3 0 1.8
+V_B3 B3 0 1.8
+V_A4 A4 0 0
+V_B4 B4 0 0
+V_A5 A5 0 0
+V_B5 B5 0 0
+V_A6 A6 0 0
+V_B6 B6 0 0
+V_A7 A7 0 0
+V_B7 B7 0 1.8
+V_A8 A8 0 0
+V_B8 B8 0 0
+V_A9 A9 0 0
+V_B9 B9 0 0
+V_A10 A10 0 0
+V_B10 B10 0 0
+V_A11 A11 0 0
+V_B11 B11 0 0
+V_A12 A12 0 1.8
+V_B12 B12 0 0
+V_A13 A13 0 0
+V_B13 B13 0 0
+V_A14 A14 0 0
+V_B14 B14 0 1.8
+V_A15 A15 0 0
+V_B15 B15 0 0
+V_A16 A16 0 0
+V_B16 B16 0 0
+V_A17 A17 0 0
+V_B17 B17 0 1.8
+V_A18 A18 0 0
+V_B18 B18 0 0
+V_A19 A19 0 0
+V_B19 B19 0 1.8
+V_A20 A20 0 0
+V_B20 B20 0 0
+V_A21 A21 0 0
+V_B21 B21 0 0
+V_A22 A22 0 0
+V_B22 B22 0 0
+V_A23 A23 0 0
+V_B23 B23 0 1.8
+V_A24 A24 0 0
+V_B24 B24 0 0
+V_A25 A25 0 0
+V_B25 B25 0 0
+V_A26 A26 0 1.8
+V_B26 B26 0 0
+V_A27 A27 0 0
+V_B27 B27 0 0
+V_A28 A28 0 0
+V_B28 B28 0 0
+V_A29 A29 0 0
+V_B29 B29 0 0
+V_A30 A30 0 1.8
+V_B30 B30 0 1.8
+V_A31 A31 0 0
+V_B31 B31 0 0
+V_A32 A32 0 0
+V_B32 B32 0 0
+V_A33 A33 0 1.8
+V_B33 B33 0 0
+V_A34 A34 0 0
+V_B34 B34 0 0
+V_A35 A35 0 0
+V_B35 B35 0 0
+V_A36 A36 0 0
+V_B36 B36 0 1.8
+V_A37 A37 0 0
+V_B37 B37 0 0
+V_A38 A38 0 0
+V_B38 B38 0 0
+V_A39 A39 0 0
+V_B39 B39 0 0
+V_A40 A40 0 0
+V_B40 B40 0 0
+V_A41 A41 0 0
+V_B41 B41 0 0
+V_A42 A42 0 1.8
+V_B42 B42 0 0
+V_A43 A43 0 0
+V_B43 B43 0 0
+V_A44 A44 0 0
+V_B44 B44 0 0
+V_A45 A45 0 0
+V_B45 B45 0 0
+V_A46 A46 0 0
+V_B46 B46 0 0
+V_A47 A47 0 1.8
+V_B47 B47 0 0
+V_A48 A48 0 0
+V_B48 B48 0 0
+V_A49 A49 0 0
+V_B49 B49 0 0
+V_A50 A50 0 0
+V_B50 B50 0 0
+V_A51 A51 0 1.8
+V_B51 B51 0 0
+V_A52 A52 0 0
+V_B52 B52 0 0
+V_A53 A53 0 0
+V_B53 B53 0 0
+V_A54 A54 0 0
+V_B54 B54 0 0
+V_A55 A55 0 1.8
+V_B55 B55 0 0
+V_A56 A56 0 0
+V_B56 B56 0 0
+V_A57 A57 0 0
+V_B57 B57 0 0
+V_A58 A58 0 0
+V_B58 B58 0 1.8
+V_A59 A59 0 0
+V_B59 B59 0 0
+V_A60 A60 0 0
+V_B60 B60 0 0
+V_A61 A61 0 0
+V_B61 B61 0 0
+V_A62 A62 0 0
+V_B62 B62 0 0
+V_A63 A63 0 1.8
+V_B63 B63 0 0
+
+.tran 2u 50000u
+.end
