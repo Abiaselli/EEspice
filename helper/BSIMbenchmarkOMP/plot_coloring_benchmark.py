@@ -20,6 +20,14 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
+plt.rcParams.update({
+    "font.size": 18,
+    "axes.titlesize": 20,
+    "axes.labelsize": 18,
+    "xtick.labelsize": 16,
+    "ytick.labelsize": 16,
+    "legend.fontsize": 16,
+})
 
 SCRIPT_DIR = Path(__file__).parent
 DATASET_FILE = SCRIPT_DIR / "coloring_benchmark_results.csv"
@@ -227,12 +235,6 @@ def filter_rows_r4(
     ]
 
 
-def compute_effective_colors(row: Dict[str, object]) -> int:
-    """Compute effective colors: ActualColors if > 0, else ceil(NumInstances/NodeDistributionCount)."""
-    if row["ActualColors"] > 0:
-        return row["ActualColors"]
-    return math.ceil(row["NumInstances"] / row["NodeDistributionCount"])
-
 
 def plot_figure_r1(rows_by_method: Dict[str, List[Dict[str, object]]], out_path: Path) -> None:
     fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
@@ -248,10 +250,11 @@ def plot_figure_r1(rows_by_method: Dict[str, List[Dict[str, object]]], out_path:
         ]
 
         x = list(range(len(threads)))
-        bar_calc = ax.bar(x, calc_ms, label="Calc time", color="#4C78A8")
-        bar_stamp = ax.bar(x, stamp_ms, bottom=calc_ms, label="Stamp time", color="#F58518")
+        bar_calc = ax.bar(x, calc_ms, label=r"$t_{\mathrm{calc}}$", color="#4C78A8")
+        bar_stamp = ax.bar(x, stamp_ms, bottom=calc_ms, label=r"$t_{\mathrm{stamp}}$", color="#F58518")
 
-        ax.set_title(method)
+        label_char = chr(ord('a') + list(axes).index(ax))
+        ax.set_title(f"({label_char}) {method}")
         ax.set_xlabel("Threads")
         ax.set_xticks(x)
         ax.set_xticklabels([str(t) for t in threads])
@@ -268,7 +271,7 @@ def plot_figure_r1(rows_by_method: Dict[str, List[Dict[str, object]]], out_path:
 def plot_figure_r2(rows: List[Dict[str, object]], out_path: Path) -> None:
     fig, axes = plt.subplots(1, 3, figsize=(14, 4.5))
 
-    for ax, config in zip(axes, R2_NODE_DISTRIBUTIONS):
+    for i, (ax, config) in enumerate(zip(axes, R2_NODE_DISTRIBUTIONS)):
         label = config["label"]
 
         # Resolve node_dist: use hard-coded value or dynamic selector
@@ -307,13 +310,14 @@ def plot_figure_r2(rows: List[Dict[str, object]], out_path: Path) -> None:
         # Compute subtitle from actual data
         if actual_colors_set:
             actual_colors_val = max(actual_colors_set)  # Use max if multiple values
-            subtitle = f"ActualColors = {actual_colors_val}"
+            subtitle = f"Colors = {actual_colors_val}"
         else:
             subtitle = ""
 
-        ax.set_title(f"{label}\n{subtitle}", fontsize=10)
+        ax.set_title(f"{label}\n{subtitle}", fontsize=16)
         ax.set_xlabel("Threads")
-        ax.set_ylabel("Speedup")
+        if i == 0:
+            ax.set_ylabel("Speedup")
         ax.set_xscale("log", base=2)
         ax.set_xticks([2, 4, 8, 16, 32, 64, 128])
         ax.set_xticklabels(["2", "4", "8", "16", "32", "64", "128"])
@@ -336,41 +340,67 @@ def plot_figure_r3(
     """
     fig, axes = plt.subplots(1, 3, figsize=(14, 4.5))
 
-    for ax, config in zip(axes, R3_SUBPLOTS):
+    for i, (ax, config) in enumerate(zip(axes, R3_SUBPLOTS)):
         num_instances = config["num_instances"]
         label = config["label"]
 
         # Select appropriate data source
         source_rows = rows_10k if num_instances == 10000 else rows
 
+        # Track data extents for padding
+        all_colors = []
+        all_speedups = []
+
         for method in R3_METHODS:
             method_rows = filter_rows_r3(source_rows, method, R3_NUM_THREADS, num_instances)
             if not method_rows:
                 continue
 
-            # Compute effective colors and sort
-            data = [(compute_effective_colors(r), r["Speedup"]) for r in method_rows]
-            data.sort(key=lambda x: x[0])
-
-            colors_list = [d[0] for d in data]
-            speedups = [d[1] for d in data]
-
             style = METHOD_STYLES[method]
-            ax.plot(
-                colors_list,
-                speedups,
-                marker=style["marker"],
-                color=style["color"],
-                label=style["label"],
-                linewidth=1.5,
-                markersize=5,
-            )
 
-        ax.set_xlabel("Effective Colors")
-        ax.set_ylabel("Speedup")
+            if method == "loadomp":
+                # loadOmp has no colors; draw a horizontal line at its average speedup
+                avg_speedup = sum(r["Speedup"] for r in method_rows) / len(method_rows)
+                all_speedups.append(avg_speedup)
+                ax.axhline(
+                    y=avg_speedup,
+                    color=style["color"],
+                    label=style["label"],
+                    linewidth=1.5,
+                    linestyle="--",
+                )
+            else:
+                # Use ActualColors directly as x-axis
+                data = [(r["ActualColors"], r["Speedup"]) for r in method_rows]
+                data.sort(key=lambda x: x[0])
+
+                colors_list = [d[0] for d in data]
+                speedups = [d[1] for d in data]
+                all_colors.extend(colors_list)
+                all_speedups.extend(speedups)
+
+                ax.plot(
+                    colors_list,
+                    speedups,
+                    marker=style["marker"],
+                    color=style["color"],
+                    label=style["label"],
+                    linewidth=1.5,
+                    markersize=5,
+                )
+
+        ax.set_xlabel("Colors")
+        if i == 0:
+            ax.set_ylabel("Speedup")
         ax.set_title(label)
         ax.set_xscale("log")
         ax.set_yscale("log", base=2)
+
+        # Add padding on all sides to center the data
+        if all_colors:
+            ax.set_xlim(left=min(all_colors) * 0.5, right=max(all_colors) * 2.5)
+        if all_speedups:
+            ax.set_ylim(bottom=min(all_speedups) * 0.7, top=max(all_speedups) * 1.5)
 
     # Shared legend at top
     handles, labels = axes[0].get_legend_handles_labels()
@@ -434,9 +464,10 @@ def plot_figure_r4(
                     alpha=0.8,
                 )
 
-            # Set column titles only on top row
-            if row_idx == 0:
-                ax.set_title(f"{conflict_config['label']}", fontsize=11)
+            # Set subplot title as letter label (a) through (i)
+            subplot_idx = row_idx * 3 + col_idx
+            label_char = chr(ord('a') + subplot_idx)
+            ax.set_title(f"({label_char})", fontsize=18)
 
             # Set x-axis label only on bottom row
             if row_idx == 2:
@@ -450,8 +481,23 @@ def plot_figure_r4(
             ax.set_xticks([1, 2, 4, 8, 16, 32, 64, 128])
             ax.set_xticklabels(["1", "2", "4", "8", "16", "32", "64", "128"])
 
-    # Adjust layout for row labels on left and colorbar on right
-    fig.subplots_adjust(left=0.14, right=0.88)
+    # Adjust layout for row labels on left, colorbar on right, and column headers on top
+    fig.subplots_adjust(left=0.14, right=0.88, top=0.88)
+
+    # Add column headers (conflict levels) above the top row
+    for col_idx, conflict_config in enumerate(R4_CONFLICT_LEVELS):
+        pos = axes[0, col_idx].get_position()
+        x_center = 0.5 * (pos.x0 + pos.x1)
+        y_text = pos.y1 + 0.04
+        fig.text(
+            x_center,
+            y_text,
+            conflict_config['label'],
+            fontsize=16,
+            fontweight="bold",
+            ha="center",
+            va="bottom",
+        )
 
     # Add row labels (method names) dynamically based on subplot positions
     for row_idx, method in enumerate(R4_METHODS):
@@ -462,7 +508,7 @@ def plot_figure_r4(
             x_text,
             y_center,
             method,
-            fontsize=11,
+            fontsize=16,
             fontweight="bold",
             rotation=90,
             va="center",
@@ -474,9 +520,8 @@ def plot_figure_r4(
     sm = cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
     cbar = fig.colorbar(sm, cax=cbar_ax, orientation="vertical")
-    cbar.set_label("NumInstances", fontsize=10)
+    cbar.set_label("NumInstances", fontsize=16)
 
-    fig.suptitle("Speedup vs Threads (by Method and Conflict Level)", fontsize=14, y=0.98)
     fig.savefig(out_path, dpi=150)
     plt.close(fig)
 
