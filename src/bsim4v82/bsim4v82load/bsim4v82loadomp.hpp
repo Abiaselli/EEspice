@@ -14,6 +14,29 @@
 
 namespace bsim4{
 int
+loadomp(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
+                      HybridMatrix &LHS, arma::vec &RHS,
+                      std::vector<BSIM4stamp> &stamps)
+{
+    // Parallel BSIM4: compute stamps in parallel using OpenMP (one device per thread)
+    if (!ckt.CKTelements.bsim4.empty()) {
+        // Parallel computation - each iteration processes one device
+        ScopedTimer bsim4_timer(ckt.sim_stats.simTime.bsim4_time);
+        #pragma omp parallel for
+        for (size_t i = 0; i < ckt.CKTelements.bsim4.size(); ++i) {
+            const bsim4::BSIM4model &b4model = *ckt.CKTelements.bsim4[i].bsim4v82Instance.BSIM4modPtr;
+            bsim4::BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
+            // Calculate stamps
+            stamps[i] = bsim4::BSIM4calculateStamps(ckt, b4model, instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin);
+        }
+        for (size_t i = 0; i < ckt.CKTelements.bsim4.size(); ++i) {
+            bsim4::BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
+            bsim4::bsim4applyStamps(instance, stamps[i], LHS, RHS);
+        }
+    }
+    return 0; // return success
+}
+int
 loadompColor(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
                       HybridMatrix &LHS, arma::vec &RHS,
                       std::vector<BSIM4stamp> &stamps,

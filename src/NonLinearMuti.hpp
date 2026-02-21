@@ -35,7 +35,8 @@ void NonLinearMutithreaded(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
     }
 
     // Parallel BSIM4: compute stamps in parallel using OpenMP (one device per thread)
-    bsim4::loadompColor4(ckt, pre_NR_solution, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, ckt.b4coloring);
+    // bsim4::loadompColor4(ckt, pre_NR_solution, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, ckt.b4coloring);
+    bsim4::loadomp(ckt, pre_NR_solution, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, bsim4::stamps);
 
     for (const auto &diode : ckt.CKTelements.diodes){
         Diode_assigner(diode.nodePos, diode.nodeNeg, diode.Is, diode.VT, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, pre_NR_solution);

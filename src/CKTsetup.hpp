@@ -90,6 +90,7 @@ void CKTsetup(CKTcircuit &ckt, const CircuitParser &parser, std::shared_ptr<Matr
     // Careful! getCircuitElements function is const, so it can't be used to modify the elements vector
     // ckt.elements = parser.getCircuitElements();
     ckt.CKTelements = parser.elements;
+    bsim4::stamps.resize(ckt.CKTelements.bsim4.size());     // Resize the stamps vector to match the number of BSIM4 instances
     ckt.CKTtemp = 300.15;                                   // Initial temperature of the circuit
     ckt.CKTfinalTime = parser.double_t_end;                 // Final time for simulation (TSTOP)
     ckt.CKTstep = parser.double_init_h;                     // User-requested step from .tran (TSTEP)

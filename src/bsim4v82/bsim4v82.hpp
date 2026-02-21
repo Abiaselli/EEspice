@@ -2477,6 +2477,8 @@ struct BSIM4V82{
     bool BSIM4rgeoModGiven = false;  
 };
 
+std::vector<BSIM4stamp> stamps;
+
 // BSIM4states index
     constexpr int BSIM4vbd = 0;
     constexpr int BSIM4vbs = 1;
