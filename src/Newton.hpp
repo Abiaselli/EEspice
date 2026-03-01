@@ -104,7 +104,7 @@ void NonLinear(CKTcircuit &ckt, const arma::vec &pre_NR_solution, const Modelmap
             if (std::abs(ckt.CKTag[0] - 1.0/h) > 1e-6 * (1.0/h)) {
                 std::cout << "CKTag mismatch: CKTag0=" << ckt.CKTag[0] << " 1/h=" << 1.0/h << "\n";
             }
-            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS);
+            bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, &bsim4.stamp_index_cache);
         }
     }
     for (const auto &diode : ckt.CKTelements.diodes){

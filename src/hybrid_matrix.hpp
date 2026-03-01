@@ -557,6 +557,29 @@ public:
         // Silently ignore positions not in the pattern (shouldn't happen if setup is correct)
     }
 
+    /**
+     * Query CSC values[] index for a given (row, col) position.
+     * Intended for setup-time caching of frequently-stamped positions.
+     * @return true if the position exists in the locked pattern.
+     */
+    bool try_get_position_index(size_t row, size_t col, size_t& out_index) const {
+        if (!pattern_locked || !is_sparse_matrix || !position_map) {
+            return false;
+        }
+        if (row >= n_rows || col >= n_cols) {
+            return false;
+        }
+
+        uint64_t key = make_key(row, col);
+        auto it = position_map->find(key);
+        if (it == position_map->end()) {
+            return false;
+        }
+
+        out_index = it->second;
+        return true;
+    }
+
     // =========================================================================
     // Two-Level Baseline API for Newton-Raphson Reset Optimization
     // =========================================================================

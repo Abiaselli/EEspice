@@ -132,6 +132,7 @@ struct BSIM4
     std::string modelName;
     // MosfetModelType modelType;
     bsim4::BSIM4V82 bsim4v82Instance;
+    bsim4::BSIM4StampIndexCache stamp_index_cache;
     std::vector<double> batchW; // For batch simulation
     std::vector<double> batchL;
 };

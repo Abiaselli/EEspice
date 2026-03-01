@@ -296,6 +296,13 @@ void CKTdiscoverPattern(CKTcircuit &ckt)
         LHS.lock_pattern();
     }
 
+    // Build per-device sparse stamp index caches after pattern is locked (sparse only)
+    if (ckt.cktmatrix->use_sparse && ckt.cktmatrix->LHS.is_pattern_locked()) {
+        for (auto &bsim4 : ckt.CKTelements.bsim4) {
+            bsim4::bsim4BuildStampIndexCache(bsim4.bsim4v82Instance, ckt.cktmatrix->LHS, bsim4.stamp_index_cache);
+        }
+    }
+
     // Save baselines UNCONDITIONALLY (works for both dense and sparse)
     // This MUST run even if use_sparse is false (dense mode) or pattern was already locked
     ckt.cktmatrix->LHS.save_linear_baseline();

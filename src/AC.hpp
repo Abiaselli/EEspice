@@ -149,7 +149,7 @@ void SaveOP(CKTcircuit &ckt, const arma::vec &pre_NR_solution){
         // Use ckt.cktmatrix->LHS and RHS directly
         // Note: The matrices modified here are not used for AC analysis
         // (AC uses complex LHS_cx/RHS_cx), so modifications are harmless
-        bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS);
+        bsim4::BSIM4load(ckt, b4model, b4instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin, ckt.cktmatrix->LHS, ckt.cktmatrix->RHS, &bsim4.stamp_index_cache);
     }
 }
 

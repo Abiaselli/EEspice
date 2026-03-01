@@ -21,6 +21,7 @@
 #include <memory>
 #include <vector>
 #include <array>
+#include <limits>
 
 namespace bsim4{
 struct bsim4SizeDependParam;
@@ -65,6 +66,26 @@ struct BSIM4stamp{
     // Matrix stamps RHS
     double RHSdNodePrime{}, RHSgNodePrime{}, RHSgNodeExt{}, RHSgNodeMid{}, RHSbNodePrime{}, RHSsNodePrime{}, RHSdbNode{}, RHSsbNode{},
         RHSdNode{}, RHSsNode{}, RHSqNode{};
+};
+
+/**
+ * @brief Setup-time cache of Armadillo sparse CSC values[] indices for BSIM4 LHS stamps.
+ *
+ * When enabled (sparse matrix + locked pattern), stamping can directly update
+ * sp.values[cached_index] without per-stamp unordered_map lookups.
+ */
+struct BSIM4StampIndexCache {
+    static constexpr size_t kInvalid = std::numeric_limits<size_t>::max();
+    bool built = false;
+
+    // LHS stamp indices (one-to-one with BSIM4stamp LHS fields)
+    size_t BSIM4DPbp = kInvalid, BSIM4GPbp = kInvalid, BSIM4SPbp = kInvalid, BSIM4BPdp = kInvalid, BSIM4BPgp = kInvalid, BSIM4BPsp = kInvalid, BSIM4BPbp = kInvalid, BSIM4Dd = kInvalid, BSIM4GPgp = kInvalid, BSIM4Ss = kInvalid,
+        BSIM4DPdp = kInvalid, BSIM4SPsp = kInvalid, BSIM4Ddp = kInvalid, BSIM4GPdp = kInvalid, BSIM4GPsp = kInvalid, BSIM4Ssp = kInvalid, BSIM4DPsp = kInvalid, BSIM4DPd = kInvalid, BSIM4DPgp = kInvalid, BSIM4SPgp = kInvalid,
+        BSIM4SPs = kInvalid, BSIM4SPdp = kInvalid, BSIM4Qq = kInvalid, BSIM4Qbp = kInvalid, BSIM4Qdp = kInvalid, BSIM4Qsp = kInvalid, BSIM4Qgp = kInvalid, BSIM4DPq = kInvalid, BSIM4SPq = kInvalid, BSIM4GPq = kInvalid,
+        BSIM4GEge = kInvalid, BSIM4GEgp = kInvalid, BSIM4GPge = kInvalid, BSIM4GEdp = kInvalid, BSIM4GEsp = kInvalid, BSIM4GEbp = kInvalid, BSIM4GMdp = kInvalid, BSIM4GMgp = kInvalid, BSIM4GMgm = kInvalid, BSIM4GMge = kInvalid,
+        BSIM4GMsp = kInvalid, BSIM4GMbp = kInvalid, BSIM4DPgm = kInvalid, BSIM4GPgm = kInvalid, BSIM4GEgm = kInvalid, BSIM4SPgm = kInvalid, BSIM4BPgm = kInvalid, BSIM4DPdb = kInvalid, BSIM4SPsb = kInvalid, BSIM4DBdp = kInvalid,
+        BSIM4DBdb = kInvalid, BSIM4DBbp = kInvalid, BSIM4DBb = kInvalid, BSIM4BPdb = kInvalid, BSIM4BPb = kInvalid, BSIM4BPsb = kInvalid, BSIM4SBsp = kInvalid, BSIM4SBbp = kInvalid, BSIM4SBb = kInvalid, BSIM4SBsb = kInvalid,
+        BSIM4Bdb = kInvalid, BSIM4Bbp = kInvalid, BSIM4Bsb = kInvalid, BSIM4Bb = kInvalid, BSIM4Dgp = kInvalid, BSIM4Dsp = kInvalid, BSIM4Dbp = kInvalid, BSIM4Sdp = kInvalid, BSIM4Sgp = kInvalid, BSIM4Sbp = kInvalid;
 };
 
 struct bsim4SizeDependParam

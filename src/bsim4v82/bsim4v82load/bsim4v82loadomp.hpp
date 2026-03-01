@@ -29,9 +29,18 @@ loadomp(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
             // Calculate stamps
             stamps[i] = bsim4::BSIM4calculateStamps(ckt, b4model, instance, ckt.spiceCompatible, pre_NR_solution, ckt.CKTtemp, ckt.CKTgmin);
         }
+
+        const bool use_cache = LHS.is_sparse() && LHS.is_pattern_locked();
         for (size_t i = 0; i < ckt.CKTelements.bsim4.size(); ++i) {
-            bsim4::BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
-            bsim4::bsim4applyStamps(instance, stamps[i], LHS, RHS);
+            auto &dev = ckt.CKTelements.bsim4[i];
+            bsim4::BSIM4V82 &instance = dev.bsim4v82Instance;
+            const BSIM4StampIndexCache &cache = dev.stamp_index_cache;
+
+            if (use_cache && cache.built) {
+                bsim4applyStampsCached(instance, stamps[i], cache, LHS, RHS);
+            } else {
+                bsim4applyStamps(instance, stamps[i], LHS, RHS);
+            }
         }
     }
     return 0; // return success
@@ -45,6 +54,7 @@ loadompColor(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
     if (!ckt.CKTelements.bsim4.empty()) {
         ScopedTimer bsim4_timer(ckt.sim_stats.simTime.bsim4_time);
         const size_t n = ckt.CKTelements.bsim4.size();
+        const bool use_cache = LHS.is_sparse() && LHS.is_pattern_locked();
         
         // Phase 1: Parallel computation of stamps
         auto start_calc = std::chrono::high_resolution_clock::now();
@@ -69,8 +79,15 @@ loadompColor(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
             #pragma omp parallel for
             for (size_t idx = 0; idx < group.size(); ++idx) {
                 size_t i = group[idx];
-                BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
-                bsim4applyStamps(instance, stamps[i], LHS, RHS);
+                auto &dev = ckt.CKTelements.bsim4[i];
+                BSIM4V82 &instance = dev.bsim4v82Instance;
+                const BSIM4StampIndexCache &cache = dev.stamp_index_cache;
+
+                if (use_cache && cache.built) {
+                    bsim4applyStampsCached(instance, stamps[i], cache, LHS, RHS);
+                } else {
+                    bsim4applyStamps(instance, stamps[i], LHS, RHS);
+                }
             }
         }
         auto end_apply = std::chrono::high_resolution_clock::now();
@@ -88,6 +105,7 @@ loadompColor2(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
     if (!ckt.CKTelements.bsim4.empty()) {
         ScopedTimer bsim4_timer(ckt.sim_stats.simTime.bsim4_time);
         const size_t n = ckt.CKTelements.bsim4.size();
+        const bool use_cache = LHS.is_sparse() && LHS.is_pattern_locked();
         
         // Phase 1: Parallel computation of stamps
         auto start_calc = std::chrono::high_resolution_clock::now();
@@ -114,8 +132,15 @@ loadompColor2(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
                 #pragma omp for // <-- Distribute work, threads are already active
                 for (size_t idx = 0; idx < group.size(); ++idx) {
                     size_t i = group[idx];
-                    BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
-                    bsim4applyStamps(instance, stamps[i], LHS, RHS);
+                    auto &dev = ckt.CKTelements.bsim4[i];
+                    BSIM4V82 &instance = dev.bsim4v82Instance;
+                    const BSIM4StampIndexCache &cache = dev.stamp_index_cache;
+
+                    if (use_cache && cache.built) {
+                        bsim4applyStampsCached(instance, stamps[i], cache, LHS, RHS);
+                    } else {
+                        bsim4applyStamps(instance, stamps[i], LHS, RHS);
+                    }
                 }
             }
         }
@@ -134,6 +159,7 @@ loadompColor3(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
     if (!ckt.CKTelements.bsim4.empty()) {
         ScopedTimer bsim4_timer(ckt.sim_stats.simTime.bsim4_time);
         const size_t n = ckt.CKTelements.bsim4.size();
+        const bool use_cache = LHS.is_sparse() && LHS.is_pattern_locked();
         
         // Phase 1: Parallel computation of stamps
         auto start_calc = std::chrono::high_resolution_clock::now();
@@ -160,8 +186,15 @@ loadompColor3(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
                 #pragma omp for schedule(dynamic) // <-- Distribute work, threads are already active
                 for (size_t idx = 0; idx < group.size(); ++idx) {
                     size_t i = group[idx];
-                    BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
-                    bsim4applyStamps(instance, stamps[i], LHS, RHS);
+                    auto &dev = ckt.CKTelements.bsim4[i];
+                    BSIM4V82 &instance = dev.bsim4v82Instance;
+                    const BSIM4StampIndexCache &cache = dev.stamp_index_cache;
+
+                    if (use_cache && cache.built) {
+                        bsim4applyStampsCached(instance, stamps[i], cache, LHS, RHS);
+                    } else {
+                        bsim4applyStamps(instance, stamps[i], LHS, RHS);
+                    }
                 }
             }
         }
@@ -178,6 +211,7 @@ loadompColor4(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
 {
     if (!ckt.CKTelements.bsim4.empty()) {
         ScopedTimer bsim4_timer(ckt.sim_stats.simTime.bsim4_time);
+        const bool use_cache = LHS.is_sparse() && LHS.is_pattern_locked();
 
         // Graph coloring
         const auto& color_groups = coloring.getColorGroups();
@@ -188,13 +222,19 @@ loadompColor4(CKTcircuit &ckt, const arma::vec &pre_NR_solution,
             for (size_t idx = 0; idx < group.size(); ++idx) {
                 size_t i = group[idx];
                 const BSIM4model &b4model = *ckt.CKTelements.bsim4[i].bsim4v82Instance.BSIM4modPtr;
-                BSIM4V82 &instance = ckt.CKTelements.bsim4[i].bsim4v82Instance;
+                auto &dev = ckt.CKTelements.bsim4[i];
+                BSIM4V82 &instance = dev.bsim4v82Instance;
+                const BSIM4StampIndexCache &cache = dev.stamp_index_cache;
                 // Phase 1: Parallel computation of stamps
                 const BSIM4stamp stamp = BSIM4calculateStamps(ckt, b4model, instance, 
                                                      ckt.spiceCompatible, pre_NR_solution, 
                                                      ckt.CKTtemp, ckt.CKTgmin);
                 // Phase 2: Apply stamps
-                bsim4applyStamps(instance, stamp, LHS, RHS);
+                if (use_cache && cache.built) {
+                    bsim4applyStampsCached(instance, stamp, cache, LHS, RHS);
+                } else {
+                    bsim4applyStamps(instance, stamp, LHS, RHS);
+                }
             }
         }
     }

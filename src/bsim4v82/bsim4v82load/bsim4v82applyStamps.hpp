@@ -48,6 +48,79 @@ inline void StampOffset(HybridMatrix &mat, int row, int col, double val,
     }
 }
 
+// Single source of truth for BSIM4 LHS stamps (field, rowIndexVar, colIndexVar, rowNodeType, colNodeType)
+#define BSIM4_LHS_STAMP_LIST(X) \
+    X(BSIM4DPd, dNodePrime, dNode, BSIM4V82::D_NODE_PRIME, BSIM4V82::D_NODE) \
+    X(BSIM4DPdp, dNodePrime, dNodePrime, BSIM4V82::D_NODE_PRIME, BSIM4V82::D_NODE_PRIME) \
+    X(BSIM4DPgp, dNodePrime, gNodePrime, BSIM4V82::D_NODE_PRIME, BSIM4V82::G_NODE_PRIME) \
+    X(BSIM4DPgm, dNodePrime, gNodeMid, BSIM4V82::D_NODE_PRIME, BSIM4V82::G_NODE_MID) \
+    X(BSIM4DPsp, dNodePrime, sNodePrime, BSIM4V82::D_NODE_PRIME, BSIM4V82::S_NODE_PRIME) \
+    X(BSIM4DPbp, dNodePrime, bNodePrime, BSIM4V82::D_NODE_PRIME, BSIM4V82::B_NODE_PRIME) \
+    X(BSIM4DPdb, dNodePrime, dbNode, BSIM4V82::D_NODE_PRIME, BSIM4V82::DB_NODE) \
+    X(BSIM4Dd, dNode, dNode, BSIM4V82::D_NODE, BSIM4V82::D_NODE) \
+    X(BSIM4Ddp, dNode, dNodePrime, BSIM4V82::D_NODE, BSIM4V82::D_NODE_PRIME) \
+    X(BSIM4GPdp, gNodePrime, dNodePrime, BSIM4V82::G_NODE_PRIME, BSIM4V82::D_NODE_PRIME) \
+    X(BSIM4GPgp, gNodePrime, gNodePrime, BSIM4V82::G_NODE_PRIME, BSIM4V82::G_NODE_PRIME) \
+    X(BSIM4GPgm, gNodePrime, gNodeMid, BSIM4V82::G_NODE_PRIME, BSIM4V82::G_NODE_MID) \
+    X(BSIM4GPge, gNodePrime, gNodeExt, BSIM4V82::G_NODE_PRIME, BSIM4V82::G_NODE_EXT) \
+    X(BSIM4GPsp, gNodePrime, sNodePrime, BSIM4V82::G_NODE_PRIME, BSIM4V82::S_NODE_PRIME) \
+    X(BSIM4GPbp, gNodePrime, bNodePrime, BSIM4V82::G_NODE_PRIME, BSIM4V82::B_NODE_PRIME) \
+    X(BSIM4GMdp, gNodeMid, dNodePrime, BSIM4V82::G_NODE_MID, BSIM4V82::D_NODE_PRIME) \
+    X(BSIM4GMgp, gNodeMid, gNodePrime, BSIM4V82::G_NODE_MID, BSIM4V82::G_NODE_PRIME) \
+    X(BSIM4GMgm, gNodeMid, gNodeMid, BSIM4V82::G_NODE_MID, BSIM4V82::G_NODE_MID) \
+    X(BSIM4GMge, gNodeMid, gNodeExt, BSIM4V82::G_NODE_MID, BSIM4V82::G_NODE_EXT) \
+    X(BSIM4GMsp, gNodeMid, sNodePrime, BSIM4V82::G_NODE_MID, BSIM4V82::S_NODE_PRIME) \
+    X(BSIM4GMbp, gNodeMid, bNodePrime, BSIM4V82::G_NODE_MID, BSIM4V82::B_NODE_PRIME) \
+    X(BSIM4GEdp, gNodeExt, dNodePrime, BSIM4V82::G_NODE_EXT, BSIM4V82::D_NODE_PRIME) \
+    X(BSIM4GEgp, gNodeExt, gNodePrime, BSIM4V82::G_NODE_EXT, BSIM4V82::G_NODE_PRIME) \
+    X(BSIM4GEgm, gNodeExt, gNodeMid, BSIM4V82::G_NODE_EXT, BSIM4V82::G_NODE_MID) \
+    X(BSIM4GEge, gNodeExt, gNodeExt, BSIM4V82::G_NODE_EXT, BSIM4V82::G_NODE_EXT) \
+    X(BSIM4GEsp, gNodeExt, sNodePrime, BSIM4V82::G_NODE_EXT, BSIM4V82::S_NODE_PRIME) \
+    X(BSIM4GEbp, gNodeExt, bNodePrime, BSIM4V82::G_NODE_EXT, BSIM4V82::B_NODE_PRIME) \
+    X(BSIM4SPdp, sNodePrime, dNodePrime, BSIM4V82::S_NODE_PRIME, BSIM4V82::D_NODE_PRIME) \
+    X(BSIM4SPgp, sNodePrime, gNodePrime, BSIM4V82::S_NODE_PRIME, BSIM4V82::G_NODE_PRIME) \
+    X(BSIM4SPgm, sNodePrime, gNodeMid, BSIM4V82::S_NODE_PRIME, BSIM4V82::G_NODE_MID) \
+    X(BSIM4SPs, sNodePrime, sNode, BSIM4V82::S_NODE_PRIME, BSIM4V82::S_NODE) \
+    X(BSIM4SPsp, sNodePrime, sNodePrime, BSIM4V82::S_NODE_PRIME, BSIM4V82::S_NODE_PRIME) \
+    X(BSIM4SPbp, sNodePrime, bNodePrime, BSIM4V82::S_NODE_PRIME, BSIM4V82::B_NODE_PRIME) \
+    X(BSIM4SPsb, sNodePrime, sbNode, BSIM4V82::S_NODE_PRIME, BSIM4V82::SB_NODE) \
+    X(BSIM4Ssp, sNode, sNodePrime, BSIM4V82::S_NODE, BSIM4V82::S_NODE_PRIME) \
+    X(BSIM4Ss, sNode, sNode, BSIM4V82::S_NODE, BSIM4V82::S_NODE) \
+    X(BSIM4BPdp, bNodePrime, dNodePrime, BSIM4V82::B_NODE_PRIME, BSIM4V82::D_NODE_PRIME) \
+    X(BSIM4BPgp, bNodePrime, gNodePrime, BSIM4V82::B_NODE_PRIME, BSIM4V82::G_NODE_PRIME) \
+    X(BSIM4BPgm, bNodePrime, gNodeMid, BSIM4V82::B_NODE_PRIME, BSIM4V82::G_NODE_MID) \
+    X(BSIM4BPsp, bNodePrime, sNodePrime, BSIM4V82::B_NODE_PRIME, BSIM4V82::S_NODE_PRIME) \
+    X(BSIM4BPdb, bNodePrime, dbNode, BSIM4V82::B_NODE_PRIME, BSIM4V82::DB_NODE) \
+    X(BSIM4BPb, bNodePrime, bNode, BSIM4V82::B_NODE_PRIME, BSIM4V82::B_NODE) \
+    X(BSIM4BPsb, bNodePrime, sbNode, BSIM4V82::B_NODE_PRIME, BSIM4V82::SB_NODE) \
+    X(BSIM4BPbp, bNodePrime, bNodePrime, BSIM4V82::B_NODE_PRIME, BSIM4V82::B_NODE_PRIME) \
+    X(BSIM4DBdp, dbNode, dNodePrime, BSIM4V82::DB_NODE, BSIM4V82::D_NODE_PRIME) \
+    X(BSIM4DBdb, dbNode, dbNode, BSIM4V82::DB_NODE, BSIM4V82::DB_NODE) \
+    X(BSIM4DBbp, dbNode, bNodePrime, BSIM4V82::DB_NODE, BSIM4V82::B_NODE_PRIME) \
+    X(BSIM4DBb, dbNode, bNode, BSIM4V82::DB_NODE, BSIM4V82::B_NODE) \
+    X(BSIM4SBsp, sbNode, sNodePrime, BSIM4V82::SB_NODE, BSIM4V82::S_NODE_PRIME) \
+    X(BSIM4SBbp, sbNode, bNodePrime, BSIM4V82::SB_NODE, BSIM4V82::B_NODE_PRIME) \
+    X(BSIM4SBb, sbNode, bNode, BSIM4V82::SB_NODE, BSIM4V82::B_NODE) \
+    X(BSIM4SBsb, sbNode, sbNode, BSIM4V82::SB_NODE, BSIM4V82::SB_NODE) \
+    X(BSIM4Bdb, bNode, dbNode, BSIM4V82::B_NODE, BSIM4V82::DB_NODE) \
+    X(BSIM4Bbp, bNode, bNodePrime, BSIM4V82::B_NODE, BSIM4V82::B_NODE_PRIME) \
+    X(BSIM4Bsb, bNode, sbNode, BSIM4V82::B_NODE, BSIM4V82::SB_NODE) \
+    X(BSIM4Bb, bNode, bNode, BSIM4V82::B_NODE, BSIM4V82::B_NODE) \
+    X(BSIM4Dgp, dNode, gNodePrime, BSIM4V82::D_NODE, BSIM4V82::G_NODE_PRIME) \
+    X(BSIM4Dsp, dNode, sNodePrime, BSIM4V82::D_NODE, BSIM4V82::S_NODE_PRIME) \
+    X(BSIM4Dbp, dNode, bNodePrime, BSIM4V82::D_NODE, BSIM4V82::B_NODE_PRIME) \
+    X(BSIM4Sdp, sNode, dNodePrime, BSIM4V82::S_NODE, BSIM4V82::D_NODE_PRIME) \
+    X(BSIM4Sgp, sNode, gNodePrime, BSIM4V82::S_NODE, BSIM4V82::G_NODE_PRIME) \
+    X(BSIM4Sbp, sNode, bNodePrime, BSIM4V82::S_NODE, BSIM4V82::B_NODE_PRIME) \
+    X(BSIM4Qdp, qNode, dNodePrime, BSIM4V82::Q_NODE, BSIM4V82::D_NODE_PRIME) \
+    X(BSIM4Qgp, qNode, gNodePrime, BSIM4V82::Q_NODE, BSIM4V82::G_NODE_PRIME) \
+    X(BSIM4Qsp, qNode, sNodePrime, BSIM4V82::Q_NODE, BSIM4V82::S_NODE_PRIME) \
+    X(BSIM4Qbp, qNode, bNodePrime, BSIM4V82::Q_NODE, BSIM4V82::B_NODE_PRIME) \
+    X(BSIM4Qq, qNode, qNode, BSIM4V82::Q_NODE, BSIM4V82::Q_NODE) \
+    X(BSIM4DPq, dNodePrime, qNode, BSIM4V82::D_NODE_PRIME, BSIM4V82::Q_NODE) \
+    X(BSIM4GPq, gNodePrime, qNode, BSIM4V82::G_NODE_PRIME, BSIM4V82::Q_NODE) \
+    X(BSIM4SPq, sNodePrime, qNode, BSIM4V82::S_NODE_PRIME, BSIM4V82::Q_NODE)
+
 /**
  * @brief Applies the calculated conductances and currents to the system matrices.
  *
@@ -118,299 +191,10 @@ void bsim4applyStamps(const BSIM4V82 &instance, const BSIM4stamp &s,
     StampRHS(RHS, qNode, s.RHSqNode, nodeValid, BSIM4V82::Q_NODE);
 
     // LHS Stamps
-    // BSIM4DPdPtr
-    Stamp(LHS, dNodePrime, dNode,
-        s.BSIM4DPd, nodeValid, 
-        BSIM4V82::D_NODE_PRIME, BSIM4V82::D_NODE);
-    // BSIM4DPdpPtr
-    Stamp(LHS, dNodePrime, dNodePrime,
-        s.BSIM4DPdp, nodeValid, 
-        BSIM4V82::D_NODE_PRIME, BSIM4V82::D_NODE_PRIME);
-    
-    // BSIM4DPgpPtr
-    Stamp(LHS, dNodePrime, gNodePrime,
-        s.BSIM4DPgp, nodeValid, 
-        BSIM4V82::D_NODE_PRIME, BSIM4V82::G_NODE_PRIME);
-    // BSIM4DPgmPtr
-    Stamp(LHS, dNodePrime, gNodeMid,
-        s.BSIM4DPgm, nodeValid, 
-        BSIM4V82::D_NODE_PRIME, BSIM4V82::G_NODE_MID);
-    // BSIM4DPspPtr
-    Stamp(LHS, dNodePrime, sNodePrime,
-        s.BSIM4DPsp, nodeValid, 
-        BSIM4V82::D_NODE_PRIME, BSIM4V82::S_NODE_PRIME);
-    // BSIM4DPbpPtr
-    Stamp(LHS, dNodePrime, bNodePrime,
-        s.BSIM4DPbp, nodeValid, 
-        BSIM4V82::D_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
-    // BSIM4DPdbPtr
-    Stamp(LHS, dNodePrime, dbNode,
-        s.BSIM4DPdb, nodeValid, 
-        BSIM4V82::D_NODE_PRIME, BSIM4V82::DB_NODE);
-
-    // BSIM4DdPtr
-    Stamp(LHS, dNode, dNode,
-        s.BSIM4Dd, nodeValid, 
-        BSIM4V82::D_NODE, BSIM4V82::D_NODE);
-    // BSIM4DdpPtr
-    Stamp(LHS, dNode, dNodePrime,
-        s.BSIM4Ddp, nodeValid, 
-        BSIM4V82::D_NODE, BSIM4V82::D_NODE_PRIME);
-
-    // BSIM4GPdpPtr
-    Stamp(LHS, gNodePrime, dNodePrime,
-        s.BSIM4GPdp, nodeValid, 
-        BSIM4V82::G_NODE_PRIME, BSIM4V82::D_NODE_PRIME);
-    // BSIM4GPgpPtr
-    Stamp(LHS, gNodePrime, gNodePrime,
-        s.BSIM4GPgp, nodeValid, 
-        BSIM4V82::G_NODE_PRIME, BSIM4V82::G_NODE_PRIME);
-    // BSIM4GPgmPtr
-    Stamp(LHS, gNodePrime, gNodeMid,
-        s.BSIM4GPgm, nodeValid, 
-        BSIM4V82::G_NODE_PRIME, BSIM4V82::G_NODE_MID);
-    // BSIM4GPgePtr
-    Stamp(LHS, gNodePrime, gNodeExt,
-        s.BSIM4GPge, nodeValid, 
-        BSIM4V82::G_NODE_PRIME, BSIM4V82::G_NODE_EXT);
-    // BSIM4GPspPtr
-    Stamp(LHS, gNodePrime, sNodePrime,
-        s.BSIM4GPsp, nodeValid, 
-        BSIM4V82::G_NODE_PRIME, BSIM4V82::S_NODE_PRIME);
-    // BSIM4GPbpPtr
-    Stamp(LHS, gNodePrime, bNodePrime,
-        s.BSIM4GPbp, nodeValid, 
-        BSIM4V82::G_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
-
-    // BSIM4GMdpPtr
-    Stamp(LHS, gNodeMid, dNodePrime,
-        s.BSIM4GMdp, nodeValid, 
-        BSIM4V82::G_NODE_MID, BSIM4V82::D_NODE_PRIME);
-    // BSIM4GMgpPtr
-    Stamp(LHS, gNodeMid, gNodePrime,
-        s.BSIM4GMgp, nodeValid, 
-        BSIM4V82::G_NODE_MID, BSIM4V82::G_NODE_PRIME);
-    // BSIM4GMgmPtr
-    Stamp(LHS, gNodeMid, gNodeMid,
-        s.BSIM4GMgm, nodeValid, 
-        BSIM4V82::G_NODE_MID, BSIM4V82::G_NODE_MID);
-    // BSIM4GMgePtr
-    Stamp(LHS, gNodeMid, gNodeExt,
-        s.BSIM4GMge, nodeValid, 
-        BSIM4V82::G_NODE_MID, BSIM4V82::G_NODE_EXT);
-    // BSIM4GMspPtr
-    Stamp(LHS, gNodeMid, sNodePrime,
-        s.BSIM4GMsp, nodeValid, 
-        BSIM4V82::G_NODE_MID, BSIM4V82::S_NODE_PRIME);
-    // BSIM4GMbpPtr
-    Stamp(LHS, gNodeMid, bNodePrime,
-        s.BSIM4GMbp, nodeValid, 
-        BSIM4V82::G_NODE_MID, BSIM4V82::B_NODE_PRIME);
-
-    // BSIM4GEdpPtr
-    Stamp(LHS, gNodeExt, dNodePrime,
-        s.BSIM4GEdp, nodeValid, 
-        BSIM4V82::G_NODE_EXT, BSIM4V82::D_NODE_PRIME);
-    // BSIM4GEgpPtr
-    Stamp(LHS, gNodeExt, gNodePrime,
-        s.BSIM4GEgp, nodeValid, 
-        BSIM4V82::G_NODE_EXT, BSIM4V82::G_NODE_PRIME);
-    // BSIM4GEgmPtr
-    Stamp(LHS, gNodeExt, gNodeMid,
-        s.BSIM4GEgm, nodeValid, 
-        BSIM4V82::G_NODE_EXT, BSIM4V82::G_NODE_MID);
-    // BSIM4GEgePtr
-    Stamp(LHS, gNodeExt, gNodeExt,
-        s.BSIM4GEge, nodeValid, 
-        BSIM4V82::G_NODE_EXT, BSIM4V82::G_NODE_EXT);
-    // BSIM4GEspPtr
-    Stamp(LHS, gNodeExt, sNodePrime,
-        s.BSIM4GEsp, nodeValid, 
-        BSIM4V82::G_NODE_EXT, BSIM4V82::S_NODE_PRIME);
-    // BSIM4GEbpPtr
-    Stamp(LHS, gNodeExt, bNodePrime,
-        s.BSIM4GEbp, nodeValid, 
-        BSIM4V82::G_NODE_EXT, BSIM4V82::B_NODE_PRIME);
-
-    // BSIM4SPdpPtr
-    Stamp(LHS, sNodePrime, dNodePrime,
-        s.BSIM4SPdp, nodeValid, 
-        BSIM4V82::S_NODE_PRIME, BSIM4V82::D_NODE_PRIME);
-    // BSIM4SPgpPtr
-    Stamp(LHS, sNodePrime, gNodePrime,
-        s.BSIM4SPgp, nodeValid, 
-        BSIM4V82::S_NODE_PRIME, BSIM4V82::G_NODE_PRIME);
-    // BSIM4SPgmPtr
-    Stamp(LHS, sNodePrime, gNodeMid,
-        s.BSIM4SPgm, nodeValid, 
-        BSIM4V82::S_NODE_PRIME, BSIM4V82::G_NODE_MID);
-    // BSIM4SPsPtr
-    Stamp(LHS, sNodePrime, sNode,
-        s.BSIM4SPs, nodeValid, 
-        BSIM4V82::S_NODE_PRIME, BSIM4V82::S_NODE);
-    // BSIM4SPspPtr
-    Stamp(LHS, sNodePrime, sNodePrime,
-        s.BSIM4SPsp, nodeValid, 
-        BSIM4V82::S_NODE_PRIME, BSIM4V82::S_NODE_PRIME);
-    // BSIM4SPbpPtr
-    Stamp(LHS, sNodePrime, bNodePrime,
-        s.BSIM4SPbp, nodeValid, 
-        BSIM4V82::S_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
-    // BSIM4SPsbPtr
-    Stamp(LHS, sNodePrime, sbNode,
-        s.BSIM4SPsb, nodeValid, 
-        BSIM4V82::S_NODE_PRIME, BSIM4V82::SB_NODE);
-
-    // BSIM4SspPtr
-    Stamp(LHS, sNode, sNodePrime,
-        s.BSIM4Ssp, nodeValid, 
-        BSIM4V82::S_NODE, BSIM4V82::S_NODE_PRIME);
-    // BSIM4SsPtr
-    Stamp(LHS, sNode, sNode,
-        s.BSIM4Ss, nodeValid, 
-        BSIM4V82::S_NODE, BSIM4V82::S_NODE);
-
-    // BSIM4BPdpPtr
-    Stamp(LHS, bNodePrime, dNodePrime,
-        s.BSIM4BPdp, nodeValid, 
-        BSIM4V82::B_NODE_PRIME, BSIM4V82::D_NODE_PRIME);
-    // BSIM4BPgpPtr
-    Stamp(LHS, bNodePrime, gNodePrime,
-        s.BSIM4BPgp, nodeValid, 
-        BSIM4V82::B_NODE_PRIME, BSIM4V82::G_NODE_PRIME);
-    // BSIM4BPgmPtr
-    Stamp(LHS, bNodePrime, gNodeMid,
-        s.BSIM4BPgm, nodeValid, 
-        BSIM4V82::B_NODE_PRIME, BSIM4V82::G_NODE_MID);
-    // BSIM4BPspPtr
-    Stamp(LHS, bNodePrime, sNodePrime,
-        s.BSIM4BPsp, nodeValid, 
-        BSIM4V82::B_NODE_PRIME, BSIM4V82::S_NODE_PRIME);
-    // BSIM4BPdbPtr
-    Stamp(LHS, bNodePrime, dbNode,
-        s.BSIM4BPdb, nodeValid, 
-        BSIM4V82::B_NODE_PRIME, BSIM4V82::DB_NODE);
-    // BSIM4BPbPtr
-    Stamp(LHS, bNodePrime, bNode,
-        s.BSIM4BPb, nodeValid, 
-        BSIM4V82::B_NODE_PRIME, BSIM4V82::B_NODE);
-    // BSIM4BPsbPtr
-    Stamp(LHS, bNodePrime, sbNode,
-        s.BSIM4BPsb, nodeValid, 
-        BSIM4V82::B_NODE_PRIME, BSIM4V82::SB_NODE);
-    // BSIM4BPbpPtr
-    Stamp(LHS, bNodePrime, bNodePrime,
-        s.BSIM4BPbp, nodeValid, 
-        BSIM4V82::B_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
-
-    // BSIM4DBdpPtr
-    Stamp(LHS, dbNode, dNodePrime,
-        s.BSIM4DBdp, nodeValid, 
-        BSIM4V82::DB_NODE, BSIM4V82::D_NODE_PRIME);
-    // BSIM4DBdbPtr
-    Stamp(LHS, dbNode, dbNode,
-        s.BSIM4DBdb, nodeValid, 
-        BSIM4V82::DB_NODE, BSIM4V82::DB_NODE);
-    // BSIM4DBbpPtr
-    Stamp(LHS, dbNode, bNodePrime,
-        s.BSIM4DBbp, nodeValid, 
-        BSIM4V82::DB_NODE, BSIM4V82::B_NODE_PRIME);
-    // BSIM4DBbPtr
-    Stamp(LHS, dbNode, bNode,
-        s.BSIM4DBb, nodeValid, 
-        BSIM4V82::DB_NODE, BSIM4V82::B_NODE);
-
-    // BSIM4SBspPtr
-    Stamp(LHS, sbNode, sNodePrime,
-        s.BSIM4SBsp, nodeValid, 
-        BSIM4V82::SB_NODE, BSIM4V82::S_NODE_PRIME);
-    // BSIM4SBbpPtr
-    Stamp(LHS, sbNode, bNodePrime,
-        s.BSIM4SBbp, nodeValid, 
-        BSIM4V82::SB_NODE, BSIM4V82::B_NODE_PRIME);
-    // BSIM4SBbPtr
-    Stamp(LHS, sbNode, bNode,
-        s.BSIM4SBb, nodeValid, 
-        BSIM4V82::SB_NODE, BSIM4V82::B_NODE);
-    // BSIM4SBsbPtr
-    Stamp(LHS, sbNode, sbNode,
-        s.BSIM4SBsb, nodeValid, 
-        BSIM4V82::SB_NODE, BSIM4V82::SB_NODE);
-
-    // BSIM4BdbPtr
-    Stamp(LHS, bNode, dbNode,
-        s.BSIM4Bdb, nodeValid, 
-        BSIM4V82::B_NODE, BSIM4V82::DB_NODE);
-    // BSIM4BbpPtr
-    Stamp(LHS, bNode, bNodePrime,
-        s.BSIM4Bbp, nodeValid, 
-        BSIM4V82::B_NODE, BSIM4V82::B_NODE_PRIME);
-    // BSIM4BsbPtr
-    Stamp(LHS, bNode, sbNode,
-        s.BSIM4Bsb, nodeValid, 
-        BSIM4V82::B_NODE, BSIM4V82::SB_NODE);
-    // BSIM4BbPtr
-    Stamp(LHS, bNode, bNode,
-        s.BSIM4Bb, nodeValid, 
-        BSIM4V82::B_NODE, BSIM4V82::B_NODE);
-
-    // BSIM4DgpPtr
-    Stamp(LHS, dNode, gNodePrime,
-        s.BSIM4Dgp, nodeValid, 
-        BSIM4V82::D_NODE, BSIM4V82::G_NODE_PRIME);
-    // BSIM4DspPtr
-    Stamp(LHS, dNode, sNodePrime,
-        s.BSIM4Dsp, nodeValid, 
-        BSIM4V82::D_NODE, BSIM4V82::S_NODE_PRIME);
-    // BSIM4DbpPtr
-    Stamp(LHS, dNode, bNodePrime,
-        s.BSIM4Dbp, nodeValid, 
-        BSIM4V82::D_NODE, BSIM4V82::B_NODE_PRIME);
-    // BSIM4SdpPtr
-    Stamp(LHS, sNode, dNodePrime,
-        s.BSIM4Sdp, nodeValid, 
-        BSIM4V82::S_NODE, BSIM4V82::D_NODE_PRIME);
-    // BSIM4SgpPtr
-    Stamp(LHS, sNode, gNodePrime,
-        s.BSIM4Sgp, nodeValid, 
-        BSIM4V82::S_NODE, BSIM4V82::G_NODE_PRIME);
-    // BSIM4SbpPtr
-    Stamp(LHS, sNode, bNodePrime,
-        s.BSIM4Sbp, nodeValid, 
-        BSIM4V82::S_NODE, BSIM4V82::B_NODE_PRIME);
-
-    // BSIM4QdpPtr
-    Stamp(LHS, qNode, dNodePrime,
-        s.BSIM4Qdp, nodeValid, 
-        BSIM4V82::Q_NODE, BSIM4V82::D_NODE_PRIME);
-    // BSIM4QgpPtr
-    Stamp(LHS, qNode, gNodePrime,
-        s.BSIM4Qgp, nodeValid, 
-        BSIM4V82::Q_NODE, BSIM4V82::G_NODE_PRIME);
-    // BSIM4QspPtr
-    Stamp(LHS, qNode, sNodePrime,
-        s.BSIM4Qsp, nodeValid, 
-        BSIM4V82::Q_NODE, BSIM4V82::S_NODE_PRIME);
-    // BSIM4QbpPtr
-    Stamp(LHS, qNode, bNodePrime,
-        s.BSIM4Qbp, nodeValid, 
-        BSIM4V82::Q_NODE, BSIM4V82::B_NODE_PRIME);
-    // BSIM4QqPtr
-    Stamp(LHS, qNode, qNode,
-        s.BSIM4Qq, nodeValid, 
-        BSIM4V82::Q_NODE, BSIM4V82::Q_NODE);
-    // BSIM4DPqPtr
-    Stamp(LHS, dNodePrime, qNode,
-        s.BSIM4DPq, nodeValid, 
-        BSIM4V82::D_NODE_PRIME, BSIM4V82::Q_NODE);
-    // BSIM4GPqPtr
-    Stamp(LHS, gNodePrime, qNode,
-        s.BSIM4GPq, nodeValid, 
-        BSIM4V82::G_NODE_PRIME, BSIM4V82::Q_NODE);
-    // BSIM4SPqPtr
-    Stamp(LHS, sNodePrime, qNode,
-        s.BSIM4SPq, nodeValid,
-        BSIM4V82::S_NODE_PRIME, BSIM4V82::Q_NODE);
+#define BSIM4_APPLY_LHS_STAMP(field, rowNode, colNode, rowType, colType) \
+    Stamp(LHS, rowNode, colNode, s.field, nodeValid, rowType, colType);
+    BSIM4_LHS_STAMP_LIST(BSIM4_APPLY_LHS_STAMP)
+#undef BSIM4_APPLY_LHS_STAMP
 
 }
 
@@ -441,76 +225,125 @@ void bsim4RecordPattern(const BSIM4V82 &instance, HybridMatrix &LHS)
     const std::array<bool,12> &nodeValid = instance.BSIM4nodeValid;
 
     // Record all LHS stamp positions (same pattern as bsim4applyStamps)
-    RecordPosition(LHS, dNodePrime, dNode, nodeValid, BSIM4V82::D_NODE_PRIME, BSIM4V82::D_NODE);
-    RecordPosition(LHS, dNodePrime, dNodePrime, nodeValid, BSIM4V82::D_NODE_PRIME, BSIM4V82::D_NODE_PRIME);
-    RecordPosition(LHS, dNodePrime, gNodePrime, nodeValid, BSIM4V82::D_NODE_PRIME, BSIM4V82::G_NODE_PRIME);
-    RecordPosition(LHS, dNodePrime, gNodeMid, nodeValid, BSIM4V82::D_NODE_PRIME, BSIM4V82::G_NODE_MID);
-    RecordPosition(LHS, dNodePrime, sNodePrime, nodeValid, BSIM4V82::D_NODE_PRIME, BSIM4V82::S_NODE_PRIME);
-    RecordPosition(LHS, dNodePrime, bNodePrime, nodeValid, BSIM4V82::D_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
-    RecordPosition(LHS, dNodePrime, dbNode, nodeValid, BSIM4V82::D_NODE_PRIME, BSIM4V82::DB_NODE);
-    RecordPosition(LHS, dNode, dNode, nodeValid, BSIM4V82::D_NODE, BSIM4V82::D_NODE);
-    RecordPosition(LHS, dNode, dNodePrime, nodeValid, BSIM4V82::D_NODE, BSIM4V82::D_NODE_PRIME);
-    RecordPosition(LHS, gNodePrime, dNodePrime, nodeValid, BSIM4V82::G_NODE_PRIME, BSIM4V82::D_NODE_PRIME);
-    RecordPosition(LHS, gNodePrime, gNodePrime, nodeValid, BSIM4V82::G_NODE_PRIME, BSIM4V82::G_NODE_PRIME);
-    RecordPosition(LHS, gNodePrime, gNodeMid, nodeValid, BSIM4V82::G_NODE_PRIME, BSIM4V82::G_NODE_MID);
-    RecordPosition(LHS, gNodePrime, gNodeExt, nodeValid, BSIM4V82::G_NODE_PRIME, BSIM4V82::G_NODE_EXT);
-    RecordPosition(LHS, gNodePrime, sNodePrime, nodeValid, BSIM4V82::G_NODE_PRIME, BSIM4V82::S_NODE_PRIME);
-    RecordPosition(LHS, gNodePrime, bNodePrime, nodeValid, BSIM4V82::G_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
-    RecordPosition(LHS, gNodeMid, dNodePrime, nodeValid, BSIM4V82::G_NODE_MID, BSIM4V82::D_NODE_PRIME);
-    RecordPosition(LHS, gNodeMid, gNodePrime, nodeValid, BSIM4V82::G_NODE_MID, BSIM4V82::G_NODE_PRIME);
-    RecordPosition(LHS, gNodeMid, gNodeMid, nodeValid, BSIM4V82::G_NODE_MID, BSIM4V82::G_NODE_MID);
-    RecordPosition(LHS, gNodeMid, gNodeExt, nodeValid, BSIM4V82::G_NODE_MID, BSIM4V82::G_NODE_EXT);
-    RecordPosition(LHS, gNodeMid, sNodePrime, nodeValid, BSIM4V82::G_NODE_MID, BSIM4V82::S_NODE_PRIME);
-    RecordPosition(LHS, gNodeMid, bNodePrime, nodeValid, BSIM4V82::G_NODE_MID, BSIM4V82::B_NODE_PRIME);
-    RecordPosition(LHS, gNodeExt, dNodePrime, nodeValid, BSIM4V82::G_NODE_EXT, BSIM4V82::D_NODE_PRIME);
-    RecordPosition(LHS, gNodeExt, gNodePrime, nodeValid, BSIM4V82::G_NODE_EXT, BSIM4V82::G_NODE_PRIME);
-    RecordPosition(LHS, gNodeExt, gNodeMid, nodeValid, BSIM4V82::G_NODE_EXT, BSIM4V82::G_NODE_MID);
-    RecordPosition(LHS, gNodeExt, gNodeExt, nodeValid, BSIM4V82::G_NODE_EXT, BSIM4V82::G_NODE_EXT);
-    RecordPosition(LHS, gNodeExt, sNodePrime, nodeValid, BSIM4V82::G_NODE_EXT, BSIM4V82::S_NODE_PRIME);
-    RecordPosition(LHS, gNodeExt, bNodePrime, nodeValid, BSIM4V82::G_NODE_EXT, BSIM4V82::B_NODE_PRIME);
-    RecordPosition(LHS, sNodePrime, dNodePrime, nodeValid, BSIM4V82::S_NODE_PRIME, BSIM4V82::D_NODE_PRIME);
-    RecordPosition(LHS, sNodePrime, gNodePrime, nodeValid, BSIM4V82::S_NODE_PRIME, BSIM4V82::G_NODE_PRIME);
-    RecordPosition(LHS, sNodePrime, gNodeMid, nodeValid, BSIM4V82::S_NODE_PRIME, BSIM4V82::G_NODE_MID);
-    RecordPosition(LHS, sNodePrime, sNode, nodeValid, BSIM4V82::S_NODE_PRIME, BSIM4V82::S_NODE);
-    RecordPosition(LHS, sNodePrime, sNodePrime, nodeValid, BSIM4V82::S_NODE_PRIME, BSIM4V82::S_NODE_PRIME);
-    RecordPosition(LHS, sNodePrime, bNodePrime, nodeValid, BSIM4V82::S_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
-    RecordPosition(LHS, sNodePrime, sbNode, nodeValid, BSIM4V82::S_NODE_PRIME, BSIM4V82::SB_NODE);
-    RecordPosition(LHS, sNode, sNodePrime, nodeValid, BSIM4V82::S_NODE, BSIM4V82::S_NODE_PRIME);
-    RecordPosition(LHS, sNode, sNode, nodeValid, BSIM4V82::S_NODE, BSIM4V82::S_NODE);
-    RecordPosition(LHS, bNodePrime, dNodePrime, nodeValid, BSIM4V82::B_NODE_PRIME, BSIM4V82::D_NODE_PRIME);
-    RecordPosition(LHS, bNodePrime, gNodePrime, nodeValid, BSIM4V82::B_NODE_PRIME, BSIM4V82::G_NODE_PRIME);
-    RecordPosition(LHS, bNodePrime, gNodeMid, nodeValid, BSIM4V82::B_NODE_PRIME, BSIM4V82::G_NODE_MID);
-    RecordPosition(LHS, bNodePrime, sNodePrime, nodeValid, BSIM4V82::B_NODE_PRIME, BSIM4V82::S_NODE_PRIME);
-    RecordPosition(LHS, bNodePrime, dbNode, nodeValid, BSIM4V82::B_NODE_PRIME, BSIM4V82::DB_NODE);
-    RecordPosition(LHS, bNodePrime, bNode, nodeValid, BSIM4V82::B_NODE_PRIME, BSIM4V82::B_NODE);
-    RecordPosition(LHS, bNodePrime, sbNode, nodeValid, BSIM4V82::B_NODE_PRIME, BSIM4V82::SB_NODE);
-    RecordPosition(LHS, bNodePrime, bNodePrime, nodeValid, BSIM4V82::B_NODE_PRIME, BSIM4V82::B_NODE_PRIME);
-    RecordPosition(LHS, dbNode, dNodePrime, nodeValid, BSIM4V82::DB_NODE, BSIM4V82::D_NODE_PRIME);
-    RecordPosition(LHS, dbNode, dbNode, nodeValid, BSIM4V82::DB_NODE, BSIM4V82::DB_NODE);
-    RecordPosition(LHS, dbNode, bNodePrime, nodeValid, BSIM4V82::DB_NODE, BSIM4V82::B_NODE_PRIME);
-    RecordPosition(LHS, dbNode, bNode, nodeValid, BSIM4V82::DB_NODE, BSIM4V82::B_NODE);
-    RecordPosition(LHS, sbNode, sNodePrime, nodeValid, BSIM4V82::SB_NODE, BSIM4V82::S_NODE_PRIME);
-    RecordPosition(LHS, sbNode, bNodePrime, nodeValid, BSIM4V82::SB_NODE, BSIM4V82::B_NODE_PRIME);
-    RecordPosition(LHS, sbNode, bNode, nodeValid, BSIM4V82::SB_NODE, BSIM4V82::B_NODE);
-    RecordPosition(LHS, sbNode, sbNode, nodeValid, BSIM4V82::SB_NODE, BSIM4V82::SB_NODE);
-    RecordPosition(LHS, bNode, dbNode, nodeValid, BSIM4V82::B_NODE, BSIM4V82::DB_NODE);
-    RecordPosition(LHS, bNode, bNodePrime, nodeValid, BSIM4V82::B_NODE, BSIM4V82::B_NODE_PRIME);
-    RecordPosition(LHS, bNode, sbNode, nodeValid, BSIM4V82::B_NODE, BSIM4V82::SB_NODE);
-    RecordPosition(LHS, bNode, bNode, nodeValid, BSIM4V82::B_NODE, BSIM4V82::B_NODE);
-    RecordPosition(LHS, dNode, gNodePrime, nodeValid, BSIM4V82::D_NODE, BSIM4V82::G_NODE_PRIME);
-    RecordPosition(LHS, dNode, sNodePrime, nodeValid, BSIM4V82::D_NODE, BSIM4V82::S_NODE_PRIME);
-    RecordPosition(LHS, dNode, bNodePrime, nodeValid, BSIM4V82::D_NODE, BSIM4V82::B_NODE_PRIME);
-    RecordPosition(LHS, sNode, dNodePrime, nodeValid, BSIM4V82::S_NODE, BSIM4V82::D_NODE_PRIME);
-    RecordPosition(LHS, sNode, gNodePrime, nodeValid, BSIM4V82::S_NODE, BSIM4V82::G_NODE_PRIME);
-    RecordPosition(LHS, sNode, bNodePrime, nodeValid, BSIM4V82::S_NODE, BSIM4V82::B_NODE_PRIME);
-    RecordPosition(LHS, qNode, dNodePrime, nodeValid, BSIM4V82::Q_NODE, BSIM4V82::D_NODE_PRIME);
-    RecordPosition(LHS, qNode, gNodePrime, nodeValid, BSIM4V82::Q_NODE, BSIM4V82::G_NODE_PRIME);
-    RecordPosition(LHS, qNode, sNodePrime, nodeValid, BSIM4V82::Q_NODE, BSIM4V82::S_NODE_PRIME);
-    RecordPosition(LHS, qNode, bNodePrime, nodeValid, BSIM4V82::Q_NODE, BSIM4V82::B_NODE_PRIME);
-    RecordPosition(LHS, qNode, qNode, nodeValid, BSIM4V82::Q_NODE, BSIM4V82::Q_NODE);
-    RecordPosition(LHS, dNodePrime, qNode, nodeValid, BSIM4V82::D_NODE_PRIME, BSIM4V82::Q_NODE);
-    RecordPosition(LHS, gNodePrime, qNode, nodeValid, BSIM4V82::G_NODE_PRIME, BSIM4V82::Q_NODE);
-    RecordPosition(LHS, sNodePrime, qNode, nodeValid, BSIM4V82::S_NODE_PRIME, BSIM4V82::Q_NODE);
+#define BSIM4_RECORD_LHS_STAMP(field, rowNode, colNode, rowType, colType) \
+    RecordPosition(LHS, rowNode, colNode, nodeValid, rowType, colType);
+    BSIM4_LHS_STAMP_LIST(BSIM4_RECORD_LHS_STAMP)
+#undef BSIM4_RECORD_LHS_STAMP
+}
+
+/**
+ * @brief Builds per-instance cache of sparse CSC values[] indices for BSIM4 LHS stamps.
+ *
+ * Must be called after pattern discovery and LHS.lock_pattern().
+ * If any required stamped position is missing from the locked pattern, cache.built=false.
+ */
+void bsim4BuildStampIndexCache(const BSIM4V82 &instance, const HybridMatrix &LHS, BSIM4StampIndexCache &cache)
+{
+    cache = BSIM4StampIndexCache{};
+    if (!LHS.is_sparse() || !LHS.is_pattern_locked()) {
+        return;
+    }
+
+    auto get_NodeIndex = [](int node) -> int {
+        return node - 1;
+    };
+    const int dNode = get_NodeIndex(instance.BSIM4dNode);
+    const int gNodeExt = get_NodeIndex(instance.BSIM4gNodeExt);
+    const int sNode = get_NodeIndex(instance.BSIM4sNode);
+    const int bNode = get_NodeIndex(instance.BSIM4bNode);
+    const int dNodePrime = get_NodeIndex(instance.BSIM4dNodePrime);
+    const int gNodePrime = get_NodeIndex(instance.BSIM4gNodePrime);
+    const int gNodeMid = get_NodeIndex(instance.BSIM4gNodeMid);
+    const int sNodePrime = get_NodeIndex(instance.BSIM4sNodePrime);
+    const int bNodePrime = get_NodeIndex(instance.BSIM4bNodePrime);
+    const int dbNode = get_NodeIndex(instance.BSIM4dbNode);
+    const int sbNode = get_NodeIndex(instance.BSIM4sbNode);
+    const int qNode = get_NodeIndex(instance.BSIM4qNode);
+
+    const std::array<bool, 12> &nodeValid = instance.BSIM4nodeValid;
+
+    bool ok = true;
+
+#define BSIM4_CACHE_LHS_STAMP(field, rowNode, colNode, rowType, colType)                                     \
+    do {                                                                                                    \
+        if (nodeValid[rowType] && nodeValid[colType]) {                                                     \
+            size_t idx = 0;                                                                                 \
+            if (LHS.try_get_position_index(static_cast<size_t>(rowNode), static_cast<size_t>(colNode), idx)) { \
+                cache.field = idx;                                                                          \
+            } else {                                                                                        \
+                cache.field = BSIM4StampIndexCache::kInvalid;                                               \
+                ok = false;                                                                                 \
+            }                                                                                               \
+        } else {                                                                                            \
+            cache.field = BSIM4StampIndexCache::kInvalid;                                                   \
+        }                                                                                                   \
+    } while (0);
+    BSIM4_LHS_STAMP_LIST(BSIM4_CACHE_LHS_STAMP)
+#undef BSIM4_CACHE_LHS_STAMP
+
+    cache.built = ok;
+}
+
+/**
+ * @brief Fast stamping path using pre-cached CSC values[] indices (sparse only).
+ *
+ * Falls back to bsim4applyStamps if cache is not usable.
+ */
+void bsim4applyStampsCached(const BSIM4V82 &instance, const BSIM4stamp &s,
+                      const BSIM4StampIndexCache &cache,
+                      HybridMatrix &LHS, arma::vec &RHS)
+{
+    if (!s.load) return; // do not load stamps into the matrix
+    if (!cache.built || !LHS.is_sparse() || !LHS.is_pattern_locked()) {
+        bsim4applyStamps(instance, s, LHS, RHS);
+        return;
+    }
+
+    // Node indexes in mna matrix
+    auto get_NodeIndex = [](int node) -> int {
+        return node - 1;
+    };
+    const int dNode = get_NodeIndex(instance.BSIM4dNode);
+    const int gNodeExt = get_NodeIndex(instance.BSIM4gNodeExt);
+    const int sNode = get_NodeIndex(instance.BSIM4sNode);
+    const int bNode = get_NodeIndex(instance.BSIM4bNode);
+    const int dNodePrime = get_NodeIndex(instance.BSIM4dNodePrime);
+    const int gNodePrime = get_NodeIndex(instance.BSIM4gNodePrime);
+    const int gNodeMid = get_NodeIndex(instance.BSIM4gNodeMid);
+    const int sNodePrime = get_NodeIndex(instance.BSIM4sNodePrime);
+    const int bNodePrime = get_NodeIndex(instance.BSIM4bNodePrime);
+    const int dbNode = get_NodeIndex(instance.BSIM4dbNode);
+    const int sbNode = get_NodeIndex(instance.BSIM4sbNode);
+    const int qNode = get_NodeIndex(instance.BSIM4qNode);
+
+    const std::array<bool,12> &nodeValid = instance.BSIM4nodeValid;
+
+    // RHS Stamps
+    StampRHS(RHS, dNodePrime, s.RHSdNodePrime, nodeValid, BSIM4V82::D_NODE_PRIME);
+    StampRHS(RHS, gNodePrime, s.RHSgNodePrime, nodeValid, BSIM4V82::G_NODE_PRIME);
+    StampRHS(RHS, gNodeExt, s.RHSgNodeExt, nodeValid, BSIM4V82::G_NODE_EXT);
+    StampRHS(RHS, gNodeMid, s.RHSgNodeMid, nodeValid, BSIM4V82::G_NODE_MID);
+    StampRHS(RHS, bNodePrime, s.RHSbNodePrime, nodeValid, BSIM4V82::B_NODE_PRIME);
+    StampRHS(RHS, sNodePrime, s.RHSsNodePrime, nodeValid, BSIM4V82::S_NODE_PRIME);
+    StampRHS(RHS, dbNode, s.RHSdbNode, nodeValid, BSIM4V82::DB_NODE);
+    StampRHS(RHS, sbNode, s.RHSsbNode, nodeValid, BSIM4V82::SB_NODE);
+    StampRHS(RHS, dNode, s.RHSdNode, nodeValid, BSIM4V82::D_NODE);
+    StampRHS(RHS, sNode, s.RHSsNode, nodeValid, BSIM4V82::S_NODE);
+    StampRHS(RHS, qNode, s.RHSqNode, nodeValid, BSIM4V82::Q_NODE);
+
+    arma::sp_mat &sp = LHS.get_sparse();
+    double *vals = arma::access::rwp(sp.values);
+
+#define BSIM4_APPLY_LHS_CACHED(field, rowNode, colNode, rowType, colType) \
+    do {                                                                 \
+        if (cache.field != BSIM4StampIndexCache::kInvalid) {             \
+            vals[cache.field] += s.field;                                \
+        }                                                                \
+    } while (0);
+    BSIM4_LHS_STAMP_LIST(BSIM4_APPLY_LHS_CACHED)
+#undef BSIM4_APPLY_LHS_CACHED
 }
 
 } // namespace bsim4
+
+#undef BSIM4_LHS_STAMP_LIST

@@ -46,15 +46,26 @@ namespace bsim4{
  */
 int
 BSIM4load(const CKTcircuit &ckt, const BSIM4model &model, BSIM4V82 &instance, const SPICECompatible &spice, const arma::vec &presolution,
-    const double CKTtemp, const double CKTgmin, HybridMatrix &LHS, arma::vec &RHS)
-{   
+    const double CKTtemp, const double CKTgmin, HybridMatrix &LHS, arma::vec &RHS, const BSIM4StampIndexCache *cache)
+{
     // Calculate all the values needed for the matrices.
     const auto stamps = BSIM4calculateStamps(ckt, model, instance, spice, presolution, CKTtemp, CKTgmin);
 
     // Apply the calculated values to the LHS and RHS matrices.
-    bsim4applyStamps(instance, stamps, LHS, RHS);
+    if (cache && cache->built && LHS.is_sparse() && LHS.is_pattern_locked()) {
+        bsim4applyStampsCached(instance, stamps, *cache, LHS, RHS);
+    } else {
+        bsim4applyStamps(instance, stamps, LHS, RHS);
+    }
 
     return 0; // success
+}
+
+int
+BSIM4load(const CKTcircuit &ckt, const BSIM4model &model, BSIM4V82 &instance, const SPICECompatible &spice, const arma::vec &presolution,
+    const double CKTtemp, const double CKTgmin, HybridMatrix &LHS, arma::vec &RHS)
+{   
+    return BSIM4load(ckt, model, instance, spice, presolution, CKTtemp, CKTgmin, LHS, RHS, nullptr);
 }
 
 void updateState1(BSIM4V82 &inst){
@@ -63,4 +74,3 @@ void updateState1(BSIM4V82 &inst){
 
 
 } // namespace bsim4
-
