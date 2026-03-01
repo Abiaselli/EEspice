@@ -1,17 +1,16 @@
 Delay
 .model nmos nmos (level=14 version=4.8.2)
 .model pmos pmos (level=14 version=4.8.2)
-V1 1 0 5
-V2 2 0 pulse (0 5 5n 10p 10p 5n 10n)
+* Simulation flags
+.options acct
+.options num_threads=2
+.sparse
+M1 output input VDD VDD pmos W=1u L=0.09u
+M2 output input GND GND nmos W=1u L=0.09u
+M3 net-3 output VDD VDD pmos W=1u L=0.09u
+M4 net-3 output GND GND nmos W=1u L=0.09u
+V8 input GND PULSE (0 1.8 40p 5p 5p 100p 200p)
+V9 VDD GND 1.8
+.tran 0.1p 200p
 
-*Mnumber d g s b model W=w L=l 
-M1 3 2 0 0 nmos W=1u L=0.09u
-M2 3 2 1 1 pmos W=1u L=0.09u
-
-R1 3 4 1
-C1 4 0 0.1p
- 
-M3 5 4 0 0 nmos W=10u L=0.9u
-M4 5 4 1 1 pmos W=10u L=0.9u
-
-.tran 1p 10n
+.end
