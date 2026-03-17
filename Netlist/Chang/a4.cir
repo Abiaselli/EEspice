@@ -1,4 +1,4 @@
-.title Basic amp – optimised (rev-22)
+.title Basic amp optimised (rev-22)
 .include 'ptm_90.txt'
 *.param Vcm = 0.6
 M3 d3 in2 midp vdd pmos W=70u  L=700n

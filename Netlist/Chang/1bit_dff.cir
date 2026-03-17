@@ -1,0 +1,36 @@
+* 1bit DFF
+.include /home/xuanhao/Xuanhao_code/EEspice/Netlist/modelcards/modelcard.CMOS90
+
+.param VDD=1.8
+.param period = 1ns
+
+* Simulation flags
+.options acct
+* .options num_threads=64
+.sparse
+
+VDD vdd 0 {VDD}
+VD  d   0 PULSE (0 {VDD} {period*0.25} 1p 1p {period} {period*2})
+VCLK  clk  0 PULSE (0 {VDD} {period*0.1} 1p 1p {period*0.5} {period})
+VCLKB clkb 0 PULSE ({VDD} 0 {period*0.1} 1p 1p {period*0.5} {period})
+
+MTG1P d clk m1 vdd P90 w=1.1u l=0.28u 
+MTG1N d clkb m1 0 N90 w=0.55u l=0.28u 
+MM1P m2 m1 vdd vdd P90 w=1.1u l=0.28u 
+MM1N m2 m1 0 0 N90 w=0.55u l=0.28u 
+MM2P m3 m2 vdd vdd P90 w=0.6u l=0.28u 
+MM2N m3 m2 0 0 N90 w=0.3u l=0.28u 
+MTG2P m3 clkb m1 vdd P90 w=0.6u l=0.28u 
+MTG2N m3 clk m1 0 N90 w=0.3u l=0.28u 
+MTG3P m2 clkb s1 vdd P90 w=1.1u l=0.28u 
+MTG3N m2 clk s1 0 N90 w=0.55u l=0.28u 
+MS1P q s1 vdd vdd P90 w=1.1u l=0.28u 
+MS1N q s1 0 0 N90 w=0.55u l=0.28u 
+MS2P s3 q vdd vdd P90 w=0.6u l=0.28u 
+MS2N s3 q 0 0 N90 w=0.3u l=0.28u 
+MTG4P s3 clk s1 vdd P90 w=0.6u l=0.28u 
+MTG4N s3 clkb s1 0 N90 w=0.3u l=0.28u 
+
+.tran 1p {period*5}
+ 
+.end
