@@ -51,6 +51,9 @@ struct CircuitParser
     int num_threads = 1;      // Number of threads to use if multithreading is enabled
     bool pulse_phase_mode = false; // If true, 8th PULSE param is PHASE not NP (ngspice xs mode)
 
+    // .param parameter table
+    std::unordered_map<std::string, double> params;
+
     // Parser Timer
     XB_Timer parseTimer;
 
@@ -247,6 +250,121 @@ void parseNetlistFile(const std::string& filename, CircuitParser& parser,
                      std::unordered_set<std::string>& includeStack,
                      bool isMainFile = false);
 
+// Tokenize a string respecting brace groups: {expr with spaces} stays as one token
+std::vector<std::string> tokenizeBraceAware(const std::string& str) {
+    std::vector<std::string> tokens;
+    size_t i = 0;
+    while (i < str.size()) {
+        // Skip whitespace
+        while (i < str.size() && (str[i] == ' ' || str[i] == '\t'))
+            ++i;
+        if (i >= str.size()) break;
+
+        std::string tok;
+        if (str[i] == '{') {
+            // Consume until matching '}'
+            while (i < str.size() && str[i] != '}') {
+                tok += str[i++];
+            }
+            if (i < str.size()) tok += str[i++]; // consume '}'
+        } else {
+            // Normal token — but handle {expr} embedded after = (e.g. w={VDD})
+            while (i < str.size() && str[i] != ' ' && str[i] != '\t') {
+                if (str[i] == '{') {
+                    // Consume brace group
+                    while (i < str.size() && str[i] != '}') {
+                        tok += str[i++];
+                    }
+                    if (i < str.size()) tok += str[i++]; // consume '}'
+                } else {
+                    tok += str[i++];
+                }
+            }
+        }
+        if (!tok.empty()) tokens.push_back(tok);
+    }
+    return tokens;
+}
+
+// Parse .param line: ".param VDD=1.8" or ".param a=1 b=2"
+void parseParamLine(const std::string& line, std::unordered_map<std::string, double>& params) {
+    // Skip the ".param" prefix
+    std::string rest = line;
+    size_t paramPos = rest.find_first_of(" \t");
+    if (paramPos == std::string::npos) return;
+    rest = rest.substr(paramPos);
+
+    // Tokenize respecting braces
+    auto tokens = tokenizeBraceAware(rest);
+
+    // Process tokens: each should be "name=value" or "name = value"
+    size_t i = 0;
+    while (i < tokens.size()) {
+        std::string tok = tokens[i];
+        std::string name, valueStr;
+
+        size_t eqPos = tok.find('=');
+        if (eqPos != std::string::npos && eqPos > 0) {
+            // "name=value" in one token
+            name = tok.substr(0, eqPos);
+            valueStr = tok.substr(eqPos + 1);
+            if (valueStr.empty() && i + 1 < tokens.size()) {
+                // "name=" then value as next token
+                valueStr = tokens[++i];
+            }
+        } else if (i + 2 < tokens.size() && tokens[i + 1] == "=") {
+            // "name = value" as three tokens
+            name = tok;
+            valueStr = tokens[i + 2];
+            i += 2;
+        } else if (eqPos == 0 && tok.size() > 1) {
+            // "=value" — previous token was name (shouldn't happen normally)
+            ++i;
+            continue;
+        } else {
+            ++i;
+            continue;
+        }
+
+        // Normalize name to lowercase
+        std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+
+        // Reject reserved names
+        if (name == "time" || name == "temper" || name == "hertz") {
+            throw ParsingException("Error: Cannot redefine reserved parameter '" + name + "'", "RESERVED_PARAMETER");
+        }
+
+        // Strip braces from value if present
+        std::string exprStr = valueStr;
+        if (!exprStr.empty() && exprStr.front() == '{') {
+            size_t closeBrace = exprStr.rfind('}');
+            if (closeBrace != std::string::npos) {
+                exprStr = exprStr.substr(1, closeBrace - 1);
+            }
+        }
+
+        // Check for self-reference
+        {
+            std::string lowerExpr = exprStr;
+            std::transform(lowerExpr.begin(), lowerExpr.end(), lowerExpr.begin(), ::tolower);
+            // Simple check: see if the name appears as an identifier in the expression
+            size_t searchPos = 0;
+            while ((searchPos = lowerExpr.find(name, searchPos)) != std::string::npos) {
+                bool startOk = (searchPos == 0 || !std::isalnum(static_cast<unsigned char>(lowerExpr[searchPos - 1])));
+                bool endOk = (searchPos + name.size() >= lowerExpr.size() || !std::isalnum(static_cast<unsigned char>(lowerExpr[searchPos + name.size()])));
+                if (startOk && endOk) {
+                    throw ParsingException("Error: Self-referencing parameter '" + name + "' in .param", "SELF_REFERENCE_PARAMETER");
+                }
+                searchPos += name.size();
+            }
+        }
+
+        double val = evaluateExpression(exprStr, params);
+        params[name] = val;
+        ++i;
+    }
+}
+
 void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktmap, Modelmap &modmap)
 {
 
@@ -333,13 +451,8 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 pulseParamsString.erase(std::remove(pulseParamsString.begin(), pulseParamsString.end(), '('), pulseParamsString.end());
                 pulseParamsString.erase(std::remove(pulseParamsString.begin(), pulseParamsString.end(), ')'), pulseParamsString.end());
 
-                // Split the pulseParamsString into individual parameters
-                std::istringstream pulseParamsStream(pulseParamsString);
-                std::vector<std::string> params;
-                std::string param;
-                while (pulseParamsStream >> param) {
-                    params.push_back(param);
-                }
+                // Use brace-aware tokenizer to handle {expr} tokens
+                auto pulseParams = tokenizeBraceAware(pulseParamsString);
 
                 pv.id_str = id_str;
                 pv.id = v_id;
@@ -349,14 +462,14 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 pv.nodeNeg = convertToNode(v_nodeNeg_str, cktmap.map_nodes);
 
                 // Parse with defaults of 0 (actual ngspice defaults applied later in V_pulse_value)
-                pv.V1 = params.size() > 0 ? convertToValue(params[0]) : 0.0;
-                pv.V2 = params.size() > 1 ? convertToValue(params[1]) : 0.0;
-                pv.td = params.size() > 2 ? convertToValue(params[2]) : 0.0;
-                pv.tr = params.size() > 3 ? convertToValue(params[3]) : 0.0;
-                pv.tf = params.size() > 4 ? convertToValue(params[4]) : 0.0;
-                pv.pw = params.size() > 5 ? convertToValue(params[5]) : 0.0;
-                pv.per = params.size() > 6 ? convertToValue(params[6]) : 0.0;
-                pv.param8 = params.size() > 7 ? convertToValue(params[7]) : 0.0;
+                pv.V1 = pulseParams.size() > 0 ? evaluateNumeric(pulseParams[0], parser.params) : 0.0;
+                pv.V2 = pulseParams.size() > 1 ? evaluateNumeric(pulseParams[1], parser.params) : 0.0;
+                pv.td = pulseParams.size() > 2 ? evaluateNumeric(pulseParams[2], parser.params) : 0.0;
+                pv.tr = pulseParams.size() > 3 ? evaluateNumeric(pulseParams[3], parser.params) : 0.0;
+                pv.tf = pulseParams.size() > 4 ? evaluateNumeric(pulseParams[4], parser.params) : 0.0;
+                pv.pw = pulseParams.size() > 5 ? evaluateNumeric(pulseParams[5], parser.params) : 0.0;
+                pv.per = pulseParams.size() > 6 ? evaluateNumeric(pulseParams[6], parser.params) : 0.0;
+                pv.param8 = pulseParams.size() > 7 ? evaluateNumeric(pulseParams[7], parser.params) : 0.0;
 
                 parser.elements.pulseVoltages.emplace_back(pv);
             }
@@ -368,9 +481,8 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 sinParamsString.erase(std::remove(sinParamsString.begin(), sinParamsString.end(), '('), sinParamsString.end());
                 sinParamsString.erase(std::remove(sinParamsString.begin(), sinParamsString.end(), ')'), sinParamsString.end());
 
-                // Split the sinParamsString into individual parameters
-                std::istringstream sinParamsStream(sinParamsString);
-                std::string vo, va, freq, td, theta, phase;
+                // Use brace-aware tokenizer to handle {expr} tokens
+                auto sinParams = tokenizeBraceAware(sinParamsString);
 
                 sv.id_str = id_str;
                 sv.id = v_id;
@@ -379,14 +491,12 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 sv.nodePos = convertToNode(v_nodePos_str, cktmap.map_nodes);
                 sv.nodeNeg = convertToNode(v_nodeNeg_str, cktmap.map_nodes);
 
-                sinParamsStream >> vo >> va >> freq >> td >> theta >> phase;
-
-                sv.vo = convertToValue(vo);
-                sv.va = convertToValue(va);
-                sv.freq = convertToValue(freq);
-                sv.td = convertToValue(td);
-                sv.theta = convertToValue(theta);
-                sv.phase = convertToValue(phase);
+                sv.vo = sinParams.size() > 0 ? evaluateNumeric(sinParams[0], parser.params) : 0.0;
+                sv.va = sinParams.size() > 1 ? evaluateNumeric(sinParams[1], parser.params) : 0.0;
+                sv.freq = sinParams.size() > 2 ? evaluateNumeric(sinParams[2], parser.params) : 0.0;
+                sv.td = sinParams.size() > 3 ? evaluateNumeric(sinParams[3], parser.params) : 0.0;
+                sv.theta = sinParams.size() > 4 ? evaluateNumeric(sinParams[4], parser.params) : 0.0;
+                sv.phase = sinParams.size() > 5 ? evaluateNumeric(sinParams[5], parser.params) : 0.0;
 
                 parser.elements.sinVoltages.emplace_back(sv);
             }
@@ -412,16 +522,16 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 if (first_param == "dc" || first_param == "DC")
                 {
                     iss >> dc_val_str;
-                    vs.value = convertToValue(dc_val_str);
+                    vs.value = evaluateNumeric(dc_val_str, parser.params);
 
                     // Check for an optional AC part
                     if (iss >> ac_keyword && (ac_keyword == "ac" || ac_keyword == "AC"))
                     {
                         iss >> ac_amp_str;
-                        vs.amplitude = convertToValue(ac_amp_str);
+                        vs.amplitude = evaluateNumeric(ac_amp_str, parser.params);
                         if (iss >> ac_phase_str)
                         {
-                            vs.phase = convertToValue(ac_phase_str);
+                            vs.phase = evaluateNumeric(ac_phase_str, parser.params);
                         }
                     }
                 }
@@ -429,10 +539,10 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 else if (first_param == "ac" || first_param == "AC")
                 {
                     iss >> ac_amp_str;
-                    vs.amplitude = convertToValue(ac_amp_str);
+                    vs.amplitude = evaluateNumeric(ac_amp_str, parser.params);
                     if (iss >> ac_phase_str)
                     {
-                        vs.phase = convertToValue(ac_phase_str);
+                        vs.phase = evaluateNumeric(ac_phase_str, parser.params);
                     }
                 }
                 else if (first_param.front() == '[' || first_param.front() == '(')
@@ -444,7 +554,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                 // Case 3: V... <dc_val>
                 else
                 {
-                    vs.value = convertToValue(first_param);
+                    vs.value = evaluateNumeric(first_param, parser.params);
                 }
 
                 // Set the AC real and imaginary components based on amplitude and phase
@@ -480,7 +590,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         else
         {
             // Single value resistor
-            r.value = convertToValue(valueStr);
+            r.value = evaluateNumeric(valueStr, parser.params);
         }
 
         parser.elements.resistors.emplace_back(r);
@@ -504,7 +614,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         else
         {
             // Single value capacitor
-            c.value = convertToValue(valueStr);
+            c.value = evaluateNumeric(valueStr, parser.params);
         }
         parser.elements.capacitors.emplace_back(c);
     }
@@ -528,7 +638,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         else
         {
             // Normal Current source
-            cs.value = convertToValue(valueStr);
+            cs.value = evaluateNumeric(valueStr, parser.params);
         }
         
         parser.elements.currentSources.emplace_back(cs);
@@ -552,7 +662,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         else
         {
             // Single value diode
-            d.Is = convertToValue(valueStr);
+            d.Is = evaluateNumeric(valueStr, parser.params);
         }
 
         iss >> valueStr;
@@ -565,7 +675,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         else
         {
             // Single value diode
-            d.VT = convertToValue(valueStr);
+            d.VT = evaluateNumeric(valueStr, parser.params);
         }
 
         parser.elements.diodes.emplace_back(d);
@@ -591,7 +701,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         else
         {
             // Single value VCCS
-            g.value = convertToValue(valueStr);
+            g.value = evaluateNumeric(valueStr, parser.params);
         }
 
         parser.elements.vccs.emplace_back(g);
@@ -616,7 +726,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         else
         {
             // Single value VCVS
-            e.value = convertToValue(valueStr);
+            e.value = evaluateNumeric(valueStr, parser.params);
         }
 
         parser.elements.vcvs.emplace_back(e);
@@ -677,8 +787,8 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                         else
                         {
                             // Single value W
-                            mn.W = convertToValue(valueStr);
-                        }                       
+                            mn.W = evaluateNumeric(valueStr, parser.params);
+                        }
                     }
                     else if (key == "L" || key == "l")
                     {
@@ -692,7 +802,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                         else
                         {
                             // Single value L
-                            mn.L = convertToValue(valueStr);
+                            mn.L = evaluateNumeric(valueStr, parser.params);
                         }
                     }
                 }
@@ -740,7 +850,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                         else
                         {
                             // Single value W
-                            mp.W = convertToValue(valueStr);
+                            mp.W = evaluateNumeric(valueStr, parser.params);
                         }
                     }
                     else if (key == "L" || key == "l")
@@ -755,7 +865,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                         else
                         {
                             // Single value L
-                            mp.L = convertToValue(valueStr);
+                            mp.L = evaluateNumeric(valueStr, parser.params);
                         }
                     }
                 }
@@ -801,7 +911,7 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                         else
                         {
                             // Single value W
-                            b4.W = convertToValue(valueStr);
+                            b4.W = evaluateNumeric(valueStr, parser.params);
                         }
                     }
                     else if (key == "L" || key == "l")
@@ -816,8 +926,8 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
                         else
                         {
                             // Single value L
-                            b4.L = convertToValue(valueStr);
-                        }                          
+                            b4.L = evaluateNumeric(valueStr, parser.params);
+                        }
                     }
                 }
             }
@@ -836,32 +946,46 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
     }
     else if (type == ".tran" || type == ".TRAN")
     {
-        std::string string_h, string_t_end;
+        // Use remaining line with brace-aware tokenizer for {expr} support
+        std::string tranRest;
+        std::getline(iss, tranRest);
+        auto tranParams = tokenizeBraceAware(tranRest);
+        if (tranParams.size() < 2) {
+            throw ParsingException("Error: .tran requires at least 2 parameters", "INCOMPLETE_TRAN");
+        }
 
-        iss >> string_h >> string_t_end;
-
-        parser.double_init_h = convertToValue(string_h);
-        parser.double_t_end = convertToValue(string_t_end);
+        parser.double_init_h = evaluateNumeric(tranParams[0], parser.params);
+        parser.double_t_end = evaluateNumeric(tranParams[1], parser.params);
         parser.is_transient = true;
     }
     else if (type == ".dc" || type == ".DC")
     {
-        std::string srcnam, vstart, vend, vincr;
-        iss >> srcnam >> vstart >> vend >> vincr;
+        std::string dcRest;
+        std::getline(iss, dcRest);
+        auto dcParams = tokenizeBraceAware(dcRest);
+        if (dcParams.size() < 4) {
+            throw ParsingException("Error: .dc requires 4 parameters", "INCOMPLETE_DC");
+        }
 
         dc::DCSweepSpec spec;
-        spec.sourceName = srcnam;
-        spec.vstart = convertToValue(vstart);
-        spec.vend   = convertToValue(vend);
-        spec.vstep  = convertToValue(vincr);
+        spec.sourceName = dcParams[0];
+        spec.vstart = evaluateNumeric(dcParams[1], parser.params);
+        spec.vend   = evaluateNumeric(dcParams[2], parser.params);
+        spec.vstep  = evaluateNumeric(dcParams[3], parser.params);
         parser.dcSweep_parser = spec;
 
         parser.is_dc = true;
     }
     else if (type == ".ac" || type == ".AC")
     {
-        std::string string_interval, string_numpts, string_fstart, string_fstop;
-        iss >> string_interval >> string_numpts >> string_fstart >> string_fstop;
+        std::string acRest;
+        std::getline(iss, acRest);
+        auto acParams = tokenizeBraceAware(acRest);
+        if (acParams.size() < 4) {
+            throw ParsingException("Error: .ac requires 4 parameters", "INCOMPLETE_AC");
+        }
+
+        std::string string_interval = acParams[0];
 
         ac::ACSweepSpec spec;
         if (string_interval == "dec" || string_interval == "DEC")
@@ -880,9 +1004,9 @@ void parseLine(const std::string &line, CircuitParser &parser, Circuitmap &cktma
         {
             throw ParsingException("Error: Unknown AC sweep interval: " + string_interval, "UNKNOWN_AC_SWEEP_INTERVAL");
         }
-        spec.numpts = convertToValue(string_numpts);
-        spec.fstart = convertToValue(string_fstart);
-        spec.fstop  = convertToValue(string_fstop);
+        spec.numpts = evaluateNumeric(acParams[1], parser.params);
+        spec.fstart = evaluateNumeric(acParams[2], parser.params);
+        spec.fstop  = evaluateNumeric(acParams[3], parser.params);
         parser.acSweep_parser = spec;
         parser.is_ac = true;
     }
@@ -940,10 +1064,12 @@ void parseNetlistFile(const std::string& filename, CircuitParser& parser,
         }
         isFirstLine = false;
         
-        // Remove comments
-        size_t commentPos = line.find('*');
-        if (commentPos != std::string::npos) {
-            line = line.substr(0, commentPos);
+        // Remove whole-line comments (* as first non-whitespace character)
+        {
+            size_t firstNonSpace = line.find_first_not_of(" \t");
+            if (firstNonSpace != std::string::npos && line[firstNonSpace] == '*') {
+                line.clear();
+            }
         }
         
         // Trim and skip empty lines
@@ -1021,10 +1147,12 @@ void parseNetlistFile(const std::string& filename, CircuitParser& parser,
             std::string nextLine;
             
             while (std::getline(file, nextLine)) {
-                // Remove comments from continuation line
-                size_t contCommentPos = nextLine.find('*');
-                if (contCommentPos != std::string::npos) {
-                    nextLine = nextLine.substr(0, contCommentPos);
+                // Remove whole-line comments from continuation line
+                {
+                    size_t contFirstNonSpace = nextLine.find_first_not_of(" \t");
+                    if (contFirstNonSpace != std::string::npos && nextLine[contFirstNonSpace] == '*') {
+                        nextLine.clear();
+                    }
                 }
                 
                 // Check if this is a continuation line
@@ -1043,6 +1171,19 @@ void parseNetlistFile(const std::string& filename, CircuitParser& parser,
                 }
             }
             
+            // Check for .param directive
+            {
+                std::istringstream tokenCheck(completeLine);
+                std::string firstTok;
+                tokenCheck >> firstTok;
+                std::string lowerFirst = firstTok;
+                std::transform(lowerFirst.begin(), lowerFirst.end(), lowerFirst.begin(), ::tolower);
+                if (lowerFirst == ".param") {
+                    parseParamLine(completeLine, parser.params);
+                    continue;
+                }
+            }
+
             // Parse the complete line
             parseLine(completeLine, parser, cktmap, modmap);
         }

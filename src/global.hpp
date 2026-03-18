@@ -245,6 +245,214 @@ double convertToValue(const std::string &valueStr)
     return value; // No unit or unrecognized unit, assume the value is in base units
 }
 
+// Expression evaluator for .param brace expressions like {VDD}, {period*0.25}
+// Recursive-descent parser: expr → term (('+' | '-') term)*
+//                           term → unary (('*' | '/') unary)*
+//                           unary → ('-' | '+')? primary
+//                           primary → NUMBER_WITH_SUFFIX | IDENTIFIER | '(' expr ')'
+class ExpressionEvaluator {
+public:
+    ExpressionEvaluator(const std::string& expr, const std::unordered_map<std::string, double>& params)
+        : src(expr), params(params), pos(0) {}
+
+    double parse() {
+        double result = parseExpr();
+        skipSpaces();
+        if (pos < src.size()) {
+            throw ParsingException("Unexpected character '" + std::string(1, src[pos]) + "' in expression: " + src, "EXPRESSION_ERROR");
+        }
+        return result;
+    }
+
+private:
+    const std::string& src;
+    const std::unordered_map<std::string, double>& params;
+    size_t pos;
+
+    void skipSpaces() {
+        while (pos < src.size() && (src[pos] == ' ' || src[pos] == '\t'))
+            ++pos;
+    }
+
+    double parseExpr() {
+        double left = parseTerm();
+        skipSpaces();
+        while (pos < src.size() && (src[pos] == '+' || src[pos] == '-')) {
+            char op = src[pos++];
+            double right = parseTerm();
+            if (op == '+') left += right;
+            else left -= right;
+            skipSpaces();
+        }
+        return left;
+    }
+
+    double parseTerm() {
+        double left = parseUnary();
+        skipSpaces();
+        while (pos < src.size() && (src[pos] == '*' || src[pos] == '/')) {
+            char op = src[pos++];
+            double right = parseUnary();
+            if (op == '*') left *= right;
+            else {
+                if (right == 0.0)
+                    throw ParsingException("Division by zero in expression: " + src, "EXPRESSION_ERROR");
+                left /= right;
+            }
+            skipSpaces();
+        }
+        return left;
+    }
+
+    double parseUnary() {
+        skipSpaces();
+        if (pos < src.size() && src[pos] == '-') {
+            ++pos;
+            return -parseUnary();
+        }
+        if (pos < src.size() && src[pos] == '+') {
+            ++pos;
+            return parseUnary();
+        }
+        return parsePrimary();
+    }
+
+    double parsePrimary() {
+        skipSpaces();
+        if (pos >= src.size()) {
+            throw ParsingException("Unexpected end of expression: " + src, "EXPRESSION_ERROR");
+        }
+
+        // Reject unsupported operators
+        if (src[pos] == '^' || src[pos] == '%') {
+            throw ParsingException("Unsupported operator '" + std::string(1, src[pos]) + "' in expression: " + src, "EXPRESSION_ERROR");
+        }
+
+        // Parenthesized sub-expression
+        if (src[pos] == '(') {
+            ++pos;
+            double val = parseExpr();
+            skipSpaces();
+            if (pos >= src.size() || src[pos] != ')') {
+                throw ParsingException("Missing closing ')' in expression: " + src, "EXPRESSION_ERROR");
+            }
+            ++pos;
+            return val;
+        }
+
+        // Number: starts with digit or '.'
+        if (std::isdigit(static_cast<unsigned char>(src[pos])) || src[pos] == '.') {
+            return parseNumber();
+        }
+
+        // Identifier
+        if (std::isalpha(static_cast<unsigned char>(src[pos])) || src[pos] == '_') {
+            return parseIdentifier();
+        }
+
+        throw ParsingException("Unexpected character '" + std::string(1, src[pos]) + "' in expression: " + src, "EXPRESSION_ERROR");
+    }
+
+    double parseNumber() {
+        size_t start = pos;
+        // Consume digits, '.', 'e', 'E', and signs after e/E
+        while (pos < src.size() && (std::isdigit(static_cast<unsigned char>(src[pos])) || src[pos] == '.' || src[pos] == 'e' || src[pos] == 'E' || src[pos] == '-')) {
+            if ((src[pos] == '-') && pos > start && src[pos-1] != 'e' && src[pos-1] != 'E')
+                break;
+            ++pos;
+        }
+        std::string numStr = src.substr(start, pos - start);
+
+        // Check for SPICE suffix
+        double multiplier = 1.0;
+        if (pos < src.size()) {
+            char c = src[pos];
+            // Only consume suffix if it's a known SPICE suffix and NOT followed by
+            // characters that would make it an identifier (e.g. "meg")
+            switch (c) {
+                case 'T': multiplier = 1.0e12; ++pos; break;
+                case 'G': multiplier = 1.0e9; ++pos; break;
+                case 'M':
+                    // Check for "Meg" or "MEG"
+                    if (pos + 2 < src.size() && (src[pos+1] == 'e' || src[pos+1] == 'E') && (src[pos+2] == 'g' || src[pos+2] == 'G')) {
+                        multiplier = 1.0e6; pos += 3;
+                    } else {
+                        multiplier = 1.0e6; ++pos;
+                    }
+                    break;
+                case 'k': multiplier = 1.0e3; ++pos; break;
+                case 'm':
+                    // Check for "mil"
+                    if (pos + 2 < src.size() && src[pos+1] == 'i' && src[pos+2] == 'l') {
+                        multiplier = 25.4e-6; pos += 3;
+                    } else {
+                        multiplier = 1.0e-3; ++pos;
+                    }
+                    break;
+                case 'u': multiplier = 1.0e-6; ++pos; break;
+                case 'n': multiplier = 1.0e-9; ++pos; break;
+                case 'p': multiplier = 1.0e-12; ++pos; break;
+                case 'f': multiplier = 1.0e-15; ++pos; break;
+                default: break;
+            }
+            // Skip any trailing alpha chars (e.g., "ns", "us", "Hz")
+            while (pos < src.size() && std::isalpha(static_cast<unsigned char>(src[pos])))
+                ++pos;
+        }
+
+        double val = 0.0;
+        try {
+            val = std::stod(numStr);
+        } catch (...) {
+            throw ParsingException("Invalid number '" + numStr + "' in expression: " + src, "EXPRESSION_ERROR");
+        }
+        return val * multiplier;
+    }
+
+    double parseIdentifier() {
+        size_t start = pos;
+        while (pos < src.size() && (std::isalnum(static_cast<unsigned char>(src[pos])) || src[pos] == '_' || src[pos] == '!' || src[pos] == '#' || src[pos] == '$' || src[pos] == '%' || src[pos] == '[' || src[pos] == ']'))
+            ++pos;
+        std::string name = src.substr(start, pos - start);
+
+        // Check if followed by '(' — function call not supported
+        skipSpaces();
+        if (pos < src.size() && src[pos] == '(') {
+            throw ParsingException("Function calls not supported in expression: " + name + "(...)", "EXPRESSION_ERROR");
+        }
+
+        // Case-insensitive lookup
+        std::string lowerName = name;
+        std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+
+        auto it = params.find(lowerName);
+        if (it == params.end()) {
+            throw ParsingException("Undefined parameter '" + name + "' in expression: " + src, "UNDEFINED_PARAMETER");
+        }
+        return it->second;
+    }
+};
+
+double evaluateExpression(const std::string& expr, const std::unordered_map<std::string, double>& params) {
+    ExpressionEvaluator evaluator(expr, params);
+    return evaluator.parse();
+}
+
+// If token contains '{', strip braces and evaluate expression; otherwise use convertToValue
+double evaluateNumeric(const std::string& token, const std::unordered_map<std::string, double>& params) {
+    if (token.find('{') != std::string::npos) {
+        // Strip outer braces
+        std::string expr = token;
+        size_t openBrace = expr.find('{');
+        size_t closeBrace = expr.rfind('}');
+        if (openBrace != std::string::npos && closeBrace != std::string::npos && closeBrace > openBrace) {
+            expr = expr.substr(openBrace + 1, closeBrace - openBrace - 1);
+        }
+        return evaluateExpression(expr, params);
+    }
+    return convertToValue(token);
+}
+
 int convertToNode(const std::string &nodeStr, std::unordered_map<std::string, int> &map_nodes)
 {   
     if(nodeStr == "0" || nodeStr == "GND" || nodeStr == "gnd"){
