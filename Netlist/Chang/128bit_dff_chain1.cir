@@ -1,0 +1,2326 @@
+* 128-stage DFF chain - Generated from dff1.cir
+
+* Models
+.model nmos nmos (level=14 version=4.8.2)
+.model pmos pmos (level=14 version=4.8.2)
+
+.param VDD=1.8
+.param period = 1ns
+
+* Simulation flags
+.options acct
+.options num_threads=64
+.sparse
+
+VVDD VDD 0 DC {VDD}
+VDIN DIN 0 PULSE (0 {VDD} {period*0.25} 1p 1p {period} {period*2})
+VCLK CLK 0 PULSE (0 {VDD} {period*0.1} 1p 1p {period*0.5} {period})
+VCLKB CLKB 0 PULSE ({VDD} 0 {period*0.1} 1p 1p {period*0.5} {period})
+
+* Stage 0
+MTG1P_0 DIN CLK m1_0 VDD pmos w=1.1u l=0.28u
+MTG1N_0 DIN CLKB m1_0 0 nmos w=0.55u l=0.28u 
+MM1P_0 m2_0 m1_0 VDD VDD pmos w=1.1u l=0.28u
+MM1N_0 m2_0 m1_0 0 0 nmos w=0.55u l=0.28u 
+MM2P_0 m3_0 m2_0 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_0 m3_0 m2_0 0 0 nmos w=0.3u l=0.28u 
+MTG2P_0 m3_0 CLKB m1_0 VDD pmos w=0.6u l=0.28u 
+MTG2N_0 m3_0 CLK m1_0 0 nmos w=0.3u l=0.28u 
+MTG3P_0 m2_0 CLKB s1_0 VDD pmos w=1.1u l=0.28u
+MTG3N_0 m2_0 CLK s1_0 0 nmos w=0.55u l=0.28u 
+MS1P_0 Q0 s1_0 VDD VDD pmos w=1.1u l=0.28u
+MS1N_0 Q0 s1_0 0 0 nmos w=0.55u l=0.28u 
+MS2P_0 s3_0 Q0 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_0 s3_0 Q0 0 0 nmos w=0.3u l=0.28u 
+MTG4P_0 s3_0 CLK s1_0 VDD pmos w=0.6u l=0.28u 
+MTG4N_0 s3_0 CLKB s1_0 0 nmos w=0.3u l=0.28u 
+
+* Stage 1
+MTG1P_1 Q0 CLK m1_1 VDD pmos w=1.1u l=0.28u
+MTG1N_1 Q0 CLKB m1_1 0 nmos w=0.55u l=0.28u 
+MM1P_1 m2_1 m1_1 VDD VDD pmos w=1.1u l=0.28u
+MM1N_1 m2_1 m1_1 0 0 nmos w=0.55u l=0.28u 
+MM2P_1 m3_1 m2_1 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_1 m3_1 m2_1 0 0 nmos w=0.3u l=0.28u 
+MTG2P_1 m3_1 CLKB m1_1 VDD pmos w=0.6u l=0.28u 
+MTG2N_1 m3_1 CLK m1_1 0 nmos w=0.3u l=0.28u 
+MTG3P_1 m2_1 CLKB s1_1 VDD pmos w=1.1u l=0.28u
+MTG3N_1 m2_1 CLK s1_1 0 nmos w=0.55u l=0.28u 
+MS1P_1 Q1 s1_1 VDD VDD pmos w=1.1u l=0.28u
+MS1N_1 Q1 s1_1 0 0 nmos w=0.55u l=0.28u 
+MS2P_1 s3_1 Q1 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_1 s3_1 Q1 0 0 nmos w=0.3u l=0.28u 
+MTG4P_1 s3_1 CLK s1_1 VDD pmos w=0.6u l=0.28u 
+MTG4N_1 s3_1 CLKB s1_1 0 nmos w=0.3u l=0.28u 
+
+* Stage 2
+MTG1P_2 Q1 CLK m1_2 VDD pmos w=1.1u l=0.28u
+MTG1N_2 Q1 CLKB m1_2 0 nmos w=0.55u l=0.28u 
+MM1P_2 m2_2 m1_2 VDD VDD pmos w=1.1u l=0.28u
+MM1N_2 m2_2 m1_2 0 0 nmos w=0.55u l=0.28u 
+MM2P_2 m3_2 m2_2 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_2 m3_2 m2_2 0 0 nmos w=0.3u l=0.28u 
+MTG2P_2 m3_2 CLKB m1_2 VDD pmos w=0.6u l=0.28u 
+MTG2N_2 m3_2 CLK m1_2 0 nmos w=0.3u l=0.28u 
+MTG3P_2 m2_2 CLKB s1_2 VDD pmos w=1.1u l=0.28u
+MTG3N_2 m2_2 CLK s1_2 0 nmos w=0.55u l=0.28u 
+MS1P_2 Q2 s1_2 VDD VDD pmos w=1.1u l=0.28u
+MS1N_2 Q2 s1_2 0 0 nmos w=0.55u l=0.28u 
+MS2P_2 s3_2 Q2 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_2 s3_2 Q2 0 0 nmos w=0.3u l=0.28u 
+MTG4P_2 s3_2 CLK s1_2 VDD pmos w=0.6u l=0.28u 
+MTG4N_2 s3_2 CLKB s1_2 0 nmos w=0.3u l=0.28u 
+
+* Stage 3
+MTG1P_3 Q2 CLK m1_3 VDD pmos w=1.1u l=0.28u
+MTG1N_3 Q2 CLKB m1_3 0 nmos w=0.55u l=0.28u 
+MM1P_3 m2_3 m1_3 VDD VDD pmos w=1.1u l=0.28u
+MM1N_3 m2_3 m1_3 0 0 nmos w=0.55u l=0.28u 
+MM2P_3 m3_3 m2_3 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_3 m3_3 m2_3 0 0 nmos w=0.3u l=0.28u 
+MTG2P_3 m3_3 CLKB m1_3 VDD pmos w=0.6u l=0.28u 
+MTG2N_3 m3_3 CLK m1_3 0 nmos w=0.3u l=0.28u 
+MTG3P_3 m2_3 CLKB s1_3 VDD pmos w=1.1u l=0.28u
+MTG3N_3 m2_3 CLK s1_3 0 nmos w=0.55u l=0.28u 
+MS1P_3 Q3 s1_3 VDD VDD pmos w=1.1u l=0.28u
+MS1N_3 Q3 s1_3 0 0 nmos w=0.55u l=0.28u 
+MS2P_3 s3_3 Q3 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_3 s3_3 Q3 0 0 nmos w=0.3u l=0.28u 
+MTG4P_3 s3_3 CLK s1_3 VDD pmos w=0.6u l=0.28u 
+MTG4N_3 s3_3 CLKB s1_3 0 nmos w=0.3u l=0.28u 
+
+* Stage 4
+MTG1P_4 Q3 CLK m1_4 VDD pmos w=1.1u l=0.28u
+MTG1N_4 Q3 CLKB m1_4 0 nmos w=0.55u l=0.28u 
+MM1P_4 m2_4 m1_4 VDD VDD pmos w=1.1u l=0.28u
+MM1N_4 m2_4 m1_4 0 0 nmos w=0.55u l=0.28u 
+MM2P_4 m3_4 m2_4 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_4 m3_4 m2_4 0 0 nmos w=0.3u l=0.28u 
+MTG2P_4 m3_4 CLKB m1_4 VDD pmos w=0.6u l=0.28u 
+MTG2N_4 m3_4 CLK m1_4 0 nmos w=0.3u l=0.28u 
+MTG3P_4 m2_4 CLKB s1_4 VDD pmos w=1.1u l=0.28u
+MTG3N_4 m2_4 CLK s1_4 0 nmos w=0.55u l=0.28u 
+MS1P_4 Q4 s1_4 VDD VDD pmos w=1.1u l=0.28u
+MS1N_4 Q4 s1_4 0 0 nmos w=0.55u l=0.28u 
+MS2P_4 s3_4 Q4 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_4 s3_4 Q4 0 0 nmos w=0.3u l=0.28u 
+MTG4P_4 s3_4 CLK s1_4 VDD pmos w=0.6u l=0.28u 
+MTG4N_4 s3_4 CLKB s1_4 0 nmos w=0.3u l=0.28u 
+
+* Stage 5
+MTG1P_5 Q4 CLK m1_5 VDD pmos w=1.1u l=0.28u
+MTG1N_5 Q4 CLKB m1_5 0 nmos w=0.55u l=0.28u 
+MM1P_5 m2_5 m1_5 VDD VDD pmos w=1.1u l=0.28u
+MM1N_5 m2_5 m1_5 0 0 nmos w=0.55u l=0.28u 
+MM2P_5 m3_5 m2_5 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_5 m3_5 m2_5 0 0 nmos w=0.3u l=0.28u 
+MTG2P_5 m3_5 CLKB m1_5 VDD pmos w=0.6u l=0.28u 
+MTG2N_5 m3_5 CLK m1_5 0 nmos w=0.3u l=0.28u 
+MTG3P_5 m2_5 CLKB s1_5 VDD pmos w=1.1u l=0.28u
+MTG3N_5 m2_5 CLK s1_5 0 nmos w=0.55u l=0.28u 
+MS1P_5 Q5 s1_5 VDD VDD pmos w=1.1u l=0.28u
+MS1N_5 Q5 s1_5 0 0 nmos w=0.55u l=0.28u 
+MS2P_5 s3_5 Q5 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_5 s3_5 Q5 0 0 nmos w=0.3u l=0.28u 
+MTG4P_5 s3_5 CLK s1_5 VDD pmos w=0.6u l=0.28u 
+MTG4N_5 s3_5 CLKB s1_5 0 nmos w=0.3u l=0.28u 
+
+* Stage 6
+MTG1P_6 Q5 CLK m1_6 VDD pmos w=1.1u l=0.28u
+MTG1N_6 Q5 CLKB m1_6 0 nmos w=0.55u l=0.28u 
+MM1P_6 m2_6 m1_6 VDD VDD pmos w=1.1u l=0.28u
+MM1N_6 m2_6 m1_6 0 0 nmos w=0.55u l=0.28u 
+MM2P_6 m3_6 m2_6 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_6 m3_6 m2_6 0 0 nmos w=0.3u l=0.28u 
+MTG2P_6 m3_6 CLKB m1_6 VDD pmos w=0.6u l=0.28u 
+MTG2N_6 m3_6 CLK m1_6 0 nmos w=0.3u l=0.28u 
+MTG3P_6 m2_6 CLKB s1_6 VDD pmos w=1.1u l=0.28u
+MTG3N_6 m2_6 CLK s1_6 0 nmos w=0.55u l=0.28u 
+MS1P_6 Q6 s1_6 VDD VDD pmos w=1.1u l=0.28u
+MS1N_6 Q6 s1_6 0 0 nmos w=0.55u l=0.28u 
+MS2P_6 s3_6 Q6 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_6 s3_6 Q6 0 0 nmos w=0.3u l=0.28u 
+MTG4P_6 s3_6 CLK s1_6 VDD pmos w=0.6u l=0.28u 
+MTG4N_6 s3_6 CLKB s1_6 0 nmos w=0.3u l=0.28u 
+
+* Stage 7
+MTG1P_7 Q6 CLK m1_7 VDD pmos w=1.1u l=0.28u
+MTG1N_7 Q6 CLKB m1_7 0 nmos w=0.55u l=0.28u 
+MM1P_7 m2_7 m1_7 VDD VDD pmos w=1.1u l=0.28u
+MM1N_7 m2_7 m1_7 0 0 nmos w=0.55u l=0.28u 
+MM2P_7 m3_7 m2_7 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_7 m3_7 m2_7 0 0 nmos w=0.3u l=0.28u 
+MTG2P_7 m3_7 CLKB m1_7 VDD pmos w=0.6u l=0.28u 
+MTG2N_7 m3_7 CLK m1_7 0 nmos w=0.3u l=0.28u 
+MTG3P_7 m2_7 CLKB s1_7 VDD pmos w=1.1u l=0.28u
+MTG3N_7 m2_7 CLK s1_7 0 nmos w=0.55u l=0.28u 
+MS1P_7 Q7 s1_7 VDD VDD pmos w=1.1u l=0.28u
+MS1N_7 Q7 s1_7 0 0 nmos w=0.55u l=0.28u 
+MS2P_7 s3_7 Q7 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_7 s3_7 Q7 0 0 nmos w=0.3u l=0.28u 
+MTG4P_7 s3_7 CLK s1_7 VDD pmos w=0.6u l=0.28u 
+MTG4N_7 s3_7 CLKB s1_7 0 nmos w=0.3u l=0.28u 
+
+* Stage 8
+MTG1P_8 Q7 CLK m1_8 VDD pmos w=1.1u l=0.28u
+MTG1N_8 Q7 CLKB m1_8 0 nmos w=0.55u l=0.28u 
+MM1P_8 m2_8 m1_8 VDD VDD pmos w=1.1u l=0.28u
+MM1N_8 m2_8 m1_8 0 0 nmos w=0.55u l=0.28u 
+MM2P_8 m3_8 m2_8 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_8 m3_8 m2_8 0 0 nmos w=0.3u l=0.28u 
+MTG2P_8 m3_8 CLKB m1_8 VDD pmos w=0.6u l=0.28u 
+MTG2N_8 m3_8 CLK m1_8 0 nmos w=0.3u l=0.28u 
+MTG3P_8 m2_8 CLKB s1_8 VDD pmos w=1.1u l=0.28u
+MTG3N_8 m2_8 CLK s1_8 0 nmos w=0.55u l=0.28u 
+MS1P_8 Q8 s1_8 VDD VDD pmos w=1.1u l=0.28u
+MS1N_8 Q8 s1_8 0 0 nmos w=0.55u l=0.28u 
+MS2P_8 s3_8 Q8 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_8 s3_8 Q8 0 0 nmos w=0.3u l=0.28u 
+MTG4P_8 s3_8 CLK s1_8 VDD pmos w=0.6u l=0.28u 
+MTG4N_8 s3_8 CLKB s1_8 0 nmos w=0.3u l=0.28u 
+
+* Stage 9
+MTG1P_9 Q8 CLK m1_9 VDD pmos w=1.1u l=0.28u
+MTG1N_9 Q8 CLKB m1_9 0 nmos w=0.55u l=0.28u 
+MM1P_9 m2_9 m1_9 VDD VDD pmos w=1.1u l=0.28u
+MM1N_9 m2_9 m1_9 0 0 nmos w=0.55u l=0.28u 
+MM2P_9 m3_9 m2_9 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_9 m3_9 m2_9 0 0 nmos w=0.3u l=0.28u 
+MTG2P_9 m3_9 CLKB m1_9 VDD pmos w=0.6u l=0.28u 
+MTG2N_9 m3_9 CLK m1_9 0 nmos w=0.3u l=0.28u 
+MTG3P_9 m2_9 CLKB s1_9 VDD pmos w=1.1u l=0.28u
+MTG3N_9 m2_9 CLK s1_9 0 nmos w=0.55u l=0.28u 
+MS1P_9 Q9 s1_9 VDD VDD pmos w=1.1u l=0.28u
+MS1N_9 Q9 s1_9 0 0 nmos w=0.55u l=0.28u 
+MS2P_9 s3_9 Q9 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_9 s3_9 Q9 0 0 nmos w=0.3u l=0.28u 
+MTG4P_9 s3_9 CLK s1_9 VDD pmos w=0.6u l=0.28u 
+MTG4N_9 s3_9 CLKB s1_9 0 nmos w=0.3u l=0.28u 
+
+* Stage 10
+MTG1P_10 Q9 CLK m1_10 VDD pmos w=1.1u l=0.28u
+MTG1N_10 Q9 CLKB m1_10 0 nmos w=0.55u l=0.28u 
+MM1P_10 m2_10 m1_10 VDD VDD pmos w=1.1u l=0.28u
+MM1N_10 m2_10 m1_10 0 0 nmos w=0.55u l=0.28u 
+MM2P_10 m3_10 m2_10 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_10 m3_10 m2_10 0 0 nmos w=0.3u l=0.28u 
+MTG2P_10 m3_10 CLKB m1_10 VDD pmos w=0.6u l=0.28u 
+MTG2N_10 m3_10 CLK m1_10 0 nmos w=0.3u l=0.28u 
+MTG3P_10 m2_10 CLKB s1_10 VDD pmos w=1.1u l=0.28u
+MTG3N_10 m2_10 CLK s1_10 0 nmos w=0.55u l=0.28u 
+MS1P_10 Q10 s1_10 VDD VDD pmos w=1.1u l=0.28u
+MS1N_10 Q10 s1_10 0 0 nmos w=0.55u l=0.28u 
+MS2P_10 s3_10 Q10 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_10 s3_10 Q10 0 0 nmos w=0.3u l=0.28u 
+MTG4P_10 s3_10 CLK s1_10 VDD pmos w=0.6u l=0.28u 
+MTG4N_10 s3_10 CLKB s1_10 0 nmos w=0.3u l=0.28u 
+
+* Stage 11
+MTG1P_11 Q10 CLK m1_11 VDD pmos w=1.1u l=0.28u
+MTG1N_11 Q10 CLKB m1_11 0 nmos w=0.55u l=0.28u 
+MM1P_11 m2_11 m1_11 VDD VDD pmos w=1.1u l=0.28u
+MM1N_11 m2_11 m1_11 0 0 nmos w=0.55u l=0.28u 
+MM2P_11 m3_11 m2_11 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_11 m3_11 m2_11 0 0 nmos w=0.3u l=0.28u 
+MTG2P_11 m3_11 CLKB m1_11 VDD pmos w=0.6u l=0.28u 
+MTG2N_11 m3_11 CLK m1_11 0 nmos w=0.3u l=0.28u 
+MTG3P_11 m2_11 CLKB s1_11 VDD pmos w=1.1u l=0.28u
+MTG3N_11 m2_11 CLK s1_11 0 nmos w=0.55u l=0.28u 
+MS1P_11 Q11 s1_11 VDD VDD pmos w=1.1u l=0.28u
+MS1N_11 Q11 s1_11 0 0 nmos w=0.55u l=0.28u 
+MS2P_11 s3_11 Q11 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_11 s3_11 Q11 0 0 nmos w=0.3u l=0.28u 
+MTG4P_11 s3_11 CLK s1_11 VDD pmos w=0.6u l=0.28u 
+MTG4N_11 s3_11 CLKB s1_11 0 nmos w=0.3u l=0.28u 
+
+* Stage 12
+MTG1P_12 Q11 CLK m1_12 VDD pmos w=1.1u l=0.28u
+MTG1N_12 Q11 CLKB m1_12 0 nmos w=0.55u l=0.28u 
+MM1P_12 m2_12 m1_12 VDD VDD pmos w=1.1u l=0.28u
+MM1N_12 m2_12 m1_12 0 0 nmos w=0.55u l=0.28u 
+MM2P_12 m3_12 m2_12 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_12 m3_12 m2_12 0 0 nmos w=0.3u l=0.28u 
+MTG2P_12 m3_12 CLKB m1_12 VDD pmos w=0.6u l=0.28u 
+MTG2N_12 m3_12 CLK m1_12 0 nmos w=0.3u l=0.28u 
+MTG3P_12 m2_12 CLKB s1_12 VDD pmos w=1.1u l=0.28u
+MTG3N_12 m2_12 CLK s1_12 0 nmos w=0.55u l=0.28u 
+MS1P_12 Q12 s1_12 VDD VDD pmos w=1.1u l=0.28u
+MS1N_12 Q12 s1_12 0 0 nmos w=0.55u l=0.28u 
+MS2P_12 s3_12 Q12 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_12 s3_12 Q12 0 0 nmos w=0.3u l=0.28u 
+MTG4P_12 s3_12 CLK s1_12 VDD pmos w=0.6u l=0.28u 
+MTG4N_12 s3_12 CLKB s1_12 0 nmos w=0.3u l=0.28u 
+
+* Stage 13
+MTG1P_13 Q12 CLK m1_13 VDD pmos w=1.1u l=0.28u
+MTG1N_13 Q12 CLKB m1_13 0 nmos w=0.55u l=0.28u 
+MM1P_13 m2_13 m1_13 VDD VDD pmos w=1.1u l=0.28u
+MM1N_13 m2_13 m1_13 0 0 nmos w=0.55u l=0.28u 
+MM2P_13 m3_13 m2_13 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_13 m3_13 m2_13 0 0 nmos w=0.3u l=0.28u 
+MTG2P_13 m3_13 CLKB m1_13 VDD pmos w=0.6u l=0.28u 
+MTG2N_13 m3_13 CLK m1_13 0 nmos w=0.3u l=0.28u 
+MTG3P_13 m2_13 CLKB s1_13 VDD pmos w=1.1u l=0.28u
+MTG3N_13 m2_13 CLK s1_13 0 nmos w=0.55u l=0.28u 
+MS1P_13 Q13 s1_13 VDD VDD pmos w=1.1u l=0.28u
+MS1N_13 Q13 s1_13 0 0 nmos w=0.55u l=0.28u 
+MS2P_13 s3_13 Q13 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_13 s3_13 Q13 0 0 nmos w=0.3u l=0.28u 
+MTG4P_13 s3_13 CLK s1_13 VDD pmos w=0.6u l=0.28u 
+MTG4N_13 s3_13 CLKB s1_13 0 nmos w=0.3u l=0.28u 
+
+* Stage 14
+MTG1P_14 Q13 CLK m1_14 VDD pmos w=1.1u l=0.28u
+MTG1N_14 Q13 CLKB m1_14 0 nmos w=0.55u l=0.28u 
+MM1P_14 m2_14 m1_14 VDD VDD pmos w=1.1u l=0.28u
+MM1N_14 m2_14 m1_14 0 0 nmos w=0.55u l=0.28u 
+MM2P_14 m3_14 m2_14 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_14 m3_14 m2_14 0 0 nmos w=0.3u l=0.28u 
+MTG2P_14 m3_14 CLKB m1_14 VDD pmos w=0.6u l=0.28u 
+MTG2N_14 m3_14 CLK m1_14 0 nmos w=0.3u l=0.28u 
+MTG3P_14 m2_14 CLKB s1_14 VDD pmos w=1.1u l=0.28u
+MTG3N_14 m2_14 CLK s1_14 0 nmos w=0.55u l=0.28u 
+MS1P_14 Q14 s1_14 VDD VDD pmos w=1.1u l=0.28u
+MS1N_14 Q14 s1_14 0 0 nmos w=0.55u l=0.28u 
+MS2P_14 s3_14 Q14 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_14 s3_14 Q14 0 0 nmos w=0.3u l=0.28u 
+MTG4P_14 s3_14 CLK s1_14 VDD pmos w=0.6u l=0.28u 
+MTG4N_14 s3_14 CLKB s1_14 0 nmos w=0.3u l=0.28u 
+
+* Stage 15
+MTG1P_15 Q14 CLK m1_15 VDD pmos w=1.1u l=0.28u
+MTG1N_15 Q14 CLKB m1_15 0 nmos w=0.55u l=0.28u 
+MM1P_15 m2_15 m1_15 VDD VDD pmos w=1.1u l=0.28u
+MM1N_15 m2_15 m1_15 0 0 nmos w=0.55u l=0.28u 
+MM2P_15 m3_15 m2_15 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_15 m3_15 m2_15 0 0 nmos w=0.3u l=0.28u 
+MTG2P_15 m3_15 CLKB m1_15 VDD pmos w=0.6u l=0.28u 
+MTG2N_15 m3_15 CLK m1_15 0 nmos w=0.3u l=0.28u 
+MTG3P_15 m2_15 CLKB s1_15 VDD pmos w=1.1u l=0.28u
+MTG3N_15 m2_15 CLK s1_15 0 nmos w=0.55u l=0.28u 
+MS1P_15 Q15 s1_15 VDD VDD pmos w=1.1u l=0.28u
+MS1N_15 Q15 s1_15 0 0 nmos w=0.55u l=0.28u 
+MS2P_15 s3_15 Q15 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_15 s3_15 Q15 0 0 nmos w=0.3u l=0.28u 
+MTG4P_15 s3_15 CLK s1_15 VDD pmos w=0.6u l=0.28u 
+MTG4N_15 s3_15 CLKB s1_15 0 nmos w=0.3u l=0.28u 
+
+* Stage 16
+MTG1P_16 Q15 CLK m1_16 VDD pmos w=1.1u l=0.28u
+MTG1N_16 Q15 CLKB m1_16 0 nmos w=0.55u l=0.28u 
+MM1P_16 m2_16 m1_16 VDD VDD pmos w=1.1u l=0.28u
+MM1N_16 m2_16 m1_16 0 0 nmos w=0.55u l=0.28u 
+MM2P_16 m3_16 m2_16 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_16 m3_16 m2_16 0 0 nmos w=0.3u l=0.28u 
+MTG2P_16 m3_16 CLKB m1_16 VDD pmos w=0.6u l=0.28u 
+MTG2N_16 m3_16 CLK m1_16 0 nmos w=0.3u l=0.28u 
+MTG3P_16 m2_16 CLKB s1_16 VDD pmos w=1.1u l=0.28u
+MTG3N_16 m2_16 CLK s1_16 0 nmos w=0.55u l=0.28u 
+MS1P_16 Q16 s1_16 VDD VDD pmos w=1.1u l=0.28u
+MS1N_16 Q16 s1_16 0 0 nmos w=0.55u l=0.28u 
+MS2P_16 s3_16 Q16 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_16 s3_16 Q16 0 0 nmos w=0.3u l=0.28u 
+MTG4P_16 s3_16 CLK s1_16 VDD pmos w=0.6u l=0.28u 
+MTG4N_16 s3_16 CLKB s1_16 0 nmos w=0.3u l=0.28u 
+
+* Stage 17
+MTG1P_17 Q16 CLK m1_17 VDD pmos w=1.1u l=0.28u
+MTG1N_17 Q16 CLKB m1_17 0 nmos w=0.55u l=0.28u 
+MM1P_17 m2_17 m1_17 VDD VDD pmos w=1.1u l=0.28u
+MM1N_17 m2_17 m1_17 0 0 nmos w=0.55u l=0.28u 
+MM2P_17 m3_17 m2_17 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_17 m3_17 m2_17 0 0 nmos w=0.3u l=0.28u 
+MTG2P_17 m3_17 CLKB m1_17 VDD pmos w=0.6u l=0.28u 
+MTG2N_17 m3_17 CLK m1_17 0 nmos w=0.3u l=0.28u 
+MTG3P_17 m2_17 CLKB s1_17 VDD pmos w=1.1u l=0.28u
+MTG3N_17 m2_17 CLK s1_17 0 nmos w=0.55u l=0.28u 
+MS1P_17 Q17 s1_17 VDD VDD pmos w=1.1u l=0.28u
+MS1N_17 Q17 s1_17 0 0 nmos w=0.55u l=0.28u 
+MS2P_17 s3_17 Q17 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_17 s3_17 Q17 0 0 nmos w=0.3u l=0.28u 
+MTG4P_17 s3_17 CLK s1_17 VDD pmos w=0.6u l=0.28u 
+MTG4N_17 s3_17 CLKB s1_17 0 nmos w=0.3u l=0.28u 
+
+* Stage 18
+MTG1P_18 Q17 CLK m1_18 VDD pmos w=1.1u l=0.28u
+MTG1N_18 Q17 CLKB m1_18 0 nmos w=0.55u l=0.28u 
+MM1P_18 m2_18 m1_18 VDD VDD pmos w=1.1u l=0.28u
+MM1N_18 m2_18 m1_18 0 0 nmos w=0.55u l=0.28u 
+MM2P_18 m3_18 m2_18 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_18 m3_18 m2_18 0 0 nmos w=0.3u l=0.28u 
+MTG2P_18 m3_18 CLKB m1_18 VDD pmos w=0.6u l=0.28u 
+MTG2N_18 m3_18 CLK m1_18 0 nmos w=0.3u l=0.28u 
+MTG3P_18 m2_18 CLKB s1_18 VDD pmos w=1.1u l=0.28u
+MTG3N_18 m2_18 CLK s1_18 0 nmos w=0.55u l=0.28u 
+MS1P_18 Q18 s1_18 VDD VDD pmos w=1.1u l=0.28u
+MS1N_18 Q18 s1_18 0 0 nmos w=0.55u l=0.28u 
+MS2P_18 s3_18 Q18 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_18 s3_18 Q18 0 0 nmos w=0.3u l=0.28u 
+MTG4P_18 s3_18 CLK s1_18 VDD pmos w=0.6u l=0.28u 
+MTG4N_18 s3_18 CLKB s1_18 0 nmos w=0.3u l=0.28u 
+
+* Stage 19
+MTG1P_19 Q18 CLK m1_19 VDD pmos w=1.1u l=0.28u
+MTG1N_19 Q18 CLKB m1_19 0 nmos w=0.55u l=0.28u 
+MM1P_19 m2_19 m1_19 VDD VDD pmos w=1.1u l=0.28u
+MM1N_19 m2_19 m1_19 0 0 nmos w=0.55u l=0.28u 
+MM2P_19 m3_19 m2_19 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_19 m3_19 m2_19 0 0 nmos w=0.3u l=0.28u 
+MTG2P_19 m3_19 CLKB m1_19 VDD pmos w=0.6u l=0.28u 
+MTG2N_19 m3_19 CLK m1_19 0 nmos w=0.3u l=0.28u 
+MTG3P_19 m2_19 CLKB s1_19 VDD pmos w=1.1u l=0.28u
+MTG3N_19 m2_19 CLK s1_19 0 nmos w=0.55u l=0.28u 
+MS1P_19 Q19 s1_19 VDD VDD pmos w=1.1u l=0.28u
+MS1N_19 Q19 s1_19 0 0 nmos w=0.55u l=0.28u 
+MS2P_19 s3_19 Q19 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_19 s3_19 Q19 0 0 nmos w=0.3u l=0.28u 
+MTG4P_19 s3_19 CLK s1_19 VDD pmos w=0.6u l=0.28u 
+MTG4N_19 s3_19 CLKB s1_19 0 nmos w=0.3u l=0.28u 
+
+* Stage 20
+MTG1P_20 Q19 CLK m1_20 VDD pmos w=1.1u l=0.28u
+MTG1N_20 Q19 CLKB m1_20 0 nmos w=0.55u l=0.28u 
+MM1P_20 m2_20 m1_20 VDD VDD pmos w=1.1u l=0.28u
+MM1N_20 m2_20 m1_20 0 0 nmos w=0.55u l=0.28u 
+MM2P_20 m3_20 m2_20 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_20 m3_20 m2_20 0 0 nmos w=0.3u l=0.28u 
+MTG2P_20 m3_20 CLKB m1_20 VDD pmos w=0.6u l=0.28u 
+MTG2N_20 m3_20 CLK m1_20 0 nmos w=0.3u l=0.28u 
+MTG3P_20 m2_20 CLKB s1_20 VDD pmos w=1.1u l=0.28u
+MTG3N_20 m2_20 CLK s1_20 0 nmos w=0.55u l=0.28u 
+MS1P_20 Q20 s1_20 VDD VDD pmos w=1.1u l=0.28u
+MS1N_20 Q20 s1_20 0 0 nmos w=0.55u l=0.28u 
+MS2P_20 s3_20 Q20 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_20 s3_20 Q20 0 0 nmos w=0.3u l=0.28u 
+MTG4P_20 s3_20 CLK s1_20 VDD pmos w=0.6u l=0.28u 
+MTG4N_20 s3_20 CLKB s1_20 0 nmos w=0.3u l=0.28u 
+
+* Stage 21
+MTG1P_21 Q20 CLK m1_21 VDD pmos w=1.1u l=0.28u
+MTG1N_21 Q20 CLKB m1_21 0 nmos w=0.55u l=0.28u 
+MM1P_21 m2_21 m1_21 VDD VDD pmos w=1.1u l=0.28u
+MM1N_21 m2_21 m1_21 0 0 nmos w=0.55u l=0.28u 
+MM2P_21 m3_21 m2_21 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_21 m3_21 m2_21 0 0 nmos w=0.3u l=0.28u 
+MTG2P_21 m3_21 CLKB m1_21 VDD pmos w=0.6u l=0.28u 
+MTG2N_21 m3_21 CLK m1_21 0 nmos w=0.3u l=0.28u 
+MTG3P_21 m2_21 CLKB s1_21 VDD pmos w=1.1u l=0.28u
+MTG3N_21 m2_21 CLK s1_21 0 nmos w=0.55u l=0.28u 
+MS1P_21 Q21 s1_21 VDD VDD pmos w=1.1u l=0.28u
+MS1N_21 Q21 s1_21 0 0 nmos w=0.55u l=0.28u 
+MS2P_21 s3_21 Q21 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_21 s3_21 Q21 0 0 nmos w=0.3u l=0.28u 
+MTG4P_21 s3_21 CLK s1_21 VDD pmos w=0.6u l=0.28u 
+MTG4N_21 s3_21 CLKB s1_21 0 nmos w=0.3u l=0.28u 
+
+* Stage 22
+MTG1P_22 Q21 CLK m1_22 VDD pmos w=1.1u l=0.28u
+MTG1N_22 Q21 CLKB m1_22 0 nmos w=0.55u l=0.28u 
+MM1P_22 m2_22 m1_22 VDD VDD pmos w=1.1u l=0.28u
+MM1N_22 m2_22 m1_22 0 0 nmos w=0.55u l=0.28u 
+MM2P_22 m3_22 m2_22 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_22 m3_22 m2_22 0 0 nmos w=0.3u l=0.28u 
+MTG2P_22 m3_22 CLKB m1_22 VDD pmos w=0.6u l=0.28u 
+MTG2N_22 m3_22 CLK m1_22 0 nmos w=0.3u l=0.28u 
+MTG3P_22 m2_22 CLKB s1_22 VDD pmos w=1.1u l=0.28u
+MTG3N_22 m2_22 CLK s1_22 0 nmos w=0.55u l=0.28u 
+MS1P_22 Q22 s1_22 VDD VDD pmos w=1.1u l=0.28u
+MS1N_22 Q22 s1_22 0 0 nmos w=0.55u l=0.28u 
+MS2P_22 s3_22 Q22 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_22 s3_22 Q22 0 0 nmos w=0.3u l=0.28u 
+MTG4P_22 s3_22 CLK s1_22 VDD pmos w=0.6u l=0.28u 
+MTG4N_22 s3_22 CLKB s1_22 0 nmos w=0.3u l=0.28u 
+
+* Stage 23
+MTG1P_23 Q22 CLK m1_23 VDD pmos w=1.1u l=0.28u
+MTG1N_23 Q22 CLKB m1_23 0 nmos w=0.55u l=0.28u 
+MM1P_23 m2_23 m1_23 VDD VDD pmos w=1.1u l=0.28u
+MM1N_23 m2_23 m1_23 0 0 nmos w=0.55u l=0.28u 
+MM2P_23 m3_23 m2_23 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_23 m3_23 m2_23 0 0 nmos w=0.3u l=0.28u 
+MTG2P_23 m3_23 CLKB m1_23 VDD pmos w=0.6u l=0.28u 
+MTG2N_23 m3_23 CLK m1_23 0 nmos w=0.3u l=0.28u 
+MTG3P_23 m2_23 CLKB s1_23 VDD pmos w=1.1u l=0.28u
+MTG3N_23 m2_23 CLK s1_23 0 nmos w=0.55u l=0.28u 
+MS1P_23 Q23 s1_23 VDD VDD pmos w=1.1u l=0.28u
+MS1N_23 Q23 s1_23 0 0 nmos w=0.55u l=0.28u 
+MS2P_23 s3_23 Q23 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_23 s3_23 Q23 0 0 nmos w=0.3u l=0.28u 
+MTG4P_23 s3_23 CLK s1_23 VDD pmos w=0.6u l=0.28u 
+MTG4N_23 s3_23 CLKB s1_23 0 nmos w=0.3u l=0.28u 
+
+* Stage 24
+MTG1P_24 Q23 CLK m1_24 VDD pmos w=1.1u l=0.28u
+MTG1N_24 Q23 CLKB m1_24 0 nmos w=0.55u l=0.28u 
+MM1P_24 m2_24 m1_24 VDD VDD pmos w=1.1u l=0.28u
+MM1N_24 m2_24 m1_24 0 0 nmos w=0.55u l=0.28u 
+MM2P_24 m3_24 m2_24 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_24 m3_24 m2_24 0 0 nmos w=0.3u l=0.28u 
+MTG2P_24 m3_24 CLKB m1_24 VDD pmos w=0.6u l=0.28u 
+MTG2N_24 m3_24 CLK m1_24 0 nmos w=0.3u l=0.28u 
+MTG3P_24 m2_24 CLKB s1_24 VDD pmos w=1.1u l=0.28u
+MTG3N_24 m2_24 CLK s1_24 0 nmos w=0.55u l=0.28u 
+MS1P_24 Q24 s1_24 VDD VDD pmos w=1.1u l=0.28u
+MS1N_24 Q24 s1_24 0 0 nmos w=0.55u l=0.28u 
+MS2P_24 s3_24 Q24 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_24 s3_24 Q24 0 0 nmos w=0.3u l=0.28u 
+MTG4P_24 s3_24 CLK s1_24 VDD pmos w=0.6u l=0.28u 
+MTG4N_24 s3_24 CLKB s1_24 0 nmos w=0.3u l=0.28u 
+
+* Stage 25
+MTG1P_25 Q24 CLK m1_25 VDD pmos w=1.1u l=0.28u
+MTG1N_25 Q24 CLKB m1_25 0 nmos w=0.55u l=0.28u 
+MM1P_25 m2_25 m1_25 VDD VDD pmos w=1.1u l=0.28u
+MM1N_25 m2_25 m1_25 0 0 nmos w=0.55u l=0.28u 
+MM2P_25 m3_25 m2_25 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_25 m3_25 m2_25 0 0 nmos w=0.3u l=0.28u 
+MTG2P_25 m3_25 CLKB m1_25 VDD pmos w=0.6u l=0.28u 
+MTG2N_25 m3_25 CLK m1_25 0 nmos w=0.3u l=0.28u 
+MTG3P_25 m2_25 CLKB s1_25 VDD pmos w=1.1u l=0.28u
+MTG3N_25 m2_25 CLK s1_25 0 nmos w=0.55u l=0.28u 
+MS1P_25 Q25 s1_25 VDD VDD pmos w=1.1u l=0.28u
+MS1N_25 Q25 s1_25 0 0 nmos w=0.55u l=0.28u 
+MS2P_25 s3_25 Q25 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_25 s3_25 Q25 0 0 nmos w=0.3u l=0.28u 
+MTG4P_25 s3_25 CLK s1_25 VDD pmos w=0.6u l=0.28u 
+MTG4N_25 s3_25 CLKB s1_25 0 nmos w=0.3u l=0.28u 
+
+* Stage 26
+MTG1P_26 Q25 CLK m1_26 VDD pmos w=1.1u l=0.28u
+MTG1N_26 Q25 CLKB m1_26 0 nmos w=0.55u l=0.28u 
+MM1P_26 m2_26 m1_26 VDD VDD pmos w=1.1u l=0.28u
+MM1N_26 m2_26 m1_26 0 0 nmos w=0.55u l=0.28u 
+MM2P_26 m3_26 m2_26 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_26 m3_26 m2_26 0 0 nmos w=0.3u l=0.28u 
+MTG2P_26 m3_26 CLKB m1_26 VDD pmos w=0.6u l=0.28u 
+MTG2N_26 m3_26 CLK m1_26 0 nmos w=0.3u l=0.28u 
+MTG3P_26 m2_26 CLKB s1_26 VDD pmos w=1.1u l=0.28u
+MTG3N_26 m2_26 CLK s1_26 0 nmos w=0.55u l=0.28u 
+MS1P_26 Q26 s1_26 VDD VDD pmos w=1.1u l=0.28u
+MS1N_26 Q26 s1_26 0 0 nmos w=0.55u l=0.28u 
+MS2P_26 s3_26 Q26 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_26 s3_26 Q26 0 0 nmos w=0.3u l=0.28u 
+MTG4P_26 s3_26 CLK s1_26 VDD pmos w=0.6u l=0.28u 
+MTG4N_26 s3_26 CLKB s1_26 0 nmos w=0.3u l=0.28u 
+
+* Stage 27
+MTG1P_27 Q26 CLK m1_27 VDD pmos w=1.1u l=0.28u
+MTG1N_27 Q26 CLKB m1_27 0 nmos w=0.55u l=0.28u 
+MM1P_27 m2_27 m1_27 VDD VDD pmos w=1.1u l=0.28u
+MM1N_27 m2_27 m1_27 0 0 nmos w=0.55u l=0.28u 
+MM2P_27 m3_27 m2_27 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_27 m3_27 m2_27 0 0 nmos w=0.3u l=0.28u 
+MTG2P_27 m3_27 CLKB m1_27 VDD pmos w=0.6u l=0.28u 
+MTG2N_27 m3_27 CLK m1_27 0 nmos w=0.3u l=0.28u 
+MTG3P_27 m2_27 CLKB s1_27 VDD pmos w=1.1u l=0.28u
+MTG3N_27 m2_27 CLK s1_27 0 nmos w=0.55u l=0.28u 
+MS1P_27 Q27 s1_27 VDD VDD pmos w=1.1u l=0.28u
+MS1N_27 Q27 s1_27 0 0 nmos w=0.55u l=0.28u 
+MS2P_27 s3_27 Q27 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_27 s3_27 Q27 0 0 nmos w=0.3u l=0.28u 
+MTG4P_27 s3_27 CLK s1_27 VDD pmos w=0.6u l=0.28u 
+MTG4N_27 s3_27 CLKB s1_27 0 nmos w=0.3u l=0.28u 
+
+* Stage 28
+MTG1P_28 Q27 CLK m1_28 VDD pmos w=1.1u l=0.28u
+MTG1N_28 Q27 CLKB m1_28 0 nmos w=0.55u l=0.28u 
+MM1P_28 m2_28 m1_28 VDD VDD pmos w=1.1u l=0.28u
+MM1N_28 m2_28 m1_28 0 0 nmos w=0.55u l=0.28u 
+MM2P_28 m3_28 m2_28 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_28 m3_28 m2_28 0 0 nmos w=0.3u l=0.28u 
+MTG2P_28 m3_28 CLKB m1_28 VDD pmos w=0.6u l=0.28u 
+MTG2N_28 m3_28 CLK m1_28 0 nmos w=0.3u l=0.28u 
+MTG3P_28 m2_28 CLKB s1_28 VDD pmos w=1.1u l=0.28u
+MTG3N_28 m2_28 CLK s1_28 0 nmos w=0.55u l=0.28u 
+MS1P_28 Q28 s1_28 VDD VDD pmos w=1.1u l=0.28u
+MS1N_28 Q28 s1_28 0 0 nmos w=0.55u l=0.28u 
+MS2P_28 s3_28 Q28 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_28 s3_28 Q28 0 0 nmos w=0.3u l=0.28u 
+MTG4P_28 s3_28 CLK s1_28 VDD pmos w=0.6u l=0.28u 
+MTG4N_28 s3_28 CLKB s1_28 0 nmos w=0.3u l=0.28u 
+
+* Stage 29
+MTG1P_29 Q28 CLK m1_29 VDD pmos w=1.1u l=0.28u
+MTG1N_29 Q28 CLKB m1_29 0 nmos w=0.55u l=0.28u 
+MM1P_29 m2_29 m1_29 VDD VDD pmos w=1.1u l=0.28u
+MM1N_29 m2_29 m1_29 0 0 nmos w=0.55u l=0.28u 
+MM2P_29 m3_29 m2_29 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_29 m3_29 m2_29 0 0 nmos w=0.3u l=0.28u 
+MTG2P_29 m3_29 CLKB m1_29 VDD pmos w=0.6u l=0.28u 
+MTG2N_29 m3_29 CLK m1_29 0 nmos w=0.3u l=0.28u 
+MTG3P_29 m2_29 CLKB s1_29 VDD pmos w=1.1u l=0.28u
+MTG3N_29 m2_29 CLK s1_29 0 nmos w=0.55u l=0.28u 
+MS1P_29 Q29 s1_29 VDD VDD pmos w=1.1u l=0.28u
+MS1N_29 Q29 s1_29 0 0 nmos w=0.55u l=0.28u 
+MS2P_29 s3_29 Q29 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_29 s3_29 Q29 0 0 nmos w=0.3u l=0.28u 
+MTG4P_29 s3_29 CLK s1_29 VDD pmos w=0.6u l=0.28u 
+MTG4N_29 s3_29 CLKB s1_29 0 nmos w=0.3u l=0.28u 
+
+* Stage 30
+MTG1P_30 Q29 CLK m1_30 VDD pmos w=1.1u l=0.28u
+MTG1N_30 Q29 CLKB m1_30 0 nmos w=0.55u l=0.28u 
+MM1P_30 m2_30 m1_30 VDD VDD pmos w=1.1u l=0.28u
+MM1N_30 m2_30 m1_30 0 0 nmos w=0.55u l=0.28u 
+MM2P_30 m3_30 m2_30 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_30 m3_30 m2_30 0 0 nmos w=0.3u l=0.28u 
+MTG2P_30 m3_30 CLKB m1_30 VDD pmos w=0.6u l=0.28u 
+MTG2N_30 m3_30 CLK m1_30 0 nmos w=0.3u l=0.28u 
+MTG3P_30 m2_30 CLKB s1_30 VDD pmos w=1.1u l=0.28u
+MTG3N_30 m2_30 CLK s1_30 0 nmos w=0.55u l=0.28u 
+MS1P_30 Q30 s1_30 VDD VDD pmos w=1.1u l=0.28u
+MS1N_30 Q30 s1_30 0 0 nmos w=0.55u l=0.28u 
+MS2P_30 s3_30 Q30 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_30 s3_30 Q30 0 0 nmos w=0.3u l=0.28u 
+MTG4P_30 s3_30 CLK s1_30 VDD pmos w=0.6u l=0.28u 
+MTG4N_30 s3_30 CLKB s1_30 0 nmos w=0.3u l=0.28u 
+
+* Stage 31
+MTG1P_31 Q30 CLK m1_31 VDD pmos w=1.1u l=0.28u
+MTG1N_31 Q30 CLKB m1_31 0 nmos w=0.55u l=0.28u 
+MM1P_31 m2_31 m1_31 VDD VDD pmos w=1.1u l=0.28u
+MM1N_31 m2_31 m1_31 0 0 nmos w=0.55u l=0.28u 
+MM2P_31 m3_31 m2_31 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_31 m3_31 m2_31 0 0 nmos w=0.3u l=0.28u 
+MTG2P_31 m3_31 CLKB m1_31 VDD pmos w=0.6u l=0.28u 
+MTG2N_31 m3_31 CLK m1_31 0 nmos w=0.3u l=0.28u 
+MTG3P_31 m2_31 CLKB s1_31 VDD pmos w=1.1u l=0.28u
+MTG3N_31 m2_31 CLK s1_31 0 nmos w=0.55u l=0.28u 
+MS1P_31 Q31 s1_31 VDD VDD pmos w=1.1u l=0.28u
+MS1N_31 Q31 s1_31 0 0 nmos w=0.55u l=0.28u 
+MS2P_31 s3_31 Q31 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_31 s3_31 Q31 0 0 nmos w=0.3u l=0.28u 
+MTG4P_31 s3_31 CLK s1_31 VDD pmos w=0.6u l=0.28u 
+MTG4N_31 s3_31 CLKB s1_31 0 nmos w=0.3u l=0.28u 
+
+* Stage 32
+MTG1P_32 Q31 CLK m1_32 VDD pmos w=1.1u l=0.28u
+MTG1N_32 Q31 CLKB m1_32 0 nmos w=0.55u l=0.28u 
+MM1P_32 m2_32 m1_32 VDD VDD pmos w=1.1u l=0.28u
+MM1N_32 m2_32 m1_32 0 0 nmos w=0.55u l=0.28u 
+MM2P_32 m3_32 m2_32 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_32 m3_32 m2_32 0 0 nmos w=0.3u l=0.28u 
+MTG2P_32 m3_32 CLKB m1_32 VDD pmos w=0.6u l=0.28u 
+MTG2N_32 m3_32 CLK m1_32 0 nmos w=0.3u l=0.28u 
+MTG3P_32 m2_32 CLKB s1_32 VDD pmos w=1.1u l=0.28u
+MTG3N_32 m2_32 CLK s1_32 0 nmos w=0.55u l=0.28u 
+MS1P_32 Q32 s1_32 VDD VDD pmos w=1.1u l=0.28u
+MS1N_32 Q32 s1_32 0 0 nmos w=0.55u l=0.28u 
+MS2P_32 s3_32 Q32 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_32 s3_32 Q32 0 0 nmos w=0.3u l=0.28u 
+MTG4P_32 s3_32 CLK s1_32 VDD pmos w=0.6u l=0.28u 
+MTG4N_32 s3_32 CLKB s1_32 0 nmos w=0.3u l=0.28u 
+
+* Stage 33
+MTG1P_33 Q32 CLK m1_33 VDD pmos w=1.1u l=0.28u
+MTG1N_33 Q32 CLKB m1_33 0 nmos w=0.55u l=0.28u 
+MM1P_33 m2_33 m1_33 VDD VDD pmos w=1.1u l=0.28u
+MM1N_33 m2_33 m1_33 0 0 nmos w=0.55u l=0.28u 
+MM2P_33 m3_33 m2_33 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_33 m3_33 m2_33 0 0 nmos w=0.3u l=0.28u 
+MTG2P_33 m3_33 CLKB m1_33 VDD pmos w=0.6u l=0.28u 
+MTG2N_33 m3_33 CLK m1_33 0 nmos w=0.3u l=0.28u 
+MTG3P_33 m2_33 CLKB s1_33 VDD pmos w=1.1u l=0.28u
+MTG3N_33 m2_33 CLK s1_33 0 nmos w=0.55u l=0.28u 
+MS1P_33 Q33 s1_33 VDD VDD pmos w=1.1u l=0.28u
+MS1N_33 Q33 s1_33 0 0 nmos w=0.55u l=0.28u 
+MS2P_33 s3_33 Q33 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_33 s3_33 Q33 0 0 nmos w=0.3u l=0.28u 
+MTG4P_33 s3_33 CLK s1_33 VDD pmos w=0.6u l=0.28u 
+MTG4N_33 s3_33 CLKB s1_33 0 nmos w=0.3u l=0.28u 
+
+* Stage 34
+MTG1P_34 Q33 CLK m1_34 VDD pmos w=1.1u l=0.28u
+MTG1N_34 Q33 CLKB m1_34 0 nmos w=0.55u l=0.28u 
+MM1P_34 m2_34 m1_34 VDD VDD pmos w=1.1u l=0.28u
+MM1N_34 m2_34 m1_34 0 0 nmos w=0.55u l=0.28u 
+MM2P_34 m3_34 m2_34 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_34 m3_34 m2_34 0 0 nmos w=0.3u l=0.28u 
+MTG2P_34 m3_34 CLKB m1_34 VDD pmos w=0.6u l=0.28u 
+MTG2N_34 m3_34 CLK m1_34 0 nmos w=0.3u l=0.28u 
+MTG3P_34 m2_34 CLKB s1_34 VDD pmos w=1.1u l=0.28u
+MTG3N_34 m2_34 CLK s1_34 0 nmos w=0.55u l=0.28u 
+MS1P_34 Q34 s1_34 VDD VDD pmos w=1.1u l=0.28u
+MS1N_34 Q34 s1_34 0 0 nmos w=0.55u l=0.28u 
+MS2P_34 s3_34 Q34 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_34 s3_34 Q34 0 0 nmos w=0.3u l=0.28u 
+MTG4P_34 s3_34 CLK s1_34 VDD pmos w=0.6u l=0.28u 
+MTG4N_34 s3_34 CLKB s1_34 0 nmos w=0.3u l=0.28u 
+
+* Stage 35
+MTG1P_35 Q34 CLK m1_35 VDD pmos w=1.1u l=0.28u
+MTG1N_35 Q34 CLKB m1_35 0 nmos w=0.55u l=0.28u 
+MM1P_35 m2_35 m1_35 VDD VDD pmos w=1.1u l=0.28u
+MM1N_35 m2_35 m1_35 0 0 nmos w=0.55u l=0.28u 
+MM2P_35 m3_35 m2_35 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_35 m3_35 m2_35 0 0 nmos w=0.3u l=0.28u 
+MTG2P_35 m3_35 CLKB m1_35 VDD pmos w=0.6u l=0.28u 
+MTG2N_35 m3_35 CLK m1_35 0 nmos w=0.3u l=0.28u 
+MTG3P_35 m2_35 CLKB s1_35 VDD pmos w=1.1u l=0.28u
+MTG3N_35 m2_35 CLK s1_35 0 nmos w=0.55u l=0.28u 
+MS1P_35 Q35 s1_35 VDD VDD pmos w=1.1u l=0.28u
+MS1N_35 Q35 s1_35 0 0 nmos w=0.55u l=0.28u 
+MS2P_35 s3_35 Q35 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_35 s3_35 Q35 0 0 nmos w=0.3u l=0.28u 
+MTG4P_35 s3_35 CLK s1_35 VDD pmos w=0.6u l=0.28u 
+MTG4N_35 s3_35 CLKB s1_35 0 nmos w=0.3u l=0.28u 
+
+* Stage 36
+MTG1P_36 Q35 CLK m1_36 VDD pmos w=1.1u l=0.28u
+MTG1N_36 Q35 CLKB m1_36 0 nmos w=0.55u l=0.28u 
+MM1P_36 m2_36 m1_36 VDD VDD pmos w=1.1u l=0.28u
+MM1N_36 m2_36 m1_36 0 0 nmos w=0.55u l=0.28u 
+MM2P_36 m3_36 m2_36 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_36 m3_36 m2_36 0 0 nmos w=0.3u l=0.28u 
+MTG2P_36 m3_36 CLKB m1_36 VDD pmos w=0.6u l=0.28u 
+MTG2N_36 m3_36 CLK m1_36 0 nmos w=0.3u l=0.28u 
+MTG3P_36 m2_36 CLKB s1_36 VDD pmos w=1.1u l=0.28u
+MTG3N_36 m2_36 CLK s1_36 0 nmos w=0.55u l=0.28u 
+MS1P_36 Q36 s1_36 VDD VDD pmos w=1.1u l=0.28u
+MS1N_36 Q36 s1_36 0 0 nmos w=0.55u l=0.28u 
+MS2P_36 s3_36 Q36 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_36 s3_36 Q36 0 0 nmos w=0.3u l=0.28u 
+MTG4P_36 s3_36 CLK s1_36 VDD pmos w=0.6u l=0.28u 
+MTG4N_36 s3_36 CLKB s1_36 0 nmos w=0.3u l=0.28u 
+
+* Stage 37
+MTG1P_37 Q36 CLK m1_37 VDD pmos w=1.1u l=0.28u
+MTG1N_37 Q36 CLKB m1_37 0 nmos w=0.55u l=0.28u 
+MM1P_37 m2_37 m1_37 VDD VDD pmos w=1.1u l=0.28u
+MM1N_37 m2_37 m1_37 0 0 nmos w=0.55u l=0.28u 
+MM2P_37 m3_37 m2_37 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_37 m3_37 m2_37 0 0 nmos w=0.3u l=0.28u 
+MTG2P_37 m3_37 CLKB m1_37 VDD pmos w=0.6u l=0.28u 
+MTG2N_37 m3_37 CLK m1_37 0 nmos w=0.3u l=0.28u 
+MTG3P_37 m2_37 CLKB s1_37 VDD pmos w=1.1u l=0.28u
+MTG3N_37 m2_37 CLK s1_37 0 nmos w=0.55u l=0.28u 
+MS1P_37 Q37 s1_37 VDD VDD pmos w=1.1u l=0.28u
+MS1N_37 Q37 s1_37 0 0 nmos w=0.55u l=0.28u 
+MS2P_37 s3_37 Q37 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_37 s3_37 Q37 0 0 nmos w=0.3u l=0.28u 
+MTG4P_37 s3_37 CLK s1_37 VDD pmos w=0.6u l=0.28u 
+MTG4N_37 s3_37 CLKB s1_37 0 nmos w=0.3u l=0.28u 
+
+* Stage 38
+MTG1P_38 Q37 CLK m1_38 VDD pmos w=1.1u l=0.28u
+MTG1N_38 Q37 CLKB m1_38 0 nmos w=0.55u l=0.28u 
+MM1P_38 m2_38 m1_38 VDD VDD pmos w=1.1u l=0.28u
+MM1N_38 m2_38 m1_38 0 0 nmos w=0.55u l=0.28u 
+MM2P_38 m3_38 m2_38 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_38 m3_38 m2_38 0 0 nmos w=0.3u l=0.28u 
+MTG2P_38 m3_38 CLKB m1_38 VDD pmos w=0.6u l=0.28u 
+MTG2N_38 m3_38 CLK m1_38 0 nmos w=0.3u l=0.28u 
+MTG3P_38 m2_38 CLKB s1_38 VDD pmos w=1.1u l=0.28u
+MTG3N_38 m2_38 CLK s1_38 0 nmos w=0.55u l=0.28u 
+MS1P_38 Q38 s1_38 VDD VDD pmos w=1.1u l=0.28u
+MS1N_38 Q38 s1_38 0 0 nmos w=0.55u l=0.28u 
+MS2P_38 s3_38 Q38 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_38 s3_38 Q38 0 0 nmos w=0.3u l=0.28u 
+MTG4P_38 s3_38 CLK s1_38 VDD pmos w=0.6u l=0.28u 
+MTG4N_38 s3_38 CLKB s1_38 0 nmos w=0.3u l=0.28u 
+
+* Stage 39
+MTG1P_39 Q38 CLK m1_39 VDD pmos w=1.1u l=0.28u
+MTG1N_39 Q38 CLKB m1_39 0 nmos w=0.55u l=0.28u 
+MM1P_39 m2_39 m1_39 VDD VDD pmos w=1.1u l=0.28u
+MM1N_39 m2_39 m1_39 0 0 nmos w=0.55u l=0.28u 
+MM2P_39 m3_39 m2_39 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_39 m3_39 m2_39 0 0 nmos w=0.3u l=0.28u 
+MTG2P_39 m3_39 CLKB m1_39 VDD pmos w=0.6u l=0.28u 
+MTG2N_39 m3_39 CLK m1_39 0 nmos w=0.3u l=0.28u 
+MTG3P_39 m2_39 CLKB s1_39 VDD pmos w=1.1u l=0.28u
+MTG3N_39 m2_39 CLK s1_39 0 nmos w=0.55u l=0.28u 
+MS1P_39 Q39 s1_39 VDD VDD pmos w=1.1u l=0.28u
+MS1N_39 Q39 s1_39 0 0 nmos w=0.55u l=0.28u 
+MS2P_39 s3_39 Q39 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_39 s3_39 Q39 0 0 nmos w=0.3u l=0.28u 
+MTG4P_39 s3_39 CLK s1_39 VDD pmos w=0.6u l=0.28u 
+MTG4N_39 s3_39 CLKB s1_39 0 nmos w=0.3u l=0.28u 
+
+* Stage 40
+MTG1P_40 Q39 CLK m1_40 VDD pmos w=1.1u l=0.28u
+MTG1N_40 Q39 CLKB m1_40 0 nmos w=0.55u l=0.28u 
+MM1P_40 m2_40 m1_40 VDD VDD pmos w=1.1u l=0.28u
+MM1N_40 m2_40 m1_40 0 0 nmos w=0.55u l=0.28u 
+MM2P_40 m3_40 m2_40 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_40 m3_40 m2_40 0 0 nmos w=0.3u l=0.28u 
+MTG2P_40 m3_40 CLKB m1_40 VDD pmos w=0.6u l=0.28u 
+MTG2N_40 m3_40 CLK m1_40 0 nmos w=0.3u l=0.28u 
+MTG3P_40 m2_40 CLKB s1_40 VDD pmos w=1.1u l=0.28u
+MTG3N_40 m2_40 CLK s1_40 0 nmos w=0.55u l=0.28u 
+MS1P_40 Q40 s1_40 VDD VDD pmos w=1.1u l=0.28u
+MS1N_40 Q40 s1_40 0 0 nmos w=0.55u l=0.28u 
+MS2P_40 s3_40 Q40 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_40 s3_40 Q40 0 0 nmos w=0.3u l=0.28u 
+MTG4P_40 s3_40 CLK s1_40 VDD pmos w=0.6u l=0.28u 
+MTG4N_40 s3_40 CLKB s1_40 0 nmos w=0.3u l=0.28u 
+
+* Stage 41
+MTG1P_41 Q40 CLK m1_41 VDD pmos w=1.1u l=0.28u
+MTG1N_41 Q40 CLKB m1_41 0 nmos w=0.55u l=0.28u 
+MM1P_41 m2_41 m1_41 VDD VDD pmos w=1.1u l=0.28u
+MM1N_41 m2_41 m1_41 0 0 nmos w=0.55u l=0.28u 
+MM2P_41 m3_41 m2_41 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_41 m3_41 m2_41 0 0 nmos w=0.3u l=0.28u 
+MTG2P_41 m3_41 CLKB m1_41 VDD pmos w=0.6u l=0.28u 
+MTG2N_41 m3_41 CLK m1_41 0 nmos w=0.3u l=0.28u 
+MTG3P_41 m2_41 CLKB s1_41 VDD pmos w=1.1u l=0.28u
+MTG3N_41 m2_41 CLK s1_41 0 nmos w=0.55u l=0.28u 
+MS1P_41 Q41 s1_41 VDD VDD pmos w=1.1u l=0.28u
+MS1N_41 Q41 s1_41 0 0 nmos w=0.55u l=0.28u 
+MS2P_41 s3_41 Q41 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_41 s3_41 Q41 0 0 nmos w=0.3u l=0.28u 
+MTG4P_41 s3_41 CLK s1_41 VDD pmos w=0.6u l=0.28u 
+MTG4N_41 s3_41 CLKB s1_41 0 nmos w=0.3u l=0.28u 
+
+* Stage 42
+MTG1P_42 Q41 CLK m1_42 VDD pmos w=1.1u l=0.28u
+MTG1N_42 Q41 CLKB m1_42 0 nmos w=0.55u l=0.28u 
+MM1P_42 m2_42 m1_42 VDD VDD pmos w=1.1u l=0.28u
+MM1N_42 m2_42 m1_42 0 0 nmos w=0.55u l=0.28u 
+MM2P_42 m3_42 m2_42 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_42 m3_42 m2_42 0 0 nmos w=0.3u l=0.28u 
+MTG2P_42 m3_42 CLKB m1_42 VDD pmos w=0.6u l=0.28u 
+MTG2N_42 m3_42 CLK m1_42 0 nmos w=0.3u l=0.28u 
+MTG3P_42 m2_42 CLKB s1_42 VDD pmos w=1.1u l=0.28u
+MTG3N_42 m2_42 CLK s1_42 0 nmos w=0.55u l=0.28u 
+MS1P_42 Q42 s1_42 VDD VDD pmos w=1.1u l=0.28u
+MS1N_42 Q42 s1_42 0 0 nmos w=0.55u l=0.28u 
+MS2P_42 s3_42 Q42 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_42 s3_42 Q42 0 0 nmos w=0.3u l=0.28u 
+MTG4P_42 s3_42 CLK s1_42 VDD pmos w=0.6u l=0.28u 
+MTG4N_42 s3_42 CLKB s1_42 0 nmos w=0.3u l=0.28u 
+
+* Stage 43
+MTG1P_43 Q42 CLK m1_43 VDD pmos w=1.1u l=0.28u
+MTG1N_43 Q42 CLKB m1_43 0 nmos w=0.55u l=0.28u 
+MM1P_43 m2_43 m1_43 VDD VDD pmos w=1.1u l=0.28u
+MM1N_43 m2_43 m1_43 0 0 nmos w=0.55u l=0.28u 
+MM2P_43 m3_43 m2_43 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_43 m3_43 m2_43 0 0 nmos w=0.3u l=0.28u 
+MTG2P_43 m3_43 CLKB m1_43 VDD pmos w=0.6u l=0.28u 
+MTG2N_43 m3_43 CLK m1_43 0 nmos w=0.3u l=0.28u 
+MTG3P_43 m2_43 CLKB s1_43 VDD pmos w=1.1u l=0.28u
+MTG3N_43 m2_43 CLK s1_43 0 nmos w=0.55u l=0.28u 
+MS1P_43 Q43 s1_43 VDD VDD pmos w=1.1u l=0.28u
+MS1N_43 Q43 s1_43 0 0 nmos w=0.55u l=0.28u 
+MS2P_43 s3_43 Q43 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_43 s3_43 Q43 0 0 nmos w=0.3u l=0.28u 
+MTG4P_43 s3_43 CLK s1_43 VDD pmos w=0.6u l=0.28u 
+MTG4N_43 s3_43 CLKB s1_43 0 nmos w=0.3u l=0.28u 
+
+* Stage 44
+MTG1P_44 Q43 CLK m1_44 VDD pmos w=1.1u l=0.28u
+MTG1N_44 Q43 CLKB m1_44 0 nmos w=0.55u l=0.28u 
+MM1P_44 m2_44 m1_44 VDD VDD pmos w=1.1u l=0.28u
+MM1N_44 m2_44 m1_44 0 0 nmos w=0.55u l=0.28u 
+MM2P_44 m3_44 m2_44 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_44 m3_44 m2_44 0 0 nmos w=0.3u l=0.28u 
+MTG2P_44 m3_44 CLKB m1_44 VDD pmos w=0.6u l=0.28u 
+MTG2N_44 m3_44 CLK m1_44 0 nmos w=0.3u l=0.28u 
+MTG3P_44 m2_44 CLKB s1_44 VDD pmos w=1.1u l=0.28u
+MTG3N_44 m2_44 CLK s1_44 0 nmos w=0.55u l=0.28u 
+MS1P_44 Q44 s1_44 VDD VDD pmos w=1.1u l=0.28u
+MS1N_44 Q44 s1_44 0 0 nmos w=0.55u l=0.28u 
+MS2P_44 s3_44 Q44 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_44 s3_44 Q44 0 0 nmos w=0.3u l=0.28u 
+MTG4P_44 s3_44 CLK s1_44 VDD pmos w=0.6u l=0.28u 
+MTG4N_44 s3_44 CLKB s1_44 0 nmos w=0.3u l=0.28u 
+
+* Stage 45
+MTG1P_45 Q44 CLK m1_45 VDD pmos w=1.1u l=0.28u
+MTG1N_45 Q44 CLKB m1_45 0 nmos w=0.55u l=0.28u 
+MM1P_45 m2_45 m1_45 VDD VDD pmos w=1.1u l=0.28u
+MM1N_45 m2_45 m1_45 0 0 nmos w=0.55u l=0.28u 
+MM2P_45 m3_45 m2_45 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_45 m3_45 m2_45 0 0 nmos w=0.3u l=0.28u 
+MTG2P_45 m3_45 CLKB m1_45 VDD pmos w=0.6u l=0.28u 
+MTG2N_45 m3_45 CLK m1_45 0 nmos w=0.3u l=0.28u 
+MTG3P_45 m2_45 CLKB s1_45 VDD pmos w=1.1u l=0.28u
+MTG3N_45 m2_45 CLK s1_45 0 nmos w=0.55u l=0.28u 
+MS1P_45 Q45 s1_45 VDD VDD pmos w=1.1u l=0.28u
+MS1N_45 Q45 s1_45 0 0 nmos w=0.55u l=0.28u 
+MS2P_45 s3_45 Q45 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_45 s3_45 Q45 0 0 nmos w=0.3u l=0.28u 
+MTG4P_45 s3_45 CLK s1_45 VDD pmos w=0.6u l=0.28u 
+MTG4N_45 s3_45 CLKB s1_45 0 nmos w=0.3u l=0.28u 
+
+* Stage 46
+MTG1P_46 Q45 CLK m1_46 VDD pmos w=1.1u l=0.28u
+MTG1N_46 Q45 CLKB m1_46 0 nmos w=0.55u l=0.28u 
+MM1P_46 m2_46 m1_46 VDD VDD pmos w=1.1u l=0.28u
+MM1N_46 m2_46 m1_46 0 0 nmos w=0.55u l=0.28u 
+MM2P_46 m3_46 m2_46 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_46 m3_46 m2_46 0 0 nmos w=0.3u l=0.28u 
+MTG2P_46 m3_46 CLKB m1_46 VDD pmos w=0.6u l=0.28u 
+MTG2N_46 m3_46 CLK m1_46 0 nmos w=0.3u l=0.28u 
+MTG3P_46 m2_46 CLKB s1_46 VDD pmos w=1.1u l=0.28u
+MTG3N_46 m2_46 CLK s1_46 0 nmos w=0.55u l=0.28u 
+MS1P_46 Q46 s1_46 VDD VDD pmos w=1.1u l=0.28u
+MS1N_46 Q46 s1_46 0 0 nmos w=0.55u l=0.28u 
+MS2P_46 s3_46 Q46 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_46 s3_46 Q46 0 0 nmos w=0.3u l=0.28u 
+MTG4P_46 s3_46 CLK s1_46 VDD pmos w=0.6u l=0.28u 
+MTG4N_46 s3_46 CLKB s1_46 0 nmos w=0.3u l=0.28u 
+
+* Stage 47
+MTG1P_47 Q46 CLK m1_47 VDD pmos w=1.1u l=0.28u
+MTG1N_47 Q46 CLKB m1_47 0 nmos w=0.55u l=0.28u 
+MM1P_47 m2_47 m1_47 VDD VDD pmos w=1.1u l=0.28u
+MM1N_47 m2_47 m1_47 0 0 nmos w=0.55u l=0.28u 
+MM2P_47 m3_47 m2_47 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_47 m3_47 m2_47 0 0 nmos w=0.3u l=0.28u 
+MTG2P_47 m3_47 CLKB m1_47 VDD pmos w=0.6u l=0.28u 
+MTG2N_47 m3_47 CLK m1_47 0 nmos w=0.3u l=0.28u 
+MTG3P_47 m2_47 CLKB s1_47 VDD pmos w=1.1u l=0.28u
+MTG3N_47 m2_47 CLK s1_47 0 nmos w=0.55u l=0.28u 
+MS1P_47 Q47 s1_47 VDD VDD pmos w=1.1u l=0.28u
+MS1N_47 Q47 s1_47 0 0 nmos w=0.55u l=0.28u 
+MS2P_47 s3_47 Q47 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_47 s3_47 Q47 0 0 nmos w=0.3u l=0.28u 
+MTG4P_47 s3_47 CLK s1_47 VDD pmos w=0.6u l=0.28u 
+MTG4N_47 s3_47 CLKB s1_47 0 nmos w=0.3u l=0.28u 
+
+* Stage 48
+MTG1P_48 Q47 CLK m1_48 VDD pmos w=1.1u l=0.28u
+MTG1N_48 Q47 CLKB m1_48 0 nmos w=0.55u l=0.28u 
+MM1P_48 m2_48 m1_48 VDD VDD pmos w=1.1u l=0.28u
+MM1N_48 m2_48 m1_48 0 0 nmos w=0.55u l=0.28u 
+MM2P_48 m3_48 m2_48 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_48 m3_48 m2_48 0 0 nmos w=0.3u l=0.28u 
+MTG2P_48 m3_48 CLKB m1_48 VDD pmos w=0.6u l=0.28u 
+MTG2N_48 m3_48 CLK m1_48 0 nmos w=0.3u l=0.28u 
+MTG3P_48 m2_48 CLKB s1_48 VDD pmos w=1.1u l=0.28u
+MTG3N_48 m2_48 CLK s1_48 0 nmos w=0.55u l=0.28u 
+MS1P_48 Q48 s1_48 VDD VDD pmos w=1.1u l=0.28u
+MS1N_48 Q48 s1_48 0 0 nmos w=0.55u l=0.28u 
+MS2P_48 s3_48 Q48 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_48 s3_48 Q48 0 0 nmos w=0.3u l=0.28u 
+MTG4P_48 s3_48 CLK s1_48 VDD pmos w=0.6u l=0.28u 
+MTG4N_48 s3_48 CLKB s1_48 0 nmos w=0.3u l=0.28u 
+
+* Stage 49
+MTG1P_49 Q48 CLK m1_49 VDD pmos w=1.1u l=0.28u
+MTG1N_49 Q48 CLKB m1_49 0 nmos w=0.55u l=0.28u 
+MM1P_49 m2_49 m1_49 VDD VDD pmos w=1.1u l=0.28u
+MM1N_49 m2_49 m1_49 0 0 nmos w=0.55u l=0.28u 
+MM2P_49 m3_49 m2_49 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_49 m3_49 m2_49 0 0 nmos w=0.3u l=0.28u 
+MTG2P_49 m3_49 CLKB m1_49 VDD pmos w=0.6u l=0.28u 
+MTG2N_49 m3_49 CLK m1_49 0 nmos w=0.3u l=0.28u 
+MTG3P_49 m2_49 CLKB s1_49 VDD pmos w=1.1u l=0.28u
+MTG3N_49 m2_49 CLK s1_49 0 nmos w=0.55u l=0.28u 
+MS1P_49 Q49 s1_49 VDD VDD pmos w=1.1u l=0.28u
+MS1N_49 Q49 s1_49 0 0 nmos w=0.55u l=0.28u 
+MS2P_49 s3_49 Q49 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_49 s3_49 Q49 0 0 nmos w=0.3u l=0.28u 
+MTG4P_49 s3_49 CLK s1_49 VDD pmos w=0.6u l=0.28u 
+MTG4N_49 s3_49 CLKB s1_49 0 nmos w=0.3u l=0.28u 
+
+* Stage 50
+MTG1P_50 Q49 CLK m1_50 VDD pmos w=1.1u l=0.28u
+MTG1N_50 Q49 CLKB m1_50 0 nmos w=0.55u l=0.28u 
+MM1P_50 m2_50 m1_50 VDD VDD pmos w=1.1u l=0.28u
+MM1N_50 m2_50 m1_50 0 0 nmos w=0.55u l=0.28u 
+MM2P_50 m3_50 m2_50 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_50 m3_50 m2_50 0 0 nmos w=0.3u l=0.28u 
+MTG2P_50 m3_50 CLKB m1_50 VDD pmos w=0.6u l=0.28u 
+MTG2N_50 m3_50 CLK m1_50 0 nmos w=0.3u l=0.28u 
+MTG3P_50 m2_50 CLKB s1_50 VDD pmos w=1.1u l=0.28u
+MTG3N_50 m2_50 CLK s1_50 0 nmos w=0.55u l=0.28u 
+MS1P_50 Q50 s1_50 VDD VDD pmos w=1.1u l=0.28u
+MS1N_50 Q50 s1_50 0 0 nmos w=0.55u l=0.28u 
+MS2P_50 s3_50 Q50 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_50 s3_50 Q50 0 0 nmos w=0.3u l=0.28u 
+MTG4P_50 s3_50 CLK s1_50 VDD pmos w=0.6u l=0.28u 
+MTG4N_50 s3_50 CLKB s1_50 0 nmos w=0.3u l=0.28u 
+
+* Stage 51
+MTG1P_51 Q50 CLK m1_51 VDD pmos w=1.1u l=0.28u
+MTG1N_51 Q50 CLKB m1_51 0 nmos w=0.55u l=0.28u 
+MM1P_51 m2_51 m1_51 VDD VDD pmos w=1.1u l=0.28u
+MM1N_51 m2_51 m1_51 0 0 nmos w=0.55u l=0.28u 
+MM2P_51 m3_51 m2_51 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_51 m3_51 m2_51 0 0 nmos w=0.3u l=0.28u 
+MTG2P_51 m3_51 CLKB m1_51 VDD pmos w=0.6u l=0.28u 
+MTG2N_51 m3_51 CLK m1_51 0 nmos w=0.3u l=0.28u 
+MTG3P_51 m2_51 CLKB s1_51 VDD pmos w=1.1u l=0.28u
+MTG3N_51 m2_51 CLK s1_51 0 nmos w=0.55u l=0.28u 
+MS1P_51 Q51 s1_51 VDD VDD pmos w=1.1u l=0.28u
+MS1N_51 Q51 s1_51 0 0 nmos w=0.55u l=0.28u 
+MS2P_51 s3_51 Q51 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_51 s3_51 Q51 0 0 nmos w=0.3u l=0.28u 
+MTG4P_51 s3_51 CLK s1_51 VDD pmos w=0.6u l=0.28u 
+MTG4N_51 s3_51 CLKB s1_51 0 nmos w=0.3u l=0.28u 
+
+* Stage 52
+MTG1P_52 Q51 CLK m1_52 VDD pmos w=1.1u l=0.28u
+MTG1N_52 Q51 CLKB m1_52 0 nmos w=0.55u l=0.28u 
+MM1P_52 m2_52 m1_52 VDD VDD pmos w=1.1u l=0.28u
+MM1N_52 m2_52 m1_52 0 0 nmos w=0.55u l=0.28u 
+MM2P_52 m3_52 m2_52 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_52 m3_52 m2_52 0 0 nmos w=0.3u l=0.28u 
+MTG2P_52 m3_52 CLKB m1_52 VDD pmos w=0.6u l=0.28u 
+MTG2N_52 m3_52 CLK m1_52 0 nmos w=0.3u l=0.28u 
+MTG3P_52 m2_52 CLKB s1_52 VDD pmos w=1.1u l=0.28u
+MTG3N_52 m2_52 CLK s1_52 0 nmos w=0.55u l=0.28u 
+MS1P_52 Q52 s1_52 VDD VDD pmos w=1.1u l=0.28u
+MS1N_52 Q52 s1_52 0 0 nmos w=0.55u l=0.28u 
+MS2P_52 s3_52 Q52 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_52 s3_52 Q52 0 0 nmos w=0.3u l=0.28u 
+MTG4P_52 s3_52 CLK s1_52 VDD pmos w=0.6u l=0.28u 
+MTG4N_52 s3_52 CLKB s1_52 0 nmos w=0.3u l=0.28u 
+
+* Stage 53
+MTG1P_53 Q52 CLK m1_53 VDD pmos w=1.1u l=0.28u
+MTG1N_53 Q52 CLKB m1_53 0 nmos w=0.55u l=0.28u 
+MM1P_53 m2_53 m1_53 VDD VDD pmos w=1.1u l=0.28u
+MM1N_53 m2_53 m1_53 0 0 nmos w=0.55u l=0.28u 
+MM2P_53 m3_53 m2_53 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_53 m3_53 m2_53 0 0 nmos w=0.3u l=0.28u 
+MTG2P_53 m3_53 CLKB m1_53 VDD pmos w=0.6u l=0.28u 
+MTG2N_53 m3_53 CLK m1_53 0 nmos w=0.3u l=0.28u 
+MTG3P_53 m2_53 CLKB s1_53 VDD pmos w=1.1u l=0.28u
+MTG3N_53 m2_53 CLK s1_53 0 nmos w=0.55u l=0.28u 
+MS1P_53 Q53 s1_53 VDD VDD pmos w=1.1u l=0.28u
+MS1N_53 Q53 s1_53 0 0 nmos w=0.55u l=0.28u 
+MS2P_53 s3_53 Q53 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_53 s3_53 Q53 0 0 nmos w=0.3u l=0.28u 
+MTG4P_53 s3_53 CLK s1_53 VDD pmos w=0.6u l=0.28u 
+MTG4N_53 s3_53 CLKB s1_53 0 nmos w=0.3u l=0.28u 
+
+* Stage 54
+MTG1P_54 Q53 CLK m1_54 VDD pmos w=1.1u l=0.28u
+MTG1N_54 Q53 CLKB m1_54 0 nmos w=0.55u l=0.28u 
+MM1P_54 m2_54 m1_54 VDD VDD pmos w=1.1u l=0.28u
+MM1N_54 m2_54 m1_54 0 0 nmos w=0.55u l=0.28u 
+MM2P_54 m3_54 m2_54 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_54 m3_54 m2_54 0 0 nmos w=0.3u l=0.28u 
+MTG2P_54 m3_54 CLKB m1_54 VDD pmos w=0.6u l=0.28u 
+MTG2N_54 m3_54 CLK m1_54 0 nmos w=0.3u l=0.28u 
+MTG3P_54 m2_54 CLKB s1_54 VDD pmos w=1.1u l=0.28u
+MTG3N_54 m2_54 CLK s1_54 0 nmos w=0.55u l=0.28u 
+MS1P_54 Q54 s1_54 VDD VDD pmos w=1.1u l=0.28u
+MS1N_54 Q54 s1_54 0 0 nmos w=0.55u l=0.28u 
+MS2P_54 s3_54 Q54 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_54 s3_54 Q54 0 0 nmos w=0.3u l=0.28u 
+MTG4P_54 s3_54 CLK s1_54 VDD pmos w=0.6u l=0.28u 
+MTG4N_54 s3_54 CLKB s1_54 0 nmos w=0.3u l=0.28u 
+
+* Stage 55
+MTG1P_55 Q54 CLK m1_55 VDD pmos w=1.1u l=0.28u
+MTG1N_55 Q54 CLKB m1_55 0 nmos w=0.55u l=0.28u 
+MM1P_55 m2_55 m1_55 VDD VDD pmos w=1.1u l=0.28u
+MM1N_55 m2_55 m1_55 0 0 nmos w=0.55u l=0.28u 
+MM2P_55 m3_55 m2_55 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_55 m3_55 m2_55 0 0 nmos w=0.3u l=0.28u 
+MTG2P_55 m3_55 CLKB m1_55 VDD pmos w=0.6u l=0.28u 
+MTG2N_55 m3_55 CLK m1_55 0 nmos w=0.3u l=0.28u 
+MTG3P_55 m2_55 CLKB s1_55 VDD pmos w=1.1u l=0.28u
+MTG3N_55 m2_55 CLK s1_55 0 nmos w=0.55u l=0.28u 
+MS1P_55 Q55 s1_55 VDD VDD pmos w=1.1u l=0.28u
+MS1N_55 Q55 s1_55 0 0 nmos w=0.55u l=0.28u 
+MS2P_55 s3_55 Q55 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_55 s3_55 Q55 0 0 nmos w=0.3u l=0.28u 
+MTG4P_55 s3_55 CLK s1_55 VDD pmos w=0.6u l=0.28u 
+MTG4N_55 s3_55 CLKB s1_55 0 nmos w=0.3u l=0.28u 
+
+* Stage 56
+MTG1P_56 Q55 CLK m1_56 VDD pmos w=1.1u l=0.28u
+MTG1N_56 Q55 CLKB m1_56 0 nmos w=0.55u l=0.28u 
+MM1P_56 m2_56 m1_56 VDD VDD pmos w=1.1u l=0.28u
+MM1N_56 m2_56 m1_56 0 0 nmos w=0.55u l=0.28u 
+MM2P_56 m3_56 m2_56 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_56 m3_56 m2_56 0 0 nmos w=0.3u l=0.28u 
+MTG2P_56 m3_56 CLKB m1_56 VDD pmos w=0.6u l=0.28u 
+MTG2N_56 m3_56 CLK m1_56 0 nmos w=0.3u l=0.28u 
+MTG3P_56 m2_56 CLKB s1_56 VDD pmos w=1.1u l=0.28u
+MTG3N_56 m2_56 CLK s1_56 0 nmos w=0.55u l=0.28u 
+MS1P_56 Q56 s1_56 VDD VDD pmos w=1.1u l=0.28u
+MS1N_56 Q56 s1_56 0 0 nmos w=0.55u l=0.28u 
+MS2P_56 s3_56 Q56 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_56 s3_56 Q56 0 0 nmos w=0.3u l=0.28u 
+MTG4P_56 s3_56 CLK s1_56 VDD pmos w=0.6u l=0.28u 
+MTG4N_56 s3_56 CLKB s1_56 0 nmos w=0.3u l=0.28u 
+
+* Stage 57
+MTG1P_57 Q56 CLK m1_57 VDD pmos w=1.1u l=0.28u
+MTG1N_57 Q56 CLKB m1_57 0 nmos w=0.55u l=0.28u 
+MM1P_57 m2_57 m1_57 VDD VDD pmos w=1.1u l=0.28u
+MM1N_57 m2_57 m1_57 0 0 nmos w=0.55u l=0.28u 
+MM2P_57 m3_57 m2_57 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_57 m3_57 m2_57 0 0 nmos w=0.3u l=0.28u 
+MTG2P_57 m3_57 CLKB m1_57 VDD pmos w=0.6u l=0.28u 
+MTG2N_57 m3_57 CLK m1_57 0 nmos w=0.3u l=0.28u 
+MTG3P_57 m2_57 CLKB s1_57 VDD pmos w=1.1u l=0.28u
+MTG3N_57 m2_57 CLK s1_57 0 nmos w=0.55u l=0.28u 
+MS1P_57 Q57 s1_57 VDD VDD pmos w=1.1u l=0.28u
+MS1N_57 Q57 s1_57 0 0 nmos w=0.55u l=0.28u 
+MS2P_57 s3_57 Q57 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_57 s3_57 Q57 0 0 nmos w=0.3u l=0.28u 
+MTG4P_57 s3_57 CLK s1_57 VDD pmos w=0.6u l=0.28u 
+MTG4N_57 s3_57 CLKB s1_57 0 nmos w=0.3u l=0.28u 
+
+* Stage 58
+MTG1P_58 Q57 CLK m1_58 VDD pmos w=1.1u l=0.28u
+MTG1N_58 Q57 CLKB m1_58 0 nmos w=0.55u l=0.28u 
+MM1P_58 m2_58 m1_58 VDD VDD pmos w=1.1u l=0.28u
+MM1N_58 m2_58 m1_58 0 0 nmos w=0.55u l=0.28u 
+MM2P_58 m3_58 m2_58 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_58 m3_58 m2_58 0 0 nmos w=0.3u l=0.28u 
+MTG2P_58 m3_58 CLKB m1_58 VDD pmos w=0.6u l=0.28u 
+MTG2N_58 m3_58 CLK m1_58 0 nmos w=0.3u l=0.28u 
+MTG3P_58 m2_58 CLKB s1_58 VDD pmos w=1.1u l=0.28u
+MTG3N_58 m2_58 CLK s1_58 0 nmos w=0.55u l=0.28u 
+MS1P_58 Q58 s1_58 VDD VDD pmos w=1.1u l=0.28u
+MS1N_58 Q58 s1_58 0 0 nmos w=0.55u l=0.28u 
+MS2P_58 s3_58 Q58 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_58 s3_58 Q58 0 0 nmos w=0.3u l=0.28u 
+MTG4P_58 s3_58 CLK s1_58 VDD pmos w=0.6u l=0.28u 
+MTG4N_58 s3_58 CLKB s1_58 0 nmos w=0.3u l=0.28u 
+
+* Stage 59
+MTG1P_59 Q58 CLK m1_59 VDD pmos w=1.1u l=0.28u
+MTG1N_59 Q58 CLKB m1_59 0 nmos w=0.55u l=0.28u 
+MM1P_59 m2_59 m1_59 VDD VDD pmos w=1.1u l=0.28u
+MM1N_59 m2_59 m1_59 0 0 nmos w=0.55u l=0.28u 
+MM2P_59 m3_59 m2_59 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_59 m3_59 m2_59 0 0 nmos w=0.3u l=0.28u 
+MTG2P_59 m3_59 CLKB m1_59 VDD pmos w=0.6u l=0.28u 
+MTG2N_59 m3_59 CLK m1_59 0 nmos w=0.3u l=0.28u 
+MTG3P_59 m2_59 CLKB s1_59 VDD pmos w=1.1u l=0.28u
+MTG3N_59 m2_59 CLK s1_59 0 nmos w=0.55u l=0.28u 
+MS1P_59 Q59 s1_59 VDD VDD pmos w=1.1u l=0.28u
+MS1N_59 Q59 s1_59 0 0 nmos w=0.55u l=0.28u 
+MS2P_59 s3_59 Q59 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_59 s3_59 Q59 0 0 nmos w=0.3u l=0.28u 
+MTG4P_59 s3_59 CLK s1_59 VDD pmos w=0.6u l=0.28u 
+MTG4N_59 s3_59 CLKB s1_59 0 nmos w=0.3u l=0.28u 
+
+* Stage 60
+MTG1P_60 Q59 CLK m1_60 VDD pmos w=1.1u l=0.28u
+MTG1N_60 Q59 CLKB m1_60 0 nmos w=0.55u l=0.28u 
+MM1P_60 m2_60 m1_60 VDD VDD pmos w=1.1u l=0.28u
+MM1N_60 m2_60 m1_60 0 0 nmos w=0.55u l=0.28u 
+MM2P_60 m3_60 m2_60 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_60 m3_60 m2_60 0 0 nmos w=0.3u l=0.28u 
+MTG2P_60 m3_60 CLKB m1_60 VDD pmos w=0.6u l=0.28u 
+MTG2N_60 m3_60 CLK m1_60 0 nmos w=0.3u l=0.28u 
+MTG3P_60 m2_60 CLKB s1_60 VDD pmos w=1.1u l=0.28u
+MTG3N_60 m2_60 CLK s1_60 0 nmos w=0.55u l=0.28u 
+MS1P_60 Q60 s1_60 VDD VDD pmos w=1.1u l=0.28u
+MS1N_60 Q60 s1_60 0 0 nmos w=0.55u l=0.28u 
+MS2P_60 s3_60 Q60 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_60 s3_60 Q60 0 0 nmos w=0.3u l=0.28u 
+MTG4P_60 s3_60 CLK s1_60 VDD pmos w=0.6u l=0.28u 
+MTG4N_60 s3_60 CLKB s1_60 0 nmos w=0.3u l=0.28u 
+
+* Stage 61
+MTG1P_61 Q60 CLK m1_61 VDD pmos w=1.1u l=0.28u
+MTG1N_61 Q60 CLKB m1_61 0 nmos w=0.55u l=0.28u 
+MM1P_61 m2_61 m1_61 VDD VDD pmos w=1.1u l=0.28u
+MM1N_61 m2_61 m1_61 0 0 nmos w=0.55u l=0.28u 
+MM2P_61 m3_61 m2_61 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_61 m3_61 m2_61 0 0 nmos w=0.3u l=0.28u 
+MTG2P_61 m3_61 CLKB m1_61 VDD pmos w=0.6u l=0.28u 
+MTG2N_61 m3_61 CLK m1_61 0 nmos w=0.3u l=0.28u 
+MTG3P_61 m2_61 CLKB s1_61 VDD pmos w=1.1u l=0.28u
+MTG3N_61 m2_61 CLK s1_61 0 nmos w=0.55u l=0.28u 
+MS1P_61 Q61 s1_61 VDD VDD pmos w=1.1u l=0.28u
+MS1N_61 Q61 s1_61 0 0 nmos w=0.55u l=0.28u 
+MS2P_61 s3_61 Q61 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_61 s3_61 Q61 0 0 nmos w=0.3u l=0.28u 
+MTG4P_61 s3_61 CLK s1_61 VDD pmos w=0.6u l=0.28u 
+MTG4N_61 s3_61 CLKB s1_61 0 nmos w=0.3u l=0.28u 
+
+* Stage 62
+MTG1P_62 Q61 CLK m1_62 VDD pmos w=1.1u l=0.28u
+MTG1N_62 Q61 CLKB m1_62 0 nmos w=0.55u l=0.28u 
+MM1P_62 m2_62 m1_62 VDD VDD pmos w=1.1u l=0.28u
+MM1N_62 m2_62 m1_62 0 0 nmos w=0.55u l=0.28u 
+MM2P_62 m3_62 m2_62 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_62 m3_62 m2_62 0 0 nmos w=0.3u l=0.28u 
+MTG2P_62 m3_62 CLKB m1_62 VDD pmos w=0.6u l=0.28u 
+MTG2N_62 m3_62 CLK m1_62 0 nmos w=0.3u l=0.28u 
+MTG3P_62 m2_62 CLKB s1_62 VDD pmos w=1.1u l=0.28u
+MTG3N_62 m2_62 CLK s1_62 0 nmos w=0.55u l=0.28u 
+MS1P_62 Q62 s1_62 VDD VDD pmos w=1.1u l=0.28u
+MS1N_62 Q62 s1_62 0 0 nmos w=0.55u l=0.28u 
+MS2P_62 s3_62 Q62 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_62 s3_62 Q62 0 0 nmos w=0.3u l=0.28u 
+MTG4P_62 s3_62 CLK s1_62 VDD pmos w=0.6u l=0.28u 
+MTG4N_62 s3_62 CLKB s1_62 0 nmos w=0.3u l=0.28u 
+
+* Stage 63
+MTG1P_63 Q62 CLK m1_63 VDD pmos w=1.1u l=0.28u
+MTG1N_63 Q62 CLKB m1_63 0 nmos w=0.55u l=0.28u 
+MM1P_63 m2_63 m1_63 VDD VDD pmos w=1.1u l=0.28u
+MM1N_63 m2_63 m1_63 0 0 nmos w=0.55u l=0.28u 
+MM2P_63 m3_63 m2_63 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_63 m3_63 m2_63 0 0 nmos w=0.3u l=0.28u 
+MTG2P_63 m3_63 CLKB m1_63 VDD pmos w=0.6u l=0.28u 
+MTG2N_63 m3_63 CLK m1_63 0 nmos w=0.3u l=0.28u 
+MTG3P_63 m2_63 CLKB s1_63 VDD pmos w=1.1u l=0.28u
+MTG3N_63 m2_63 CLK s1_63 0 nmos w=0.55u l=0.28u 
+MS1P_63 Q63 s1_63 VDD VDD pmos w=1.1u l=0.28u
+MS1N_63 Q63 s1_63 0 0 nmos w=0.55u l=0.28u 
+MS2P_63 s3_63 Q63 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_63 s3_63 Q63 0 0 nmos w=0.3u l=0.28u 
+MTG4P_63 s3_63 CLK s1_63 VDD pmos w=0.6u l=0.28u 
+MTG4N_63 s3_63 CLKB s1_63 0 nmos w=0.3u l=0.28u 
+
+* Stage 64
+MTG1P_64 Q63 CLK m1_64 VDD pmos w=1.1u l=0.28u
+MTG1N_64 Q63 CLKB m1_64 0 nmos w=0.55u l=0.28u 
+MM1P_64 m2_64 m1_64 VDD VDD pmos w=1.1u l=0.28u
+MM1N_64 m2_64 m1_64 0 0 nmos w=0.55u l=0.28u 
+MM2P_64 m3_64 m2_64 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_64 m3_64 m2_64 0 0 nmos w=0.3u l=0.28u 
+MTG2P_64 m3_64 CLKB m1_64 VDD pmos w=0.6u l=0.28u 
+MTG2N_64 m3_64 CLK m1_64 0 nmos w=0.3u l=0.28u 
+MTG3P_64 m2_64 CLKB s1_64 VDD pmos w=1.1u l=0.28u
+MTG3N_64 m2_64 CLK s1_64 0 nmos w=0.55u l=0.28u 
+MS1P_64 Q64 s1_64 VDD VDD pmos w=1.1u l=0.28u
+MS1N_64 Q64 s1_64 0 0 nmos w=0.55u l=0.28u 
+MS2P_64 s3_64 Q64 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_64 s3_64 Q64 0 0 nmos w=0.3u l=0.28u 
+MTG4P_64 s3_64 CLK s1_64 VDD pmos w=0.6u l=0.28u 
+MTG4N_64 s3_64 CLKB s1_64 0 nmos w=0.3u l=0.28u 
+
+* Stage 65
+MTG1P_65 Q64 CLK m1_65 VDD pmos w=1.1u l=0.28u
+MTG1N_65 Q64 CLKB m1_65 0 nmos w=0.55u l=0.28u 
+MM1P_65 m2_65 m1_65 VDD VDD pmos w=1.1u l=0.28u
+MM1N_65 m2_65 m1_65 0 0 nmos w=0.55u l=0.28u 
+MM2P_65 m3_65 m2_65 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_65 m3_65 m2_65 0 0 nmos w=0.3u l=0.28u 
+MTG2P_65 m3_65 CLKB m1_65 VDD pmos w=0.6u l=0.28u 
+MTG2N_65 m3_65 CLK m1_65 0 nmos w=0.3u l=0.28u 
+MTG3P_65 m2_65 CLKB s1_65 VDD pmos w=1.1u l=0.28u
+MTG3N_65 m2_65 CLK s1_65 0 nmos w=0.55u l=0.28u 
+MS1P_65 Q65 s1_65 VDD VDD pmos w=1.1u l=0.28u
+MS1N_65 Q65 s1_65 0 0 nmos w=0.55u l=0.28u 
+MS2P_65 s3_65 Q65 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_65 s3_65 Q65 0 0 nmos w=0.3u l=0.28u 
+MTG4P_65 s3_65 CLK s1_65 VDD pmos w=0.6u l=0.28u 
+MTG4N_65 s3_65 CLKB s1_65 0 nmos w=0.3u l=0.28u 
+
+* Stage 66
+MTG1P_66 Q65 CLK m1_66 VDD pmos w=1.1u l=0.28u
+MTG1N_66 Q65 CLKB m1_66 0 nmos w=0.55u l=0.28u 
+MM1P_66 m2_66 m1_66 VDD VDD pmos w=1.1u l=0.28u
+MM1N_66 m2_66 m1_66 0 0 nmos w=0.55u l=0.28u 
+MM2P_66 m3_66 m2_66 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_66 m3_66 m2_66 0 0 nmos w=0.3u l=0.28u 
+MTG2P_66 m3_66 CLKB m1_66 VDD pmos w=0.6u l=0.28u 
+MTG2N_66 m3_66 CLK m1_66 0 nmos w=0.3u l=0.28u 
+MTG3P_66 m2_66 CLKB s1_66 VDD pmos w=1.1u l=0.28u
+MTG3N_66 m2_66 CLK s1_66 0 nmos w=0.55u l=0.28u 
+MS1P_66 Q66 s1_66 VDD VDD pmos w=1.1u l=0.28u
+MS1N_66 Q66 s1_66 0 0 nmos w=0.55u l=0.28u 
+MS2P_66 s3_66 Q66 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_66 s3_66 Q66 0 0 nmos w=0.3u l=0.28u 
+MTG4P_66 s3_66 CLK s1_66 VDD pmos w=0.6u l=0.28u 
+MTG4N_66 s3_66 CLKB s1_66 0 nmos w=0.3u l=0.28u 
+
+* Stage 67
+MTG1P_67 Q66 CLK m1_67 VDD pmos w=1.1u l=0.28u
+MTG1N_67 Q66 CLKB m1_67 0 nmos w=0.55u l=0.28u 
+MM1P_67 m2_67 m1_67 VDD VDD pmos w=1.1u l=0.28u
+MM1N_67 m2_67 m1_67 0 0 nmos w=0.55u l=0.28u 
+MM2P_67 m3_67 m2_67 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_67 m3_67 m2_67 0 0 nmos w=0.3u l=0.28u 
+MTG2P_67 m3_67 CLKB m1_67 VDD pmos w=0.6u l=0.28u 
+MTG2N_67 m3_67 CLK m1_67 0 nmos w=0.3u l=0.28u 
+MTG3P_67 m2_67 CLKB s1_67 VDD pmos w=1.1u l=0.28u
+MTG3N_67 m2_67 CLK s1_67 0 nmos w=0.55u l=0.28u 
+MS1P_67 Q67 s1_67 VDD VDD pmos w=1.1u l=0.28u
+MS1N_67 Q67 s1_67 0 0 nmos w=0.55u l=0.28u 
+MS2P_67 s3_67 Q67 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_67 s3_67 Q67 0 0 nmos w=0.3u l=0.28u 
+MTG4P_67 s3_67 CLK s1_67 VDD pmos w=0.6u l=0.28u 
+MTG4N_67 s3_67 CLKB s1_67 0 nmos w=0.3u l=0.28u 
+
+* Stage 68
+MTG1P_68 Q67 CLK m1_68 VDD pmos w=1.1u l=0.28u
+MTG1N_68 Q67 CLKB m1_68 0 nmos w=0.55u l=0.28u 
+MM1P_68 m2_68 m1_68 VDD VDD pmos w=1.1u l=0.28u
+MM1N_68 m2_68 m1_68 0 0 nmos w=0.55u l=0.28u 
+MM2P_68 m3_68 m2_68 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_68 m3_68 m2_68 0 0 nmos w=0.3u l=0.28u 
+MTG2P_68 m3_68 CLKB m1_68 VDD pmos w=0.6u l=0.28u 
+MTG2N_68 m3_68 CLK m1_68 0 nmos w=0.3u l=0.28u 
+MTG3P_68 m2_68 CLKB s1_68 VDD pmos w=1.1u l=0.28u
+MTG3N_68 m2_68 CLK s1_68 0 nmos w=0.55u l=0.28u 
+MS1P_68 Q68 s1_68 VDD VDD pmos w=1.1u l=0.28u
+MS1N_68 Q68 s1_68 0 0 nmos w=0.55u l=0.28u 
+MS2P_68 s3_68 Q68 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_68 s3_68 Q68 0 0 nmos w=0.3u l=0.28u 
+MTG4P_68 s3_68 CLK s1_68 VDD pmos w=0.6u l=0.28u 
+MTG4N_68 s3_68 CLKB s1_68 0 nmos w=0.3u l=0.28u 
+
+* Stage 69
+MTG1P_69 Q68 CLK m1_69 VDD pmos w=1.1u l=0.28u
+MTG1N_69 Q68 CLKB m1_69 0 nmos w=0.55u l=0.28u 
+MM1P_69 m2_69 m1_69 VDD VDD pmos w=1.1u l=0.28u
+MM1N_69 m2_69 m1_69 0 0 nmos w=0.55u l=0.28u 
+MM2P_69 m3_69 m2_69 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_69 m3_69 m2_69 0 0 nmos w=0.3u l=0.28u 
+MTG2P_69 m3_69 CLKB m1_69 VDD pmos w=0.6u l=0.28u 
+MTG2N_69 m3_69 CLK m1_69 0 nmos w=0.3u l=0.28u 
+MTG3P_69 m2_69 CLKB s1_69 VDD pmos w=1.1u l=0.28u
+MTG3N_69 m2_69 CLK s1_69 0 nmos w=0.55u l=0.28u 
+MS1P_69 Q69 s1_69 VDD VDD pmos w=1.1u l=0.28u
+MS1N_69 Q69 s1_69 0 0 nmos w=0.55u l=0.28u 
+MS2P_69 s3_69 Q69 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_69 s3_69 Q69 0 0 nmos w=0.3u l=0.28u 
+MTG4P_69 s3_69 CLK s1_69 VDD pmos w=0.6u l=0.28u 
+MTG4N_69 s3_69 CLKB s1_69 0 nmos w=0.3u l=0.28u 
+
+* Stage 70
+MTG1P_70 Q69 CLK m1_70 VDD pmos w=1.1u l=0.28u
+MTG1N_70 Q69 CLKB m1_70 0 nmos w=0.55u l=0.28u 
+MM1P_70 m2_70 m1_70 VDD VDD pmos w=1.1u l=0.28u
+MM1N_70 m2_70 m1_70 0 0 nmos w=0.55u l=0.28u 
+MM2P_70 m3_70 m2_70 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_70 m3_70 m2_70 0 0 nmos w=0.3u l=0.28u 
+MTG2P_70 m3_70 CLKB m1_70 VDD pmos w=0.6u l=0.28u 
+MTG2N_70 m3_70 CLK m1_70 0 nmos w=0.3u l=0.28u 
+MTG3P_70 m2_70 CLKB s1_70 VDD pmos w=1.1u l=0.28u
+MTG3N_70 m2_70 CLK s1_70 0 nmos w=0.55u l=0.28u 
+MS1P_70 Q70 s1_70 VDD VDD pmos w=1.1u l=0.28u
+MS1N_70 Q70 s1_70 0 0 nmos w=0.55u l=0.28u 
+MS2P_70 s3_70 Q70 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_70 s3_70 Q70 0 0 nmos w=0.3u l=0.28u 
+MTG4P_70 s3_70 CLK s1_70 VDD pmos w=0.6u l=0.28u 
+MTG4N_70 s3_70 CLKB s1_70 0 nmos w=0.3u l=0.28u 
+
+* Stage 71
+MTG1P_71 Q70 CLK m1_71 VDD pmos w=1.1u l=0.28u
+MTG1N_71 Q70 CLKB m1_71 0 nmos w=0.55u l=0.28u 
+MM1P_71 m2_71 m1_71 VDD VDD pmos w=1.1u l=0.28u
+MM1N_71 m2_71 m1_71 0 0 nmos w=0.55u l=0.28u 
+MM2P_71 m3_71 m2_71 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_71 m3_71 m2_71 0 0 nmos w=0.3u l=0.28u 
+MTG2P_71 m3_71 CLKB m1_71 VDD pmos w=0.6u l=0.28u 
+MTG2N_71 m3_71 CLK m1_71 0 nmos w=0.3u l=0.28u 
+MTG3P_71 m2_71 CLKB s1_71 VDD pmos w=1.1u l=0.28u
+MTG3N_71 m2_71 CLK s1_71 0 nmos w=0.55u l=0.28u 
+MS1P_71 Q71 s1_71 VDD VDD pmos w=1.1u l=0.28u
+MS1N_71 Q71 s1_71 0 0 nmos w=0.55u l=0.28u 
+MS2P_71 s3_71 Q71 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_71 s3_71 Q71 0 0 nmos w=0.3u l=0.28u 
+MTG4P_71 s3_71 CLK s1_71 VDD pmos w=0.6u l=0.28u 
+MTG4N_71 s3_71 CLKB s1_71 0 nmos w=0.3u l=0.28u 
+
+* Stage 72
+MTG1P_72 Q71 CLK m1_72 VDD pmos w=1.1u l=0.28u
+MTG1N_72 Q71 CLKB m1_72 0 nmos w=0.55u l=0.28u 
+MM1P_72 m2_72 m1_72 VDD VDD pmos w=1.1u l=0.28u
+MM1N_72 m2_72 m1_72 0 0 nmos w=0.55u l=0.28u 
+MM2P_72 m3_72 m2_72 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_72 m3_72 m2_72 0 0 nmos w=0.3u l=0.28u 
+MTG2P_72 m3_72 CLKB m1_72 VDD pmos w=0.6u l=0.28u 
+MTG2N_72 m3_72 CLK m1_72 0 nmos w=0.3u l=0.28u 
+MTG3P_72 m2_72 CLKB s1_72 VDD pmos w=1.1u l=0.28u
+MTG3N_72 m2_72 CLK s1_72 0 nmos w=0.55u l=0.28u 
+MS1P_72 Q72 s1_72 VDD VDD pmos w=1.1u l=0.28u
+MS1N_72 Q72 s1_72 0 0 nmos w=0.55u l=0.28u 
+MS2P_72 s3_72 Q72 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_72 s3_72 Q72 0 0 nmos w=0.3u l=0.28u 
+MTG4P_72 s3_72 CLK s1_72 VDD pmos w=0.6u l=0.28u 
+MTG4N_72 s3_72 CLKB s1_72 0 nmos w=0.3u l=0.28u 
+
+* Stage 73
+MTG1P_73 Q72 CLK m1_73 VDD pmos w=1.1u l=0.28u
+MTG1N_73 Q72 CLKB m1_73 0 nmos w=0.55u l=0.28u 
+MM1P_73 m2_73 m1_73 VDD VDD pmos w=1.1u l=0.28u
+MM1N_73 m2_73 m1_73 0 0 nmos w=0.55u l=0.28u 
+MM2P_73 m3_73 m2_73 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_73 m3_73 m2_73 0 0 nmos w=0.3u l=0.28u 
+MTG2P_73 m3_73 CLKB m1_73 VDD pmos w=0.6u l=0.28u 
+MTG2N_73 m3_73 CLK m1_73 0 nmos w=0.3u l=0.28u 
+MTG3P_73 m2_73 CLKB s1_73 VDD pmos w=1.1u l=0.28u
+MTG3N_73 m2_73 CLK s1_73 0 nmos w=0.55u l=0.28u 
+MS1P_73 Q73 s1_73 VDD VDD pmos w=1.1u l=0.28u
+MS1N_73 Q73 s1_73 0 0 nmos w=0.55u l=0.28u 
+MS2P_73 s3_73 Q73 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_73 s3_73 Q73 0 0 nmos w=0.3u l=0.28u 
+MTG4P_73 s3_73 CLK s1_73 VDD pmos w=0.6u l=0.28u 
+MTG4N_73 s3_73 CLKB s1_73 0 nmos w=0.3u l=0.28u 
+
+* Stage 74
+MTG1P_74 Q73 CLK m1_74 VDD pmos w=1.1u l=0.28u
+MTG1N_74 Q73 CLKB m1_74 0 nmos w=0.55u l=0.28u 
+MM1P_74 m2_74 m1_74 VDD VDD pmos w=1.1u l=0.28u
+MM1N_74 m2_74 m1_74 0 0 nmos w=0.55u l=0.28u 
+MM2P_74 m3_74 m2_74 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_74 m3_74 m2_74 0 0 nmos w=0.3u l=0.28u 
+MTG2P_74 m3_74 CLKB m1_74 VDD pmos w=0.6u l=0.28u 
+MTG2N_74 m3_74 CLK m1_74 0 nmos w=0.3u l=0.28u 
+MTG3P_74 m2_74 CLKB s1_74 VDD pmos w=1.1u l=0.28u
+MTG3N_74 m2_74 CLK s1_74 0 nmos w=0.55u l=0.28u 
+MS1P_74 Q74 s1_74 VDD VDD pmos w=1.1u l=0.28u
+MS1N_74 Q74 s1_74 0 0 nmos w=0.55u l=0.28u 
+MS2P_74 s3_74 Q74 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_74 s3_74 Q74 0 0 nmos w=0.3u l=0.28u 
+MTG4P_74 s3_74 CLK s1_74 VDD pmos w=0.6u l=0.28u 
+MTG4N_74 s3_74 CLKB s1_74 0 nmos w=0.3u l=0.28u 
+
+* Stage 75
+MTG1P_75 Q74 CLK m1_75 VDD pmos w=1.1u l=0.28u
+MTG1N_75 Q74 CLKB m1_75 0 nmos w=0.55u l=0.28u 
+MM1P_75 m2_75 m1_75 VDD VDD pmos w=1.1u l=0.28u
+MM1N_75 m2_75 m1_75 0 0 nmos w=0.55u l=0.28u 
+MM2P_75 m3_75 m2_75 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_75 m3_75 m2_75 0 0 nmos w=0.3u l=0.28u 
+MTG2P_75 m3_75 CLKB m1_75 VDD pmos w=0.6u l=0.28u 
+MTG2N_75 m3_75 CLK m1_75 0 nmos w=0.3u l=0.28u 
+MTG3P_75 m2_75 CLKB s1_75 VDD pmos w=1.1u l=0.28u
+MTG3N_75 m2_75 CLK s1_75 0 nmos w=0.55u l=0.28u 
+MS1P_75 Q75 s1_75 VDD VDD pmos w=1.1u l=0.28u
+MS1N_75 Q75 s1_75 0 0 nmos w=0.55u l=0.28u 
+MS2P_75 s3_75 Q75 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_75 s3_75 Q75 0 0 nmos w=0.3u l=0.28u 
+MTG4P_75 s3_75 CLK s1_75 VDD pmos w=0.6u l=0.28u 
+MTG4N_75 s3_75 CLKB s1_75 0 nmos w=0.3u l=0.28u 
+
+* Stage 76
+MTG1P_76 Q75 CLK m1_76 VDD pmos w=1.1u l=0.28u
+MTG1N_76 Q75 CLKB m1_76 0 nmos w=0.55u l=0.28u 
+MM1P_76 m2_76 m1_76 VDD VDD pmos w=1.1u l=0.28u
+MM1N_76 m2_76 m1_76 0 0 nmos w=0.55u l=0.28u 
+MM2P_76 m3_76 m2_76 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_76 m3_76 m2_76 0 0 nmos w=0.3u l=0.28u 
+MTG2P_76 m3_76 CLKB m1_76 VDD pmos w=0.6u l=0.28u 
+MTG2N_76 m3_76 CLK m1_76 0 nmos w=0.3u l=0.28u 
+MTG3P_76 m2_76 CLKB s1_76 VDD pmos w=1.1u l=0.28u
+MTG3N_76 m2_76 CLK s1_76 0 nmos w=0.55u l=0.28u 
+MS1P_76 Q76 s1_76 VDD VDD pmos w=1.1u l=0.28u
+MS1N_76 Q76 s1_76 0 0 nmos w=0.55u l=0.28u 
+MS2P_76 s3_76 Q76 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_76 s3_76 Q76 0 0 nmos w=0.3u l=0.28u 
+MTG4P_76 s3_76 CLK s1_76 VDD pmos w=0.6u l=0.28u 
+MTG4N_76 s3_76 CLKB s1_76 0 nmos w=0.3u l=0.28u 
+
+* Stage 77
+MTG1P_77 Q76 CLK m1_77 VDD pmos w=1.1u l=0.28u
+MTG1N_77 Q76 CLKB m1_77 0 nmos w=0.55u l=0.28u 
+MM1P_77 m2_77 m1_77 VDD VDD pmos w=1.1u l=0.28u
+MM1N_77 m2_77 m1_77 0 0 nmos w=0.55u l=0.28u 
+MM2P_77 m3_77 m2_77 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_77 m3_77 m2_77 0 0 nmos w=0.3u l=0.28u 
+MTG2P_77 m3_77 CLKB m1_77 VDD pmos w=0.6u l=0.28u 
+MTG2N_77 m3_77 CLK m1_77 0 nmos w=0.3u l=0.28u 
+MTG3P_77 m2_77 CLKB s1_77 VDD pmos w=1.1u l=0.28u
+MTG3N_77 m2_77 CLK s1_77 0 nmos w=0.55u l=0.28u 
+MS1P_77 Q77 s1_77 VDD VDD pmos w=1.1u l=0.28u
+MS1N_77 Q77 s1_77 0 0 nmos w=0.55u l=0.28u 
+MS2P_77 s3_77 Q77 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_77 s3_77 Q77 0 0 nmos w=0.3u l=0.28u 
+MTG4P_77 s3_77 CLK s1_77 VDD pmos w=0.6u l=0.28u 
+MTG4N_77 s3_77 CLKB s1_77 0 nmos w=0.3u l=0.28u 
+
+* Stage 78
+MTG1P_78 Q77 CLK m1_78 VDD pmos w=1.1u l=0.28u
+MTG1N_78 Q77 CLKB m1_78 0 nmos w=0.55u l=0.28u 
+MM1P_78 m2_78 m1_78 VDD VDD pmos w=1.1u l=0.28u
+MM1N_78 m2_78 m1_78 0 0 nmos w=0.55u l=0.28u 
+MM2P_78 m3_78 m2_78 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_78 m3_78 m2_78 0 0 nmos w=0.3u l=0.28u 
+MTG2P_78 m3_78 CLKB m1_78 VDD pmos w=0.6u l=0.28u 
+MTG2N_78 m3_78 CLK m1_78 0 nmos w=0.3u l=0.28u 
+MTG3P_78 m2_78 CLKB s1_78 VDD pmos w=1.1u l=0.28u
+MTG3N_78 m2_78 CLK s1_78 0 nmos w=0.55u l=0.28u 
+MS1P_78 Q78 s1_78 VDD VDD pmos w=1.1u l=0.28u
+MS1N_78 Q78 s1_78 0 0 nmos w=0.55u l=0.28u 
+MS2P_78 s3_78 Q78 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_78 s3_78 Q78 0 0 nmos w=0.3u l=0.28u 
+MTG4P_78 s3_78 CLK s1_78 VDD pmos w=0.6u l=0.28u 
+MTG4N_78 s3_78 CLKB s1_78 0 nmos w=0.3u l=0.28u 
+
+* Stage 79
+MTG1P_79 Q78 CLK m1_79 VDD pmos w=1.1u l=0.28u
+MTG1N_79 Q78 CLKB m1_79 0 nmos w=0.55u l=0.28u 
+MM1P_79 m2_79 m1_79 VDD VDD pmos w=1.1u l=0.28u
+MM1N_79 m2_79 m1_79 0 0 nmos w=0.55u l=0.28u 
+MM2P_79 m3_79 m2_79 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_79 m3_79 m2_79 0 0 nmos w=0.3u l=0.28u 
+MTG2P_79 m3_79 CLKB m1_79 VDD pmos w=0.6u l=0.28u 
+MTG2N_79 m3_79 CLK m1_79 0 nmos w=0.3u l=0.28u 
+MTG3P_79 m2_79 CLKB s1_79 VDD pmos w=1.1u l=0.28u
+MTG3N_79 m2_79 CLK s1_79 0 nmos w=0.55u l=0.28u 
+MS1P_79 Q79 s1_79 VDD VDD pmos w=1.1u l=0.28u
+MS1N_79 Q79 s1_79 0 0 nmos w=0.55u l=0.28u 
+MS2P_79 s3_79 Q79 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_79 s3_79 Q79 0 0 nmos w=0.3u l=0.28u 
+MTG4P_79 s3_79 CLK s1_79 VDD pmos w=0.6u l=0.28u 
+MTG4N_79 s3_79 CLKB s1_79 0 nmos w=0.3u l=0.28u 
+
+* Stage 80
+MTG1P_80 Q79 CLK m1_80 VDD pmos w=1.1u l=0.28u
+MTG1N_80 Q79 CLKB m1_80 0 nmos w=0.55u l=0.28u 
+MM1P_80 m2_80 m1_80 VDD VDD pmos w=1.1u l=0.28u
+MM1N_80 m2_80 m1_80 0 0 nmos w=0.55u l=0.28u 
+MM2P_80 m3_80 m2_80 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_80 m3_80 m2_80 0 0 nmos w=0.3u l=0.28u 
+MTG2P_80 m3_80 CLKB m1_80 VDD pmos w=0.6u l=0.28u 
+MTG2N_80 m3_80 CLK m1_80 0 nmos w=0.3u l=0.28u 
+MTG3P_80 m2_80 CLKB s1_80 VDD pmos w=1.1u l=0.28u
+MTG3N_80 m2_80 CLK s1_80 0 nmos w=0.55u l=0.28u 
+MS1P_80 Q80 s1_80 VDD VDD pmos w=1.1u l=0.28u
+MS1N_80 Q80 s1_80 0 0 nmos w=0.55u l=0.28u 
+MS2P_80 s3_80 Q80 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_80 s3_80 Q80 0 0 nmos w=0.3u l=0.28u 
+MTG4P_80 s3_80 CLK s1_80 VDD pmos w=0.6u l=0.28u 
+MTG4N_80 s3_80 CLKB s1_80 0 nmos w=0.3u l=0.28u 
+
+* Stage 81
+MTG1P_81 Q80 CLK m1_81 VDD pmos w=1.1u l=0.28u
+MTG1N_81 Q80 CLKB m1_81 0 nmos w=0.55u l=0.28u 
+MM1P_81 m2_81 m1_81 VDD VDD pmos w=1.1u l=0.28u
+MM1N_81 m2_81 m1_81 0 0 nmos w=0.55u l=0.28u 
+MM2P_81 m3_81 m2_81 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_81 m3_81 m2_81 0 0 nmos w=0.3u l=0.28u 
+MTG2P_81 m3_81 CLKB m1_81 VDD pmos w=0.6u l=0.28u 
+MTG2N_81 m3_81 CLK m1_81 0 nmos w=0.3u l=0.28u 
+MTG3P_81 m2_81 CLKB s1_81 VDD pmos w=1.1u l=0.28u
+MTG3N_81 m2_81 CLK s1_81 0 nmos w=0.55u l=0.28u 
+MS1P_81 Q81 s1_81 VDD VDD pmos w=1.1u l=0.28u
+MS1N_81 Q81 s1_81 0 0 nmos w=0.55u l=0.28u 
+MS2P_81 s3_81 Q81 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_81 s3_81 Q81 0 0 nmos w=0.3u l=0.28u 
+MTG4P_81 s3_81 CLK s1_81 VDD pmos w=0.6u l=0.28u 
+MTG4N_81 s3_81 CLKB s1_81 0 nmos w=0.3u l=0.28u 
+
+* Stage 82
+MTG1P_82 Q81 CLK m1_82 VDD pmos w=1.1u l=0.28u
+MTG1N_82 Q81 CLKB m1_82 0 nmos w=0.55u l=0.28u 
+MM1P_82 m2_82 m1_82 VDD VDD pmos w=1.1u l=0.28u
+MM1N_82 m2_82 m1_82 0 0 nmos w=0.55u l=0.28u 
+MM2P_82 m3_82 m2_82 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_82 m3_82 m2_82 0 0 nmos w=0.3u l=0.28u 
+MTG2P_82 m3_82 CLKB m1_82 VDD pmos w=0.6u l=0.28u 
+MTG2N_82 m3_82 CLK m1_82 0 nmos w=0.3u l=0.28u 
+MTG3P_82 m2_82 CLKB s1_82 VDD pmos w=1.1u l=0.28u
+MTG3N_82 m2_82 CLK s1_82 0 nmos w=0.55u l=0.28u 
+MS1P_82 Q82 s1_82 VDD VDD pmos w=1.1u l=0.28u
+MS1N_82 Q82 s1_82 0 0 nmos w=0.55u l=0.28u 
+MS2P_82 s3_82 Q82 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_82 s3_82 Q82 0 0 nmos w=0.3u l=0.28u 
+MTG4P_82 s3_82 CLK s1_82 VDD pmos w=0.6u l=0.28u 
+MTG4N_82 s3_82 CLKB s1_82 0 nmos w=0.3u l=0.28u 
+
+* Stage 83
+MTG1P_83 Q82 CLK m1_83 VDD pmos w=1.1u l=0.28u
+MTG1N_83 Q82 CLKB m1_83 0 nmos w=0.55u l=0.28u 
+MM1P_83 m2_83 m1_83 VDD VDD pmos w=1.1u l=0.28u
+MM1N_83 m2_83 m1_83 0 0 nmos w=0.55u l=0.28u 
+MM2P_83 m3_83 m2_83 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_83 m3_83 m2_83 0 0 nmos w=0.3u l=0.28u 
+MTG2P_83 m3_83 CLKB m1_83 VDD pmos w=0.6u l=0.28u 
+MTG2N_83 m3_83 CLK m1_83 0 nmos w=0.3u l=0.28u 
+MTG3P_83 m2_83 CLKB s1_83 VDD pmos w=1.1u l=0.28u
+MTG3N_83 m2_83 CLK s1_83 0 nmos w=0.55u l=0.28u 
+MS1P_83 Q83 s1_83 VDD VDD pmos w=1.1u l=0.28u
+MS1N_83 Q83 s1_83 0 0 nmos w=0.55u l=0.28u 
+MS2P_83 s3_83 Q83 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_83 s3_83 Q83 0 0 nmos w=0.3u l=0.28u 
+MTG4P_83 s3_83 CLK s1_83 VDD pmos w=0.6u l=0.28u 
+MTG4N_83 s3_83 CLKB s1_83 0 nmos w=0.3u l=0.28u 
+
+* Stage 84
+MTG1P_84 Q83 CLK m1_84 VDD pmos w=1.1u l=0.28u
+MTG1N_84 Q83 CLKB m1_84 0 nmos w=0.55u l=0.28u 
+MM1P_84 m2_84 m1_84 VDD VDD pmos w=1.1u l=0.28u
+MM1N_84 m2_84 m1_84 0 0 nmos w=0.55u l=0.28u 
+MM2P_84 m3_84 m2_84 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_84 m3_84 m2_84 0 0 nmos w=0.3u l=0.28u 
+MTG2P_84 m3_84 CLKB m1_84 VDD pmos w=0.6u l=0.28u 
+MTG2N_84 m3_84 CLK m1_84 0 nmos w=0.3u l=0.28u 
+MTG3P_84 m2_84 CLKB s1_84 VDD pmos w=1.1u l=0.28u
+MTG3N_84 m2_84 CLK s1_84 0 nmos w=0.55u l=0.28u 
+MS1P_84 Q84 s1_84 VDD VDD pmos w=1.1u l=0.28u
+MS1N_84 Q84 s1_84 0 0 nmos w=0.55u l=0.28u 
+MS2P_84 s3_84 Q84 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_84 s3_84 Q84 0 0 nmos w=0.3u l=0.28u 
+MTG4P_84 s3_84 CLK s1_84 VDD pmos w=0.6u l=0.28u 
+MTG4N_84 s3_84 CLKB s1_84 0 nmos w=0.3u l=0.28u 
+
+* Stage 85
+MTG1P_85 Q84 CLK m1_85 VDD pmos w=1.1u l=0.28u
+MTG1N_85 Q84 CLKB m1_85 0 nmos w=0.55u l=0.28u 
+MM1P_85 m2_85 m1_85 VDD VDD pmos w=1.1u l=0.28u
+MM1N_85 m2_85 m1_85 0 0 nmos w=0.55u l=0.28u 
+MM2P_85 m3_85 m2_85 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_85 m3_85 m2_85 0 0 nmos w=0.3u l=0.28u 
+MTG2P_85 m3_85 CLKB m1_85 VDD pmos w=0.6u l=0.28u 
+MTG2N_85 m3_85 CLK m1_85 0 nmos w=0.3u l=0.28u 
+MTG3P_85 m2_85 CLKB s1_85 VDD pmos w=1.1u l=0.28u
+MTG3N_85 m2_85 CLK s1_85 0 nmos w=0.55u l=0.28u 
+MS1P_85 Q85 s1_85 VDD VDD pmos w=1.1u l=0.28u
+MS1N_85 Q85 s1_85 0 0 nmos w=0.55u l=0.28u 
+MS2P_85 s3_85 Q85 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_85 s3_85 Q85 0 0 nmos w=0.3u l=0.28u 
+MTG4P_85 s3_85 CLK s1_85 VDD pmos w=0.6u l=0.28u 
+MTG4N_85 s3_85 CLKB s1_85 0 nmos w=0.3u l=0.28u 
+
+* Stage 86
+MTG1P_86 Q85 CLK m1_86 VDD pmos w=1.1u l=0.28u
+MTG1N_86 Q85 CLKB m1_86 0 nmos w=0.55u l=0.28u 
+MM1P_86 m2_86 m1_86 VDD VDD pmos w=1.1u l=0.28u
+MM1N_86 m2_86 m1_86 0 0 nmos w=0.55u l=0.28u 
+MM2P_86 m3_86 m2_86 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_86 m3_86 m2_86 0 0 nmos w=0.3u l=0.28u 
+MTG2P_86 m3_86 CLKB m1_86 VDD pmos w=0.6u l=0.28u 
+MTG2N_86 m3_86 CLK m1_86 0 nmos w=0.3u l=0.28u 
+MTG3P_86 m2_86 CLKB s1_86 VDD pmos w=1.1u l=0.28u
+MTG3N_86 m2_86 CLK s1_86 0 nmos w=0.55u l=0.28u 
+MS1P_86 Q86 s1_86 VDD VDD pmos w=1.1u l=0.28u
+MS1N_86 Q86 s1_86 0 0 nmos w=0.55u l=0.28u 
+MS2P_86 s3_86 Q86 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_86 s3_86 Q86 0 0 nmos w=0.3u l=0.28u 
+MTG4P_86 s3_86 CLK s1_86 VDD pmos w=0.6u l=0.28u 
+MTG4N_86 s3_86 CLKB s1_86 0 nmos w=0.3u l=0.28u 
+
+* Stage 87
+MTG1P_87 Q86 CLK m1_87 VDD pmos w=1.1u l=0.28u
+MTG1N_87 Q86 CLKB m1_87 0 nmos w=0.55u l=0.28u 
+MM1P_87 m2_87 m1_87 VDD VDD pmos w=1.1u l=0.28u
+MM1N_87 m2_87 m1_87 0 0 nmos w=0.55u l=0.28u 
+MM2P_87 m3_87 m2_87 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_87 m3_87 m2_87 0 0 nmos w=0.3u l=0.28u 
+MTG2P_87 m3_87 CLKB m1_87 VDD pmos w=0.6u l=0.28u 
+MTG2N_87 m3_87 CLK m1_87 0 nmos w=0.3u l=0.28u 
+MTG3P_87 m2_87 CLKB s1_87 VDD pmos w=1.1u l=0.28u
+MTG3N_87 m2_87 CLK s1_87 0 nmos w=0.55u l=0.28u 
+MS1P_87 Q87 s1_87 VDD VDD pmos w=1.1u l=0.28u
+MS1N_87 Q87 s1_87 0 0 nmos w=0.55u l=0.28u 
+MS2P_87 s3_87 Q87 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_87 s3_87 Q87 0 0 nmos w=0.3u l=0.28u 
+MTG4P_87 s3_87 CLK s1_87 VDD pmos w=0.6u l=0.28u 
+MTG4N_87 s3_87 CLKB s1_87 0 nmos w=0.3u l=0.28u 
+
+* Stage 88
+MTG1P_88 Q87 CLK m1_88 VDD pmos w=1.1u l=0.28u
+MTG1N_88 Q87 CLKB m1_88 0 nmos w=0.55u l=0.28u 
+MM1P_88 m2_88 m1_88 VDD VDD pmos w=1.1u l=0.28u
+MM1N_88 m2_88 m1_88 0 0 nmos w=0.55u l=0.28u 
+MM2P_88 m3_88 m2_88 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_88 m3_88 m2_88 0 0 nmos w=0.3u l=0.28u 
+MTG2P_88 m3_88 CLKB m1_88 VDD pmos w=0.6u l=0.28u 
+MTG2N_88 m3_88 CLK m1_88 0 nmos w=0.3u l=0.28u 
+MTG3P_88 m2_88 CLKB s1_88 VDD pmos w=1.1u l=0.28u
+MTG3N_88 m2_88 CLK s1_88 0 nmos w=0.55u l=0.28u 
+MS1P_88 Q88 s1_88 VDD VDD pmos w=1.1u l=0.28u
+MS1N_88 Q88 s1_88 0 0 nmos w=0.55u l=0.28u 
+MS2P_88 s3_88 Q88 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_88 s3_88 Q88 0 0 nmos w=0.3u l=0.28u 
+MTG4P_88 s3_88 CLK s1_88 VDD pmos w=0.6u l=0.28u 
+MTG4N_88 s3_88 CLKB s1_88 0 nmos w=0.3u l=0.28u 
+
+* Stage 89
+MTG1P_89 Q88 CLK m1_89 VDD pmos w=1.1u l=0.28u
+MTG1N_89 Q88 CLKB m1_89 0 nmos w=0.55u l=0.28u 
+MM1P_89 m2_89 m1_89 VDD VDD pmos w=1.1u l=0.28u
+MM1N_89 m2_89 m1_89 0 0 nmos w=0.55u l=0.28u 
+MM2P_89 m3_89 m2_89 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_89 m3_89 m2_89 0 0 nmos w=0.3u l=0.28u 
+MTG2P_89 m3_89 CLKB m1_89 VDD pmos w=0.6u l=0.28u 
+MTG2N_89 m3_89 CLK m1_89 0 nmos w=0.3u l=0.28u 
+MTG3P_89 m2_89 CLKB s1_89 VDD pmos w=1.1u l=0.28u
+MTG3N_89 m2_89 CLK s1_89 0 nmos w=0.55u l=0.28u 
+MS1P_89 Q89 s1_89 VDD VDD pmos w=1.1u l=0.28u
+MS1N_89 Q89 s1_89 0 0 nmos w=0.55u l=0.28u 
+MS2P_89 s3_89 Q89 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_89 s3_89 Q89 0 0 nmos w=0.3u l=0.28u 
+MTG4P_89 s3_89 CLK s1_89 VDD pmos w=0.6u l=0.28u 
+MTG4N_89 s3_89 CLKB s1_89 0 nmos w=0.3u l=0.28u 
+
+* Stage 90
+MTG1P_90 Q89 CLK m1_90 VDD pmos w=1.1u l=0.28u
+MTG1N_90 Q89 CLKB m1_90 0 nmos w=0.55u l=0.28u 
+MM1P_90 m2_90 m1_90 VDD VDD pmos w=1.1u l=0.28u
+MM1N_90 m2_90 m1_90 0 0 nmos w=0.55u l=0.28u 
+MM2P_90 m3_90 m2_90 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_90 m3_90 m2_90 0 0 nmos w=0.3u l=0.28u 
+MTG2P_90 m3_90 CLKB m1_90 VDD pmos w=0.6u l=0.28u 
+MTG2N_90 m3_90 CLK m1_90 0 nmos w=0.3u l=0.28u 
+MTG3P_90 m2_90 CLKB s1_90 VDD pmos w=1.1u l=0.28u
+MTG3N_90 m2_90 CLK s1_90 0 nmos w=0.55u l=0.28u 
+MS1P_90 Q90 s1_90 VDD VDD pmos w=1.1u l=0.28u
+MS1N_90 Q90 s1_90 0 0 nmos w=0.55u l=0.28u 
+MS2P_90 s3_90 Q90 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_90 s3_90 Q90 0 0 nmos w=0.3u l=0.28u 
+MTG4P_90 s3_90 CLK s1_90 VDD pmos w=0.6u l=0.28u 
+MTG4N_90 s3_90 CLKB s1_90 0 nmos w=0.3u l=0.28u 
+
+* Stage 91
+MTG1P_91 Q90 CLK m1_91 VDD pmos w=1.1u l=0.28u
+MTG1N_91 Q90 CLKB m1_91 0 nmos w=0.55u l=0.28u 
+MM1P_91 m2_91 m1_91 VDD VDD pmos w=1.1u l=0.28u
+MM1N_91 m2_91 m1_91 0 0 nmos w=0.55u l=0.28u 
+MM2P_91 m3_91 m2_91 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_91 m3_91 m2_91 0 0 nmos w=0.3u l=0.28u 
+MTG2P_91 m3_91 CLKB m1_91 VDD pmos w=0.6u l=0.28u 
+MTG2N_91 m3_91 CLK m1_91 0 nmos w=0.3u l=0.28u 
+MTG3P_91 m2_91 CLKB s1_91 VDD pmos w=1.1u l=0.28u
+MTG3N_91 m2_91 CLK s1_91 0 nmos w=0.55u l=0.28u 
+MS1P_91 Q91 s1_91 VDD VDD pmos w=1.1u l=0.28u
+MS1N_91 Q91 s1_91 0 0 nmos w=0.55u l=0.28u 
+MS2P_91 s3_91 Q91 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_91 s3_91 Q91 0 0 nmos w=0.3u l=0.28u 
+MTG4P_91 s3_91 CLK s1_91 VDD pmos w=0.6u l=0.28u 
+MTG4N_91 s3_91 CLKB s1_91 0 nmos w=0.3u l=0.28u 
+
+* Stage 92
+MTG1P_92 Q91 CLK m1_92 VDD pmos w=1.1u l=0.28u
+MTG1N_92 Q91 CLKB m1_92 0 nmos w=0.55u l=0.28u 
+MM1P_92 m2_92 m1_92 VDD VDD pmos w=1.1u l=0.28u
+MM1N_92 m2_92 m1_92 0 0 nmos w=0.55u l=0.28u 
+MM2P_92 m3_92 m2_92 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_92 m3_92 m2_92 0 0 nmos w=0.3u l=0.28u 
+MTG2P_92 m3_92 CLKB m1_92 VDD pmos w=0.6u l=0.28u 
+MTG2N_92 m3_92 CLK m1_92 0 nmos w=0.3u l=0.28u 
+MTG3P_92 m2_92 CLKB s1_92 VDD pmos w=1.1u l=0.28u
+MTG3N_92 m2_92 CLK s1_92 0 nmos w=0.55u l=0.28u 
+MS1P_92 Q92 s1_92 VDD VDD pmos w=1.1u l=0.28u
+MS1N_92 Q92 s1_92 0 0 nmos w=0.55u l=0.28u 
+MS2P_92 s3_92 Q92 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_92 s3_92 Q92 0 0 nmos w=0.3u l=0.28u 
+MTG4P_92 s3_92 CLK s1_92 VDD pmos w=0.6u l=0.28u 
+MTG4N_92 s3_92 CLKB s1_92 0 nmos w=0.3u l=0.28u 
+
+* Stage 93
+MTG1P_93 Q92 CLK m1_93 VDD pmos w=1.1u l=0.28u
+MTG1N_93 Q92 CLKB m1_93 0 nmos w=0.55u l=0.28u 
+MM1P_93 m2_93 m1_93 VDD VDD pmos w=1.1u l=0.28u
+MM1N_93 m2_93 m1_93 0 0 nmos w=0.55u l=0.28u 
+MM2P_93 m3_93 m2_93 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_93 m3_93 m2_93 0 0 nmos w=0.3u l=0.28u 
+MTG2P_93 m3_93 CLKB m1_93 VDD pmos w=0.6u l=0.28u 
+MTG2N_93 m3_93 CLK m1_93 0 nmos w=0.3u l=0.28u 
+MTG3P_93 m2_93 CLKB s1_93 VDD pmos w=1.1u l=0.28u
+MTG3N_93 m2_93 CLK s1_93 0 nmos w=0.55u l=0.28u 
+MS1P_93 Q93 s1_93 VDD VDD pmos w=1.1u l=0.28u
+MS1N_93 Q93 s1_93 0 0 nmos w=0.55u l=0.28u 
+MS2P_93 s3_93 Q93 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_93 s3_93 Q93 0 0 nmos w=0.3u l=0.28u 
+MTG4P_93 s3_93 CLK s1_93 VDD pmos w=0.6u l=0.28u 
+MTG4N_93 s3_93 CLKB s1_93 0 nmos w=0.3u l=0.28u 
+
+* Stage 94
+MTG1P_94 Q93 CLK m1_94 VDD pmos w=1.1u l=0.28u
+MTG1N_94 Q93 CLKB m1_94 0 nmos w=0.55u l=0.28u 
+MM1P_94 m2_94 m1_94 VDD VDD pmos w=1.1u l=0.28u
+MM1N_94 m2_94 m1_94 0 0 nmos w=0.55u l=0.28u 
+MM2P_94 m3_94 m2_94 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_94 m3_94 m2_94 0 0 nmos w=0.3u l=0.28u 
+MTG2P_94 m3_94 CLKB m1_94 VDD pmos w=0.6u l=0.28u 
+MTG2N_94 m3_94 CLK m1_94 0 nmos w=0.3u l=0.28u 
+MTG3P_94 m2_94 CLKB s1_94 VDD pmos w=1.1u l=0.28u
+MTG3N_94 m2_94 CLK s1_94 0 nmos w=0.55u l=0.28u 
+MS1P_94 Q94 s1_94 VDD VDD pmos w=1.1u l=0.28u
+MS1N_94 Q94 s1_94 0 0 nmos w=0.55u l=0.28u 
+MS2P_94 s3_94 Q94 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_94 s3_94 Q94 0 0 nmos w=0.3u l=0.28u 
+MTG4P_94 s3_94 CLK s1_94 VDD pmos w=0.6u l=0.28u 
+MTG4N_94 s3_94 CLKB s1_94 0 nmos w=0.3u l=0.28u 
+
+* Stage 95
+MTG1P_95 Q94 CLK m1_95 VDD pmos w=1.1u l=0.28u
+MTG1N_95 Q94 CLKB m1_95 0 nmos w=0.55u l=0.28u 
+MM1P_95 m2_95 m1_95 VDD VDD pmos w=1.1u l=0.28u
+MM1N_95 m2_95 m1_95 0 0 nmos w=0.55u l=0.28u 
+MM2P_95 m3_95 m2_95 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_95 m3_95 m2_95 0 0 nmos w=0.3u l=0.28u 
+MTG2P_95 m3_95 CLKB m1_95 VDD pmos w=0.6u l=0.28u 
+MTG2N_95 m3_95 CLK m1_95 0 nmos w=0.3u l=0.28u 
+MTG3P_95 m2_95 CLKB s1_95 VDD pmos w=1.1u l=0.28u
+MTG3N_95 m2_95 CLK s1_95 0 nmos w=0.55u l=0.28u 
+MS1P_95 Q95 s1_95 VDD VDD pmos w=1.1u l=0.28u
+MS1N_95 Q95 s1_95 0 0 nmos w=0.55u l=0.28u 
+MS2P_95 s3_95 Q95 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_95 s3_95 Q95 0 0 nmos w=0.3u l=0.28u 
+MTG4P_95 s3_95 CLK s1_95 VDD pmos w=0.6u l=0.28u 
+MTG4N_95 s3_95 CLKB s1_95 0 nmos w=0.3u l=0.28u 
+
+* Stage 96
+MTG1P_96 Q95 CLK m1_96 VDD pmos w=1.1u l=0.28u
+MTG1N_96 Q95 CLKB m1_96 0 nmos w=0.55u l=0.28u 
+MM1P_96 m2_96 m1_96 VDD VDD pmos w=1.1u l=0.28u
+MM1N_96 m2_96 m1_96 0 0 nmos w=0.55u l=0.28u 
+MM2P_96 m3_96 m2_96 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_96 m3_96 m2_96 0 0 nmos w=0.3u l=0.28u 
+MTG2P_96 m3_96 CLKB m1_96 VDD pmos w=0.6u l=0.28u 
+MTG2N_96 m3_96 CLK m1_96 0 nmos w=0.3u l=0.28u 
+MTG3P_96 m2_96 CLKB s1_96 VDD pmos w=1.1u l=0.28u
+MTG3N_96 m2_96 CLK s1_96 0 nmos w=0.55u l=0.28u 
+MS1P_96 Q96 s1_96 VDD VDD pmos w=1.1u l=0.28u
+MS1N_96 Q96 s1_96 0 0 nmos w=0.55u l=0.28u 
+MS2P_96 s3_96 Q96 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_96 s3_96 Q96 0 0 nmos w=0.3u l=0.28u 
+MTG4P_96 s3_96 CLK s1_96 VDD pmos w=0.6u l=0.28u 
+MTG4N_96 s3_96 CLKB s1_96 0 nmos w=0.3u l=0.28u 
+
+* Stage 97
+MTG1P_97 Q96 CLK m1_97 VDD pmos w=1.1u l=0.28u
+MTG1N_97 Q96 CLKB m1_97 0 nmos w=0.55u l=0.28u 
+MM1P_97 m2_97 m1_97 VDD VDD pmos w=1.1u l=0.28u
+MM1N_97 m2_97 m1_97 0 0 nmos w=0.55u l=0.28u 
+MM2P_97 m3_97 m2_97 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_97 m3_97 m2_97 0 0 nmos w=0.3u l=0.28u 
+MTG2P_97 m3_97 CLKB m1_97 VDD pmos w=0.6u l=0.28u 
+MTG2N_97 m3_97 CLK m1_97 0 nmos w=0.3u l=0.28u 
+MTG3P_97 m2_97 CLKB s1_97 VDD pmos w=1.1u l=0.28u
+MTG3N_97 m2_97 CLK s1_97 0 nmos w=0.55u l=0.28u 
+MS1P_97 Q97 s1_97 VDD VDD pmos w=1.1u l=0.28u
+MS1N_97 Q97 s1_97 0 0 nmos w=0.55u l=0.28u 
+MS2P_97 s3_97 Q97 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_97 s3_97 Q97 0 0 nmos w=0.3u l=0.28u 
+MTG4P_97 s3_97 CLK s1_97 VDD pmos w=0.6u l=0.28u 
+MTG4N_97 s3_97 CLKB s1_97 0 nmos w=0.3u l=0.28u 
+
+* Stage 98
+MTG1P_98 Q97 CLK m1_98 VDD pmos w=1.1u l=0.28u
+MTG1N_98 Q97 CLKB m1_98 0 nmos w=0.55u l=0.28u 
+MM1P_98 m2_98 m1_98 VDD VDD pmos w=1.1u l=0.28u
+MM1N_98 m2_98 m1_98 0 0 nmos w=0.55u l=0.28u 
+MM2P_98 m3_98 m2_98 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_98 m3_98 m2_98 0 0 nmos w=0.3u l=0.28u 
+MTG2P_98 m3_98 CLKB m1_98 VDD pmos w=0.6u l=0.28u 
+MTG2N_98 m3_98 CLK m1_98 0 nmos w=0.3u l=0.28u 
+MTG3P_98 m2_98 CLKB s1_98 VDD pmos w=1.1u l=0.28u
+MTG3N_98 m2_98 CLK s1_98 0 nmos w=0.55u l=0.28u 
+MS1P_98 Q98 s1_98 VDD VDD pmos w=1.1u l=0.28u
+MS1N_98 Q98 s1_98 0 0 nmos w=0.55u l=0.28u 
+MS2P_98 s3_98 Q98 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_98 s3_98 Q98 0 0 nmos w=0.3u l=0.28u 
+MTG4P_98 s3_98 CLK s1_98 VDD pmos w=0.6u l=0.28u 
+MTG4N_98 s3_98 CLKB s1_98 0 nmos w=0.3u l=0.28u 
+
+* Stage 99
+MTG1P_99 Q98 CLK m1_99 VDD pmos w=1.1u l=0.28u
+MTG1N_99 Q98 CLKB m1_99 0 nmos w=0.55u l=0.28u 
+MM1P_99 m2_99 m1_99 VDD VDD pmos w=1.1u l=0.28u
+MM1N_99 m2_99 m1_99 0 0 nmos w=0.55u l=0.28u 
+MM2P_99 m3_99 m2_99 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_99 m3_99 m2_99 0 0 nmos w=0.3u l=0.28u 
+MTG2P_99 m3_99 CLKB m1_99 VDD pmos w=0.6u l=0.28u 
+MTG2N_99 m3_99 CLK m1_99 0 nmos w=0.3u l=0.28u 
+MTG3P_99 m2_99 CLKB s1_99 VDD pmos w=1.1u l=0.28u
+MTG3N_99 m2_99 CLK s1_99 0 nmos w=0.55u l=0.28u 
+MS1P_99 Q99 s1_99 VDD VDD pmos w=1.1u l=0.28u
+MS1N_99 Q99 s1_99 0 0 nmos w=0.55u l=0.28u 
+MS2P_99 s3_99 Q99 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_99 s3_99 Q99 0 0 nmos w=0.3u l=0.28u 
+MTG4P_99 s3_99 CLK s1_99 VDD pmos w=0.6u l=0.28u 
+MTG4N_99 s3_99 CLKB s1_99 0 nmos w=0.3u l=0.28u 
+
+* Stage 100
+MTG1P_100 Q99 CLK m1_100 VDD pmos w=1.1u l=0.28u
+MTG1N_100 Q99 CLKB m1_100 0 nmos w=0.55u l=0.28u 
+MM1P_100 m2_100 m1_100 VDD VDD pmos w=1.1u l=0.28u
+MM1N_100 m2_100 m1_100 0 0 nmos w=0.55u l=0.28u 
+MM2P_100 m3_100 m2_100 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_100 m3_100 m2_100 0 0 nmos w=0.3u l=0.28u 
+MTG2P_100 m3_100 CLKB m1_100 VDD pmos w=0.6u l=0.28u 
+MTG2N_100 m3_100 CLK m1_100 0 nmos w=0.3u l=0.28u 
+MTG3P_100 m2_100 CLKB s1_100 VDD pmos w=1.1u l=0.28u
+MTG3N_100 m2_100 CLK s1_100 0 nmos w=0.55u l=0.28u 
+MS1P_100 Q100 s1_100 VDD VDD pmos w=1.1u l=0.28u
+MS1N_100 Q100 s1_100 0 0 nmos w=0.55u l=0.28u 
+MS2P_100 s3_100 Q100 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_100 s3_100 Q100 0 0 nmos w=0.3u l=0.28u 
+MTG4P_100 s3_100 CLK s1_100 VDD pmos w=0.6u l=0.28u 
+MTG4N_100 s3_100 CLKB s1_100 0 nmos w=0.3u l=0.28u 
+
+* Stage 101
+MTG1P_101 Q100 CLK m1_101 VDD pmos w=1.1u l=0.28u
+MTG1N_101 Q100 CLKB m1_101 0 nmos w=0.55u l=0.28u 
+MM1P_101 m2_101 m1_101 VDD VDD pmos w=1.1u l=0.28u
+MM1N_101 m2_101 m1_101 0 0 nmos w=0.55u l=0.28u 
+MM2P_101 m3_101 m2_101 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_101 m3_101 m2_101 0 0 nmos w=0.3u l=0.28u 
+MTG2P_101 m3_101 CLKB m1_101 VDD pmos w=0.6u l=0.28u 
+MTG2N_101 m3_101 CLK m1_101 0 nmos w=0.3u l=0.28u 
+MTG3P_101 m2_101 CLKB s1_101 VDD pmos w=1.1u l=0.28u
+MTG3N_101 m2_101 CLK s1_101 0 nmos w=0.55u l=0.28u 
+MS1P_101 Q101 s1_101 VDD VDD pmos w=1.1u l=0.28u
+MS1N_101 Q101 s1_101 0 0 nmos w=0.55u l=0.28u 
+MS2P_101 s3_101 Q101 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_101 s3_101 Q101 0 0 nmos w=0.3u l=0.28u 
+MTG4P_101 s3_101 CLK s1_101 VDD pmos w=0.6u l=0.28u 
+MTG4N_101 s3_101 CLKB s1_101 0 nmos w=0.3u l=0.28u 
+
+* Stage 102
+MTG1P_102 Q101 CLK m1_102 VDD pmos w=1.1u l=0.28u
+MTG1N_102 Q101 CLKB m1_102 0 nmos w=0.55u l=0.28u 
+MM1P_102 m2_102 m1_102 VDD VDD pmos w=1.1u l=0.28u
+MM1N_102 m2_102 m1_102 0 0 nmos w=0.55u l=0.28u 
+MM2P_102 m3_102 m2_102 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_102 m3_102 m2_102 0 0 nmos w=0.3u l=0.28u 
+MTG2P_102 m3_102 CLKB m1_102 VDD pmos w=0.6u l=0.28u 
+MTG2N_102 m3_102 CLK m1_102 0 nmos w=0.3u l=0.28u 
+MTG3P_102 m2_102 CLKB s1_102 VDD pmos w=1.1u l=0.28u
+MTG3N_102 m2_102 CLK s1_102 0 nmos w=0.55u l=0.28u 
+MS1P_102 Q102 s1_102 VDD VDD pmos w=1.1u l=0.28u
+MS1N_102 Q102 s1_102 0 0 nmos w=0.55u l=0.28u 
+MS2P_102 s3_102 Q102 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_102 s3_102 Q102 0 0 nmos w=0.3u l=0.28u 
+MTG4P_102 s3_102 CLK s1_102 VDD pmos w=0.6u l=0.28u 
+MTG4N_102 s3_102 CLKB s1_102 0 nmos w=0.3u l=0.28u 
+
+* Stage 103
+MTG1P_103 Q102 CLK m1_103 VDD pmos w=1.1u l=0.28u
+MTG1N_103 Q102 CLKB m1_103 0 nmos w=0.55u l=0.28u 
+MM1P_103 m2_103 m1_103 VDD VDD pmos w=1.1u l=0.28u
+MM1N_103 m2_103 m1_103 0 0 nmos w=0.55u l=0.28u 
+MM2P_103 m3_103 m2_103 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_103 m3_103 m2_103 0 0 nmos w=0.3u l=0.28u 
+MTG2P_103 m3_103 CLKB m1_103 VDD pmos w=0.6u l=0.28u 
+MTG2N_103 m3_103 CLK m1_103 0 nmos w=0.3u l=0.28u 
+MTG3P_103 m2_103 CLKB s1_103 VDD pmos w=1.1u l=0.28u
+MTG3N_103 m2_103 CLK s1_103 0 nmos w=0.55u l=0.28u 
+MS1P_103 Q103 s1_103 VDD VDD pmos w=1.1u l=0.28u
+MS1N_103 Q103 s1_103 0 0 nmos w=0.55u l=0.28u 
+MS2P_103 s3_103 Q103 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_103 s3_103 Q103 0 0 nmos w=0.3u l=0.28u 
+MTG4P_103 s3_103 CLK s1_103 VDD pmos w=0.6u l=0.28u 
+MTG4N_103 s3_103 CLKB s1_103 0 nmos w=0.3u l=0.28u 
+
+* Stage 104
+MTG1P_104 Q103 CLK m1_104 VDD pmos w=1.1u l=0.28u
+MTG1N_104 Q103 CLKB m1_104 0 nmos w=0.55u l=0.28u 
+MM1P_104 m2_104 m1_104 VDD VDD pmos w=1.1u l=0.28u
+MM1N_104 m2_104 m1_104 0 0 nmos w=0.55u l=0.28u 
+MM2P_104 m3_104 m2_104 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_104 m3_104 m2_104 0 0 nmos w=0.3u l=0.28u 
+MTG2P_104 m3_104 CLKB m1_104 VDD pmos w=0.6u l=0.28u 
+MTG2N_104 m3_104 CLK m1_104 0 nmos w=0.3u l=0.28u 
+MTG3P_104 m2_104 CLKB s1_104 VDD pmos w=1.1u l=0.28u
+MTG3N_104 m2_104 CLK s1_104 0 nmos w=0.55u l=0.28u 
+MS1P_104 Q104 s1_104 VDD VDD pmos w=1.1u l=0.28u
+MS1N_104 Q104 s1_104 0 0 nmos w=0.55u l=0.28u 
+MS2P_104 s3_104 Q104 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_104 s3_104 Q104 0 0 nmos w=0.3u l=0.28u 
+MTG4P_104 s3_104 CLK s1_104 VDD pmos w=0.6u l=0.28u 
+MTG4N_104 s3_104 CLKB s1_104 0 nmos w=0.3u l=0.28u 
+
+* Stage 105
+MTG1P_105 Q104 CLK m1_105 VDD pmos w=1.1u l=0.28u
+MTG1N_105 Q104 CLKB m1_105 0 nmos w=0.55u l=0.28u 
+MM1P_105 m2_105 m1_105 VDD VDD pmos w=1.1u l=0.28u
+MM1N_105 m2_105 m1_105 0 0 nmos w=0.55u l=0.28u 
+MM2P_105 m3_105 m2_105 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_105 m3_105 m2_105 0 0 nmos w=0.3u l=0.28u 
+MTG2P_105 m3_105 CLKB m1_105 VDD pmos w=0.6u l=0.28u 
+MTG2N_105 m3_105 CLK m1_105 0 nmos w=0.3u l=0.28u 
+MTG3P_105 m2_105 CLKB s1_105 VDD pmos w=1.1u l=0.28u
+MTG3N_105 m2_105 CLK s1_105 0 nmos w=0.55u l=0.28u 
+MS1P_105 Q105 s1_105 VDD VDD pmos w=1.1u l=0.28u
+MS1N_105 Q105 s1_105 0 0 nmos w=0.55u l=0.28u 
+MS2P_105 s3_105 Q105 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_105 s3_105 Q105 0 0 nmos w=0.3u l=0.28u 
+MTG4P_105 s3_105 CLK s1_105 VDD pmos w=0.6u l=0.28u 
+MTG4N_105 s3_105 CLKB s1_105 0 nmos w=0.3u l=0.28u 
+
+* Stage 106
+MTG1P_106 Q105 CLK m1_106 VDD pmos w=1.1u l=0.28u
+MTG1N_106 Q105 CLKB m1_106 0 nmos w=0.55u l=0.28u 
+MM1P_106 m2_106 m1_106 VDD VDD pmos w=1.1u l=0.28u
+MM1N_106 m2_106 m1_106 0 0 nmos w=0.55u l=0.28u 
+MM2P_106 m3_106 m2_106 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_106 m3_106 m2_106 0 0 nmos w=0.3u l=0.28u 
+MTG2P_106 m3_106 CLKB m1_106 VDD pmos w=0.6u l=0.28u 
+MTG2N_106 m3_106 CLK m1_106 0 nmos w=0.3u l=0.28u 
+MTG3P_106 m2_106 CLKB s1_106 VDD pmos w=1.1u l=0.28u
+MTG3N_106 m2_106 CLK s1_106 0 nmos w=0.55u l=0.28u 
+MS1P_106 Q106 s1_106 VDD VDD pmos w=1.1u l=0.28u
+MS1N_106 Q106 s1_106 0 0 nmos w=0.55u l=0.28u 
+MS2P_106 s3_106 Q106 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_106 s3_106 Q106 0 0 nmos w=0.3u l=0.28u 
+MTG4P_106 s3_106 CLK s1_106 VDD pmos w=0.6u l=0.28u 
+MTG4N_106 s3_106 CLKB s1_106 0 nmos w=0.3u l=0.28u 
+
+* Stage 107
+MTG1P_107 Q106 CLK m1_107 VDD pmos w=1.1u l=0.28u
+MTG1N_107 Q106 CLKB m1_107 0 nmos w=0.55u l=0.28u 
+MM1P_107 m2_107 m1_107 VDD VDD pmos w=1.1u l=0.28u
+MM1N_107 m2_107 m1_107 0 0 nmos w=0.55u l=0.28u 
+MM2P_107 m3_107 m2_107 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_107 m3_107 m2_107 0 0 nmos w=0.3u l=0.28u 
+MTG2P_107 m3_107 CLKB m1_107 VDD pmos w=0.6u l=0.28u 
+MTG2N_107 m3_107 CLK m1_107 0 nmos w=0.3u l=0.28u 
+MTG3P_107 m2_107 CLKB s1_107 VDD pmos w=1.1u l=0.28u
+MTG3N_107 m2_107 CLK s1_107 0 nmos w=0.55u l=0.28u 
+MS1P_107 Q107 s1_107 VDD VDD pmos w=1.1u l=0.28u
+MS1N_107 Q107 s1_107 0 0 nmos w=0.55u l=0.28u 
+MS2P_107 s3_107 Q107 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_107 s3_107 Q107 0 0 nmos w=0.3u l=0.28u 
+MTG4P_107 s3_107 CLK s1_107 VDD pmos w=0.6u l=0.28u 
+MTG4N_107 s3_107 CLKB s1_107 0 nmos w=0.3u l=0.28u 
+
+* Stage 108
+MTG1P_108 Q107 CLK m1_108 VDD pmos w=1.1u l=0.28u
+MTG1N_108 Q107 CLKB m1_108 0 nmos w=0.55u l=0.28u 
+MM1P_108 m2_108 m1_108 VDD VDD pmos w=1.1u l=0.28u
+MM1N_108 m2_108 m1_108 0 0 nmos w=0.55u l=0.28u 
+MM2P_108 m3_108 m2_108 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_108 m3_108 m2_108 0 0 nmos w=0.3u l=0.28u 
+MTG2P_108 m3_108 CLKB m1_108 VDD pmos w=0.6u l=0.28u 
+MTG2N_108 m3_108 CLK m1_108 0 nmos w=0.3u l=0.28u 
+MTG3P_108 m2_108 CLKB s1_108 VDD pmos w=1.1u l=0.28u
+MTG3N_108 m2_108 CLK s1_108 0 nmos w=0.55u l=0.28u 
+MS1P_108 Q108 s1_108 VDD VDD pmos w=1.1u l=0.28u
+MS1N_108 Q108 s1_108 0 0 nmos w=0.55u l=0.28u 
+MS2P_108 s3_108 Q108 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_108 s3_108 Q108 0 0 nmos w=0.3u l=0.28u 
+MTG4P_108 s3_108 CLK s1_108 VDD pmos w=0.6u l=0.28u 
+MTG4N_108 s3_108 CLKB s1_108 0 nmos w=0.3u l=0.28u 
+
+* Stage 109
+MTG1P_109 Q108 CLK m1_109 VDD pmos w=1.1u l=0.28u
+MTG1N_109 Q108 CLKB m1_109 0 nmos w=0.55u l=0.28u 
+MM1P_109 m2_109 m1_109 VDD VDD pmos w=1.1u l=0.28u
+MM1N_109 m2_109 m1_109 0 0 nmos w=0.55u l=0.28u 
+MM2P_109 m3_109 m2_109 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_109 m3_109 m2_109 0 0 nmos w=0.3u l=0.28u 
+MTG2P_109 m3_109 CLKB m1_109 VDD pmos w=0.6u l=0.28u 
+MTG2N_109 m3_109 CLK m1_109 0 nmos w=0.3u l=0.28u 
+MTG3P_109 m2_109 CLKB s1_109 VDD pmos w=1.1u l=0.28u
+MTG3N_109 m2_109 CLK s1_109 0 nmos w=0.55u l=0.28u 
+MS1P_109 Q109 s1_109 VDD VDD pmos w=1.1u l=0.28u
+MS1N_109 Q109 s1_109 0 0 nmos w=0.55u l=0.28u 
+MS2P_109 s3_109 Q109 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_109 s3_109 Q109 0 0 nmos w=0.3u l=0.28u 
+MTG4P_109 s3_109 CLK s1_109 VDD pmos w=0.6u l=0.28u 
+MTG4N_109 s3_109 CLKB s1_109 0 nmos w=0.3u l=0.28u 
+
+* Stage 110
+MTG1P_110 Q109 CLK m1_110 VDD pmos w=1.1u l=0.28u
+MTG1N_110 Q109 CLKB m1_110 0 nmos w=0.55u l=0.28u 
+MM1P_110 m2_110 m1_110 VDD VDD pmos w=1.1u l=0.28u
+MM1N_110 m2_110 m1_110 0 0 nmos w=0.55u l=0.28u 
+MM2P_110 m3_110 m2_110 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_110 m3_110 m2_110 0 0 nmos w=0.3u l=0.28u 
+MTG2P_110 m3_110 CLKB m1_110 VDD pmos w=0.6u l=0.28u 
+MTG2N_110 m3_110 CLK m1_110 0 nmos w=0.3u l=0.28u 
+MTG3P_110 m2_110 CLKB s1_110 VDD pmos w=1.1u l=0.28u
+MTG3N_110 m2_110 CLK s1_110 0 nmos w=0.55u l=0.28u 
+MS1P_110 Q110 s1_110 VDD VDD pmos w=1.1u l=0.28u
+MS1N_110 Q110 s1_110 0 0 nmos w=0.55u l=0.28u 
+MS2P_110 s3_110 Q110 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_110 s3_110 Q110 0 0 nmos w=0.3u l=0.28u 
+MTG4P_110 s3_110 CLK s1_110 VDD pmos w=0.6u l=0.28u 
+MTG4N_110 s3_110 CLKB s1_110 0 nmos w=0.3u l=0.28u 
+
+* Stage 111
+MTG1P_111 Q110 CLK m1_111 VDD pmos w=1.1u l=0.28u
+MTG1N_111 Q110 CLKB m1_111 0 nmos w=0.55u l=0.28u 
+MM1P_111 m2_111 m1_111 VDD VDD pmos w=1.1u l=0.28u
+MM1N_111 m2_111 m1_111 0 0 nmos w=0.55u l=0.28u 
+MM2P_111 m3_111 m2_111 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_111 m3_111 m2_111 0 0 nmos w=0.3u l=0.28u 
+MTG2P_111 m3_111 CLKB m1_111 VDD pmos w=0.6u l=0.28u 
+MTG2N_111 m3_111 CLK m1_111 0 nmos w=0.3u l=0.28u 
+MTG3P_111 m2_111 CLKB s1_111 VDD pmos w=1.1u l=0.28u
+MTG3N_111 m2_111 CLK s1_111 0 nmos w=0.55u l=0.28u 
+MS1P_111 Q111 s1_111 VDD VDD pmos w=1.1u l=0.28u
+MS1N_111 Q111 s1_111 0 0 nmos w=0.55u l=0.28u 
+MS2P_111 s3_111 Q111 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_111 s3_111 Q111 0 0 nmos w=0.3u l=0.28u 
+MTG4P_111 s3_111 CLK s1_111 VDD pmos w=0.6u l=0.28u 
+MTG4N_111 s3_111 CLKB s1_111 0 nmos w=0.3u l=0.28u 
+
+* Stage 112
+MTG1P_112 Q111 CLK m1_112 VDD pmos w=1.1u l=0.28u
+MTG1N_112 Q111 CLKB m1_112 0 nmos w=0.55u l=0.28u 
+MM1P_112 m2_112 m1_112 VDD VDD pmos w=1.1u l=0.28u
+MM1N_112 m2_112 m1_112 0 0 nmos w=0.55u l=0.28u 
+MM2P_112 m3_112 m2_112 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_112 m3_112 m2_112 0 0 nmos w=0.3u l=0.28u 
+MTG2P_112 m3_112 CLKB m1_112 VDD pmos w=0.6u l=0.28u 
+MTG2N_112 m3_112 CLK m1_112 0 nmos w=0.3u l=0.28u 
+MTG3P_112 m2_112 CLKB s1_112 VDD pmos w=1.1u l=0.28u
+MTG3N_112 m2_112 CLK s1_112 0 nmos w=0.55u l=0.28u 
+MS1P_112 Q112 s1_112 VDD VDD pmos w=1.1u l=0.28u
+MS1N_112 Q112 s1_112 0 0 nmos w=0.55u l=0.28u 
+MS2P_112 s3_112 Q112 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_112 s3_112 Q112 0 0 nmos w=0.3u l=0.28u 
+MTG4P_112 s3_112 CLK s1_112 VDD pmos w=0.6u l=0.28u 
+MTG4N_112 s3_112 CLKB s1_112 0 nmos w=0.3u l=0.28u 
+
+* Stage 113
+MTG1P_113 Q112 CLK m1_113 VDD pmos w=1.1u l=0.28u
+MTG1N_113 Q112 CLKB m1_113 0 nmos w=0.55u l=0.28u 
+MM1P_113 m2_113 m1_113 VDD VDD pmos w=1.1u l=0.28u
+MM1N_113 m2_113 m1_113 0 0 nmos w=0.55u l=0.28u 
+MM2P_113 m3_113 m2_113 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_113 m3_113 m2_113 0 0 nmos w=0.3u l=0.28u 
+MTG2P_113 m3_113 CLKB m1_113 VDD pmos w=0.6u l=0.28u 
+MTG2N_113 m3_113 CLK m1_113 0 nmos w=0.3u l=0.28u 
+MTG3P_113 m2_113 CLKB s1_113 VDD pmos w=1.1u l=0.28u
+MTG3N_113 m2_113 CLK s1_113 0 nmos w=0.55u l=0.28u 
+MS1P_113 Q113 s1_113 VDD VDD pmos w=1.1u l=0.28u
+MS1N_113 Q113 s1_113 0 0 nmos w=0.55u l=0.28u 
+MS2P_113 s3_113 Q113 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_113 s3_113 Q113 0 0 nmos w=0.3u l=0.28u 
+MTG4P_113 s3_113 CLK s1_113 VDD pmos w=0.6u l=0.28u 
+MTG4N_113 s3_113 CLKB s1_113 0 nmos w=0.3u l=0.28u 
+
+* Stage 114
+MTG1P_114 Q113 CLK m1_114 VDD pmos w=1.1u l=0.28u
+MTG1N_114 Q113 CLKB m1_114 0 nmos w=0.55u l=0.28u 
+MM1P_114 m2_114 m1_114 VDD VDD pmos w=1.1u l=0.28u
+MM1N_114 m2_114 m1_114 0 0 nmos w=0.55u l=0.28u 
+MM2P_114 m3_114 m2_114 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_114 m3_114 m2_114 0 0 nmos w=0.3u l=0.28u 
+MTG2P_114 m3_114 CLKB m1_114 VDD pmos w=0.6u l=0.28u 
+MTG2N_114 m3_114 CLK m1_114 0 nmos w=0.3u l=0.28u 
+MTG3P_114 m2_114 CLKB s1_114 VDD pmos w=1.1u l=0.28u
+MTG3N_114 m2_114 CLK s1_114 0 nmos w=0.55u l=0.28u 
+MS1P_114 Q114 s1_114 VDD VDD pmos w=1.1u l=0.28u
+MS1N_114 Q114 s1_114 0 0 nmos w=0.55u l=0.28u 
+MS2P_114 s3_114 Q114 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_114 s3_114 Q114 0 0 nmos w=0.3u l=0.28u 
+MTG4P_114 s3_114 CLK s1_114 VDD pmos w=0.6u l=0.28u 
+MTG4N_114 s3_114 CLKB s1_114 0 nmos w=0.3u l=0.28u 
+
+* Stage 115
+MTG1P_115 Q114 CLK m1_115 VDD pmos w=1.1u l=0.28u
+MTG1N_115 Q114 CLKB m1_115 0 nmos w=0.55u l=0.28u 
+MM1P_115 m2_115 m1_115 VDD VDD pmos w=1.1u l=0.28u
+MM1N_115 m2_115 m1_115 0 0 nmos w=0.55u l=0.28u 
+MM2P_115 m3_115 m2_115 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_115 m3_115 m2_115 0 0 nmos w=0.3u l=0.28u 
+MTG2P_115 m3_115 CLKB m1_115 VDD pmos w=0.6u l=0.28u 
+MTG2N_115 m3_115 CLK m1_115 0 nmos w=0.3u l=0.28u 
+MTG3P_115 m2_115 CLKB s1_115 VDD pmos w=1.1u l=0.28u
+MTG3N_115 m2_115 CLK s1_115 0 nmos w=0.55u l=0.28u 
+MS1P_115 Q115 s1_115 VDD VDD pmos w=1.1u l=0.28u
+MS1N_115 Q115 s1_115 0 0 nmos w=0.55u l=0.28u 
+MS2P_115 s3_115 Q115 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_115 s3_115 Q115 0 0 nmos w=0.3u l=0.28u 
+MTG4P_115 s3_115 CLK s1_115 VDD pmos w=0.6u l=0.28u 
+MTG4N_115 s3_115 CLKB s1_115 0 nmos w=0.3u l=0.28u 
+
+* Stage 116
+MTG1P_116 Q115 CLK m1_116 VDD pmos w=1.1u l=0.28u
+MTG1N_116 Q115 CLKB m1_116 0 nmos w=0.55u l=0.28u 
+MM1P_116 m2_116 m1_116 VDD VDD pmos w=1.1u l=0.28u
+MM1N_116 m2_116 m1_116 0 0 nmos w=0.55u l=0.28u 
+MM2P_116 m3_116 m2_116 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_116 m3_116 m2_116 0 0 nmos w=0.3u l=0.28u 
+MTG2P_116 m3_116 CLKB m1_116 VDD pmos w=0.6u l=0.28u 
+MTG2N_116 m3_116 CLK m1_116 0 nmos w=0.3u l=0.28u 
+MTG3P_116 m2_116 CLKB s1_116 VDD pmos w=1.1u l=0.28u
+MTG3N_116 m2_116 CLK s1_116 0 nmos w=0.55u l=0.28u 
+MS1P_116 Q116 s1_116 VDD VDD pmos w=1.1u l=0.28u
+MS1N_116 Q116 s1_116 0 0 nmos w=0.55u l=0.28u 
+MS2P_116 s3_116 Q116 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_116 s3_116 Q116 0 0 nmos w=0.3u l=0.28u 
+MTG4P_116 s3_116 CLK s1_116 VDD pmos w=0.6u l=0.28u 
+MTG4N_116 s3_116 CLKB s1_116 0 nmos w=0.3u l=0.28u 
+
+* Stage 117
+MTG1P_117 Q116 CLK m1_117 VDD pmos w=1.1u l=0.28u
+MTG1N_117 Q116 CLKB m1_117 0 nmos w=0.55u l=0.28u 
+MM1P_117 m2_117 m1_117 VDD VDD pmos w=1.1u l=0.28u
+MM1N_117 m2_117 m1_117 0 0 nmos w=0.55u l=0.28u 
+MM2P_117 m3_117 m2_117 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_117 m3_117 m2_117 0 0 nmos w=0.3u l=0.28u 
+MTG2P_117 m3_117 CLKB m1_117 VDD pmos w=0.6u l=0.28u 
+MTG2N_117 m3_117 CLK m1_117 0 nmos w=0.3u l=0.28u 
+MTG3P_117 m2_117 CLKB s1_117 VDD pmos w=1.1u l=0.28u
+MTG3N_117 m2_117 CLK s1_117 0 nmos w=0.55u l=0.28u 
+MS1P_117 Q117 s1_117 VDD VDD pmos w=1.1u l=0.28u
+MS1N_117 Q117 s1_117 0 0 nmos w=0.55u l=0.28u 
+MS2P_117 s3_117 Q117 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_117 s3_117 Q117 0 0 nmos w=0.3u l=0.28u 
+MTG4P_117 s3_117 CLK s1_117 VDD pmos w=0.6u l=0.28u 
+MTG4N_117 s3_117 CLKB s1_117 0 nmos w=0.3u l=0.28u 
+
+* Stage 118
+MTG1P_118 Q117 CLK m1_118 VDD pmos w=1.1u l=0.28u
+MTG1N_118 Q117 CLKB m1_118 0 nmos w=0.55u l=0.28u 
+MM1P_118 m2_118 m1_118 VDD VDD pmos w=1.1u l=0.28u
+MM1N_118 m2_118 m1_118 0 0 nmos w=0.55u l=0.28u 
+MM2P_118 m3_118 m2_118 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_118 m3_118 m2_118 0 0 nmos w=0.3u l=0.28u 
+MTG2P_118 m3_118 CLKB m1_118 VDD pmos w=0.6u l=0.28u 
+MTG2N_118 m3_118 CLK m1_118 0 nmos w=0.3u l=0.28u 
+MTG3P_118 m2_118 CLKB s1_118 VDD pmos w=1.1u l=0.28u
+MTG3N_118 m2_118 CLK s1_118 0 nmos w=0.55u l=0.28u 
+MS1P_118 Q118 s1_118 VDD VDD pmos w=1.1u l=0.28u
+MS1N_118 Q118 s1_118 0 0 nmos w=0.55u l=0.28u 
+MS2P_118 s3_118 Q118 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_118 s3_118 Q118 0 0 nmos w=0.3u l=0.28u 
+MTG4P_118 s3_118 CLK s1_118 VDD pmos w=0.6u l=0.28u 
+MTG4N_118 s3_118 CLKB s1_118 0 nmos w=0.3u l=0.28u 
+
+* Stage 119
+MTG1P_119 Q118 CLK m1_119 VDD pmos w=1.1u l=0.28u
+MTG1N_119 Q118 CLKB m1_119 0 nmos w=0.55u l=0.28u 
+MM1P_119 m2_119 m1_119 VDD VDD pmos w=1.1u l=0.28u
+MM1N_119 m2_119 m1_119 0 0 nmos w=0.55u l=0.28u 
+MM2P_119 m3_119 m2_119 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_119 m3_119 m2_119 0 0 nmos w=0.3u l=0.28u 
+MTG2P_119 m3_119 CLKB m1_119 VDD pmos w=0.6u l=0.28u 
+MTG2N_119 m3_119 CLK m1_119 0 nmos w=0.3u l=0.28u 
+MTG3P_119 m2_119 CLKB s1_119 VDD pmos w=1.1u l=0.28u
+MTG3N_119 m2_119 CLK s1_119 0 nmos w=0.55u l=0.28u 
+MS1P_119 Q119 s1_119 VDD VDD pmos w=1.1u l=0.28u
+MS1N_119 Q119 s1_119 0 0 nmos w=0.55u l=0.28u 
+MS2P_119 s3_119 Q119 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_119 s3_119 Q119 0 0 nmos w=0.3u l=0.28u 
+MTG4P_119 s3_119 CLK s1_119 VDD pmos w=0.6u l=0.28u 
+MTG4N_119 s3_119 CLKB s1_119 0 nmos w=0.3u l=0.28u 
+
+* Stage 120
+MTG1P_120 Q119 CLK m1_120 VDD pmos w=1.1u l=0.28u
+MTG1N_120 Q119 CLKB m1_120 0 nmos w=0.55u l=0.28u 
+MM1P_120 m2_120 m1_120 VDD VDD pmos w=1.1u l=0.28u
+MM1N_120 m2_120 m1_120 0 0 nmos w=0.55u l=0.28u 
+MM2P_120 m3_120 m2_120 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_120 m3_120 m2_120 0 0 nmos w=0.3u l=0.28u 
+MTG2P_120 m3_120 CLKB m1_120 VDD pmos w=0.6u l=0.28u 
+MTG2N_120 m3_120 CLK m1_120 0 nmos w=0.3u l=0.28u 
+MTG3P_120 m2_120 CLKB s1_120 VDD pmos w=1.1u l=0.28u
+MTG3N_120 m2_120 CLK s1_120 0 nmos w=0.55u l=0.28u 
+MS1P_120 Q120 s1_120 VDD VDD pmos w=1.1u l=0.28u
+MS1N_120 Q120 s1_120 0 0 nmos w=0.55u l=0.28u 
+MS2P_120 s3_120 Q120 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_120 s3_120 Q120 0 0 nmos w=0.3u l=0.28u 
+MTG4P_120 s3_120 CLK s1_120 VDD pmos w=0.6u l=0.28u 
+MTG4N_120 s3_120 CLKB s1_120 0 nmos w=0.3u l=0.28u 
+
+* Stage 121
+MTG1P_121 Q120 CLK m1_121 VDD pmos w=1.1u l=0.28u
+MTG1N_121 Q120 CLKB m1_121 0 nmos w=0.55u l=0.28u 
+MM1P_121 m2_121 m1_121 VDD VDD pmos w=1.1u l=0.28u
+MM1N_121 m2_121 m1_121 0 0 nmos w=0.55u l=0.28u 
+MM2P_121 m3_121 m2_121 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_121 m3_121 m2_121 0 0 nmos w=0.3u l=0.28u 
+MTG2P_121 m3_121 CLKB m1_121 VDD pmos w=0.6u l=0.28u 
+MTG2N_121 m3_121 CLK m1_121 0 nmos w=0.3u l=0.28u 
+MTG3P_121 m2_121 CLKB s1_121 VDD pmos w=1.1u l=0.28u
+MTG3N_121 m2_121 CLK s1_121 0 nmos w=0.55u l=0.28u 
+MS1P_121 Q121 s1_121 VDD VDD pmos w=1.1u l=0.28u
+MS1N_121 Q121 s1_121 0 0 nmos w=0.55u l=0.28u 
+MS2P_121 s3_121 Q121 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_121 s3_121 Q121 0 0 nmos w=0.3u l=0.28u 
+MTG4P_121 s3_121 CLK s1_121 VDD pmos w=0.6u l=0.28u 
+MTG4N_121 s3_121 CLKB s1_121 0 nmos w=0.3u l=0.28u 
+
+* Stage 122
+MTG1P_122 Q121 CLK m1_122 VDD pmos w=1.1u l=0.28u
+MTG1N_122 Q121 CLKB m1_122 0 nmos w=0.55u l=0.28u 
+MM1P_122 m2_122 m1_122 VDD VDD pmos w=1.1u l=0.28u
+MM1N_122 m2_122 m1_122 0 0 nmos w=0.55u l=0.28u 
+MM2P_122 m3_122 m2_122 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_122 m3_122 m2_122 0 0 nmos w=0.3u l=0.28u 
+MTG2P_122 m3_122 CLKB m1_122 VDD pmos w=0.6u l=0.28u 
+MTG2N_122 m3_122 CLK m1_122 0 nmos w=0.3u l=0.28u 
+MTG3P_122 m2_122 CLKB s1_122 VDD pmos w=1.1u l=0.28u
+MTG3N_122 m2_122 CLK s1_122 0 nmos w=0.55u l=0.28u 
+MS1P_122 Q122 s1_122 VDD VDD pmos w=1.1u l=0.28u
+MS1N_122 Q122 s1_122 0 0 nmos w=0.55u l=0.28u 
+MS2P_122 s3_122 Q122 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_122 s3_122 Q122 0 0 nmos w=0.3u l=0.28u 
+MTG4P_122 s3_122 CLK s1_122 VDD pmos w=0.6u l=0.28u 
+MTG4N_122 s3_122 CLKB s1_122 0 nmos w=0.3u l=0.28u 
+
+* Stage 123
+MTG1P_123 Q122 CLK m1_123 VDD pmos w=1.1u l=0.28u
+MTG1N_123 Q122 CLKB m1_123 0 nmos w=0.55u l=0.28u 
+MM1P_123 m2_123 m1_123 VDD VDD pmos w=1.1u l=0.28u
+MM1N_123 m2_123 m1_123 0 0 nmos w=0.55u l=0.28u 
+MM2P_123 m3_123 m2_123 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_123 m3_123 m2_123 0 0 nmos w=0.3u l=0.28u 
+MTG2P_123 m3_123 CLKB m1_123 VDD pmos w=0.6u l=0.28u 
+MTG2N_123 m3_123 CLK m1_123 0 nmos w=0.3u l=0.28u 
+MTG3P_123 m2_123 CLKB s1_123 VDD pmos w=1.1u l=0.28u
+MTG3N_123 m2_123 CLK s1_123 0 nmos w=0.55u l=0.28u 
+MS1P_123 Q123 s1_123 VDD VDD pmos w=1.1u l=0.28u
+MS1N_123 Q123 s1_123 0 0 nmos w=0.55u l=0.28u 
+MS2P_123 s3_123 Q123 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_123 s3_123 Q123 0 0 nmos w=0.3u l=0.28u 
+MTG4P_123 s3_123 CLK s1_123 VDD pmos w=0.6u l=0.28u 
+MTG4N_123 s3_123 CLKB s1_123 0 nmos w=0.3u l=0.28u 
+
+* Stage 124
+MTG1P_124 Q123 CLK m1_124 VDD pmos w=1.1u l=0.28u
+MTG1N_124 Q123 CLKB m1_124 0 nmos w=0.55u l=0.28u 
+MM1P_124 m2_124 m1_124 VDD VDD pmos w=1.1u l=0.28u
+MM1N_124 m2_124 m1_124 0 0 nmos w=0.55u l=0.28u 
+MM2P_124 m3_124 m2_124 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_124 m3_124 m2_124 0 0 nmos w=0.3u l=0.28u 
+MTG2P_124 m3_124 CLKB m1_124 VDD pmos w=0.6u l=0.28u 
+MTG2N_124 m3_124 CLK m1_124 0 nmos w=0.3u l=0.28u 
+MTG3P_124 m2_124 CLKB s1_124 VDD pmos w=1.1u l=0.28u
+MTG3N_124 m2_124 CLK s1_124 0 nmos w=0.55u l=0.28u 
+MS1P_124 Q124 s1_124 VDD VDD pmos w=1.1u l=0.28u
+MS1N_124 Q124 s1_124 0 0 nmos w=0.55u l=0.28u 
+MS2P_124 s3_124 Q124 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_124 s3_124 Q124 0 0 nmos w=0.3u l=0.28u 
+MTG4P_124 s3_124 CLK s1_124 VDD pmos w=0.6u l=0.28u 
+MTG4N_124 s3_124 CLKB s1_124 0 nmos w=0.3u l=0.28u 
+
+* Stage 125
+MTG1P_125 Q124 CLK m1_125 VDD pmos w=1.1u l=0.28u
+MTG1N_125 Q124 CLKB m1_125 0 nmos w=0.55u l=0.28u 
+MM1P_125 m2_125 m1_125 VDD VDD pmos w=1.1u l=0.28u
+MM1N_125 m2_125 m1_125 0 0 nmos w=0.55u l=0.28u 
+MM2P_125 m3_125 m2_125 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_125 m3_125 m2_125 0 0 nmos w=0.3u l=0.28u 
+MTG2P_125 m3_125 CLKB m1_125 VDD pmos w=0.6u l=0.28u 
+MTG2N_125 m3_125 CLK m1_125 0 nmos w=0.3u l=0.28u 
+MTG3P_125 m2_125 CLKB s1_125 VDD pmos w=1.1u l=0.28u
+MTG3N_125 m2_125 CLK s1_125 0 nmos w=0.55u l=0.28u 
+MS1P_125 Q125 s1_125 VDD VDD pmos w=1.1u l=0.28u
+MS1N_125 Q125 s1_125 0 0 nmos w=0.55u l=0.28u 
+MS2P_125 s3_125 Q125 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_125 s3_125 Q125 0 0 nmos w=0.3u l=0.28u 
+MTG4P_125 s3_125 CLK s1_125 VDD pmos w=0.6u l=0.28u 
+MTG4N_125 s3_125 CLKB s1_125 0 nmos w=0.3u l=0.28u 
+
+* Stage 126
+MTG1P_126 Q125 CLK m1_126 VDD pmos w=1.1u l=0.28u
+MTG1N_126 Q125 CLKB m1_126 0 nmos w=0.55u l=0.28u 
+MM1P_126 m2_126 m1_126 VDD VDD pmos w=1.1u l=0.28u
+MM1N_126 m2_126 m1_126 0 0 nmos w=0.55u l=0.28u 
+MM2P_126 m3_126 m2_126 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_126 m3_126 m2_126 0 0 nmos w=0.3u l=0.28u 
+MTG2P_126 m3_126 CLKB m1_126 VDD pmos w=0.6u l=0.28u 
+MTG2N_126 m3_126 CLK m1_126 0 nmos w=0.3u l=0.28u 
+MTG3P_126 m2_126 CLKB s1_126 VDD pmos w=1.1u l=0.28u
+MTG3N_126 m2_126 CLK s1_126 0 nmos w=0.55u l=0.28u 
+MS1P_126 Q126 s1_126 VDD VDD pmos w=1.1u l=0.28u
+MS1N_126 Q126 s1_126 0 0 nmos w=0.55u l=0.28u 
+MS2P_126 s3_126 Q126 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_126 s3_126 Q126 0 0 nmos w=0.3u l=0.28u 
+MTG4P_126 s3_126 CLK s1_126 VDD pmos w=0.6u l=0.28u 
+MTG4N_126 s3_126 CLKB s1_126 0 nmos w=0.3u l=0.28u 
+
+* Stage 127
+MTG1P_127 Q126 CLK m1_127 VDD pmos w=1.1u l=0.28u
+MTG1N_127 Q126 CLKB m1_127 0 nmos w=0.55u l=0.28u 
+MM1P_127 m2_127 m1_127 VDD VDD pmos w=1.1u l=0.28u
+MM1N_127 m2_127 m1_127 0 0 nmos w=0.55u l=0.28u 
+MM2P_127 m3_127 m2_127 VDD VDD pmos w=0.6u l=0.28u 
+MM2N_127 m3_127 m2_127 0 0 nmos w=0.3u l=0.28u 
+MTG2P_127 m3_127 CLKB m1_127 VDD pmos w=0.6u l=0.28u 
+MTG2N_127 m3_127 CLK m1_127 0 nmos w=0.3u l=0.28u 
+MTG3P_127 m2_127 CLKB s1_127 VDD pmos w=1.1u l=0.28u
+MTG3N_127 m2_127 CLK s1_127 0 nmos w=0.55u l=0.28u 
+MS1P_127 Q127 s1_127 VDD VDD pmos w=1.1u l=0.28u
+MS1N_127 Q127 s1_127 0 0 nmos w=0.55u l=0.28u 
+MS2P_127 s3_127 Q127 VDD VDD pmos w=0.6u l=0.28u 
+MS2N_127 s3_127 Q127 0 0 nmos w=0.3u l=0.28u 
+MTG4P_127 s3_127 CLK s1_127 VDD pmos w=0.6u l=0.28u 
+MTG4N_127 s3_127 CLKB s1_127 0 nmos w=0.3u l=0.28u 
+
+.tran 1p {period*22.6}
+
+.end
