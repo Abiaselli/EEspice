@@ -1,0 +1,97 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 23,
+        "patch": 0
+    },
+
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_PREFIX_PATH": "$env{HOME}/.local"
+            }
+        },
+
+        { "name": "base-debug",     "hidden": true, "inherits": "base", "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug"     } },
+        { "name": "base-benchmark", "hidden": true, "inherits": "base", "cacheVariables": { "CMAKE_BUILD_TYPE": "Benchmark" } },
+        { "name": "base-release",   "hidden": true, "inherits": "base", "cacheVariables": { "CMAKE_BUILD_TYPE": "Release"   } },
+
+        {
+            "name": "base-mkl",
+            "hidden": true,
+            "cacheVariables": {
+                "EESPICE_BLAS_BACKEND": "MKL",
+                "CMAKE_CXX_COMPILER": "/usr/bin/g++-13"
+            },
+            "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" }
+        },
+        {
+            "name": "base-aocl",
+            "hidden": true,
+            "cacheVariables": {
+                "EESPICE_BLAS_BACKEND": "AOCL",
+                "CMAKE_CXX_COMPILER": "/usr/bin/g++-13",
+                "AOCL_BLIS_ROOT":  "$env{HOME}/Downloads/aocl-blis-linux-gcc-5.1.0/amd-blis",
+                "AOCL_FLAME_ROOT": "$env{HOME}/Downloads/aocl-libflame-linux-gcc-5.1.0/amd-libflame"
+            },
+            "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" }
+        },
+        {
+            "name": "base-openblas",
+            "hidden": true,
+            "cacheVariables": {
+                "EESPICE_BLAS_BACKEND": "OpenBLAS",
+                "CMAKE_CXX_COMPILER": "/usr/bin/g++-13"
+            },
+            "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" }
+        },
+        {
+            "name": "base-accelerate",
+            "hidden": true,
+            "cacheVariables": {
+                "EESPICE_BLAS_BACKEND": "Accelerate"
+            },
+            "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" }
+        },
+
+        { "name": "mkl-debug",           "inherits": ["base-mkl",        "base-debug"    ], "displayName": "MKL / Debug"            },
+        { "name": "mkl-benchmark",       "inherits": ["base-mkl",        "base-benchmark"], "displayName": "MKL / Benchmark"        },
+        { "name": "mkl-release",         "inherits": ["base-mkl",        "base-release"  ], "displayName": "MKL / Release"          },
+
+        { "name": "aocl-debug",          "inherits": ["base-aocl",       "base-debug"    ], "displayName": "AOCL / Debug"           },
+        { "name": "aocl-benchmark",      "inherits": ["base-aocl",       "base-benchmark"], "displayName": "AOCL / Benchmark"       },
+        { "name": "aocl-release",        "inherits": ["base-aocl",       "base-release"  ], "displayName": "AOCL / Release"         },
+
+        { "name": "openblas-debug",      "inherits": ["base-openblas",   "base-debug"    ], "displayName": "OpenBLAS / Debug"       },
+        { "name": "openblas-benchmark",  "inherits": ["base-openblas",   "base-benchmark"], "displayName": "OpenBLAS / Benchmark"   },
+        { "name": "openblas-release",    "inherits": ["base-openblas",   "base-release"  ], "displayName": "OpenBLAS / Release"     },
+
+        { "name": "accelerate-debug",      "inherits": ["base-accelerate", "base-debug"    ], "displayName": "Accelerate / Debug"     },
+        { "name": "accelerate-benchmark",  "inherits": ["base-accelerate", "base-benchmark"], "displayName": "Accelerate / Benchmark" },
+        { "name": "accelerate-release",    "inherits": ["base-accelerate", "base-release"  ], "displayName": "Accelerate / Release"   }
+    ],
+
+    "buildPresets": [
+        { "name": "mkl-debug",           "configurePreset": "mkl-debug"          },
+        { "name": "mkl-benchmark",       "configurePreset": "mkl-benchmark"      },
+        { "name": "mkl-release",         "configurePreset": "mkl-release"        },
+
+        { "name": "aocl-debug",          "configurePreset": "aocl-debug"         },
+        { "name": "aocl-benchmark",      "configurePreset": "aocl-benchmark"     },
+        { "name": "aocl-release",        "configurePreset": "aocl-release"       },
+
+        { "name": "openblas-debug",      "configurePreset": "openblas-debug"     },
+        { "name": "openblas-benchmark",  "configurePreset": "openblas-benchmark" },
+        { "name": "openblas-release",    "configurePreset": "openblas-release"   },
+
+        { "name": "accelerate-debug",      "configurePreset": "accelerate-debug"     },
+        { "name": "accelerate-benchmark",  "configurePreset": "accelerate-benchmark" },
+        { "name": "accelerate-release",    "configurePreset": "accelerate-release"   }
+    ]
+}

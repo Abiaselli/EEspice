@@ -3,6 +3,7 @@
 *.so
 *.csv
 *.txt
+!CMakeLists.txt
 *.data
 *.png
 output.txt
@@ -14,5 +15,4 @@ test.cpp
 CLAUDE.md
 massif.out.*
 venv
-
 
