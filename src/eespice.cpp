@@ -1,7 +1,3 @@
-#define ARMA_DONT_USE_WRAPPER
-#define ARMA_USE_MKL_ALLOC
-#define ARMA_USE_SUPERLU
-
 #include <omp.h>
 #include "model_setup.hpp"
 #include "Transient.hpp"
