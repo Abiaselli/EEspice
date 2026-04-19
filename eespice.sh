@@ -9,7 +9,11 @@ show_help() {
     echo "Usage: ./eespice.sh [command] [arguments]"
     echo ""
     echo "Commands:"
-    echo "  build         Build the EEspice Docker image"
+    echo "  build [options] Build the EEspice Docker image"
+    echo "      --native            Compile with -march=native (best performance for this machine)"
+    echo "      --native arm64      Compile for generic modern ARM64 (armv8-a)"
+    echo "      --native x86        Compile for generic modern x86-64 (x86-64-v3)"
+    echo "      (default)           Compile for generic baseline (x86-64 or armv8-a)"
     echo "  run [file]    Run a simulation (e.g., ./eespice.sh run Netlist/Inverter.cir)"
     echo "  shell         Open an interactive shell inside the container"
     echo "  help          Show this help message"
@@ -18,8 +22,37 @@ show_help() {
 
 case "$1" in
     build)
-        echo "Building EEspice Docker image..."
-        docker build -t $IMAGE_NAME .
+        # Default to generic baseline
+        if [[ "$(uname -m)" == "x86_64" ]]; then
+            MARCH="x86-64"
+        else
+            MARCH="armv8-a"
+        fi
+
+        shift
+        while [[ $# -gt 0 ]]; do
+            case $1 in
+                --native)
+                    if [[ "$2" == "arm64" ]]; then
+                        MARCH="armv8-a"
+                        shift 2
+                    elif [[ "$2" == "x86" ]]; then
+                        MARCH="x86-64-v3"
+                        shift 2
+                    else
+                        MARCH="native"
+                        shift
+                    fi
+                    ;;
+                *)
+                    echo "Unknown build option: $1"
+                    exit 1
+                    ;;
+            esac
+        done
+
+        echo "Building EEspice Docker image with MARCH=$MARCH..."
+        docker build --build-arg MARCH=$MARCH -t $IMAGE_NAME .
         ;;
     run)
         if [ -z "$2" ]; then
@@ -34,13 +67,14 @@ case "$1" in
         FILE_NAME=$(basename "$FILE_PATH")
 
         echo "Running simulation: $FILE_NAME"
-        # Mount the directory containing the netlist to /sim in the container
-        # This ensures the output files are written back to the host directory
-        docker run --rm -v "$DIR_PATH":/sim $IMAGE_NAME "$FILE_NAME"
+        # Mount the netlist's directory to /netlist so eespice can read it.
+        # Mount the current working directory to /sim (the default WORKDIR in the container),
+        # so output files are saved to the directory where this script was executed.
+        docker run --rm --user $(id -u):$(id -g) -v "$DIR_PATH":/netlist -v "$(pwd)":/sim $IMAGE_NAME "/netlist/$FILE_NAME"
         ;;
     shell)
         echo "Opening interactive shell..."
-        docker run --rm -it --entrypoint /bin/bash -v "$(pwd)":/sim $IMAGE_NAME
+        docker run --rm -it --user $(id -u):$(id -g) --entrypoint /bin/bash -v "$(pwd)":/sim $IMAGE_NAME
         ;;
     help|*)
         show_help

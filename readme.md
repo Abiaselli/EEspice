@@ -7,13 +7,24 @@ EEspice is a SPICE-compatible circuit simulator optimized for performance. It fe
 The easiest way to build and run EEspice is using Docker. This ensures all dependencies (SuiteSparse, Armadillo, OpenBLAS) are correctly configured without modifying your host system.
 
 ### 1. Build the Image
-Build the persistent Docker image once (or whenever you update the source code):
+Build the persistent Docker image once (or whenever you update the source code). By default, it builds for a generic baseline architecture for maximum compatibility.
+
 ```bash
+# Build with generic baseline (default)
 ./eespice.sh build
+
+# Build optimized for the current machine
+./eespice.sh build --native
+
+# Build for generic modern x86 (e.g., AVX2 support)
+./eespice.sh build --native x86
+
+# Build for generic modern ARM64
+./eespice.sh build --native arm64
 ```
 
 ### 2. Run a Simulation
-Run a simulation by providing the path to a netlist file. The script automatically mounts the necessary directories so that output files (e.g., `.csv` results) are saved back to your host machine.
+Run a simulation by providing the path to a netlist file. Output files (e.g., `tran_solution.csv`) will be saved directly to your current working directory.
 ```bash
 ./eespice.sh run Netlist/Inverter.cir
 ```

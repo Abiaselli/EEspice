@@ -64,6 +64,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # preset's cacheVariables. See CMakePresets.json for this machine's defaults.
 
 # ---- User-facing options -------------------------------------------------
+set(EESPICE_MARCH "native" CACHE STRING
+    "Target architecture optimization (-march)")
+
 set(EESPICE_BLAS_BACKEND "MKL" CACHE STRING
     "Which BLAS/LAPACK implementation to link against")
 set_property(CACHE EESPICE_BLAS_BACKEND
@@ -88,7 +91,7 @@ target_include_directories(eespice PRIVATE "${CMAKE_SOURCE_DIR}/src")
 
 target_compile_options(eespice PRIVATE
     -fdiagnostics-color=always
-    -march=native)
+    -march=${EESPICE_MARCH})
 
 # Armadillo is header-only for this project (ARMA_DONT_USE_WRAPPER);
 # only the header search path matters. find_path searches CMAKE_PREFIX_PATH

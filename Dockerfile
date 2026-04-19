@@ -17,9 +17,12 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 COPY . .
 
+ARG MARCH=native
+
 # Build the executable
 RUN cmake -S . -B build \
     -DEESPICE_BLAS_BACKEND=OpenBLAS \
+    -DEESPICE_MARCH=${MARCH} \
     -DCMAKE_BUILD_TYPE=Release
 
 RUN cmake --build build -j$(nproc)
