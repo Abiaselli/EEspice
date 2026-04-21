@@ -51,6 +51,9 @@ struct CircuitParser
     int num_threads = 1;      // Number of threads to use if multithreading is enabled
     bool pulse_phase_mode = false; // If true, 8th PULSE param is PHASE not NP (ngspice xs mode)
 
+    // Resolved absolute output path from .output directive. Empty = use per-analysis default.
+    std::string output_path = "";
+
     // .param parameter table
     std::unordered_map<std::string, double> params;
 
@@ -1131,7 +1134,65 @@ void parseNetlistFile(const std::string& filename, CircuitParser& parser,
                 parseNetlistFile(canonicalPath, parser, cktmap, modmap, includeStack, false);
                 continue; // Skip further processing of this line
             }
-            
+
+            // Handle .OUTPUT directive (resolve path relative to this file, like .INCLUDE)
+            if (lowerToken == ".output") {
+                std::istringstream outIss(line);
+                std::string directive;
+                outIss >> directive; // consume ".output" / ".OUTPUT"
+                std::string remainder;
+                std::getline(outIss, remainder);
+                remainder = trim(remainder);
+
+                if (remainder.empty()) {
+                    throw ParsingException("Error: .output directive missing path",
+                                           "MISSING_OUTPUT_PATH");
+                }
+
+                std::string outputArg;
+                if (remainder.front() == '\'') {
+                    size_t closingQuote = remainder.find('\'', 1);
+                    if (closingQuote == std::string::npos) {
+                        throw ParsingException(
+                            "Error: .output has unmatched single quote in path",
+                            "MALFORMED_OUTPUT_PATH");
+                    }
+                    outputArg = remainder.substr(1, closingQuote - 1);
+                    std::string tail = trim(remainder.substr(closingQuote + 1));
+                    if (!tail.empty()) {
+                        throw ParsingException(
+                            "Error: .output has unexpected trailing text after path",
+                            "MALFORMED_OUTPUT_PATH");
+                    }
+                } else {
+                    std::istringstream tokenStream(remainder);
+                    tokenStream >> outputArg;
+                    std::string extra;
+                    tokenStream >> extra;
+                    if (!extra.empty()) {
+                        throw ParsingException(
+                            "Error: .output accepts a single path; quote it if it contains spaces",
+                            "MALFORMED_OUTPUT_PATH");
+                    }
+                }
+
+                if (outputArg.empty()) {
+                    throw ParsingException("Error: .output directive missing path",
+                                           "MISSING_OUTPUT_PATH");
+                }
+
+                std::filesystem::path outPath(outputArg);
+                if (!outPath.is_absolute()) {
+                    std::filesystem::path currentDir =
+                        std::filesystem::path(filename).parent_path();
+                    outPath = currentDir / outPath;
+                }
+                outPath = std::filesystem::absolute(outPath).lexically_normal();
+
+                parser.output_path = outPath.string();
+                continue;
+            }
+
             // TODO: When .title and .lib are implemented, add them here:
             // else if (lowerToken == ".title" || lowerToken == ".lib") {
             //     // These directives don't support continuation lines

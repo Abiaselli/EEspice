@@ -16,6 +16,7 @@
 #include "DC.hpp"
 #include "batch.hpp"
 #include "OP_calcs.hpp"
+#include "simulation_exceptions.hpp"
 
 // We'll index from 1..ckt.external_nodes
 std::vector<std::string> buildNodeIndexToNameMap(const CKTcircuit& ckt, const Circuitmap& map) {
@@ -65,8 +66,9 @@ void save_csv(const std::string &filename, const CKTcircuit &ckt, const std::vec
     std::ofstream file(filename);
     if (!file.is_open())
     {
-        std::cerr << "Error: Could not open file " << filename << " for writing." << std::endl;
-        return;
+        throw SimulationException(
+            "Error: Could not open file '" + filename + "' for writing.",
+            "OUTPUT_FILE_OPEN_FAILED");
     }
     // Call the overloaded function that takes std::ofstream directly
     save_csv(file, ckt, vec_trans, map);
@@ -115,8 +117,9 @@ void save_csv_dc(const std::string &filename, const CKTcircuit &ckt, const std::
     std::ofstream file(filename);
     if (!file.is_open())
     {
-        std::cerr << "Error: Could not open file " << filename << " for writing." << std::endl;
-        return;
+        throw SimulationException(
+            "Error: Could not open file '" + filename + "' for writing.",
+            "OUTPUT_FILE_OPEN_FAILED");
     }
     // Call the overloaded function that takes std::ofstream directly
     save_csv_dc(file, ckt, vec_dc, map);
@@ -197,8 +200,9 @@ void save_txt_op(const std::string &filename, const OPResult &op_result, const C
     std::ofstream file(filename);
     if (!file.is_open())
     {
-        std::cerr << "Error: Could not open file " << filename << " for writing." << std::endl;
-        return;
+        throw SimulationException(
+            "Error: Could not open file '" + filename + "' for writing.",
+            "OUTPUT_FILE_OPEN_FAILED");
     }
     save_txt_op(file, op_result, map);
     file.close();
@@ -283,8 +287,9 @@ void save_csv_ac(const std::string &filename, const CKTcircuit &ckt, const std::
     std::ofstream file(filename);
     if (!file.is_open())
     {
-        std::cerr << "Error: Could not open file " << filename << " for writing." << std::endl;
-        return;
+        throw SimulationException(
+            "Error: Could not open file '" + filename + "' for writing.",
+            "OUTPUT_FILE_OPEN_FAILED");
     }
     save_csv_ac(file, ckt, vec_ac, map, type);
     file.close();
@@ -307,9 +312,12 @@ void write_error_csv(std::ofstream &file, const BatchRunResult &run_result, cons
     file << "# No simulation data available due to failure" << std::endl;
 }
 
-void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
-    const std::string output_dir = "batch_results";
-    std::filesystem::create_directory(output_dir);
+void save_csv_batch(const std::vector<BatchRunResult> &batch_results,
+                    const std::string &output_dir_override = "") {
+    const std::string output_dir = output_dir_override.empty()
+                                       ? std::string("batch_results")
+                                       : output_dir_override;
+    std::filesystem::create_directories(output_dir);
 
     int dc_counter = 1;
     int tran_counter = 1;
@@ -323,7 +331,12 @@ void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
         if (run_result.simulation_type == "op"){
             std::string filename = output_dir + "/op" + std::to_string(op_counter) + ".txt";
             std::ofstream file(filename);
-            
+            if (!file.is_open()) {
+                throw SimulationException(
+                    "Error: Could not open batch output file '" + filename + "' for writing.",
+                    "BATCH_OUTPUT_FILE_OPEN_FAILED");
+            }
+
             if (!run_result.success) {
                 // Write error information for OP analysis
                 file << "# Circuit Configuration for OP Analysis " << op_counter << std::endl;
@@ -359,7 +372,12 @@ void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
         } else if (run_result.simulation_type == "dc") {
             std::string filename = output_dir + "/dc" + std::to_string(dc_counter) + ".csv";
             std::ofstream file(filename);
-            
+            if (!file.is_open()) {
+                throw SimulationException(
+                    "Error: Could not open batch output file '" + filename + "' for writing.",
+                    "BATCH_OUTPUT_FILE_OPEN_FAILED");
+            }
+
             if (!run_result.success) {
                 write_error_csv(file, run_result, "DC", dc_counter);
                 failed_count++;
@@ -384,7 +402,12 @@ void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
         } else if (run_result.simulation_type == "tran") {
             std::string filename = output_dir + "/tran" + std::to_string(tran_counter) + ".csv";
             std::ofstream file(filename);
-            
+            if (!file.is_open()) {
+                throw SimulationException(
+                    "Error: Could not open batch output file '" + filename + "' for writing.",
+                    "BATCH_OUTPUT_FILE_OPEN_FAILED");
+            }
+
             if (!run_result.success) {
                 write_error_csv(file, run_result, "Transient", tran_counter);
                 failed_count++;
@@ -409,7 +432,12 @@ void save_csv_batch(const std::vector<BatchRunResult> &batch_results) {
         } else if (run_result.simulation_type == "ac") {
             std::string filename = output_dir + "/ac" + std::to_string(ac_counter) + ".csv";
             std::ofstream file(filename);
-            
+            if (!file.is_open()) {
+                throw SimulationException(
+                    "Error: Could not open batch output file '" + filename + "' for writing.",
+                    "BATCH_OUTPUT_FILE_OPEN_FAILED");
+            }
+
             if (!run_result.success) {
                 write_error_csv(file, run_result, "AC", ac_counter);
                 failed_count++;
