@@ -15,4 +15,7 @@ test.cpp
 CLAUDE.md
 massif.out.*
 venv
+build
+.claude
+.omc
 
