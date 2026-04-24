@@ -11,6 +11,7 @@
 .options acct
 .options num_threads=64
 .sparse
+.output Results/128bit_dff_chain_res_512.raw
 
 VVDD VDD 0 DC {VDD}
 VDIN DIN 0 PULSE (0 {VDD} {period*0.25} 1p 1p {period} {period*2})

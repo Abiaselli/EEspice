@@ -1,5 +1,7 @@
 Demo of a simple AC circuit
 
+.output Results/ac.raw
+
 v1 1 0 dc 0 ac 1
 r1 1 2 30
 c1 2 0 100u

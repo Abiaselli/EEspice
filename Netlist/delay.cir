@@ -1,48 +1,59 @@
 Delay
 
+* Models
+.model nmos nmos (level=14 version=4.8.2)
+.model pmos pmos (level=14 version=4.8.2)
+
+* Simulation flags
+.options acct
+*.options num_threads=32
+.sparse
+.output Results/delay.raw
+
 V1 1 0 5
 V2 2 0 pulse (0 5 5n 10p 10p 5n 10n)
 * s1o3 is 6
 * s2o3 is 10
 * s3o3 is 14
 *Mnumber d g s b model W=w L=l 
-M1 3 2 0 0 NMOS W=1u L=0.09u
-M2 3 2 1 1 PMOS W=1u L=0.09u
+M1 3 2 0 0 nmos W=1u L=0.09u
+M2 3 2 1 1 pmos W=1u L=0.09u
 
 R1 3 4 1
 C1 4 0 0.1p
  
-M3 5 4 0 0 NMOS W=10u L=0.9u
-M4 5 4 1 1 PMOS W=10u L=0.9u
+M3 5 4 0 0 nmos W=10u L=0.9u
+M4 5 4 1 1 pmos W=10u L=0.9u
 
-M5 6 5 0 0 NMOS W=10u L=0.9u
-M6 6 5 1 1 PMOS W=10u L=0.9u
+M5 6 5 0 0 nmos W=10u L=0.9u
+M6 6 5 1 1 pmos W=10u L=0.9u
 C4 6 0 1f
 
 *-----------S2-----------------------
-M7 7 6 0 0 NMOS W=1u L=0.09u
-M8 7 6 1 1 PMOS W=1u L=0.09u
+M7 7 6 0 0 nmos W=1u L=0.09u
+M8 7 6 1 1 pmos W=1u L=0.09u
 
 R2 7 8 1
 C2 8 0 0.1p
 
-M9 9 8 0 0 NMOS W=10u L=0.9u
-M10 9 8 1 1 PMOS W=10u L=0.9u
+M9 9 8 0 0 nmos W=10u L=0.9u
+M10 9 8 1 1 pmos W=10u L=0.9u
 
-M11 10 9 0 0 NMOS W=10u L=0.9u
-M12 10 9 1 1 PMOS W=10u L=0.9u
+M11 10 9 0 0 nmos W=10u L=0.9u
+M12 10 9 1 1 pmos W=10u L=0.9u
 
 *-------------S3---------------------
-M13 11 10 0 0 NMOS W=1u L=0.09u
-M14 11 10 1 1 PMOS W=1u L=0.09u
+M13 11 10 0 0 nmos W=1u L=0.09u
+M14 11 10 1 1 pmos W=1u L=0.09u
 
 R3 11 12 1
 C3 12 0 0.1p
 
-M15 13 12 0 0 NMOS W=10u L=0.9u
-M16 13 12 1 1 PMOS W=10u L=0.9u
+M15 13 12 0 0 nmos W=10u L=0.9u
+M16 13 12 1 1 pmos W=10u L=0.9u
 
-M17 14 13 0 0 NMOS W=10u L=0.9u
-M18 14 13 1 1 PMOS W=10u L=0.9u
+M17 14 13 0 0 nmos W=10u L=0.9u
+M18 14 13 1 1 pmos W=10u L=0.9u
 
 .tran 1p 15n
+.end

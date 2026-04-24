@@ -1,10 +1,12 @@
-Delay
+Inverter test with BSIM4 models
 .model nmos nmos (level=14 version=4.8.2)
 .model pmos pmos (level=14 version=4.8.2)
 * Simulation flags
 .options acct
 .options num_threads=2
 .sparse
+.output Results/inverter.raw
+
 M1 output input VDD VDD pmos W=1u L=0.09u
 M2 output input GND GND nmos W=1u L=0.09u
 M3 net-3 output VDD VDD pmos W=1u L=0.09u

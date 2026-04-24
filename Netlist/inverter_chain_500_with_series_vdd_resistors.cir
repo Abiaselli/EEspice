@@ -7,6 +7,8 @@
 * Simulation flags
 .options acct
 .options num_threads=8
+.sparse
+.output Results/inverter_chain_500_with_series_vdd_resistors.raw
 
 V1 VDD 0 1.8
 V2 Vin 0 1

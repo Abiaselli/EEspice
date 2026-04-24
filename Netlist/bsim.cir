@@ -1,6 +1,7 @@
 bsim4 test level=14
 
 .model nmos nmos (level=14 version=4.8.2)
+.output Results/bsim.raw
 
 m1 d g 0 0 nmos W=100.0u L=0.9u
 
@@ -8,3 +9,4 @@ Vds d 0 1
 Vg g 0 3
 
 .dc Vg 0 5 0.1
+.end
