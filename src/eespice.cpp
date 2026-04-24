@@ -5,8 +5,24 @@
 #include "DC.hpp"
 #include "AC.hpp"
 #include "saveCSV.hpp"
+#include "saveRAW.hpp"
 #include "batch.hpp"
 #include "simulation_exceptions.hpp"
+
+namespace {
+enum class OutputKind { CSV, RAW };
+
+// Extension rules: .csv / .txt -> CSV (text/legacy), everything else
+// (including .raw, no extension, unknown) -> RAW (ngspice-compatible).
+OutputKind resolve_output_kind(const std::string &path) {
+    namespace fs = std::filesystem;
+    std::string ext = fs::path(path).extension().string();
+    for (auto &c : ext) c = static_cast<char>(std::tolower(c));
+    if (ext == ".csv") return OutputKind::CSV;
+    if (ext == ".txt") return OutputKind::CSV;  // text/CSV branch
+    return OutputKind::RAW;
+}
+} // anonymous namespace
 
 // Main function for the circuit simulation
 int main(int argc, const char **argv)
@@ -36,7 +52,20 @@ int main(int argc, const char **argv)
             batchMode = true; // Set the global batch mode to true
             auto batch_results = batch::run_batch_simulation(cktmap, parser, modmap);
             std::cout << "Batch simulation finished. Saving " << batch_results.size() << " results." << std::endl;
-            batch::save_csv_batch(batch_results, parser.output_path);
+            // Batch default flips to a single multi-plot .raw file. If
+            // .output points at something with a .csv extension (or a bare
+            // directory name like "batch_results"), fall back to the
+            // directory-of-CSVs layout. OutputKind on an empty extension
+            // returns RAW, so the no-.output case picks up the new default.
+            const std::string batch_default_raw = "batch_results.raw";
+            const std::string batch_path = parser.output_path.empty()
+                                               ? batch_default_raw
+                                               : parser.output_path;
+            if (resolve_output_kind(batch_path) == OutputKind::RAW) {
+                save_raw_batch(batch_results, batch_path);
+            } else {
+                batch::save_csv_batch(batch_results, parser.output_path);
+            }
         }
         else{           
             // CKT circuit setup
@@ -70,20 +99,36 @@ int main(int argc, const char **argv)
                 bool non_linear = CKTisNonLinear(ckt.CKTelements);
                 OPResult op_result = OP_ops(ckt, modmap, non_linear);
                 printOperatingPointWithNames(op_result.solution, ckt.map);
-                save_txt_op(resolve_output("op_solution.txt"), op_result, ckt.map);
+                std::string path = resolve_output("op_solution.raw");
+                if (resolve_output_kind(path) == OutputKind::RAW) {
+                    save_raw_op(path, ckt, op_result, ckt.map);
+                } else {
+                    // .csv / .txt both route to the existing human-readable text report.
+                    save_txt_op(path, op_result, ckt.map);
+                }
                 std::cout << "Operating point simulation completed." << std::endl;
             }
             else if(parser.is_transient){
                 TransientSimulator trans_sim = Transsetup(parser, ckt);
                 std::vector<Transient> vec_trans_result = Transient_ops(ckt, trans_sim, modmap);
-                save_csv(resolve_output("tran_solution.csv"), ckt, vec_trans_result, ckt.map);
+                std::string path = resolve_output("tran_solution.raw");
+                if (resolve_output_kind(path) == OutputKind::RAW) {
+                    save_raw_tran(path, ckt, vec_trans_result, ckt.map);
+                } else {
+                    save_csv(path, ckt, vec_trans_result, ckt.map);
+                }
                 std::cout << "Transient simulation completed." << std::endl;
 
             }
             else if(parser.is_dc){
                 dc::DCSimulator dcSim = dc::DCsetup(parser, ckt);
                 std::vector<dc::DCResult> vec_dc_result = dc::DC_ops(ckt, dcSim, modmap);
-                save_csv_dc(resolve_output("dc_solution.csv"), ckt, vec_dc_result, ckt.map);
+                std::string path = resolve_output("dc_solution.raw");
+                if (resolve_output_kind(path) == OutputKind::RAW) {
+                    save_raw_dc(path, ckt, vec_dc_result, ckt.map);
+                } else {
+                    save_csv_dc(path, ckt, vec_dc_result, ckt.map);
+                }
                 std::cout << "DC simulation completed." << std::endl;
             }
             else if(parser.is_ac){
@@ -92,7 +137,12 @@ int main(int argc, const char **argv)
                 ckt.cktmatrix->set_init_cxmatrix(); // Set the initial complex LHS and RHS matrices for AC analysis
                 ac::ACsimulator acSim = ac::ACsetup(parser, ckt);
                 std::vector<ac::ACResult> vec_ac_result = ac::AC_ops(ckt, acSim, modmap);
-                save_csv_ac(resolve_output("ac_solution.csv"), ckt, vec_ac_result, ckt.map, acSim.type);
+                std::string path = resolve_output("ac_solution.raw");
+                if (resolve_output_kind(path) == OutputKind::RAW) {
+                    save_raw_ac(path, ckt, vec_ac_result, ckt.map);
+                } else {
+                    save_csv_ac(path, ckt, vec_ac_result, ckt.map, acSim.type);
+                }
                 std::cout << "AC simulation completed." << std::endl;
             }
             else{
