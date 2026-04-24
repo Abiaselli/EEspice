@@ -3,6 +3,7 @@
 *.so
 *.csv
 *.txt
+*.raw
 !CMakeLists.txt
 *.data
 *.png
@@ -13,6 +14,7 @@ temp
 .cursorignore
 test.cpp
 CLAUDE.md
+AGENTS.md
 massif.out.*
 venv
 build
