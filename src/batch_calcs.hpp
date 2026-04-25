@@ -71,6 +71,14 @@ std::vector<BatchParam> find_batch_params(const CircuitElements& elements) {
             params.push_back({pmos.id_str, 'M', "L", pmos.batchL});
         }
     }
+    for (const auto& bsim4 : elements.bsim4) {
+        if (!bsim4.batchW.empty()) {
+            params.push_back({bsim4.id_str, 'M', "W", bsim4.batchW});
+        }
+        if (!bsim4.batchL.empty()) {
+            params.push_back({bsim4.id_str, 'M', "L", bsim4.batchL});
+        }
+    }
     // Diodes have two potential batch parameters
     for (const auto& diode : elements.diodes) {
         if (!diode.batchIs.empty()) {
@@ -196,6 +204,14 @@ void apply_circuit_config(CircuitElements& CKTelements, const CircuitConfig& con
                 }
                 if (found) break;
                 for (auto& dev : CKTelements.pmos) {
+                    if (dev.id_str == device_id) {
+                        if (param_name == "W") dev.W = value;
+                        else if (param_name == "L") dev.L = value;
+                        found = true; break;
+                    }
+                }
+                if (found) break;
+                for (auto& dev : CKTelements.bsim4) {
                     if (dev.id_str == device_id) {
                         if (param_name == "W") dev.W = value;
                         else if (param_name == "L") dev.L = value;

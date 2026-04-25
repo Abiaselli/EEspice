@@ -46,7 +46,8 @@ void write_raw_header_block(std::ofstream &file,
                             const std::string &plotname,
                             bool is_complex,
                             int nvars,
-                            int npoints)
+                            int npoints,
+                            const std::string &command_suffix = "")
 {
     std::time_t t = std::time(nullptr);
     std::tm *gm = std::gmtime(&t);
@@ -58,11 +59,17 @@ void write_raw_header_block(std::ofstream &file,
     // Command line: identifies the producing simulator. spicelib detects the
     // raw-file dialect by matching "ngspice" / "ltspice" substrings here — so
     // we advertise "ngspice-compatible" explicitly, otherwise spicelib throws
-    // SpiceReadException with "file dialect is not specified". __DATE__ /
-    // __TIME__ pin the build identity (the rest of the line is free-form per
-    // rawfile.c:117).
-    file << "Command: ngspice-compatible EESpice, Build "
-         << __DATE__ << " " << __TIME__ << "\n";
+    // SpiceReadException with "file dialect is not specified". The default
+    // suffix is "Build __DATE__ __TIME__" pinning the build identity; batch
+    // runs override it with per-plot config metadata (e.g. "Batch: m1.W=...")
+    // so multi-plot RAW readers can map each plot back to its parameter values.
+    file << "Command: ngspice-compatible EESpice, ";
+    if (command_suffix.empty()) {
+        file << "Build " << __DATE__ << " " << __TIME__;
+    } else {
+        file << command_suffix;
+    }
+    file << "\n";
     file << "Plotname: " << plotname << "\n";
     file << "Flags: " << (is_complex ? "complex" : "real") << "\n";
     file << "No. Variables: " << nvars << "\n";
@@ -116,6 +123,27 @@ void write_raw_binary_complex(std::ofstream &file,
     }
 }
 
+// Formats a BatchRunResult's CircuitConfig as the trailing part of the RAW
+// Command: line, e.g. "Batch: m1.W=1.000000e-04, m1.L=9.000000e-07".
+// Returns "" for an empty config so write_raw_header_block falls back to the
+// default Build timestamp. Precision matches saveCSV.hpp:305 so CSV and RAW
+// agree on parameter values. CircuitConfig is std::map (batch.hpp:22) so the
+// iteration order is alphabetical by key — deterministic across runs.
+std::string make_batch_command_suffix(const batch::CircuitConfig &config)
+{
+    if (config.empty()) return "";
+    std::ostringstream ss;
+    ss << "Batch: ";
+    bool first = true;
+    for (const auto &[name, value] : config) {
+        if (!first) ss << ", ";
+        ss << name << "="
+           << std::scientific << std::setprecision(6) << value;
+        first = false;
+    }
+    return ss.str();
+}
+
 // Opens `path` for binary output, surfacing filesystem failure as the
 // project-standard SimulationException (mirrors saveCSV.hpp:67-71 pattern).
 // 5 callers: each `save_raw_*(filename, ...)` overload plus save_raw_batch.
@@ -141,7 +169,8 @@ std::ofstream open_raw_file(const std::string &path)
 // variable 0 as scale when pl_scale is absent; spicelib tolerates this).
 // -----------------------------------------------------------------------------
 void save_raw_op(std::ofstream &file, const CKTcircuit &ckt, const OPResult &op,
-                 const Circuitmap &map, int plot_index = 1)
+                 const Circuitmap &map, int plot_index = 1,
+                 const std::string &command_suffix = "")
 {
     std::vector<std::string> nodeIndexToName = buildNodeIndexToNameMap(ckt, map);
 
@@ -164,7 +193,7 @@ void save_raw_op(std::ofstream &file, const CKTcircuit &ckt, const OPResult &op,
     const std::string plotname = "op" + std::to_string(plot_index);
 
     write_raw_header_block(file, "EESpice output", plotname,
-                           /*is_complex=*/false, nvars, npoints);
+                           /*is_complex=*/false, nvars, npoints, command_suffix);
     write_raw_variables_block(file, vars);
 
     write_raw_binary_real(file, npoints, nvars,
@@ -199,7 +228,8 @@ void save_raw_op(const std::string &filename, const CKTcircuit &ckt,
 // -----------------------------------------------------------------------------
 void save_raw_tran(std::ofstream &file, const CKTcircuit &ckt,
                    const std::vector<Transient> &vec_trans,
-                   const Circuitmap &map, int plot_index = 1)
+                   const Circuitmap &map, int plot_index = 1,
+                   const std::string &command_suffix = "")
 {
     std::vector<std::string> nodeIndexToName = buildNodeIndexToNameMap(ckt, map);
 
@@ -226,7 +256,7 @@ void save_raw_tran(std::ofstream &file, const CKTcircuit &ckt,
     const std::string plotname = "tran" + std::to_string(plot_index);
 
     write_raw_header_block(file, "EESpice output", plotname,
-                           /*is_complex=*/false, nvars, npoints);
+                           /*is_complex=*/false, nvars, npoints, command_suffix);
     write_raw_variables_block(file, vars);
 
     write_raw_binary_real(file, npoints, nvars,
@@ -265,7 +295,8 @@ void save_raw_tran(const std::string &filename, const CKTcircuit &ckt,
 // -----------------------------------------------------------------------------
 void save_raw_dc(std::ofstream &file, const CKTcircuit &ckt,
                  const std::vector<dc::DCResult> &vec_dc,
-                 const Circuitmap &map, int plot_index = 1)
+                 const Circuitmap &map, int plot_index = 1,
+                 const std::string &command_suffix = "")
 {
     if (vec_dc.empty()) {
         // Nothing to write — mirror the CSV writer's behavior at
@@ -295,7 +326,7 @@ void save_raw_dc(std::ofstream &file, const CKTcircuit &ckt,
     const std::string plotname = "dc" + std::to_string(plot_index);
 
     write_raw_header_block(file, "EESpice output", plotname,
-                           /*is_complex=*/false, nvars, npoints);
+                           /*is_complex=*/false, nvars, npoints, command_suffix);
     write_raw_variables_block(file, vars);
 
     write_raw_binary_real(file, npoints, nvars,
@@ -334,7 +365,8 @@ void save_raw_dc(const std::string &filename, const CKTcircuit &ckt,
 // -----------------------------------------------------------------------------
 void save_raw_ac(std::ofstream &file, const CKTcircuit &ckt,
                  const std::vector<ac::ACResult> &vec_ac,
-                 const Circuitmap &map, int plot_index = 1)
+                 const Circuitmap &map, int plot_index = 1,
+                 const std::string &command_suffix = "")
 {
     std::vector<std::string> nodeIndexToName = buildNodeIndexToNameMap(ckt, map);
 
@@ -363,7 +395,7 @@ void save_raw_ac(std::ofstream &file, const CKTcircuit &ckt,
     const std::string plotname = "ac" + std::to_string(plot_index);
 
     write_raw_header_block(file, "EESpice output", plotname,
-                           /*is_complex=*/true, nvars, npoints);
+                           /*is_complex=*/true, nvars, npoints, command_suffix);
     write_raw_variables_block(file, vars);
 
     write_raw_binary_complex(file, npoints, nvars,
@@ -437,22 +469,23 @@ void save_raw_batch(const std::vector<batch::BatchRunResult> &batch_results,
             continue;
         }
         const Circuitmap &map = run_result.ckt.map;
+        const std::string suffix = make_batch_command_suffix(run_result.config);
         if (run_result.simulation_type == "op") {
             save_raw_op(file, run_result.ckt,
                         std::get<OPResult>(run_result.results),
-                        map, op_counter++);
+                        map, op_counter++, suffix);
         } else if (run_result.simulation_type == "dc") {
             save_raw_dc(file, run_result.ckt,
                         std::get<std::vector<dc::DCResult>>(run_result.results),
-                        map, dc_counter++);
+                        map, dc_counter++, suffix);
         } else if (run_result.simulation_type == "tran") {
             save_raw_tran(file, run_result.ckt,
                           std::get<std::vector<Transient>>(run_result.results),
-                          map, tran_counter++);
+                          map, tran_counter++, suffix);
         } else if (run_result.simulation_type == "ac") {
             save_raw_ac(file, run_result.ckt,
                         std::get<std::vector<ac::ACResult>>(run_result.results),
-                        map, ac_counter++);
+                        map, ac_counter++, suffix);
         }
         ++successful_count;
     }
