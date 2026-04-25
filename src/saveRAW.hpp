@@ -1,16 +1,40 @@
 #pragma once
 
 // Binary ngspice-compatible .raw output writer for EESpice.
+// RAW schema emitted by this writer:
 //
-// WHY this depends on saveCSV.hpp: we reuse `buildNodeIndexToNameMap` to
-// enumerate external nodes in index order. There are exactly two writer
-// backends (CSV, RAW) and no third is planned, so a shared abstraction
-// would be speculative (CLAUDE.md "no speculative abstractions").
+//   A file contains one or more plot blocks. Batch mode writes a multi-plot
+//   file by appending complete plot blocks back-to-back.
 //
-// WHY helpers live in an anonymous namespace in a header: in this project
-// only eespice.cpp includes saveRAW.hpp, so the per-TU copy footprint is
-// one copy. If a second TU ever includes this header, split into
-// saveRAW.hpp / saveRAW.cpp.
+//   Per plot:
+//     Title: <text>
+//     Date: <UTC timestamp>
+//     Command: ngspice-compatible EESpice, <build-or-batch-metadata>
+//     Plotname: op<N> | tran<N> | dc<N> | ac<N>
+//     Flags: real | complex
+//     No. Variables: <nvars>
+//     No. Points: <npoints>
+//     Variables:
+//       <index>\t<name>\t<type>
+//       ...
+//     Binary:
+//       payload
+//
+//   Payload is point-major: for each point p, variables are written in the
+//   exact Variables order. Real plots store one native binary double per
+//   variable. Complex plots store two native binary doubles per variable:
+//   (real, imag). Real-valued scale variables in complex plots, such as AC
+//   frequency, are encoded as (value, 0.0). EESpice's supported Linux/x86_64
+//   output is little-endian, although the C++ writer emits native-endian
+//   doubles.
+//
+//   Variable order by analysis:
+//     OP:   v(<node>)..., i(<branch>)... with no explicit scale variable.
+//     TRAN: time, v(<node>)..., i(<branch>)...
+//     DC:   <sweep-source>, v(<node>)..., i(<branch>)...
+//     AC:   frequency, v(<node>)..., i(<branch>)... as complex values.
+//
+// See helper/decode_raw.py for a small Python stdlib decoder example.
 
 #include <complex>
 #include <ctime>
@@ -36,6 +60,16 @@ struct RawVarDesc {
     std::string name;
     std::string type;
 };
+
+// WHY this depends on saveCSV.hpp: we reuse `buildNodeIndexToNameMap` to
+// enumerate external nodes in index order. There are exactly two writer
+// backends (CSV, RAW) and no third is planned, so a shared abstraction
+// would be speculative.
+//
+// WHY helpers live in an anonymous namespace in a header: in this project
+// only eespice.cpp includes saveRAW.hpp, so the per-TU copy footprint is
+// one copy. If a second TU ever includes this header, split into
+// saveRAW.hpp / saveRAW.cpp.
 
 // Writes the header block up through the "No. Points" line, matching
 // ngspice rawfile.c:115-122. Flags line has NO trailing whitespace.
