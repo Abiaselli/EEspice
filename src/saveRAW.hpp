@@ -72,9 +72,7 @@ struct RawVarDesc {
 // saveRAW.hpp / saveRAW.cpp.
 
 // Writes the header block up through the "No. Points" line, matching
-// ngspice rawfile.c:115-122. Flags line has NO trailing whitespace.
-// Date format pinned to "%a %b %e %H:%M:%S %Y" (UTC) for cross-machine
-// determinism (see plan Step 2 / Risk #10).
+// ngspice rawfile.c:115-122.
 void write_raw_header_block(std::ofstream &file,
                             const std::string &title,
                             const std::string &plotname,
