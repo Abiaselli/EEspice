@@ -17,8 +17,8 @@ if [ -f "$OUTPUT_FILE" ]; then
 fi
 
 # 2. Run the simulation
-echo "Executing: ./eespice.sh run $NETLIST"
-./eespice.sh run "$NETLIST"
+echo "Executing: ./eespice.sh run -o $OUTPUT_FILE -f ascii $NETLIST"
+./eespice.sh run -o "$OUTPUT_FILE" -f ascii "$NETLIST"
 
 # 3. Verify output
 if [ -f "$OUTPUT_FILE" ]; then

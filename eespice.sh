@@ -14,8 +14,9 @@ show_help() {
     echo "      --native arm64      Compile for generic modern ARM64 (armv8-a)"
     echo "      --native x86        Compile for generic modern x86-64 (x86-64-v3)"
     echo "      (default)           Compile for generic baseline (x86-64 or armv8-a)"
-    echo "  run [file]    Run a simulation (e.g., ./eespice.sh run Netlist/Inverter.cir)"
-    echo "                (Default output is binary .raw. Use .output filename.txt in netlist for ASCII)"
+    echo "  run [options] [file]  Run a simulation (e.g., ./eespice.sh run Netlist/Inverter.cir)"
+    echo "      -o, --output <path>    Specify output file path"
+    echo "      -f, --format <format>  Enforce output format (ascii or binary)"
     echo "  shell         Open an interactive shell inside the container"
     echo "  help          Show this help message"
     echo ""
@@ -56,23 +57,56 @@ case "$1" in
         docker build --build-arg MARCH=$MARCH -t $IMAGE_NAME .
         ;;
     run)
-        if [ -z "$2" ]; then
+        shift
+        EESPICE_ARGS=()
+        DOCKER_MOUNTS=()
+        NETLIST_FILE=""
+
+        while [[ $# -gt 0 ]]; do
+            case $1 in
+                -o|--output)
+                    OUT_PATH=$(realpath -m "$2")
+                    OUT_DIR=$(dirname "$OUT_PATH")
+                    DOCKER_MOUNTS+=("-v" "$OUT_DIR:$OUT_DIR")
+                    EESPICE_ARGS+=("-o" "$OUT_PATH")
+                    shift 2
+                    ;;
+                -f|--format)
+                    EESPICE_ARGS+=("-f" "$2")
+                    shift 2
+                    ;;
+                *)
+                    if [ -z "$NETLIST_FILE" ]; then
+                        NETLIST_FILE="$1"
+                    else
+                        echo "Error: Multiple netlist files specified or unknown argument: $1"
+                        exit 1
+                    fi
+                    shift
+                    ;;
+            esac
+        done
+
+        if [ -z "$NETLIST_FILE" ]; then
             echo "Error: No netlist file specified."
             show_help
             exit 1
         fi
 
         # Get absolute path of the file to handle mounting correctly
-        FILE_PATH=$(realpath "$2")
+        FILE_PATH=$(realpath "$NETLIST_FILE")
         DIR_PATH=$(dirname "$FILE_PATH")
         FILE_NAME=$(basename "$FILE_PATH")
 
         echo "Running simulation: $FILE_NAME"
         # Mount the netlist's directory to /netlist so eespice can read it.
-        # This means '.output' paths in the netlist are resolved relative to the netlist's directory.
-        # Mount the current working directory to /sim (the default WORKDIR in the container),
-        # so default output files (e.g. tran_solution.raw) are saved to where the script is executed.
-        docker run --rm --user $(id -u):$(id -g) -v "$DIR_PATH":/netlist -v "$(pwd)":/sim $IMAGE_NAME "/netlist/$FILE_NAME"
+        # Mount the current working directory to /sim (the default WORKDIR in the container).
+        # We also mount any custom output directories.
+        docker run --rm --user $(id -u):$(id -g) \
+            -v "$DIR_PATH":/netlist \
+            -v "$(pwd)":/sim \
+            "${DOCKER_MOUNTS[@]}" \
+            $IMAGE_NAME "${EESPICE_ARGS[@]}" "/netlist/$FILE_NAME"
         ;;
     shell)
         echo "Opening interactive shell..."

@@ -14,7 +14,10 @@ enum class OutputKind { CSV, RAW };
 
 // Extension rules: .csv / .txt -> CSV (text/legacy), everything else
 // (including .raw, no extension, unknown) -> RAW (ngspice-compatible).
-OutputKind resolve_output_kind(const std::string &path) {
+OutputKind resolve_output_kind(const std::string &path, const std::string &enforced_format = "") {
+    if (enforced_format == "ascii") return OutputKind::CSV;
+    if (enforced_format == "binary") return OutputKind::RAW;
+
     namespace fs = std::filesystem;
     std::string ext = fs::path(path).extension().string();
     for (auto &c : ext) c = static_cast<char>(std::tolower(c));
@@ -27,9 +30,45 @@ OutputKind resolve_output_kind(const std::string &path) {
 // Main function for the circuit simulation
 int main(int argc, const char **argv)
 {
-    // Check if a netlist file is provided as command line argument
-    if (argc < 2) {
-        std::cerr << "Usage: ./eespice <netlist_file>" << std::endl;
+    std::string netlist_file;
+    std::string output_flag_path;
+    std::string format_flag;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "-o" || arg == "--output") {
+            if (i + 1 < argc) {
+                output_flag_path = argv[++i];
+            } else {
+                std::cerr << "Error: " << arg << " requires an argument." << std::endl;
+                return 1;
+            }
+        } else if (arg == "-f" || arg == "--format") {
+            if (i + 1 < argc) {
+                format_flag = argv[++i];
+                if (format_flag != "ascii" && format_flag != "binary") {
+                    std::cerr << "Error: Invalid format '" << format_flag << "'. Must be 'ascii' or 'binary'." << std::endl;
+                    return 1;
+                }
+            } else {
+                std::cerr << "Error: " << arg << " requires an argument." << std::endl;
+                return 1;
+            }
+        } else {
+            if (netlist_file.empty()) {
+                netlist_file = arg;
+            } else {
+                std::cerr << "Error: Multiple netlist files specified or unknown argument: " << arg << std::endl;
+                return 1;
+            }
+        }
+    }
+
+    if (netlist_file.empty()) {
+        std::cerr << "Usage: ./eespice [options] <netlist_file>\n"
+                  << "Options:\n"
+                  << "  -o, --output <path>    Specify output file path\n"
+                  << "  -f, --format <format>  Enforce output format (ascii or binary)\n";
         return 1;
     }
 
@@ -41,7 +80,7 @@ int main(int argc, const char **argv)
         // Parse netlist file
         Modelmap modmap;
         Circuitmap cktmap;
-        CircuitParser parser(argv[1]);
+        CircuitParser parser(netlist_file);
         parser_netlist(parser, cktmap, modmap);
 
         // Model setup using the temperature
@@ -53,18 +92,18 @@ int main(int argc, const char **argv)
             auto batch_results = batch::run_batch_simulation(cktmap, parser, modmap);
             std::cout << "Batch simulation finished. Saving " << batch_results.size() << " results." << std::endl;
             // Batch default flips to a single multi-plot .raw file. If
-            // .output points at something with a .csv extension (or a bare
+            // -o points at something with a .csv extension (or a bare
             // directory name like "batch_results"), fall back to the
             // directory-of-CSVs layout. OutputKind on an empty extension
-            // returns RAW, so the no-.output case picks up the new default.
+            // returns RAW, so the no-flag case picks up the new default.
             const std::string batch_default_raw = "batch_results.raw";
-            const std::string batch_path = parser.output_path.empty()
+            const std::string batch_path = output_flag_path.empty()
                                                ? batch_default_raw
-                                               : parser.output_path;
-            if (resolve_output_kind(batch_path) == OutputKind::RAW) {
+                                               : output_flag_path;
+            if (resolve_output_kind(batch_path, format_flag) == OutputKind::RAW) {
                 save_raw_batch(batch_results, batch_path);
             } else {
-                batch::save_csv_batch(batch_results, parser.output_path);
+                batch::save_csv_batch(batch_results, batch_path);
             }
         }
         else{           
@@ -87,7 +126,7 @@ int main(int argc, const char **argv)
             }
 
             auto resolve_output = [&](const std::string &default_name) -> std::string {
-                std::string path = parser.output_path.empty() ? default_name : parser.output_path;
+                std::string path = output_flag_path.empty() ? default_name : output_flag_path;
                 std::filesystem::path parent = std::filesystem::path(path).parent_path();
                 if (!parent.empty()) {
                     std::filesystem::create_directories(parent);
@@ -100,7 +139,7 @@ int main(int argc, const char **argv)
                 OPResult op_result = OP_ops(ckt, modmap, non_linear);
                 printOperatingPointWithNames(op_result.solution, ckt.map);
                 std::string path = resolve_output("op_solution.raw");
-                if (resolve_output_kind(path) == OutputKind::RAW) {
+                if (resolve_output_kind(path, format_flag) == OutputKind::RAW) {
                     save_raw_op(path, ckt, op_result, ckt.map);
                 } else {
                     // .csv / .txt both route to the existing human-readable text report.
@@ -112,7 +151,7 @@ int main(int argc, const char **argv)
                 TransientSimulator trans_sim = Transsetup(parser, ckt);
                 std::vector<Transient> vec_trans_result = Transient_ops(ckt, trans_sim, modmap);
                 std::string path = resolve_output("tran_solution.raw");
-                if (resolve_output_kind(path) == OutputKind::RAW) {
+                if (resolve_output_kind(path, format_flag) == OutputKind::RAW) {
                     save_raw_tran(path, ckt, vec_trans_result, ckt.map);
                 } else {
                     save_csv(path, ckt, vec_trans_result, ckt.map);
@@ -124,7 +163,7 @@ int main(int argc, const char **argv)
                 dc::DCSimulator dcSim = dc::DCsetup(parser, ckt);
                 std::vector<dc::DCResult> vec_dc_result = dc::DC_ops(ckt, dcSim, modmap);
                 std::string path = resolve_output("dc_solution.raw");
-                if (resolve_output_kind(path) == OutputKind::RAW) {
+                if (resolve_output_kind(path, format_flag) == OutputKind::RAW) {
                     save_raw_dc(path, ckt, vec_dc_result, ckt.map);
                 } else {
                     save_csv_dc(path, ckt, vec_dc_result, ckt.map);
@@ -138,7 +177,7 @@ int main(int argc, const char **argv)
                 ac::ACsimulator acSim = ac::ACsetup(parser, ckt);
                 std::vector<ac::ACResult> vec_ac_result = ac::AC_ops(ckt, acSim, modmap);
                 std::string path = resolve_output("ac_solution.raw");
-                if (resolve_output_kind(path) == OutputKind::RAW) {
+                if (resolve_output_kind(path, format_flag) == OutputKind::RAW) {
                     save_raw_ac(path, ckt, vec_ac_result, ckt.map);
                 } else {
                     save_csv_ac(path, ckt, vec_ac_result, ckt.map, acSim.type);
