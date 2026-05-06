@@ -142,9 +142,13 @@ The resulting binary will be located at `./build/eespice`.
 Xuanhao Bao, Danial Chitnis, "[EEspice: A Modular Circuit Simulation Platform with Parallel Device Model Evaluation via Graph Coloring](https://arxiv.org/abs/2604.03079)", 2026
 
 ## Contributions
+
 Previous contributions include former MEng students at the University of Edinburgh:
+
 [Amir Hamzah Rasouli](https://www.linkedin.com/in/amir-hamzah-rasouli/)
+
 [Salman Saiful Redzuan](https://www.linkedin.com/in/salmansaifulredzuan/)
+
 [Finlay Marno](https://www.linkedin.com/in/finlay-marno-698aa211a/)
 
 
