@@ -5,6 +5,7 @@
 *.txt
 *.raw
 !CMakeLists.txt
+!requirements.txt
 *.data
 *.png
 output.txt
@@ -20,4 +21,5 @@ venv
 build
 .claude
 .omc
-
+__pycache__
+*.log

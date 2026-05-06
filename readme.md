@@ -35,6 +35,9 @@ Run a simulation by providing the path to a netlist file. You can control the ou
 
 # Specify custom output path (auto-detects format from extension)
 ./eespice.sh run -o results.raw Netlist/Inverter.cir
+
+# Run and automatically generate a PNG plot
+./eespice.sh run Netlist/Inverter.cir --plot
 ```
 
 **Options:**
@@ -42,6 +45,7 @@ Run a simulation by providing the path to a netlist file. You can control the ou
 - `-f, --format <ascii|binary>`: Enforce the output format.
   - `binary`: Produces an `ngspice`-compatible binary RAW file (default).
   - `ascii`: Produces a human-readable CSV file (or a directory of CSVs in batch mode).
+- `-p, --plot [path]`: Generate a PNG plot from the binary output. If no path is provided, it defaults to the output name with a `.png` extension.
 
 **Format Discovery:**
 If `-f` is not provided, the format is determined by the file extension of the `-o` path:
@@ -50,7 +54,35 @@ If `-f` is not provided, the format is determined by the file extension of the `
 
 *Note: The legacy `.output` directive inside netlists is now ignored in favor of these command-line flags.*
 
-### 3. Batch Simulation
+### 3. Plotting Results
+
+EEspice includes a Python-based plotting utility that generates professional-quality graphs from binary `.raw` files.
+
+#### Automatic Plotting
+Use the `-p` flag with `./eespice.sh run` to generate a plot immediately after the simulation finishes. This automatically ensures the output format is binary.
+
+```bash
+# Generate Results/output.raw and Results/output.png
+./eespice.sh run Netlist/Inverter.cir -p
+
+# Specify a custom plot path
+./eespice.sh run Netlist/Inverter.cir -o results.raw -p analysis_plot.png
+```
+
+#### Standalone Plotting
+You can also use the plotting script independently. It requires Python 3 with `matplotlib` and `numpy`.
+
+```bash
+# Set up a virtual environment (optional but recommended)
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Run the plotter
+python helper/plot_raw.py results.raw output_plot.png
+```
+
+### 4. Batch Simulation
 EEspice supports batch simulations by specifying ranges or lists for component values in the netlist (e.g., `R1 1 0 [1k:1k:10k]` or `V1 1 0 (1.2 1.5 1.8)`).
 
 **Batch Output Behavior:**
@@ -65,7 +97,7 @@ EEspice supports batch simulations by specifying ranges or lists for component v
 ./eespice.sh run -o sweep_folder -f ascii Netlist/batch.cir
 ```
 
-### 4. Interactive Shell
+### 5. Interactive Shell
 If you need to explore the environment inside the container:
 ```bash
 ./eespice.sh shell

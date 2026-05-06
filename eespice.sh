@@ -17,7 +17,9 @@ show_help() {
     echo "  run [options] [file]  Run a simulation (e.g., ./eespice.sh run Netlist/Inverter.cir)"
     echo "      -o, --output <path>    Specify output file path"
     echo "      -f, --format <format>  Enforce output format (ascii or binary)"
+    echo "      -p, --plot [path]      Generate a PNG plot from the results (binary format only)"
     echo "  shell         Open an interactive shell inside the container"
+
     echo "  help          Show this help message"
     echo ""
 }
@@ -61,6 +63,8 @@ case "$1" in
         EESPICE_ARGS=()
         DOCKER_MOUNTS=()
         NETLIST_FILE=""
+        PLOT_PATH=""
+        GENERATE_PLOT=false
 
         while [[ $# -gt 0 ]]; do
             case $1 in
@@ -74,6 +78,15 @@ case "$1" in
                 -f|--format)
                     EESPICE_ARGS+=("-f" "$2")
                     shift 2
+                    ;;
+                -p|--plot)
+                    GENERATE_PLOT=true
+                    if [[ $# -gt 1 && ! "$2" == -* ]]; then
+                        PLOT_PATH="$2"
+                        shift 2
+                    else
+                        shift
+                    fi
                     ;;
                 *)
                     if [ -z "$NETLIST_FILE" ]; then
@@ -93,6 +106,40 @@ case "$1" in
             exit 1
         fi
 
+        # If plotting is requested without an explicit output path, ensure binary format is used
+        # because the plotter requires binary .raw files.
+        if [ "$GENERATE_PLOT" = true ]; then
+            # Find if format was already specified
+            FORMAT_SPECIFIED=false
+            OUTPUT_SPECIFIED=false
+            for arg in "${EESPICE_ARGS[@]}"; do
+                if [[ "$arg" == "ascii" ]]; then
+                    echo "Error: Plotting requires binary format, but ascii was specified."
+                    exit 1
+                fi
+                if [[ "$arg" == "binary" ]]; then
+                    FORMAT_SPECIFIED=true
+                fi
+                if [[ "$arg" == "-o" ]]; then
+                    OUTPUT_SPECIFIED=true
+                fi
+            done
+            if [ "$FORMAT_SPECIFIED" = false ]; then
+                EESPICE_ARGS+=("-f" "binary")
+            fi
+            
+            # If -o is missing, provide a default output path so the plotter knows where to look
+            if [ "$OUTPUT_SPECIFIED" = false ]; then
+                DEFAULT_OUT="Results/output.raw"
+                mkdir -p Results
+                OUT_PATH=$(realpath -m "$DEFAULT_OUT")
+                OUT_DIR=$(dirname "$OUT_PATH")
+                DOCKER_MOUNTS+=("-v" "$OUT_DIR:$OUT_DIR")
+                EESPICE_ARGS+=("-o" "$OUT_PATH")
+                echo "Notice: No output path specified. Defaulting to $DEFAULT_OUT for plotting."
+            fi
+        fi
+
         # Get absolute path of the file to handle mounting correctly
         FILE_PATH=$(realpath "$NETLIST_FILE")
         DIR_PATH=$(dirname "$FILE_PATH")
@@ -107,6 +154,42 @@ case "$1" in
             -v "$(pwd)":/sim \
             "${DOCKER_MOUNTS[@]}" \
             $IMAGE_NAME "${EESPICE_ARGS[@]}" "/netlist/$FILE_NAME"
+
+        # Handle plotting after simulation
+        if [ "$GENERATE_PLOT" = true ]; then
+            # We need to find where the .raw file was saved.
+            # 1. Check if -o was provided
+            RAW_FILE=""
+            for ((i=0; i<${#EESPICE_ARGS[@]}; i++)); do
+                if [[ "${EESPICE_ARGS[$i]}" == "-o" ]]; then
+                    RAW_FILE="${EESPICE_ARGS[$((i+1))]}"
+                fi
+            done
+
+            # 2. If no -o, we'd need to parse the netlist for .output, which is complex for a bash script.
+            # For now, we expect -o to be used with --plot for reliability, or we can warn.
+            if [ -z "$RAW_FILE" ]; then
+                 echo "Warning: No output path specified with -o. Plotting might fail if .raw file location is unknown."
+                 # Try to guess or parse? Let's look for Results/ directory as a fallback if it exists.
+            fi
+
+            if [ -n "$RAW_FILE" ] && [ -f "$RAW_FILE" ]; then
+                if [ -z "$PLOT_PATH" ]; then
+                    PLOT_PATH="${RAW_FILE%.*}.png"
+                fi
+                
+                # Check if venv exists and use it, otherwise use system python
+                PYTHON_CMD="python3"
+                if [ -d "venv" ]; then
+                    PYTHON_CMD="./venv/bin/python3"
+                fi
+                
+                echo "Generating plot: $PLOT_PATH"
+                $PYTHON_CMD helper/plot_raw.py "$RAW_FILE" "$PLOT_PATH"
+            else
+                echo "Error: Could not find output file for plotting. Use -o to specify the output path."
+            fi
+        fi
         ;;
     shell)
         echo "Opening interactive shell..."
