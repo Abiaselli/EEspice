@@ -15,6 +15,7 @@ show_help() {
     echo "      --native x86        Compile for generic modern x86-64 (x86-64-v3)"
     echo "      (default)           Compile for generic baseline (x86-64 or armv8-a)"
     echo "  run [file]    Run a simulation (e.g., ./eespice.sh run Netlist/Inverter.cir)"
+    echo "                (Default output is binary .raw. Use .output filename.txt in netlist for ASCII)"
     echo "  shell         Open an interactive shell inside the container"
     echo "  help          Show this help message"
     echo ""
@@ -68,8 +69,9 @@ case "$1" in
 
         echo "Running simulation: $FILE_NAME"
         # Mount the netlist's directory to /netlist so eespice can read it.
+        # This means '.output' paths in the netlist are resolved relative to the netlist's directory.
         # Mount the current working directory to /sim (the default WORKDIR in the container),
-        # so output files are saved to the directory where this script was executed.
+        # so default output files (e.g. tran_solution.raw) are saved to where the script is executed.
         docker run --rm --user $(id -u):$(id -g) -v "$DIR_PATH":/netlist -v "$(pwd)":/sim $IMAGE_NAME "/netlist/$FILE_NAME"
         ;;
     shell)

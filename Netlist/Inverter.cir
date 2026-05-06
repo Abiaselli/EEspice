@@ -5,7 +5,7 @@ Inverter test with BSIM4 models
 .options acct
 .options num_threads=2
 .sparse
-.output Results/inverter.raw
+.output Results/inverter.txt
 
 M1 output input VDD VDD pmos W=1u L=0.09u
 M2 output input GND GND nmos W=1u L=0.09u

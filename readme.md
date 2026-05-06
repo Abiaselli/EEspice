@@ -24,7 +24,7 @@ Build the persistent Docker image once (or whenever you update the source code).
 ```
 
 ### 2. Run a Simulation
-Run a simulation by providing the path to a netlist file. Output files (e.g., `tran_solution.csv`) will be saved directly to your current working directory.
+Run a simulation by providing the path to a netlist file. By default, output files (e.g., `tran_solution.raw`) are saved as `ngspice`-compatible binary to your current working directory. You can specify a custom output path and format (ASCII/CSV) by adding an `.output filename.txt` or `.output filename.csv` directive inside your netlist.
 ```bash
 ./eespice.sh run Netlist/Inverter.cir
 ```

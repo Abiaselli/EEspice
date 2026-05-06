@@ -6,7 +6,7 @@ set -e
 # to verify that the Docker image is working correctly and producing output.
 
 NETLIST="Netlist/Inverter.cir"
-OUTPUT_FILE="tran_solution.csv"
+OUTPUT_FILE="Netlist/Results/inverter.txt"
 
 echo "=== Running EEspice Docker Test ==="
 
