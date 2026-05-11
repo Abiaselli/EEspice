@@ -6,7 +6,9 @@ EEspice is a SPICE-compatible circuit simulator optimized for performance. It fe
 
 The easiest way to build and run EEspice is using Docker. This ensures all dependencies (SuiteSparse, Armadillo, OpenBLAS) are correctly configured without modifying your host system.
 
+```bash
 docker build --tag eespice .
+```
 
 ### 1. Build the Image
 Build the persistent Docker image once (or whenever you update the source code). By default, it builds for a generic baseline architecture for maximum compatibility.
